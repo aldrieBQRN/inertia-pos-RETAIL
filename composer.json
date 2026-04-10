@@ -58,6 +58,9 @@
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
         ],
+        "skip-view-cache": [
+            "@php -r \"if (!is_dir('storage/framework/views')) { mkdir('storage/framework/views', 0755, true); }\""
+        ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
         ],
