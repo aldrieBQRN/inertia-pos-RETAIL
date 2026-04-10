@@ -1,0 +1,24 @@
+#!/bin/sh
+set -e
+
+# Ensure storage directories exist
+mkdir -p storage/framework/views
+mkdir -p storage/framework/cache
+mkdir -p storage/logs
+
+# Install composer dependencies
+composer install --no-dev --optimize-autoloader
+
+# Generate app key if not set
+if [ -z "$APP_KEY" ]; then
+    php artisan key:generate --force
+fi
+
+# Clear config cache from previous builds
+php artisan config:clear
+
+# Build frontend assets
+npm ci --omit=dev
+npm run build
+
+echo "Build completed successfully!"
