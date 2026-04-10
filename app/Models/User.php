@@ -1,0 +1,113 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+/**
+ * User Model
+ * * Represents an application user and handles authentication,
+ * notification routing, and administrative role assignment.
+ */
+class User extends Authenticatable
+{
+    use HasFactory, Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     * * * Includes 'is_admin' to allow for role-based access control
+     * during user creation or updates.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'role',
+        'is_admin',
+        'store_id',
+        'account_number',
+        'phone_number',
+        'address',
+        'city',
+        'province',
+        'country',
+        'avatar_path',
+        'terms_accepted_at',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     * * * Prevents sensitive authentication data from being
+     * included in JSON API responses.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     * * * Handles automatic hashing for passwords and converts the
+     * 'is_admin' database flag into a boolean.
+     *
+     * @return array<string, string>
+     */
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'is_admin' => 'boolean',
+            'terms_accepted_at' => 'datetime', // <--- Add this exact line
+        ];
+    }
+
+    /**
+     * The "booted" method of the model.
+     * This automatically runs whenever a User model is manipulated.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Automatically assign a purely numeric, sequential account number right before saving a NEW user
+        static::creating(function ($user) {
+            if (empty($user->account_number)) {
+                // Find the user with the highest ID to determine the last used number
+                $latestUser = self::orderBy('id', 'desc')->first();
+
+                if ($latestUser && $latestUser->account_number) {
+                    // Extract ONLY the numbers (This prevents crashes if old records still have 'ACC-')
+                    $lastNumber = (int) preg_replace('/[^0-9]/', '', $latestUser->account_number);
+                    $nextNumber = $lastNumber > 0 ? $lastNumber + 1 : 10000001;
+                } else {
+                    // Fallback starting number if database is completely empty (8 digits for massive scale)
+                    $nextNumber = 10000001;
+                }
+
+                // Format it with zero-padding to guarantee at least 8 digits (e.g., 10000001)
+                $user->account_number = str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
+            }
+        });
+    }
+
+    /**
+     * Get the store that the user belongs to.
+     */
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class);
+    }
+}

@@ -1,0 +1,936 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import axios from 'axios';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head } from '@inertiajs/react';
+import Barcode from '@/Components/Barcode';
+import MobileScanner from '@/Components/MobileScanner';
+import CategoryManager from '@/Components/CategoryManager';
+import Swal from 'sweetalert2';
+import { printLabels, downloadLabelImage } from '@/Utils/printLabels';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+export default function Inventory({ auth }) {
+    const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [settings, setSettings] = useState(null);
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+    const [isExporting, setIsExporting] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [showScanner, setShowScanner] = useState(false);
+    const [showCategoryManager, setShowCategoryManager] = useState(false);
+    const [editMode, setEditMode] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [isCheckingSku, setIsCheckingSku] = useState(false);
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterCategory, setFilterCategory] = useState('');
+    const [showLowStock, setShowLowStock] = useState(false);
+
+    const [printState, setPrintState] = useState({
+        isOpen: false,
+        product: null,
+        quantity: 1,
+        mode: 'thermal' // 'thermal' or 'a4'
+    });
+
+    const [formData, setFormData] = useState({
+        name: '', category_id: '', price: '', cost_price: '', stock_quantity: '', sku: '', image: null
+    });
+
+    const formatCurrency = (cents) => {
+        return (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    useEffect(() => {
+        loadCategories();
+        fetchSettings();
+        loadAllProducts(true);
+
+        const interval = setInterval(() => {
+            loadAllProducts(false);
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, filterCategory, showLowStock]);
+
+    const fetchSettings = async () => {
+        try { const res = await axios.get('/api/settings'); setSettings(res.data); } catch (e) {}
+    };
+
+    const loadAllProducts = async (showLoading = true) => {
+        if (showLoading) setLoading(true);
+        try {
+            const response = await axios.get('/api/products', { params: { all: true } });
+            const data = Array.isArray(response.data) ? response.data : (response.data.data || []);
+            setProducts(data);
+        } catch (error) {
+            console.error("Critical error loading inventory:", error);
+        } finally {
+            if (showLoading) setLoading(false);
+        }
+    };
+
+    const loadCategories = async () => {
+        try {
+            const response = await axios.get('/api/categories');
+            setCategories(response.data);
+        } catch (e) {
+            console.error("Category load failed:", e);
+        }
+    };
+
+    const handleCategoryUpdate = () => {
+        loadCategories();
+        loadAllProducts(false);
+    };
+
+    const filteredProducts = useMemo(() => {
+        return products.filter(p => {
+            const searchLower = searchTerm.toLowerCase();
+            const matchesSearch = (p.name && p.name.toLowerCase().includes(searchLower)) ||
+                                  (p.sku && p.sku.toLowerCase().includes(searchLower));
+
+            const matchesCategory = filterCategory ? p.category_id?.toString() === filterCategory.toString() : true;
+            const matchesLowStock = showLowStock ? p.stock_quantity <= 10 : true;
+
+            return matchesSearch && matchesCategory && matchesLowStock;
+        });
+    }, [products, searchTerm, filterCategory, showLowStock]);
+
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+    const paginatedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const handleQuickAdd = async (product) => {
+        const { value: quantity } = await Swal.fire({
+            title: `Restock: ${product.name}`,
+            input: 'number',
+            inputLabel: 'Quantity to add to current inventory',
+            inputPlaceholder: 'Enter amount...',
+            showCancelButton: true,
+            confirmButtonText: 'Update Stock',
+            inputValidator: (value) => {
+                if (!value || value <= 0) return 'Please enter a valid positive number.';
+            }
+        });
+
+        if (quantity) {
+            try {
+                const parsedQuantity = parseInt(quantity, 10);
+                await axios.post(`/api/products/${product.id}/stock`, { quantity: parsedQuantity });
+                Swal.fire({ icon: 'success', title: 'Stock Updated', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+
+                setProducts(prevProducts =>
+                    prevProducts.map(p => p.id === product.id ? { ...p, stock_quantity: Number(p.stock_quantity) + parsedQuantity } : p)
+                );
+            } catch (error) {
+                Swal.fire('Error', 'Failed to update stock levels.', 'error');
+            }
+        }
+    };
+
+    const executePrint = () => {
+        const { product, quantity, mode } = printState;
+        printLabels(product, settings?.store_name || 'POS STORE', quantity, mode);
+        setPrintState({ ...printState, isOpen: false });
+    };
+
+    const exportPDF = async () => {
+        setIsExporting(true);
+
+        try {
+            const exportData = filteredProducts;
+
+            if (!exportData || exportData.length === 0) {
+                Swal.fire('No Data', 'No records found to export.', 'info');
+                setIsExporting(false);
+                return;
+            }
+
+            const doc = new jsPDF('landscape');
+            const pageWidth = doc.internal.pageSize.width;
+
+            const storeName = settings?.store_name || 'POS Store System';
+            const storeAddress = settings?.address || '';
+            const storeContact = settings?.phone ? `Contact: ${settings.phone}` : '';
+
+            let currentY = 20;
+
+            doc.setFontSize(22);
+            doc.setTextColor(31, 41, 55);
+            doc.setFont(undefined, 'bold');
+            doc.text(storeName, 14, currentY);
+
+            doc.setFontSize(10);
+            doc.setTextColor(107, 114, 128);
+            doc.setFont(undefined, 'normal');
+
+            if (storeAddress) {
+                currentY += 6;
+                doc.text(storeAddress, 14, currentY);
+            }
+            if (storeContact) {
+                currentY += 5;
+                doc.text(storeContact, 14, currentY);
+            }
+
+            currentY += 8;
+            doc.setDrawColor(229, 231, 235);
+            doc.setLineWidth(0.5);
+            doc.line(14, currentY, pageWidth - 14, currentY);
+
+            currentY += 10;
+            doc.setFontSize(16);
+            doc.setTextColor(31, 41, 55);
+            doc.setFont(undefined, 'bold');
+            doc.text('Inventory Status Report', 14, currentY);
+
+            currentY += 6;
+            doc.setFontSize(10);
+            doc.setTextColor(107, 114, 128);
+            doc.setFont(undefined, 'normal');
+
+            let filterParts = [];
+            if (searchTerm) filterParts.push(`Search: "${searchTerm}"`);
+            if (filterCategory) {
+                const catName = categories.find(c => c.id.toString() === filterCategory.toString())?.name || 'Filtered Category';
+                filterParts.push(`Category: ${catName}`);
+            }
+            if (showLowStock) filterParts.push('Low Stock Only');
+
+            const filterText = filterParts.length > 0 ? `Filters: ${filterParts.join(' | ')}` : 'Filter: All Inventory Items';
+            doc.text(filterText, 14, currentY);
+
+            const generatedText = `Generated: ${new Date().toLocaleString()}`;
+            const textWidth = doc.getTextWidth(generatedText);
+            doc.text(generatedText, pageWidth - 14 - textWidth, currentY);
+
+            const tableStartY = currentY + 8;
+            const tableColumns = ["SKU / Barcode", "Product Name", "Category", "Retail Price", "Stock", "Status"];
+            const tableRows = [];
+            let totalInventoryValue = 0;
+
+            exportData.forEach(p => {
+                const status = p.stock_quantity <= 10 ? 'Low Stock' : 'In Stock';
+                const price = (p.price || 0) / 100;
+                totalInventoryValue += (price * p.stock_quantity);
+
+                tableRows.push([
+                    p.sku || 'N/A',
+                    p.name || 'Unknown Product',
+                    p.category?.name || 'Uncategorized',
+                    `PHP ${price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                    p.stock_quantity.toString(),
+                    status
+                ]);
+            });
+
+            autoTable(doc, {
+                head: [tableColumns],
+                body: tableRows,
+                startY: tableStartY,
+                theme: 'striped',
+                headStyles: { fillColor: '#9b5a33', textColor: 255, fontStyle: 'bold' },
+                styles: { fontSize: 9, cellPadding: 4, valign: 'middle' },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === 5) {
+                        if (data.cell.raw === 'Low Stock') {
+                            data.cell.styles.textColor = [220, 38, 38];
+                            data.cell.styles.fontStyle = 'bold';
+                        } else {
+                            data.cell.styles.textColor = [22, 163, 74];
+                            data.cell.styles.fontStyle = 'bold';
+                        }
+                    }
+                }
+            });
+
+            const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : tableStartY + 20;
+            doc.setFontSize(12);
+            doc.setTextColor(31, 41, 55);
+            doc.text(
+                `Total Distinct Items: ${exportData.length}   |   Est. Total Inventory Value (Retail): PHP ${totalInventoryValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                14,
+                finalY + 12
+            );
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            doc.save(`Inventory_Report_${dateStr}.pdf`);
+            Swal.fire({ icon: 'success', title: 'PDF Exported!', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+
+        } catch (error) {
+            console.error("PDF Generation Error:", error);
+            Swal.fire('Error', 'Failed to generate PDF report.', 'error');
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+    const handleFileChange = (e) => setFormData({ ...formData, image: e.target.files[0] });
+
+    const checkSkuExists = (skuToCheck) => {
+        return products.some(p => p.sku === skuToCheck && p.id !== editingId);
+    };
+
+    const checkNameExists = (nameToCheck) => {
+        return products.some(p => p.name.toLowerCase() === nameToCheck.toLowerCase() && p.id !== editingId);
+    };
+
+    const generateSKU = async () => {
+        setIsCheckingSku(true);
+        let isUnique = false;
+        let newSku = '';
+        let attempts = 0;
+
+        while (!isUnique && attempts < 5) {
+            newSku = Math.floor(10000000 + Math.random() * 90000000).toString();
+            if (!checkSkuExists(newSku)) isUnique = true;
+            attempts++;
+        }
+        setIsCheckingSku(false);
+
+        if (isUnique) setFormData(prev => ({ ...prev, sku: newSku }));
+        else Swal.fire('Error', 'Could not generate a unique SKU.', 'error');
+    };
+
+    const handleScan = (data) => {
+        setShowScanner(false);
+
+        if (checkSkuExists(data)) {
+            Swal.fire({ icon: 'warning', title: 'Duplicate Barcode', text: `The barcode "${data}" is already registered!`, confirmButtonColor: '#3085d6' });
+        } else {
+            setFormData(p => ({ ...p, sku: data }));
+            setShowModal(true);
+        }
+    };
+
+    const openAddModal = () => {
+        setEditMode(false);
+        setEditingId(null);
+        setFormData({ name: '', category_id: '', price: '', cost_price: '', stock_quantity: '', sku: '', image: null });
+        setShowModal(true);
+    };
+
+    const openEditModal = (p) => {
+        setEditMode(true);
+        setEditingId(p.id);
+        setFormData({
+            name: p.name,
+            category_id: p.category_id || '',
+            price: (p.price / 100).toFixed(2),
+            cost_price: p.cost_price ? (p.cost_price / 100).toFixed(2) : '',
+            stock_quantity: p.stock_quantity,
+            sku: p.sku,
+            image: null
+        });
+        setShowModal(true);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSaving(true);
+
+        try {
+            const cleanName = formData.name.trim();
+            const cleanSku = formData.sku.trim();
+
+            if (checkNameExists(cleanName)) {
+                setIsSaving(false);
+                return Swal.fire({ icon: 'warning', title: 'Name Already Exists', text: `A product named "${cleanName}" is already in your inventory.`, confirmButtonColor: '#3085d6' });
+            }
+
+            if (checkSkuExists(cleanSku)) {
+                setIsSaving(false);
+                return Swal.fire({ icon: 'warning', title: 'Duplicate Barcode', text: `The barcode "${cleanSku}" is already assigned.`, confirmButtonColor: '#3085d6' });
+            }
+
+            const data = new FormData();
+            data.append('name', cleanName);
+            data.append('category_id', formData.category_id);
+            data.append('price', formData.price);
+            data.append('cost_price', formData.cost_price);
+            data.append('stock_quantity', formData.stock_quantity);
+            data.append('sku', cleanSku);
+            if(formData.image) data.append('image', formData.image);
+
+            if(editMode) {
+                data.append('_method', 'PUT');
+                await axios.post(`/api/products/${editingId}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+            } else {
+                await axios.post('/api/products', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+            }
+
+            setShowModal(false);
+            loadAllProducts(false); // Silent reload
+            Swal.fire({ icon: 'success', title: 'Saved!', showConfirmButton: false, timer: 1500 });
+
+        } catch(err) {
+            Swal.fire('Error', 'An error occurred while saving the product.', 'error');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        const result = await Swal.fire({
+            title: 'Delete this product?',
+            text: "This action will remove the item from the inventory. Note: Items with sales history cannot be deleted.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Confirm Delete'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await axios.delete(`/api/products/${id}`);
+                loadAllProducts(false); // Silent reload
+                Swal.fire('Deleted!', 'Product successfully removed.', 'success');
+            } catch (error) {
+                const serverMessage = error.response?.data?.error;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Deletion Restricted',
+                    text: serverMessage || "This product is linked to sales records and cannot be deleted for auditing purposes.",
+                    footer: '<b>Solution:</b> Set stock to 0 or mark as inactive instead.'
+                });
+            }
+        }
+    };
+
+    return (
+        <AuthenticatedLayout user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800">Inventory</h2>}>
+            <Head title="Inventory" />
+
+            <div className="py-4 sm:py-12 bg-gray-50 min-h-screen">
+                <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
+
+                    {/* UNIFIED FULL-WIDTH MEGA TOOLBAR */}
+                    <div className="px-4 sm:px-0">
+                        <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col gap-3 w-full">
+
+                            <div className="relative w-full">
+                                <input
+                                    type="text"
+                                    placeholder="Search SKU or product name..."
+                                    className="pl-11 pr-4 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm font-medium transition-colors"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                                <svg className="w-5 h-5 text-gray-400 absolute left-4 top-3 sm:top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            </div>
+
+                            <div className={`grid grid-cols-2 gap-2 sm:gap-3 w-full ${auth.user.is_admin ? 'lg:grid-cols-5' : 'lg:grid-cols-3'}`}>
+                                <select
+                                    value={filterCategory}
+                                    onChange={(e) => setFilterCategory(e.target.value)}
+                                    className="col-span-1 lg:col-span-1 w-full bg-white border border-gray-200 rounded-lg py-2.5 sm:py-3 pl-3 pr-8 focus:ring-2 focus:ring-blue-500 focus:bg-white text-gray-600 text-xs sm:text-sm font-medium transition-colors"
+                                >
+                                    <option value="">All Categories</option>
+                                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                </select>
+
+                                <button
+                                    onClick={() => setShowLowStock(!showLowStock)}
+                                    className={`col-span-1 lg:col-span-1 w-full py-2.5 sm:py-3 rounded-lg font-bold flex items-center justify-center gap-1.5 sm:gap-2 border transition-all text-xs sm:text-sm active:scale-95
+                                        ${showLowStock ? 'bg-red-50 text-red-700 border-red-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 shadow-sm'}`}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 sm:w-4 sm:h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+                                    <span className="hidden sm:inline">{showLowStock ? 'Low Stock Only' : 'Show Low Stock'}</span>
+                                    <span className="sm:hidden text-[11px]">Low Stock</span>
+                                </button>
+
+                                <button onClick={() => setShowCategoryManager(true)} className={`${auth.user.is_admin ? 'col-span-1 lg:col-span-1' : 'col-span-2 lg:col-span-1'} w-full py-2.5 sm:py-3 flex items-center justify-center bg-white text-gray-700 rounded-lg font-bold border border-gray-200 shadow-sm hover:bg-gray-50 active:scale-95 transition-all text-xs sm:text-sm whitespace-nowrap`}>
+                                    {auth.user.is_admin ? 'Categories' : 'View Categories'}
+                                </button>
+
+                                {auth.user.is_admin && (
+                                    <button
+                                        onClick={exportPDF}
+                                        disabled={isExporting}
+                                        className={`col-span-1 lg:col-span-1 w-full py-2.5 sm:py-3 rounded-lg font-bold flex items-center justify-center gap-1 sm:gap-2 shadow-sm transition-all text-xs sm:text-sm active:scale-95
+                                            ${isExporting
+                                                ? 'opacity-50 cursor-not-allowed bg-green-600 text-white'
+                                                : 'bg-green-600 text-white hover:bg-green-700'
+                                            }`}
+                                    >
+                                        {isExporting ? (
+                                            <>
+                                                <svg className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                <span>Wait...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 sm:w-4 sm:h-4">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                                </svg>
+                                                <span>Export PDF</span>
+                                            </>
+                                        )}
+                                    </button>
+                                )}
+
+                                {auth.user.is_admin && (
+                                    <button onClick={openAddModal} className="col-span-2 lg:col-span-1 w-full py-2.5 sm:py-3 flex items-center justify-center bg-gray-900 text-white rounded-lg font-bold hover:bg-black shadow-sm active:scale-95 transition-all text-xs sm:text-sm gap-1.5 sm:gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                        New Product
+                                    </button>
+                                )}
+
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* TABLE: DESKTOP VIEW */}
+                    <div className="hidden md:block bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 mx-4 sm:mx-0">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="bg-gray-50 border-b text-gray-500 uppercase text-[10px] font-black tracking-wider">
+                                    <tr>
+                                        <th className="p-4 w-32">Barcode</th>
+                                        <th className="p-4">Product Details</th>
+                                        <th className="p-4">Category</th>
+                                        <th className="p-4 text-right">Price</th>
+                                        <th className="p-4 text-center">Inventory</th>
+                                        <th className="p-4 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {loading ? (
+                                        Array.from({ length: 5 }).map((_, index) => (
+                                            <tr key={`skel-${index}`} className="animate-pulse">
+                                                <td className="p-4"><div className="h-6 bg-gray-200 rounded w-24"></div></td>
+                                                <td className="p-4 flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-gray-200 rounded-lg shrink-0"></div>
+                                                    <div className="h-4 bg-gray-200 rounded w-40"></div>
+                                                </td>
+                                                <td className="p-4"><div className="h-6 bg-gray-200 rounded-lg w-20"></div></td>
+                                                <td className="p-4 flex justify-end"><div className="h-5 bg-gray-200 rounded w-16"></div></td>
+                                                <td className="p-4">
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <div className="h-6 bg-gray-200 rounded-md w-16"></div>
+                                                        <div className="h-6 w-6 bg-gray-200 rounded-md"></div>
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 flex justify-center gap-2">
+                                                    {auth.user.is_admin && <div className="w-9 h-9 bg-gray-200 rounded-md"></div>}
+                                                    <div className="w-9 h-9 bg-gray-200 rounded-md"></div>
+                                                    <div className="w-9 h-9 bg-gray-200 rounded-md"></div>
+                                                    {auth.user.is_admin && <div className="w-9 h-9 bg-gray-200 rounded-md"></div>}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : paginatedProducts.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="6" className="p-12 text-center text-gray-500">
+                                                <div className="flex flex-col items-center justify-center py-6">
+                                                    <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                                                    </svg>
+                                                    <h3 className="text-lg font-bold text-gray-900">No products found</h3>
+                                                    <p className="text-sm text-gray-500 mt-1 max-w-sm mx-auto">
+                                                        {searchTerm || filterCategory || showLowStock
+                                                            ? "We couldn't find any products matching your current filters."
+                                                            : "Your inventory is currently empty. Start by adding your first product."}
+                                                    </p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        paginatedProducts.map((p) => (
+                                            <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                                                <td className="p-4"><Barcode value={p.sku} width={1} height={25} fontSize={10} /></td>
+                                                <td className="p-4 flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-gray-50 rounded-md border flex items-center justify-center overflow-hidden shrink-0">
+                                                        {p.image_path ? <img src={p.image_path} className="w-full h-full object-cover"/> : (
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-300"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
+                                                        )}
+                                                    </div>
+                                                    <span className="font-bold text-gray-800">{p.name}</span>
+                                                </td>
+                                                <td className="p-4">
+                                                    {p.category ? (
+                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-white border border-gray-200 text-gray-600 shadow-sm">
+                                                            <span className="w-2 h-2 rounded-full border border-black/10" style={{ backgroundColor: p.category.color || '#3B82F6' }}></span>
+                                                            {p.category.name}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-gray-400 text-sm italic">Uncategorized</span>
+                                                    )}
+                                                </td>
+                                                <td className="p-4 font-black text-gray-900 text-right tracking-tight">₱{formatCurrency(p.price)}</td>
+                                                <td className="p-4">
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <span className={`px-2.5 py-1 rounded-md text-xs font-black tracking-wider uppercase ${p.stock_quantity <= 10 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                                                            {p.stock_quantity} Left
+                                                        </span>
+                                                        <button onClick={() => handleQuickAdd(p)} className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center font-bold transition-all active:scale-95" title="Quick Add Stock">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 text-center flex justify-center gap-2">
+                                                    {auth.user.is_admin && (
+                                                        <button onClick={() => openEditModal(p)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-100 rounded-lg transition-colors" title="Edit">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+                                                        </button>
+                                                    )}
+
+                                                    {/* OPEN PRINT MODAL BUTTON */}
+                                                    <button onClick={() => setPrintState({ isOpen: true, product: p, quantity: 1, mode: 'thermal' })} className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors" title="Print Labels">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
+                                                    </button>
+
+                                                    <button onClick={() => downloadLabelImage(p, settings?.store_name || 'POS STORE')} className="p-2 text-green-500 hover:text-green-700 hover:bg-green-100 rounded-lg transition-colors" title="Save Barcode Image">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                                    </button>
+
+                                                    {auth.user.is_admin && (
+                                                        <button onClick={() => handleDelete(p.id)} className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors" title="Delete">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* MOBILE APP-LIKE CARD VIEW */}
+                    <div className="md:hidden flex flex-col divide-y divide-gray-100 bg-white sm:rounded-lg border-y sm:border border-gray-200 shadow-sm">
+                        {loading ? (
+                            Array.from({ length: 4 }).map((_, index) => (
+                                <div key={`mob-skel-${index}`} className="p-4 flex flex-col gap-3 animate-pulse">
+                                    <div className="flex gap-4">
+                                        <div className="w-20 h-20 bg-gray-200 rounded-lg shrink-0"></div>
+                                        <div className="flex-1 flex flex-col justify-center gap-2">
+                                            <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+                                            <div className="h-3 bg-gray-200 rounded w-1/3 mt-1"></div>
+                                            <div className="flex justify-between items-end mt-1">
+                                                <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                                                <div className="h-5 bg-gray-200 rounded-md w-1/4"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-100 mt-1">
+                                        <div className="h-5 bg-gray-200 rounded w-1/2"></div>
+                                        <div className="h-7 bg-gray-200 rounded-lg w-16"></div>
+                                    </div>
+                                    <div className={`grid gap-2 pt-1 ${auth.user.is_admin ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2'}`}>
+                                        {auth.user.is_admin && <div className="h-9 bg-gray-200 rounded-lg"></div>}
+                                        <div className="h-9 bg-gray-200 rounded-lg"></div>
+                                        <div className="h-9 bg-gray-200 rounded-lg"></div>
+                                        {auth.user.is_admin && <div className="h-9 bg-gray-200 rounded-lg"></div>}
+                                    </div>
+                                </div>
+                            ))
+                        ) : paginatedProducts.length === 0 ? (
+                            <div className="p-10 text-center text-gray-500 font-bold">
+                                No products found. Adjust filters to see results.
+                            </div>
+                        ) : (
+                            paginatedProducts.map((p) => (
+                                <div key={p.id} className="p-4 flex flex-col gap-3 active:bg-gray-50 transition-colors">
+                                    <div className="flex gap-4">
+                                        <div className="w-20 h-20 bg-gray-50 rounded-lg border flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                                            {p.image_path ? <img src={p.image_path} className="w-full h-full object-cover"/> : (
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-gray-300"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 flex flex-col justify-center">
+                                            <h3 className="font-bold text-gray-900 text-lg leading-tight tracking-tight">{p.name}</h3>
+                                            {p.category ? (
+                                                <div className="flex items-center gap-1.5 mt-1 mb-1">
+                                                    <span className="w-2.5 h-2.5 rounded-full border border-black/10" style={{ backgroundColor: p.category.color || '#3B82F6' }}></span>
+                                                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{p.category.name}</span>
+                                                </div>
+                                            ) : (
+                                                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 mb-1">Uncategorized</div>
+                                            )}
+                                            <div className="flex justify-between items-end mt-1.5">
+                                                <p className="font-black text-gray-900 text-xl tracking-tight">₱{formatCurrency(p.price)}</p>
+                                                <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest ${p.stock_quantity <= 10 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                                                    {p.stock_quantity} Left
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-100 mt-1">
+                                        <div className="pl-1 scale-90 origin-left opacity-75"><Barcode value={p.sku} width={1} height={20} fontSize={10} /></div>
+                                        <button onClick={() => handleQuickAdd(p)} className="text-xs bg-white border border-gray-200 text-blue-700 px-3 py-1.5 rounded-md font-bold shadow-sm active:scale-95 transition-transform">
+                                            + Stock
+                                        </button>
+                                    </div>
+                                    <div className={`grid gap-2 pt-1 ${auth.user.is_admin ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2'}`}>
+                                        {auth.user.is_admin && (
+                                            <button onClick={() => openEditModal(p)} className="py-2 text-xs font-bold text-blue-700 bg-blue-50 rounded-lg border border-blue-200 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+                                                Edit
+                                            </button>
+                                        )}
+
+                                        {/* OPEN PRINT MODAL BUTTON */}
+                                        <button onClick={() => setPrintState({ isOpen: true, product: p, quantity: 1, mode: 'thermal' })} className="py-2 text-xs font-bold text-gray-700 bg-white rounded-lg border border-gray-200 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
+                                            Print
+                                        </button>
+
+                                        <button onClick={() => downloadLabelImage(p, settings?.store_name || 'POS STORE')} className="py-2 text-xs font-bold text-green-700 bg-green-50 rounded-lg border border-green-200 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                            Save PNG
+                                        </button>
+
+                                        {auth.user.is_admin && (
+                                            <button onClick={() => handleDelete(p.id)} className="py-2 text-xs font-bold text-red-600 bg-red-50 rounded-lg border border-red-100 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                                Delete
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    {!loading && totalPages > 1 && (
+                        <div className="py-4 flex flex-col sm:flex-row justify-between items-center gap-4 pb-10 sm:pb-4 w-full overflow-visible">
+                            <span className="text-xs text-gray-400 font-bold uppercase tracking-widest shrink-0">
+                                Page <span className="text-gray-900">{currentPage}</span> of {totalPages}
+                            </span>
+                            <div className="w-full sm:w-auto overflow-x-auto hide-scrollbar pb-2 sm:pb-0">
+                                <div className="flex gap-1.5 flex-nowrap w-max mx-auto sm:mx-0 px-1">
+                                    <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({top: 0, behavior: 'smooth'}); }} className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center">&laquo; Prev</button>
+                                    {(() => {
+                                        const pages = [];
+                                        const delta = 1;
+                                        const left = Math.max(2, currentPage - delta);
+                                        const right = Math.min(totalPages - 1, currentPage + delta);
+
+                                        pages.push(1);
+                                        if (left > 2) pages.push('...');
+                                        for (let i = left; i <= right; i++) {
+                                            if (i !== 1 && i !== totalPages) pages.push(i);
+                                        }
+                                        if (right < totalPages - 1) pages.push('...');
+                                        if (totalPages > 1) pages.push(totalPages);
+
+                                        return pages;
+                                    })().map((num, idx) => (
+                                        num === '...' ? (
+                                            <span key={`ellipsis-${idx}`} className="px-2 py-2 min-h-9 text-gray-400 font-bold flex items-center">...</span>
+                                        ) : (
+                                            <button
+                                                key={num}
+                                                onClick={() => { setCurrentPage(num); window.scrollTo({top: 0, behavior: 'smooth'}); }}
+                                                className={`shrink-0 px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all flex items-center justify-center
+                                                    ${currentPage === num ? 'bg-gray-900 text-white border-gray-900 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                                            >
+                                                {num}
+                                            </button>
+                                        )
+                                    ))}
+                                    <button disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({top: 0, behavior: 'smooth'}); }} className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center">Next &raquo;</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* DUAL-MODE PRINT OPTIONS MODAL */}
+            {printState.isOpen && typeof document !== 'undefined' && createPortal(
+                <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity">
+                    <div className="absolute inset-0" onClick={() => setPrintState({ ...printState, isOpen: false })}></div>
+                    <div className="relative bg-white w-full max-w-sm rounded-lg shadow-2xl p-6 animate-slide-up sm:animate-fade-in-up flex flex-col">
+                        <div className="flex items-start justify-between border-b border-gray-100 pb-4 mb-4">
+                            <div>
+                                <h2 className="text-xl font-black tracking-tight text-gray-900">Print Labels</h2>
+                                <p className="text-xs text-gray-500 mt-1 font-medium">{printState.product?.name}</p>
+                            </div>
+                            <button onClick={() => setPrintState({ ...printState, isOpen: false })} className="p-2 bg-gray-50 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+
+                        <div className="space-y-5">
+                            {/* Quantity Input */}
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Number of Labels</label>
+                                <input
+                                    type="number"
+                                    min="1" max="200"
+                                    value={printState.quantity}
+                                    onChange={(e) => setPrintState({ ...printState, quantity: parseInt(e.target.value) || 1 })}
+                                    className="w-full bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 py-2.5 text-lg font-bold text-center transition-colors"
+                                />
+                            </div>
+
+                            {/* Mode Selector */}
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Printer Layout</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        onClick={() => setPrintState({ ...printState, mode: 'thermal' })}
+                                        className={`flex flex-col items-center justify-center gap-2 p-3 border-2 rounded-lg transition-all ${printState.mode === 'thermal' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200 hover:bg-gray-50'}`}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
+                                        <div className="text-center">
+                                            <span className="block font-bold text-sm">Thermal Roll</span>
+                                            <span className="block text-[9px] uppercase tracking-wider opacity-70 mt-0.5">40 x 20mm</span>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => setPrintState({ ...printState, mode: 'a4' })}
+                                        className={`flex flex-col items-center justify-center gap-2 p-3 border-2 rounded-lg transition-all ${printState.mode === 'a4' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200 hover:bg-gray-50'}`}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+                                        <div className="text-center">
+                                            <span className="block font-bold text-sm">A4 Sheet</span>
+                                            <span className="block text-[9px] uppercase tracking-wider opacity-70 mt-0.5">Grid Layout</span>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 pt-4 border-t border-gray-100 shrink-0">
+                            <button onClick={executePrint} className="w-full py-3.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-black shadow-lg shadow-blue-500/30 active:scale-95 transition-all text-sm uppercase tracking-wider flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
+                                Print Now
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* PRODUCT ADD/EDIT MODAL: HIDDEN WHEN SCANNER IS ACTIVE */}
+            {showModal && typeof document !== 'undefined' && createPortal(
+                <div className={`fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[100] sm:p-6 backdrop-blur-sm animate-in fade-in duration-300 ${showScanner ? 'hidden' : ''}`}>
+                    <div className="bg-white w-full h-full sm:h-auto sm:max-w-lg sm:rounded-2xl sm:shadow-2xl overflow-hidden flex flex-col sm:max-h-[90vh] animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
+
+                        {/* Header (Sticky on Mobile) */}
+                        <div className="bg-white border-b border-gray-100 px-6 sm:px-8 py-5 sm:py-6 flex justify-between items-center shrink-0 sticky top-0 z-50">
+                            <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">
+                                {editMode ? 'Update Product' : 'New Product'}
+                            </h2>
+                            <button
+                                onClick={() => setShowModal(false)}
+                                className="bg-gray-50 hover:bg-gray-100 p-2 sm:p-2.5 rounded-full text-gray-500 hover:text-gray-900 transition-colors active:scale-95"
+                            >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+
+                        {/* Scrollable Form Body */}
+                        <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar">
+                            <form id="product-form" onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-500">
+                                <div>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Name</label>
+                                    <input name="name" required value={formData.name} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="e.g. Classic Cappuccino" />
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Category</label>
+                                        <select name="category_id" value={formData.category_id} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm" required>
+                                            <option value="">Select Category...</option>
+                                            {categories.map(cat => ( <option key={cat.id} value={cat.id}>{cat.name}</option> ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Retail Price (₱)</label>
+                                        <input type="number" step="0.01" name="price" required value={formData.price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Initial Stock</label>
+                                        <input type="number" name="stock_quantity" required value={formData.stock_quantity} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱)</label>
+                                        <input type="number" step="0.01" name="cost_price" value={formData.cost_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">SKU / Barcode</label>
+                                    <div className="flex gap-2">
+                                            <input name="sku" required value={formData.sku} onChange={handleChange} className="flex-1 border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400 font-mono" placeholder="Scan..." />
+                                        <button type="button" onClick={() => setShowScanner(true)} className="bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 px-4 py-3 rounded-lg transition-colors active:scale-95" title="Scan Barcode">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" /></svg>
+                                        </button>
+                                        <button type="button" onClick={generateSKU} disabled={isCheckingSku} className="bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 px-4 py-3 rounded-lg transition-colors active:scale-95 disabled:opacity-50" title="Generate SKU">
+                                            {isCheckingSku ? (
+                                                <svg className="animate-spin h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                            ) : (
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Image (Optional)</label>
+                                    <input type="file" accept="image/*" onChange={handleFileChange} className="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-gray-100 file:text-gray-700 file:hover:bg-gray-200 file:transition-colors bg-gray-50 rounded-lg cursor-pointer border border-gray-300"/>
+                                </div>
+                            </form>
+                        </div>
+
+                        {/* Footer Actions (Sticky bottom on mobile) */}
+                        <div className="bg-white sm:bg-gray-50/80 px-6 sm:px-8 py-5 border-t border-gray-100 flex flex-col sm:flex-row justify-end gap-3 shrink-0">
+                            <button
+                                type="button"
+                                onClick={() => setShowModal(false)}
+                                className="order-2 sm:order-1 w-full sm:w-auto px-6 py-3.5 sm:py-3 text-gray-600 font-semibold bg-white border border-gray-300 hover:bg-gray-50 rounded-lg text-sm transition-all active:scale-[0.98]"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                form="product-form"
+                                disabled={isSaving}
+                                className="order-1 sm:order-2 w-full sm:w-auto px-8 py-3.5 sm:py-3 bg-gray-900 hover:bg-black text-white font-semibold rounded-lg shadow-md text-sm transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        Saving...
+                                    </>
+                                ) : 'Save Product'}
+                            </button>
+                        </div>
+
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* AUXILIARY UI COMPONENTS */}
+            {showCategoryManager && <CategoryManager onClose={() => setShowCategoryManager(false)} onUpdate={handleCategoryUpdate} isAdmin={auth.user.is_admin} />}
+
+            {/* FULL SCREEN MOBILE SCANNER PORTAL */}
+            {showScanner && typeof document !== 'undefined' && createPortal(
+                <MobileScanner onScan={handleScan} onClose={() => setShowScanner(false)} />,
+                document.body
+            )}
+        </AuthenticatedLayout>
+    );
+}
