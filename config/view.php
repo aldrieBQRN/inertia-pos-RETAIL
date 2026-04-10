@@ -27,11 +27,10 @@ return [
     | stored for your application. Typically, this is within the storage
     | directory. However, as usual, you are free to change this value.
     |
+    | For ephemeral filesystems like Railway, we disable view caching.
+    |
     */
 
-    'compiled' => env(
-        'VIEW_COMPILED_PATH',
-        storage_path('framework/views')
-    ),
+    'compiled' => null,
 
 ];
