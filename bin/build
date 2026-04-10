@@ -17,6 +17,9 @@ fi
 # Clear config cache from previous builds
 php artisan config:clear
 
+# Create storage symlink for public access to uploaded files
+php artisan storage:link --force || true
+
 # Build frontend assets
 npm ci --omit=dev
 npm run build
