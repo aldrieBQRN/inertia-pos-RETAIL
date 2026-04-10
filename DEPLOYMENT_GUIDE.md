@@ -105,81 +105,115 @@ git add public/build/
 git commit -m "Build frontend assets for InfinityFree deployment"
 ```
 
-## Step 3: Upload Files via FTP
+## Step 4: Upload All Files via FTP
 
-### Using FileZilla (Recommended)
+Since InfinityFree doesn't have terminal access, you need to upload **all files including `vendor/`** via FTP.
+
+### Important for InfinityFree (No Terminal):
+- **You MUST include the `vendor/` folder** in your FTP upload
+- Run `composer install --optimize-autoloader --no-dev` **locally first**
+- Then upload the entire project including `vendor/`
+
+### Prepare Locally Before Upload:
+
+```bash
+# Install all dependencies locally
+composer install --optimize-autoloader --no-dev
+
+# Build frontend
+npm run build
+
+# Verify vendor folder exists
+ls -la vendor/
+```
+
+### Upload via FileZilla
 
 1. Download and install [FileZilla](https://filezilla-project.org/)
 2. Open FileZilla
 3. Click **File** → **Site Manager** → **New Site**
-4. Enter your credentials:
+4. Enter credentials:
    - **Host**: Your FTP host
    - **Username**: Your FTP username
    - **Password**: Your FTP password
    - **Port**: 21
 5. Click **Connect**
-6. On the right panel, navigate to `public_html` or `htdocs`
-7. On the left, open your local project folder
-8. Select all files **EXCEPT**:
-   - `node_modules/`
-   - `vendor/` (we'll install on server)
-   - `.git/`
-   - `.env.local`
-   - `.env.azure`
-9. Right-click → **Upload**
-10. Wait for upload to complete (this may take 5-15 minutes)
+6. Navigate to `htdocs` folder on remote
+7. Upload **ALL files including:**
+   - ✅ `vendor/` folder (must include dependencies)
+   - ✅ `public/build/` (frontend assets)
+   - ✅ `app/`, `config/`, `database/`, `routes/`, etc.
+8. **Exclude these folders:**
+   - ❌ `node_modules/`
+   - ❌ `.git/`
+   - ❌ `.env.local`
+9. Right-click local project → **Upload**
+10. Wait for upload to complete (15-30 minutes with vendor included)
 
-### Using InfinityFree File Manager
+### Setup After Upload
 
-1. Log in to InfinityFree Control Panel
-2. Click **File Manager**
-3. Navigate to `public_html` folder
-4. Click **Upload**
-5. Select files (excluding `node_modules/` and `vendor/`)
-6. Upload completes
+Since you don't have terminal access, create a setup file:
 
-## Step 4: Install Composer Dependencies on Server
-
-After files are uploaded, install PHP dependencies:
-
-### Option A: Using InfinityFree Terminal (If Available)
-
-1. Log in to InfinityFree Control Panel
-2. Click **Terminal** (under **Advanced**)
-3. Run these commands:
-
-```bash
-cd public_html
-composer install --optimize-autoloader --no-dev
-php artisan config:cache
-php artisan route:cache
-php artisan migrate --force
-```
-
-### Option B: If Terminal Not Available
-
-1. Upload `composer.phar` from your local vendor directory
-2. Create a file `install.php` in `public_html`:
+1. Create file: `htdocs/setup.php`
 
 ```php
 <?php
-// Run once, then delete this file
-system('cd ' . __DIR__ . ' && php composer.phar install --optimize-autoloader --no-dev');
-system('php artisan config:cache');
-system('php artisan route:cache');
-system('php artisan migrate --force');
-echo "Installation complete!";
+// Only run once, then delete this file
+try {
+    // Set error reporting
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+
+    echo "Starting setup...<br>";
+
+    // Copy .env file if it doesn't exist
+    if (!file_exists(__DIR__ . '/.env')) {
+        copy(__DIR__ . '/.env.example', __DIR__ . '/.env');
+        echo "✓ Created .env file<br>";
+    }
+
+    // Load Laravel
+    require __DIR__ . '/vendor/autoload.php';
+    $app = require_once __DIR__ . '/bootstrap/app.php';
+
+    // Get the Artisan kernel
+    $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+
+    // Clear cache
+    $kernel->call('cache:clear');
+    echo "✓ Cache cleared<br>";
+
+    // Cache config
+    $kernel->call('config:cache');
+    echo "✓ Config cached<br>";
+
+    // Cache routes
+    $kernel->call('route:cache');
+    echo "✓ Routes cached<br>";
+
+    // Run migrations
+    $kernel->call('migrate', ['--force' => true]);
+    echo "✓ Migrations completed<br>";
+
+    echo "<br><strong style='color: green;'>Setup complete!</strong><br>";
+    echo "<strong>Important: Delete the setup.php file now!</strong>";
+
+} catch (Exception $e) {
+    echo "<strong style='color: red;'>Error: " . $e->getMessage() . "</strong><br>";
+    echo "<pre>" . $e->getTraceAsString() . "</pre>";
+}
 ?>
 ```
 
-3. Visit `https://your-domain.infinityfree.app/install.php`
-4. **Delete `install.php` after it completes** (security risk)
+2. Visit: `https://your-domain.infinityfree.app/setup.php`
+3. Wait for it to complete (should see green "Setup complete!" message)
+4. **Delete setup.php immediately** via FTP (security risk)
 
-## Step 5: Set Up Automatic Email Scheduling
+## Step 7: Set Up Automatic Email Scheduling
 
 ### How It Works
 
-The POS system has two automatic emails:
+The POS system has two automatic emails (via Laravel Scheduler):
 
 1. **Subscription Renewal Reminder** (`subscription:remind`)
    - Sent 5 days before subscription expires
@@ -193,79 +227,72 @@ The POS system has two automatic emails:
    - Processes any queued emails
    - Runs every minute
 
-### Setup Cron Job
+### Setup HTTP-Based Cron Job
 
-InfinityFree doesn't have built-in cron, but you can use **HTTP-based cron**:
-
-#### Option A: Use Free Cron Service (Easiest)
+Since InfinityFree doesn't have terminal, use a **free HTTP cron service**:
 
 1. Go to [easycron.com](https://www.easycron.com/)
-2. Click **Create** a new cron job
-3. Enter URL: `https://your-domain.infinityfree.app/scheduler.php`
-4. Set frequency to **Every 1 minute**
+2. Sign up (free)
+3. Click **Create Cron Job**
+4. Enter:
+   - **URL**: `https://your-domain.infinityfree.app/scheduler.php`
+   - **Cron Expression**: `* * * * *` (every minute)
+   - **Execution Type**: URL
 5. Click **Create**
-6. EasyCron will ping this URL every minute automatically
-
-#### Option B: Manual Setup (If HTTP Cron Not Available)
-
-Run these commands manually from terminal each day, or create a PHP script in your public folder:
-
-```bash
-# In Terminal or via SSH cron
-php artisan schedule:run
-```
+6. EasyCron will automatically ping your scheduler every minute
 
 ### Verify Scheduler Is Working
 
-1. Check logs:
+1. Wait 5 minutes after setup
+2. Check logs:
    - Via FTP, download `storage/logs/laravel.log`
    - Look for entries like: `"Subscription reminder email sent successfully"`
+3. Or check manually:
+   - Visit `https://your-domain.infinityfree.app/scheduler.php` in your browser
+   - Should see Laravel schedule run output
 
-2. Test manually via Terminal:
-```bash
-php artisan subscription:remind
-php artisan subscription:due
-php artisan queue:work --max-jobs=5
-```
-
-3. Check if emails are being sent in your Gmail sent folder
-
-## Step 6: Final Configuration
+## Step 5: Final Configuration
 
 ### Set Permissions
 
-Via Terminal if available:
-
-```bash
-chmod 755 storage
-chmod 755 bootstrap/cache
-chmod 644 .env
-chmod 644 .htaccess
-```
-
-Or manually via File Manager (right-click files → Properties)
+Most hosting already has correct permissions, but if needed via FTP:
+- Right-click file → Properties → Numeric value should be `644` for files, `755` for folders
 
 ### Verify Installation
 
 1. Visit `https://your-domain.infinityfree.app`
 2. You should see the login page
-3. Try logging in with test credentials
-4. Check for any errors in `storage/logs/laravel.log`
+3. Try logging in with credentials
+4. If error: check `storage/logs/laravel.log`
 
 ### Test Email Sending
 
-1. Via Terminal, run:
-```bash
-php artisan tinker
-Mail::raw('Test email from InfinityFree!', function ($message) {
-    $message->to('your-email@gmail.com')->subject('Test');
-});
-exit;
+Create file `test-email.php` in `htdocs/public/`:
+
+```php
+<?php
+require __DIR__ . '/../vendor/autoload.php';
+$app = require_once __DIR__ . '/../bootstrap/app.php';
+
+use Illuminate\Support\Facades\Mail;
+
+try {
+    Mail::raw('Test email from InfinityFree!', function ($message) {
+        $message->to('your-email@gmail.com')
+                ->subject('Test Email from POS System');
+    });
+    echo "Email sent! Check your inbox.";
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage();
+}
+?>
 ```
 
-2. Check your inbox for the test email
+Visit: `https://your-domain.infinityfree.app/test-email.php`
 
-## Step 7: Post-Deployment
+Then **delete test-email.php** via FTP.
+
+## Step 6: Post-Deployment
 
 ### Create Backups
 
@@ -286,23 +313,43 @@ exit;
 
 ## Troubleshooting
 
-### Database Connection Error
+### 403 Forbidden Error (Most Common on InfinityFree)
+
+**The Problem:** Your domain is pointing to the wrong folder.
+
+**Solution: Set Domain Public Root Correctly**
+
+1. Log into InfinityFree Control Panel
+2. Go to **Account** → **Manage Domains**
+3. Find your domain and click **Manage**
+4. Look for **Document Root** or **Web Root** setting
+5. Change it from `/public_html` to `/public_html/public` or `/htdocs/public`
+6. Save/Apply changes
+7. Wait 5-10 minutes for changes to take effect
+8. Visit your domain again - should now show the login page
+
+**If InfinityFree doesn't allow changing Document Root:**
+- Contact InfinityFree support and ask to set document root to the `/public` folder
+- This is a standard request on shared hosting and they should accommodate it
 
 ```
 PDOException: SQLSTATE[HY000]: General error: 1030
 ```
 
 **Solution:**
-- Verify `DB_HOST=localhost` (NOT 127.0.0.1)
-- Verify credentials match InfinityFree panel exactly
-- Run: `php artisan config:cache`
+- Verify `DB_HOST=localhost` in `.env` (NOT 127.0.0.1)
+- Verify exact credentials match InfinityFree panel:
+  - Log in → Client Area → MySQL Database
+  - Copy exact hostname, username, password
+- Verify `.env` file was uploaded in root folder
 
 ### 500 Internal Server Error
 
-1. Check `storage/logs/laravel.log` via File Manager
-2. Verify `.htaccess` exists in `public` folder (it should)
-3. Verify `composer install` completed successfully
-4. Run: `php artisan cache:clear`
+1. Check `storage/logs/laravel.log` via FTP
+2. Verify `.htaccess` exists in `htdocs/public/` folder
+3. Verify `vendor/` folder was uploaded completely
+4. Check file permissions (may be in FTP File Manager)
+5. Verify `.env` file exists in root with correct settings
 
 ### Emails Not Sending
 
@@ -311,27 +358,22 @@ PDOException: SQLSTATE[HY000]: General error: 1030
 3. Verify you're using **App Password**, not regular password
 4. Check `storage/logs/laravel.log` for SMTP errors:
    ```bash
-   # Look for entries like:
-   "Send: MAIL From:<your-email@gmail.com>"
-   ```
-
-### Scheduler Not Running
-
-1. Verify EasyCron is configured and active
-2. Check scheduler.php exists in `public/` folder
-3. Test scheduler manually: `https://your-domain.infinityfree.app/scheduler.php`
-4. Check `storage/logs/laravel.log` for scheduler activity
-
-### Assets Not Loading (404 Errors)
 
 1. Verify `npm run build` was run locally
-2. Verify `/public/build/` folder exists on server
+2. Verify `/public/build/` folder exists on server (download to check)
+3. Verify `/public/manifest.json` exists
+4. Clear browser cache (Ctrl+Shift+Delete)
+5. Check that `.htaccess` is in `public/` folder
+3. Verify `/public/manifest.json` exists
+4. Clear browser cache (Ctrl+Shift+Delete)
+5. Check that `.htaccess` is in `public/` folderexists on server
 3. Verify `/public/manifest.json` exists
 4. Run: `php artisan config:cache`
-
-### Slow Performance / Timeouts
-
-- InfinityFree has resource limitations
+ (shared hosting)
+- Reduce database queries and complex operations
+- Monitor `storage/logs/laravel.log` for slow queries (download via FTP)
+- Disable unneeded features in `.env`
+- Consider upgrading hosting if performance is critical
 - Reduce database queries
 - Use `PAGE_CACHING` if available
 - Monitor `storage/logs/laravel.log` for slow queries
@@ -354,44 +396,56 @@ PDOException: SQLSTATE[HY000]: General error: 1030
 ## Key Differences from Traditional Hosting
 
 ⚠️ **What's NOT Available on InfinityFree:**
-- No automatic dependency installation
-- Limited or no SSH/Terminal access
-- Database performance limited to shared resources
-- No automated backups (must backup manually)
-- File upload limits on FTP (~100MB per file)
-- No GitHub Actions/CI-CD integration
-- Limited CPU and memory for background tasks
+- **No terminal/SSH access** - Use FTP and PHP scripts instead
+- **No automatic dependency installation** - Must upload `vendor/` folder
+- **Database performance limited** to shared resources
+- **No automated backups** - Must backup manually via FTP
+- **File upload limits** on FTP (~100MB per file, upload in batches if needed)
+- **No GitHub Actions/CI-CD** integration
+- **Limited CPU and memory** for background tasks
 
 ✅ **Best Practices for InfinityFree:**
-- Always build assets locally before uploading
-- Keep `.env` file safe - don't commit to public repo
+- **Run `composer install` locally** before uploading, then upload `vendor/` folder
+- Always build assets locally: `npm run build` before uploading
+- Keep `.env` file safe - don't commit to public repo, upload only at the end
 - Use HTTP-based cron (EasyCron) for task scheduling
-- Monitor logs regularly for errors
-- Test locally before deploying
+- Monitor logs regularly for errors (download `storage/logs/laravel.log` via FTP)
+- Test everything locally before deploying
 - Use `.htaccess` properly for clean URLs
-- Keep vendor directory excluded from uploads
-- Backup database and files monthly
+- Backup database and files monthly via FTP
+- Use PHP setup scripts (like `setup.php`) for server-side tasks
+
+```bash
+# On your LOCAL machine, run these:
+composer install --optimize-autoloader --no-dev
+npm run build
+
+# Then upload everything including vendor/ folder
+```
 
 ## Maintenance
 
+### Before First Deployment - CRITICAL
+
+```bash
+# On your LOCAL machine, run these:
+composer install --optimize-autoloader --no-dev
+npm run build
+
+# Then upload everything including vendor/ folder
+```
+
 ### Monthly Tasks
-1. Backup database via phpMyAdmin
-2. Backup important files via File Manager
-3. Clear old logs: `php artisan tinker` → `File::delete(glob(storage_path('logs/*')));`
+1. Download database via phpMyAdmin (in InfinityFree Control Panel)
+2. Backup important files via FTP
+3. Download `storage/logs/laravel.log` and check for errors
+4. Test that automated emails are still being sent (check Gmail sent folder)
 
 ### Updating Code
 1. Make changes locally
-2. Run `npm run build` if frontend changed
-3. Upload only modified files via FTP
-4. Run migrations if needed: `php artisan migrate --force`
-5. Clear cache: `php artisan config:cache`
-
-## Additional Resources
-
-- **InfinityFree Docs**: https://dash.infinityfree.net/support/
-- **Laravel Documentation**: https://laravel.com/docs
-- **FileZilla FTP Client**: https://filezilla-project.org/
-- **EasyCron Service**: https://www.easycron.com/
-- **Gmail App Passwords**: https://myaccount.google.com/apppasswords
+2. If frontend changed: Run `npm run build` locally
+3. Upload only modified files via FTP (keeping vendor/ consistent)
+4. If database changed: Upload migration files and manually run via setup.php if needed
+5. Clear cache by uploading new `storage/framework/cache/` filesnt.google.com/apppasswords
 - **Laravel Queue Documentation**: https://laravel.com/docs/queues
 - **Laravel Scheduler**: https://laravel.com/docs/scheduling

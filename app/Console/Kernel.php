@@ -4,6 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -22,10 +23,10 @@ class Kernel extends ConsoleKernel
             ->timezone('UTC')
             ->withoutOverlapping()
             ->onSuccess(function () {
-                \Log::info('Subscription reminder email sent successfully');
+                Log::info('Subscription reminder email sent successfully');
             })
             ->onFailure(function () {
-                \Log::error('Subscription reminder email failed');
+                Log::error('Subscription reminder email failed');
             });
 
         // Send final warning on the day of expiration
@@ -35,10 +36,10 @@ class Kernel extends ConsoleKernel
             ->timezone('UTC')
             ->withoutOverlapping()
             ->onSuccess(function () {
-                \Log::info('Subscription due warning email sent successfully');
+                Log::info('Subscription due warning email sent successfully');
             })
             ->onFailure(function () {
-                \Log::error('Subscription due warning email failed');
+                Log::error('Subscription due warning email failed');
             });
 
         // Process queued jobs (emails, notifications, etc.)
@@ -47,7 +48,7 @@ class Kernel extends ConsoleKernel
             ->everyMinute()
             ->withoutOverlapping()
             ->onFailure(function () {
-                \Log::error('Queue worker failed');
+                Log::error('Queue worker failed');
             });
 
         // Clean up old failed jobs (optional)
