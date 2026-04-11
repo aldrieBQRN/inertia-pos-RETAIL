@@ -14,12 +14,15 @@ use App\Mail\PaymentApprovedMail;
 use App\Mail\PaymentRejectedMail;
 use App\Mail\StoreSuspendedMail;
 use App\Mail\TenantInviteMail;
+use App\Services\ImageCompressionService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use App\Models\SystemSetting;
 use Illuminate\Validation\Rules;
@@ -540,39 +543,61 @@ class DeveloperController extends Controller
             'payment_methods' => 'nullable|json',
         ]);
 
-        // Handle the Logo Upload securely
-        if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('system', 'public');
-            \App\Models\SystemSetting::updateOrCreate(
-                ['key' => 'logo_path'],
-                ['value' => $logoPath]
-            );
-        }
+        try {
+            // Handle the Logo Upload securely
+            if ($request->hasFile('logo')) {
+                try {
+                    // Delete old logo if it exists
+                    $currentLogo = SystemSetting::where('key', 'logo_path')->first();
+                    if ($currentLogo && $currentLogo->value && Storage::disk('public')->exists($currentLogo->value)) {
+                        Storage::disk('public')->delete($currentLogo->value);
+                    }
 
-        // Update the rest of the text fields
-        $fields = ['app_name', 'support_email', 'support_phone', 'company_address'];
-
-        foreach ($fields as $field) {
-            if ($request->has($field) && $request->input($field) !== null) {
-                \App\Models\SystemSetting::updateOrCreate(
-                    ['key' => $field],
-                    ['value' => $request->input($field)]
-                );
+                    $imageCompression = new ImageCompressionService();
+                    $logoPath = $imageCompression->compressLogo($request->file('logo'));
+                    \App\Models\SystemSetting::updateOrCreate(
+                        ['key' => 'logo_path'],
+                        ['value' => $logoPath]
+                    );
+                } catch (\Exception $e) {
+                    Log::error('Logo compression failed: ' . $e->getMessage());
+                    // Fallback to original upload
+                    $logoPath = $request->file('logo')->store('system', 'public');
+                    \App\Models\SystemSetting::updateOrCreate(
+                        ['key' => 'logo_path'],
+                        ['value' => $logoPath]
+                    );
+                }
             }
-        }
 
-        // Handle payment methods
-        if ($request->has('payment_methods') && $request->input('payment_methods') !== null) {
-            $paymentMethods = json_decode($request->input('payment_methods'), true);
-            if (is_array($paymentMethods) && !empty($paymentMethods)) {
-                \App\Models\SystemSetting::updateOrCreate(
-                    ['key' => 'payment_methods'],
-                    ['value' => json_encode($paymentMethods)]
-                );
+            // Update the rest of the text fields
+            $fields = ['app_name', 'support_email', 'support_phone', 'company_address'];
+
+            foreach ($fields as $field) {
+                if ($request->has($field) && $request->input($field) !== null) {
+                    \App\Models\SystemSetting::updateOrCreate(
+                        ['key' => $field],
+                        ['value' => $request->input($field)]
+                    );
+                }
             }
-        }
 
-        return redirect()->back()->with('success', 'System Information updated successfully.');
+            // Handle payment methods
+            if ($request->has('payment_methods') && $request->input('payment_methods') !== null) {
+                $paymentMethods = json_decode($request->input('payment_methods'), true);
+                if (is_array($paymentMethods) && !empty($paymentMethods)) {
+                    \App\Models\SystemSetting::updateOrCreate(
+                        ['key' => 'payment_methods'],
+                        ['value' => json_encode($paymentMethods)]
+                    );
+                }
+            }
+
+            return redirect()->back()->with('success', 'System Information updated successfully.');
+        } catch (\Exception $e) {
+            Log::error('System info update failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update system information');
+        }
     }
 
    // =====================================================================

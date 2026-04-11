@@ -553,7 +553,7 @@ export default function Inventory({ auth }) {
                                                 <td className="p-4"><Barcode value={p.sku} width={1} height={25} fontSize={10} /></td>
                                                 <td className="p-4 flex items-center gap-3">
                                                     <div className="w-10 h-10 bg-gray-50 rounded-md border flex items-center justify-center overflow-hidden shrink-0">
-                                                        {p.image_path ? <img src={p.image_path} className="w-full h-full object-cover"/> : (
+                                                        {p.image_path ? <img src={p.image_path} className="w-full h-full object-cover" loading="lazy"/> : (
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-300"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
                                                         )}
                                                     </div>
@@ -647,7 +647,7 @@ export default function Inventory({ auth }) {
                                 <div key={p.id} className="p-4 flex flex-col gap-3 active:bg-gray-50 transition-colors">
                                     <div className="flex gap-4">
                                         <div className="w-20 h-20 bg-gray-50 rounded-lg border flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
-                                            {p.image_path ? <img src={p.image_path} className="w-full h-full object-cover"/> : (
+                                            {p.image_path ? <img src={p.image_path} className="w-full h-full object-cover" loading="lazy"/> : (
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-gray-300"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
                                             )}
                                         </div>

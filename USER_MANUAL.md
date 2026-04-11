@@ -19,11 +19,11 @@ A complete, easy-to-understand guide for using the Inertia POS System.
 
 ### Login to Your Account
 
-1. Open your browser and go to your store's POS website
+1. Open your browser and go to `http://localhost:8000`
 2. Enter your **Email Address** and **Password**
 3. Click **Sign In**
 
-**Demo Credentials:**
+**Local Development Credentials:**
 - **Cashier Account:** cashier@email.com / password
 - **Admin Account:** admin@email.com / password
 
@@ -1317,7 +1317,8 @@ Before going home:
 ---
 
 **Document Version:** 2.0
-**Last Updated:** December 2024
-**For:** Inertia POS System - Production
+**Last Updated:** April 2026
+**For:** Inertia POS System - Local Development
+**Environment:** http://localhost:8000
 
 **Questions or suggestions?** Contact your system administrator or store manager.

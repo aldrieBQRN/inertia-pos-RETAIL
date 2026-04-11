@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Services\ImageCompressionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 
@@ -73,24 +75,36 @@ class ProductController extends Controller
             'image' => 'nullable|image|max:2048',
         ]);
 
-        $data = $request->all();
+        try {
+            $data = $request->all();
 
-        // Convert decimal currency values to integers (cents)
-        $data['price'] = $request->price * 100;
-        if ($request->cost_price) {
-            $data['cost_price'] = $request->cost_price * 100;
+            // Convert decimal currency values to integers (cents)
+            $data['price'] = $request->price * 100;
+            if ($request->cost_price) {
+                $data['cost_price'] = $request->cost_price * 100;
+            }
+
+            // Process and store the product image file
+            if ($request->hasFile('image')) {
+                try {
+                    $imageCompression = new ImageCompressionService();
+                    $path = $imageCompression->compressProductImage($request->file('image'));
+                    // FIXED: Added the /storage/ prefix to match the frontend and update method expectations
+                    $data['image_path'] = '/storage/' . $path;
+                } catch (\Exception $e) {
+                    Log::error('Image compression failed: ' . $e->getMessage());
+                    // Store original image as fallback
+                    $data['image_path'] = '/storage/' . $request->file('image')->store('products', 'public');
+                }
+            }
+
+            $product = Product::create($data);
+
+            return response()->json($product->fresh(), 201);
+        } catch (\Exception $e) {
+            Log::error('Product creation failed: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to create product: ' . $e->getMessage()], 500);
         }
-
-        // Process and store the product image file
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            // FIXED: Added the /storage/ prefix to match the frontend and update method expectations
-            $data['image_path'] = '/storage/' . $path;
-        }
-
-        $product = Product::create($data);
-
-        return response()->json($product, 201);
     }
 
     /**
@@ -117,30 +131,42 @@ class ProductController extends Controller
             ],
         ]);
 
-        $data = $request->except(['image']);
+        try {
+            $data = $request->except(['image']);
 
-        // Re-calculate currency values if updated
-        if ($request->has('price')) {
-            $data['price'] = $request->price * 100;
-        }
-        if ($request->has('cost_price')) {
-            $data['cost_price'] = $request->cost_price * 100;
-        }
-
-        // Handle image replacement
-        if ($request->hasFile('image')) {
-            if ($product->image_path) {
-                $oldPath = str_replace('/storage/', '', $product->image_path);
-                Storage::disk('public')->delete($oldPath);
+            // Re-calculate currency values if updated
+            if ($request->has('price')) {
+                $data['price'] = $request->price * 100;
+            }
+            if ($request->has('cost_price')) {
+                $data['cost_price'] = $request->cost_price * 100;
             }
 
-            $path = $request->file('image')->store('products', 'public');
-            $data['image_path'] = '/storage/' . $path;
+            // Handle image replacement
+            if ($request->hasFile('image')) {
+                if ($product->image_path) {
+                    $oldPath = str_replace('/storage/', '', $product->image_path);
+                    Storage::disk('public')->delete($oldPath);
+                }
+
+                try {
+                    $imageCompression = new ImageCompressionService();
+                    $path = $imageCompression->compressProductImage($request->file('image'));
+                    $data['image_path'] = '/storage/' . $path;
+                } catch (\Exception $e) {
+                    Log::error('Image compression failed: ' . $e->getMessage());
+                    // Store original image as fallback
+                    $data['image_path'] = '/storage/' . $request->file('image')->store('products', 'public');
+                }
+            }
+
+            $product->update($data);
+
+            return response()->json($product->fresh());
+        } catch (\Exception $e) {
+            Log::error('Product update failed: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to update product: ' . $e->getMessage()], 500);
         }
-
-        $product->update($data);
-
-        return response()->json($product);
     }
 
     /**

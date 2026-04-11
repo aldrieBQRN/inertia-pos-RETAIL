@@ -263,7 +263,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                             style={{ borderColor: p.category ? catColor : '#f3f4f6' }}
                                         >
                                             <div className="w-full aspect-square bg-gray-50 rounded-lg mb-2 flex items-center justify-center overflow-hidden relative">
-                                                {p.image_path ? <img src={p.image_path} alt={p.name} className="w-full h-full object-cover mix-blend-multiply" /> : <svg className="w-8 h-8 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+                                                {p.image_path ? <img src={p.image_path} alt={p.name} className="w-full h-full object-cover mix-blend-multiply" loading="lazy" /> : <svg className="w-8 h-8 text-gray-200" fill="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
                                                 {remainingStock <= 0 && <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center font-black text-[10px] text-red-600 uppercase">Sold Out</div>}
                                             </div>
 

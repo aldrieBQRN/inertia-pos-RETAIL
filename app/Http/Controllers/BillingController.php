@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Plan;
 use App\Models\SubscriptionPayment;
 use App\Models\SystemSetting;
+use App\Services\ImageCompressionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class BillingController extends Controller
@@ -76,21 +78,27 @@ class BillingController extends Controller
             'terms' => 'accepted',
         ]);
 
-        // 3. Store the file
-        $receiptPath = $request->file('receipt')->store('receipts', 'public');
+        try {
+            // 3. Store the file with compression
+            $imageCompression = new ImageCompressionService();
+            $receiptPath = $imageCompression->compressReceipt($request->file('receipt'));
 
-        // 4. Create record with the selected plan_id
-        SubscriptionPayment::create([
-            'store_id' => $store->id,
-            'plan_id' => $request->plan_id, // CRITICAL: Save their choice here
-            'full_name' => $request->user()->name,
-            'amount' => $request->amount,
-            'reference_number' => $request->reference_number,
-            'receipt_path' => $receiptPath,
-            'status' => 'pending',
-        ]);
+            // 4. Create record with the selected plan_id
+            SubscriptionPayment::create([
+                'store_id' => $store->id,
+                'plan_id' => $request->plan_id, // CRITICAL: Save their choice here
+                'full_name' => $request->user()->name,
+                'amount' => $request->amount,
+                'reference_number' => $request->reference_number,
+                'receipt_path' => $receiptPath,
+                'status' => 'pending',
+            ]);
 
-        return redirect()->back()->with('success', 'Receipt uploaded successfully. Awaiting admin approval.');
+            return redirect()->back()->with('success', 'Receipt uploaded successfully. Awaiting admin approval.');
+        } catch (\Exception $e) {
+            Log::error('Receipt upload failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to upload receipt. Please try again.');
+        }
     }
 
     /**

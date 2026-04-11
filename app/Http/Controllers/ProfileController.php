@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Services\ImageCompressionService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache; // <-- Added for OTP
 use Illuminate\Support\Facades\Mail;  // <-- Added for OTP
 use App\Mail\EmailVerificationOtp;
@@ -40,29 +42,43 @@ class ProfileController extends Controller
             'avatar'       => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ]);
 
-        $user->phone_number = $request->phone_number;
-        $user->address = $request->address;
-        $user->city = $request->city;
-        $user->province = $request->province;
-        $user->country = $request->country;
+        try {
+            $user->phone_number = $request->phone_number;
+            $user->address = $request->address;
+            $user->city = $request->city;
+            $user->province = $request->province;
+            $user->country = $request->country;
 
-        if ($request->hasFile('avatar')) {
-            if ($user->avatar_path && Storage::disk('public')->exists($user->avatar_path)) {
-                Storage::disk('public')->delete($user->avatar_path);
+            if ($request->hasFile('avatar')) {
+                if ($user->avatar_path && Storage::disk('public')->exists($user->avatar_path)) {
+                    Storage::disk('public')->delete($user->avatar_path);
+                }
+
+                try {
+                    $imageCompression = new ImageCompressionService();
+                    $path = $imageCompression->compressAvatar($request->file('avatar'));
+                    $user->avatar_path = $path;
+                } catch (\Exception $e) {
+                    Log::error('Avatar compression failed: ' . $e->getMessage());
+                    // Fallback to original upload
+                    $path = $request->file('avatar')->store('avatars', 'public');
+                    $user->avatar_path = $path;
+                }
             }
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar_path = $path;
+
+            // If they use standard saving (no OTP), reset verification.
+            // (If they used the OTP flow, this won't trigger because verifyOtp already updated it!)
+            if ($user->isDirty('email')) {
+                $user->email_verified_at = null;
+            }
+
+            $user->save();
+
+            return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        } catch (\Exception $e) {
+            Log::error('Profile update failed: ' . $e->getMessage());
+            return Redirect::route('profile.edit')->with('error', 'Failed to update profile');
         }
-
-        // If they use standard saving (no OTP), reset verification.
-        // (If they used the OTP flow, this won't trigger because verifyOtp already updated it!)
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-
-        $user->save();
-
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
     public function destroy(Request $request): RedirectResponse
