@@ -1,10 +1,13 @@
 {
     "compilerOptions": {
-        "baseUrl": ".",
+        "ignoreDeprecations": "6.0",
+        "baseUrl": "./",
         "paths": {
-            "@/*": ["resources/js/*"],
+            "@/*": ["./resources/js/*"],
             "ziggy-js": ["./vendor/tightenco/ziggy"]
-        }
+        },
+        "jsx": "preserve"
     },
-    "exclude": ["node_modules", "public"]
+    "include": ["resources/**/*"],
+    "exclude": ["node_modules", "dist", "build", "public"]
 }

@@ -1,12 +1,43 @@
 <IfModule mod_rewrite.c>
-    RewriteEngine on
+    RewriteEngine On
+    RewriteBase /
 
-    # Remove trailing slash
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.+)/$  $1 [L,R=301]
+    # Skip rewriting for setup/init scripts and direct PHP execution
+    RewriteRule ^public/(init|storage-link|storage)\.php$ - [L]
+    RewriteRule ^(init|storage-link|storage)\.php$ - [L]
 
-    # Rewrite everything to index.php
+    # Route static assets to public folder
+    RewriteRule ^build/(.*)$ public/build/$1 [L]
+    RewriteRule ^images/(.*)$ public/images/$1 [L]
+
+    # For storage files: try public/storage first, then fall back to storage/app/public
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^ index.php [QSA,L]
+    RewriteRule ^storage/(.*)$ storage/app/public/$1 [L]
+
+    RewriteRule ^favicon\.ico$ public/favicon.ico [L]
+    RewriteRule ^robots\.txt$ public/robots.txt [L]
+    RewriteRule ^manifest\.json$ public/manifest.json [L]
+
+    # Now apply conditions to the main rewrite rule only
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} !^/index.php
+    RewriteCond %{REQUEST_URI} !^/public/
+
+    # Rewrite all remaining requests to index.php
+    RewriteRule ^(.*)$ index.php [QSA,L]
+
+    DirectoryIndex index.php index.html index.htm
 </IfModule>
+
+# Permissions for public folder
+<Directory "public">
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Allow from all
+    </IfModule>
+</Directory>

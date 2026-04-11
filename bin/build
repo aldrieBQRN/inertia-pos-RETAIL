@@ -5,11 +5,11 @@ set -e
 if [ ! -f ".env" ]; then
     echo "Creating .env from .env.example..."
     cp .env.example .env
-    
+
     # If running on Railway, replace placeholders with environment variables
     if [ ! -z "$RAILWAY_ENVIRONMENT_NAME" ]; then
         echo "Detected Railway environment, configuring for Railway..."
-        
+
         # Update database configuration from Railway environment variables
         if [ ! -z "$DATABASE_HOST" ]; then
             sed -i "s/DB_HOST=.*/DB_HOST=$DATABASE_HOST/" .env
@@ -26,10 +26,10 @@ if [ ! -f ".env" ]; then
         if [ ! -z "$DATABASE_PASSWORD" ]; then
             sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DATABASE_PASSWORD/" .env
         fi
-        
+
         # Ensure correct database driver
         sed -i "s/DB_CONNECTION=.*/DB_CONNECTION=mysql/" .env
-        
+
         # Set production URL
         if [ ! -z "$RAILWAY_STATIC_URL" ]; then
             sed -i "s|APP_URL=.*|APP_URL=$RAILWAY_STATIC_URL|" .env

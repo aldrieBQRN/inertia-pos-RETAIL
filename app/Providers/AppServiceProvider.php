@@ -36,16 +36,8 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        // Ensure storage symlink exists (important for ephemeral filesystems like Railway)
-        if (!is_link(public_path('storage'))) {
-            try {
-                $this->app->make(\Illuminate\Filesystem\Filesystem::class)->link(
-                    storage_path('app/public'),
-                    public_path('storage')
-                );
-            } catch (\Exception $e) {
-                // Silently fail if symlink creation fails (e.g., insufficient permissions)
-            }
-        }
+        // Skip symlink creation on InfinityFree (shared hosting doesn't support exec)
+        // Symlink creation is not supported on ephemeral/shared hosting like InfinityFree
+        // Users will need to upload files to storage/app/public/ manually
     }
 }
