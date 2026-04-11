@@ -8,7 +8,7 @@ A complete, easy-to-understand guide for using the Inertia POS System.
 
 1. [Getting Started](#getting-started)
 2. [For Cashiers](#for-cashiers)
-3. [For Store Managers/Admins](#for-admins)
+3. [For Store Managers/Admins](#for-store-managersadmins)
 4. [Common Tasks](#common-tasks)
 5. [Troubleshooting](#troubleshooting)
 6. [Tips & Tricks](#tips--tricks)
@@ -44,28 +44,28 @@ A complete, easy-to-understand guide for using the Inertia POS System.
 
 ### Your Role
 As a cashier, you have access to the **POS Terminal** only. Your main job is to:
-- Open your shift at the start of the day
+- Log in to access the POS system
 - Sell products to customers
-- Close your shift at the end of the day
-- Handle customer transactions
+- Process various payment methods (Cash, Card, E-Wallet)
+- Handle customer transactions efficiently
 
-### 🔓 Opening Your Shift
+---
 
-**Only ONE shift can be open at a time per register!**
+### 🛒 The POS Terminal Interface
 
-**Steps:**
+When you log in as a cashier, you'll see a clean, modern POS interface:
 
-1. Log in to the system
-2. Click **"Open Shift"** button
-3. Enter the **Starting Cash Amount** (the money you have in the register at the beginning)
-   - Example: If you have ₱500 in the register, enter `500`
-4. Click **"Confirm"**
-5. You'll see **"✓ Shift Open"** - You're ready to sell!
+**Left Side: Product Display**
+- Product list organized by categories
+- Search box to find items by name or SKU
+- Category filter buttons with color coding
+- Products update in real-time
 
-**Important:**
-- You CANNOT process sales until your shift is open
-- Write down the time when you opened the shift
-- Always open with the actual cash in your register
+**Right Side: Shopping Cart**
+- Shows all items the customer is buying
+- Displays quantity, price, and total for each item
+- Action buttons for: Recall Orders, Clear Cart, Senior/PWD Discount
+- **Checkout** button to process payment
 
 ---
 
@@ -73,193 +73,226 @@ As a cashier, you have access to the **POS Terminal** only. Your main job is to:
 
 #### Step 1: Add Products to Cart
 
-**Using Barcode Scanner:**
-1. Scan a product's barcode using your scanner
-2. The product appears in the **Cart** on the right
-3. Repeat for all items the customer wants
+**Using Barcode Scanner (Recommended - Fastest):**
+1. Position the barcode scanner near the product barcode
+2. Scan the barcode
+3. The product appears instantly in the **Cart** on the right side
+4. You'll hear a **beep** sound when successfully scanned
+5. Repeat for each item the customer wants
 
 **Using Product Search:**
-1. Click the **Search Box** at the top
-2. Type the product name (example: "Coke" or "Bread")
-3. Click the product to add it to cart
-4. Adjust the quantity if needed
+1. Click the **Search Box** at the top left
+2. Type the product name or SKU
+   - Examples: "Coke", "Bread", "COKE-250ML"
+3. Products will filter in real-time as you type
+4. Click the product name to add it to cart
+5. Item quantity starts at 1
 
-**Scanning from Camera:**
-1. Click **Camera Icon**
-2. Point at barcode/QR code
-3. Wait for recognition
-4. Product auto-adds to cart
+**Using Category Filter:**
+1. Click the **Filter Icon** (looks like lines) at the top
+2. A dropdown menu appears with all categories
+3. Click a category (e.g., "Beverages", "Snacks", "Foods")
+4. Products are now filtered to show only that category
+5. Click any product to add to cart
 
-#### Step 2: Review the Cart
+#### Step 2: Adjust Quantities
 
-Look at the right side of the screen. You'll see:
-- **Product Name** – What the customer is buying
-- **Quantity** – How many
-- **Price** – Cost per item
-- **Subtotal** – Total for that item
+In the **Cart** on the right, you'll see each item with:
+- **Product Name** and **Price per unit**
+- **Quantity Controls** with **minus (−)** and **plus (+)** buttons
+- **Item Total** (price × quantity)
 
 **To Change Quantity:**
-- Click **"-"** to decrease by 1
-- Click **"+"** to increase by 1
-- Or type the number directly
+- Click the **"−" button** to decrease by 1
+- Click the **"+" button** to increase by 1
+- System prevents adding more than available stock
 
-**To Remove an Item:**
-- Click the **"X"** or **Trash Icon** next to the item
+**To Remove an Item Entirely:**
+- Click the **Trash Icon** (🗑) next to the item
+- Item is removed from cart immediately
 
-#### Step 3: Apply Discounts (If Applicable)
+#### Step 3: Apply Senior/PWD Discount (If Applicable)
 
-**Senior Citizen or PWD Discount (20% off):**
-1. Ask customer for valid ID
-2. Click **"Senior/PWD"** button
-3. This automatically gives 20% discount on the total
-4. The total will update
+**For Senior Citizens or PWD Customers:**
+1. Ask customer to show a valid ID (Senior ID or PWD Card)
+2. Click the **Senior/PWD Icon** button (looks like a person with accessibility symbol) in the cart header
+3. The button will highlight in **yellow**, indicating discount is active
+4. The system automatically applies **20% discount** to the entire total
+5. In the cart footer, you'll see:
+   - **Subtotal** – Original total
+   - **Less: Senior/PWD (20%)** – Discount amount
+   - **Total Amount** – Final price after discount
 
-**Manual Discount:**
-1. Click **"Discount"** button
-2. Enter the discount amount or percentage
-3. Click **Apply**
+**To Toggle Off (Remove Discount):**
+- Click the same button again to turn off the discount
+- Total updates back to full price
 
-#### Step 4: Select Payment Method
+#### Step 4: Review Total Before Payment
 
-**Choose how the customer pays:**
-- **💵 Cash** – Customer pays with cash
-- **💳 Card** – Customer uses credit/debit card
-- **📱 E-Wallet** – GCash, PayMaya, etc.
+In the **Cart Footer**, you'll see:
+- **Total Amount** – Bold and large text, in Philippine Pesos (₱)
+- Number and types of items in the cart
 
-Click the payment method button.
+Make sure everything looks correct before proceeding!
 
-#### Step 5: Process Payment
+#### Step 5: Complete the Sale (Checkout)
 
-**If Cash Payment:**
-1. Customer gives you money
-2. System shows **Amount Due** (how much they owe)
-3. Enter the **Cash Amount Received**
-4. System calculates **Change** automatically
-5. Give change to customer
-6. Click **"Complete Sale"**
+1. Click the green **"Checkout"** button at the bottom right of the cart
+2. A **Payment Modal** will appear asking you to select payment method and enter payment details
 
-**If Card/E-Wallet:**
-1. Customer provides payment (card/phone)
-2. Complete the payment outside the system
-3. Once confirmed, click **"Complete Sale"**
+**Payment Method Options:**
+- **💵 Cash** – Customer pays with physical money
+- **💳 Credit Card** – Customer uses a credit card
+- **💳 Debit Card** – Customer uses a debit card
+- **📱 GCash** – Customer uses GCash mobile wallet
+- **📱 Maya** – Customer uses Maya mobile wallet
 
-#### Step 6: Print Receipt
+**If Payment is CASH:**
+1. Select **"Cash"** button in the payment modal
+2. Ask the customer: "How much are you giving?"
+3. Enter the **"Cash Given"** amount in the field
+   - Example: Customer gives ₱1,000 for ₱750 order
+4. System **automatically calculates Change**
+   - Example: Change = ₱250
+5. A **Success Modal** appears showing:
+   - Transaction details
+   - Change amount
+   - Receipt preview option
+6. Click **"New Order"** to clear the cart and start selling to next customer
 
-After completing the sale:
-- Receipt prints automatically if printer is connected
-- System shows **"✓ Receipt Printed"**
-- If not, ask manager for help
+**If Payment is CARD or E-WALLET:**
+1. Select the payment method (Card/GCash/Maya)
+2. Collect payment from customer using their device or card
+   - Use your card reader, ask them to tap their phone, etc.
+3. Verify payment was successfully processed
+4. Once payment is confirmed, the success modal appears
+5. Receipt will print if printer is configured
+6. Click **"New Order"** to clear cart
+
+#### Step 6: Receipt Printing
+
+After a successful sale:
+- Receipt **prints automatically** if a thermal printer is connected to the system
+- If printer is not available or not connected, notify your manager
+- The system still records the sale; you don't need a printed receipt to complete it
 
 **Receipt Contains:**
-- Store name
-- Date & time
-- Items purchased
-- Amount paid
-- Change
+- Store name and location
+- Date & Time of purchase
+- Itemized list of products with quantities and prices
+- Subtotal, any discounts, and final total
+- Payment method and amount paid
+- Change amount (if cash payment)
 - Thank you message
 
 #### Step 7: Next Customer
 
-The cart automatically clears. You're ready for the next customer!
+The cart automatically clears after successful checkout. You're ready for the next customer!
 
 ---
 
-### 💾 Holding an Order (Save for Later)
+### 💾 Saving Orders for Later (Hold/Recall Orders)
 
-Customer wants to leave but might come back?
+**Perfect for:** Customers who want to leave and come back, or need to check inventory
 
-**To Hold an Order:**
-1. Add all items to cart
-2. Click **"Hold Order"** button
-3. Give the customer a **ticket number**
-4. Customer leaves (they'll return with the number)
+**To Save (Hold) an Order:**
+1. Add all items to the cart
+2. Click the **Clock/Watch Icon** button (looks like a history icon) in the cart header
+3. A dialog appears asking for a **"Reference Note"** (optional)
+   - Examples: "Table 5", "Mr. Smith", "Ms. Juan" - anything to remember the customer
+   - You can leave it blank; system will auto-assign a number
+4. Click **"Save Order"**
+5. System confirms the order is saved
+6. Cart clears automatically
+7. Give the reference note to the customer (if used)
 
-**To Recall a Held Order:**
-1. Customer returns with their ticket number
-2. Click **"Recalls"** or **"Held Orders"**
-3. Find the order by ticket number
-4. Click to load it back to cart
-5. Continue with the sale
-
----
-
-### 🔒 Closing Your Shift
-
-**Do this at the end of your work day:**
-
-**Steps:**
-
-1. Click **"Close Shift"** button
-2. System shows your shift summary:
-   - **Total Sales** – How much you sold
-   - **Number of Transactions** – How many sales you made
-   - **Total Cash** – Total cash received
-
-3. **Count Your Cash**
-   - Count all cash in your register
-   - Check the amount vs. what system shows
-
-4. **Enter Closing Cash Amount**
-   - Enter the total money you counted
-   - Example: You counted ₱5,200, enter `5200`
-
-5. **Review Discrepancy**
-   - System compares expected vs. actual
-   - **Shortage:** You have less than expected (lost money)
-   - **Overage:** You have more than expected (found money)
-   - This is normal if small amounts
-
-6. **Confirm Closure**
-   - Review all numbers
-   - Click **"Close Shift"**
-
-7. **Print Z-Report** (Optional)
-   - This is your official shift report
-   - Give to manager
-
-**After Closing:**
-- You CANNOT make new sales
-- You CANNOT void transactions
-- Only a manager can reopen if needed
-
-**Important:**
-- Always match your physical cash to closing amount
-- Report significant discrepancies to manager
-- Keep your shift receipt for records
+**To Recall a Saved Order:**
+1. When customer returns, click the **Clock/Watch Icon** again (on an empty cart)
+2. A **"Held Orders Modal"** appears showing all saved orders
+3. Each order shows the reference note (or number) and total amount
+4. Find the correct order and click on it
+5. Order loads back into the cart with all original items
+6. Customer can review, add items, remove items, or proceed to checkout
+7. Complete checkout as normal
 
 ---
 
-## For Admins
+### ⚠️ Clear Cart Button
+
+If you need to discard items from the current cart (start over):
+
+1. Click the **Red Trash Icon** in the cart header
+2. A confirmation dialog appears asking: "Remove all items from the current order?"
+3. Click **"Yes, clear it!"** to confirm
+4. All items are removed from cart
+5. Cart is now empty and ready for next customer
+
+---
+
+## For Store Managers/Admins
 
 ### Your Role
-As an admin/manager, you have full access to:
-- View all sales and reports
-- Manage inventory (products)
-- Manage users (cashiers)
+As a store manager or admin, you have full access to:
+- View and analyze all sales data and analytics
+- Manage product inventory (add, edit, delete items)
+- Manage staff members (users/cashiers)
 - Configure store settings
-- View analytics and trends
+- View comprehensive reports and analytics
+- Access the POS Terminal (like a cashier can)
 
-### 📊 Dashboard - Overview
+---
 
-When you log in, you see the **Dashboard** with:
+### 📊 Dashboard - Your Business Overview
 
-**Key Numbers at Top:**
-- **Daily Revenue** – Total money made today
-- **Today's Transactions** – Number of sales
-- **Total Profit** – Money earned after costs
-- **Top Products** – Best-selling items today
+The **Dashboard** is your business control center. It loads when you log in.
 
-**Charts & Graphs:**
-- **Sales Trend** – Line graph showing sales over days
-- **Peak Hours** – When customers shop most
-- **Top Selling Products** – Best items sold
-- **Payment Methods** – Cash vs Card vs E-Wallet
+**Top Section - Today's Key Numbers (KPIs):**
 
-**How to Use:**
-- Click on any chart to drill down into details
-- Hover over chart points to see exact numbers
-- Use date filters to view specific periods
-- Export reports as PNG or PDF
+Four large cards display today's performance:
+
+1. **Today's Revenue**
+   - Total amount of money made today
+   - Example: ₱15,240
+   - Shows % growth vs. yesterday (↑ or ↓)
+
+2. **Net Profit**
+   - Money earned after subtracting cost of goods sold
+   - Example: ₱3,500
+   - Shows today's earnings
+
+3. **Transactions**
+   - Number of completed sales today
+   - Example: 42 transactions
+   - Shows total transaction count
+
+4. **Avg Ticket**
+   - Average amount per sale
+   - Example: ₱362.86
+   - Calculated by: Total Revenue ÷ Number of Transactions
+
+**Charts & Analytics Section:**
+
+1. **Sales Trend Chart (Last 7 Days)**
+   - Shows sales pattern as a line or area chart
+   - X-axis = Days, Y-axis = Sales amount
+   - Hover over points to see exact sales for each day
+   - Use to identify busy days vs. slow days
+   - Plan staffing and promotions based on patterns
+
+2. **Inventory Alerts Box**
+   - Highlights products below reorder threshold
+   - Shows product name and quantity remaining
+   - Green message: "Stock levels are healthy" = everything is OK
+   - Click **"Manage"** link to go to Inventory page and restock
+   - Essential for avoiding stockouts
+
+3. **Recent Transactions Feed**
+   - Live list of last 10 transactions
+   - Shows: Invoice Number, Date & Time, Payment Method, Total Amount
+   - On desktop: Full table layout
+   - On mobile: Compact card layout
+   - **Updates every 5 seconds** in the background
+   - Click any transaction to see full details
 
 ---
 
@@ -267,254 +300,405 @@ When you log in, you see the **Dashboard** with:
 
 #### View All Products
 
-1. Click **"Inventory"** menu
-2. See all products in a table with:
-   - **Product Name**
-   - **SKU** – Item code
-   - **Category**
-   - **Stock** – How many in inventory
-   - **Price**
-   - **Cost** – What you paid for it
-   - Status (In Stock / Low Stock / Out of Stock)
+1. Click **"Inventory"** in the main navigation menu
+2. You'll see a sortable/filterable table with all products:
+   - **Product Name** – Display name
+   - **SKU** – Stock Keeping Unit (unique barcode identifier)
+   - **Category** – Product type (Beverages, Snacks, etc.)
+   - **Stock** – Current quantity available
+   - **Price** – Selling price to customers
+   - **Cost** – Your purchase cost
+   - **Status** – In Stock / Low Stock / Out of Stock
+
+3. **Search & Filter Tools:**
+   - **Search Box**: Type product name or SKU
+   - **Category Dropdown**: Filter by product category
+   - **Low Stock Checkbox**: Show only items running low
+   - **Pagination**: Navigate through 10 products per page
 
 #### Add New Product
 
-1. Click **"Inventory"** → **"+ Add Product"**
-2. Fill in the form:
-   - **Product Name** – What it's called (required)
-   - **Category** – Type of product (required)
-   - **SKU** – Unique code (optional but recommended)
-   - **Barcode** – For scanner (optional)
-   - **Price** – Selling price
-   - **Cost** – What you paid (for profit calculation)
-   - **Stock** – How many you have
-   - **Low Stock Alert** – Notify when below this amount
-   - **Image** – Product photo (optional)
+1. Look for **"+ Add Product"** or **"New Product"** button (usually at top right)
+2. Click it - a form modal appears
+3. Fill in the fields:
+   - **Product Name** ✓ (required)
+     - What the product is called
+     - Example: "Coca-Cola 250ML Can"
+   - **Category** ✓ (required)
+     - Select from dropdown or create new
+     - Example: "Beverages"
+   - **SKU** (optional but highly recommended)
+     - Your internal barcode code
+     - Must be unique; used by barcode scanner
+     - Example: "COKE-250ML"
+   - **Price**
+     - Selling price to customers
+     - Example: 45.00
+   - **Cost Price**
+     - Your purchase cost; used to calculate profit
+     - Example: 30.00
+     - Your profit per sale: 45 - 30 = 15 pesos
+   - **Stock Quantity**
+     - How many you have right now
+     - Example: 120
+   - **Image** (optional)
+     - Product photo (JPG or PNG)
+     - Click to upload a photo
+     - Used for visual reference
 
-3. Click **"Create"** or **"Save"**
+4. Click **"Create"** button
+5. Success message appears
+6. Product is now in inventory and available for sale at POS terminal
 
-**Example:**
-```
-Name: Coca-Cola Can
-Category: Beverages
-SKU: COKE-250ML
-Price: 45.00
-Cost: 30.00 (your profit: 15.00 per item)
-Stock: 120
-Low Stock Alert: 20
-```
+#### Quick Stock Update (Add Stock)
+
+When you receive new inventory and want to quickly add stock:
+
+1. Find the product in inventory list
+2. Click the **"+ Quick Add"** or **"Add Stock"** button (usually on the right)
+3. A small dialog appears asking "Quantity to add"
+4. Enter the number
+   - You received 50 units? Enter: `50`
+5. Click **"Update Stock"**
+6. Stock quantity increases by 50 (previous stock + 50)
+7. No need to edit the entire product form
 
 #### Edit a Product
 
 1. Click **"Inventory"**
 2. Find the product in the list
-3. Click the **Edit/Pencil Icon**
-4. Change the information
-5. Click **"Update"** or **"Save"**
+3. Click the **Pencil/Edit Icon** on the right side of the row
+4. Form opens showing current information
+5. Make your changes (price, stock, category, image, etc.)
+6. Click **"Update"** or **"Save"**
 
-Reasons to edit:
-- Price increase/decrease
-- New stock added
-- Product details correction
-- Update product image
+**Common Reasons to Edit:**
+- Price increase or discount
+- Correct SKU or barcode number
+- Update stock quantity manually (inventory count mismatch)
+- Add or change product image
+- Move product to different category
+- Adjust cost price
 
 #### Delete a Product
 
-⚠️ **WARNING:** This removes the product from sales!
+⚠️ **WARNING:** Deleting removes product from list and POS terminal sales.
 
-1. Click **"Inventory"**
-2. Find the product
-3. Click **"Delete"** (usually represented by trash icon)
-4. Confirm you want to delete
-5. Product is removed
+**Two Options:**
 
-**Better Alternative:**
-Instead of deleting, set **Stock = 0** so it doesn't appear for sale but records remain.
+Option 1 - **Better: Set Stock to 0**
+- Edit the product
+- Change Stock Quantity to 0
+- Click Update
+- Product is hidden from POS terminal but sales history is preserved
+- Can be reactivated later
 
-#### Search & Filter Products
+Option 2 - **Delete Completely**
+1. Find the product in inventory
+2. Click **Delete** or **Trash Icon**
+3. Confirm deletion
+4. Product is completely removed
 
-1. Use the **Search Box** to find products by name
-2. Use **Category Filter** to show only one type
-3. Use **Stock Status** to find:
-   - Low Stock items → Time to reorder
-   - Out of Stock items → Need to order
-   - In Stock items → Available for sale
+**Recommendation:** Use Option 1 (set stock to 0) to keep sales records.
+
+#### Print Barcode Labels
+
+If you need to print physical labels or barcode stickers for your products:
+
+1. Find a product in inventory
+2. Click **"Print Label"** or barcode/printer icon
+3. Dialog appears with options:
+   - **Quantity** – How many labels to print (1, 5, 10, 50, etc.)
+   - **Format** – Choose:
+     - **Thermal** – 80mm thermal printer (POS receipts)
+     - **A4** – Regular paper printer
+4. Click **"Print"**
+5. Labels print on your selected printer
+6. Stick on products for scanning
 
 ---
 
-### 👤 User Management
+### 👤 User Management (Staff)
 
-#### View All Staff
+#### View All Staff Members
 
-1. Click **"Users"** menu
-2. See list of all staff with:
-   - **Name**
-   - **Email**
+1. Click **"Users"** in main navigation
+2. See a table of all staff with columns:
+   - **Name** – Full name
+   - **Email** – Email address
+   - **Account Number** – Your internal staff ID
    - **Role** – Admin or Cashier
    - **Status** – Active or Inactive
-   - **Last Login** – When they last used system
+   - **Last Login** – When they last accessed the system
+
+3. **Search & Filter:**
+   - **Search Box**: Find by name, email, or account number
+   - **Role Filter**: Show only Admins or only Cashiers
+   - **Pagination**: Navigate through staff members
 
 #### Add New Staff Member
 
-1. Click **"Users"** → **"+ Add User"**
-2. Fill in:
-   - **Full Name** (required)
-   - **Email** (required, must be unique)
-   - **Role** – Choose Admin or Cashier (required)
-   - **Password** – Initial password (they can change it later)
+1. Click **"Users"** → Look for **"+ Add User"** button
+2. Click it - a form appears
+3. Fill in the information:
+   - **Full Name** ✓ (required)
+     - Example: "Juan Dela Cruz"
+   - **Email** ✓ (required, must be unique)
+     - Example: "juan@store.com"
+     - Each staff needs different email
+   - **Account Number** (auto-generated)
+     - System generates next number automatically
+     - Can be edited if you prefer different numbering
+   - **Role** ✓ (required - choose one)
+     - **Admin**: Can manage inventory, users, settings, view reports
+     - **Cashier**: Can only use POS terminal to sell
+   - **Phone Number** (optional)
+     - Staff contact number
+   - **Address/City/Province** (optional)
+     - Staff contact information
+   - **Password** ✓ (required)
+     - Initial password for first login
+     - Staff can change it after logging in first time
 
-3. Click **"Create"**
-4. Notify the person of their login details
-5. Send them login instructions
+4. Click **"Create"** or **"Save"**
+5. Success message confirms staff member added
+6. **Notify the new staff** of login credentials:
+   - Email address
+   - Initial password
+   - Link to POS system
+7. They can log in and change their password immediately
 
-**Roles Explained:**
-- **Admin:** Can see everything, manage inventory, users, settings, view reports
-- **Cashier:** Can ONLY use POS terminal to sell
+**Role Explained:**
+- **Admin**: Full system access. Can sell, manage inventory, users, settings, view all reports.
+- **Cashier**: POS terminal only. Can see nothing else; only goal is to process sales.
 
 #### Edit Staff Information
 
 1. Click **"Users"**
-2. Find the person
-3. Click **"Edit"** icon
-4. Update information (name, role, etc.)
-5. Click **"Save"**
+2. Find the staff member in the list
+3. Click the **Edit/Pencil Icon** on the right
+4. Form opens with current information
+5. Update as needed:
+   - Name changes
+   - Role changes (promotion/demotion: Cashier ↔ Admin)
+   - Phone or address updates
+   - Password reset
+6. Click **"Update"** or **"Save"**
 
-#### Deactivate/Remove Staff
+**Common Edits:**
+- Change role from Cashier to Admin (promote to supervisor)
+- Change role from Admin to Cashier (demote if needed)
+- Update phone number or address
+- Correct name spelling
+- Reset forgotten password
 
-1. Click **"Users"**
-2. Find the person
-3. Click **"Deactivate"** (they can't login anymore)
-4. Or click **"Delete"** to remove completely
+#### Deactivate or Remove Staff
 
-**Recommendation:**
-Deactivate instead of deleting so their sales history remains in records.
+⚠️ **IMPORTANT:** Deactivate is better than delete because it preserves sales history!
+
+**Option 1 - Deactivate (Recommended):**
+1. Find the staff member
+2. Click **"Deactivate"** button
+3. They can no longer log in
+4. All their sales history and records are preserved
+5. Can be reactivated later if rehired
+6. Perfect for: Staff leaves, goes on leave, or fired
+
+**Option 2 - Delete Completely:**
+1. Find the staff member
+2. Click **"Delete"** button
+3. More permanent action
+4. Removes all staff info
+5. Only use if: Created account by mistake
+
+**Recommendation:** Always Deactivate instead of Delete.
 
 ---
 
-### 💰 Transaction Management
+### 💼 Transaction Management
 
-#### View All Sales
+#### View All Sales (Transactions)
 
-1. Click **"Transactions"** menu
-2. See all sales in a table with:
-   - **Date & Time** – When sale happened
-   - **Cashier** – Who processed it
+1. Click **"Transactions"** in main navigation
+2. See a table of all sales with:
+   - **Invoice Number** – Receipt/transaction ID
+   - **Date & Time** – When the sale happened
+   - **Cashier** – Which staff member processed it
    - **Amount** – Total sale amount
    - **Items** – Number of items sold
-   - **Payment Method** – Cash/Card/E-Wallet
+   - **Payment Method** – Cash / Credit / Debit / GCash / Maya
    - **Status** – Complete or Voided
 
-#### Search Transactions
+3. Default shows 10 transactions per page
+4. Navigate with pagination arrows at bottom
 
-Find specific sales using filters:
-1. **By Date Range** – Select "From" and "To" dates
-2. **By Cashier** – Filter by staff member
-3. **By Amount** – Find sales between amounts
-4. **By Payment Method** – Show only cash, card, etc.
-5. **By Status** – Show complete or voided sales
+#### Search & Filter Transactions
 
-Click **"Search"** or **"Filter"** to apply.
+Find specific sales at the top of the page:
+
+**By Date Range:**
+- Enter **"From Date"** – Start date
+- Enter **"To Date"** – End date
+- Shows only sales within that range
+
+**By Cashier/Staff Name:**
+- Type name in search box
+- System filters to that person's sales
+
+**By Invoice Number:**
+- Type exact invoice number
+- Finds that specific receipt
+
+**By Payment Method:**
+- Select from dropdown: Cash, Credit Card, Debit Card, GCash, Maya, or All
+- Shows only transactions with chosen payment method
+
+Note: Filters apply instantly without clicking a search button
 
 #### View Transaction Details
 
 1. Find the transaction in the list
-2. Click on it to open details
-3. See:
-   - All items purchased with quantities
-   - Prices and subtotals
-   - Discounts applied
-   - Final amount
-   - Payment method
-   - Timestamp
+2. Click on it or click the **View Icon**
+3. **Transaction Detail Modal** opens showing:
+   - Invoice number
+   - Date & time
+   - Cashier name who processed it
+   - **Itemized Breakdown:**
+     - Each product name
+     - Quantity sold
+     - Unit prices
+     - Line item totals
+   - **Subtotal**
+   - **Discount Applied** (if Senior/PWD discount was used)
+   - **Total Amount** – Final price
+   - **Payment Method** – Cash/Card/E-Wallet
+   - **Cash Given & Change** (if cash payment)
+
+4. From this modal, you can:
+   - Click **"Reprint Receipt"** to print receipt again
+   - Click **"Void"** to reverse the transaction
+   - Click X to close
 
 #### Void (Reverse) a Transaction
 
-**Use case:** Customer returns item, wrong sale, etc.
+Use this when a customer needs a refund or to correct a mistake.
 
-1. Find the transaction
-2. Click **"Void"** button
-3. Confirm you want to void
-4. System:
-   - Removes the sale from records
-   - Returns items to inventory
-   - Refunds the customer
-   - Marks as "Voided" in history
+**Situations to void:**
+- Customer returns items
+- Wrong sale was recorded
+- Accidental duplicate transaction
+- Customer changed their mind
 
-**Important:**
-- This CANNOT be undone
-- Use carefully!
-- Inventory automatically restocked
+**Steps:**
+1. Find the transaction in the list
+2. Click to view details
+3. Click **"Void Transaction"** button
+4. Confirmation dialog: "Are you sure you want to void?"
+5. Confirm by clicking "Yes" or "Void"
+6. System:
+   - Removes sale from records
+   - **Returns all items to inventory** with original quantities
+   - Marks transaction as **"Voided"** in history
+   - Removes amount from revenue calculations
 
-#### Print Receipt Again
+⚠️ **IMPORTANT:**
+- This **CANNOT be undone**
+- Use very carefully
+- Keep records of why it was voided
+- For auditing: Note high-value voids
 
-1. Find the transaction
-2. Click **"Reprint Receipt"**
-3. Receipt prints again
-4. Give to customer if needed
+#### Reprint a Receipt
+
+Customer lost their receipt? Printer wasn't connected? Reprint anytime:
+
+1. Find the transaction in list
+2. Click to view details
+3. Click **"Reprint Receipt"** button
+4. Receipt prints again on configured thermal printer
+5. Perfect for: Lost receipt, duplicate for customer, backup copy
+
+#### Export Transactions to PDF
+
+Create a backup or share transaction list:
+
+1. Go to **Transactions** page
+2. Apply filters if needed (date range, cashier, etc.)
+3. Look for **"Export"** or **"Export PDF"** button (top or bottom)
+4. Click it
+5. PDF downloads to your computer
+6. Perfect for: Backup, email to partner, detailed record-keeping
 
 ---
 
 ### 📈 Reports & Analytics
 
-#### Sales Report
+The **Reports** page gives you deep insights into business performance.
 
-1. Click **"Reports"** menu
-2. Click **"Sales Report"**
-3. Default shows today's sales
-4. Change date range:
-   - Enter **From Date** and **To Date**
-   - Or click **"This Week,"** **"This Month,"** **"This Year"** buttons
-5. Click **"Generate"**
-6. See:
-   - Total sales amount
-   - Number of transactions
-   - Average transaction amount
-   - Best selling products
-   - Sales by category
-7. Click **"Export PDF"** or **"Export CSV"** to save
+#### Quick Date Presets
 
-#### Product Sales Report
+At the top, click to quickly select date ranges:
+- **Today** – Today's data only
+- **This Week** – Current week (Monday-now or Sunday-now)
+- **This Month** – Current month (default view)
+- **This Year** – Year-to-date
+- **Custom Range** – Use date pickers for exact dates
 
-1. Click **"Reports"** → **"Product Sales"**
-2. Shows which products sold most in a period
-3. See:
-   - Product name
-   - Quantity sold
-   - Total revenue
-   - Profit earned
-4. Sort by quantity or revenue
-5. Export to PDF for records
+#### Key Report Summary Numbers
 
-#### Shift Summary Report
+At the top of the report:
+- **Total Sales** – Total revenue for selected period
+- **Total Profit** – After cost of goods sold
+- **Total Orders** – Total number of transactions
+- **Average Order Value** – Average sale amount per transaction
 
-1. Click **"Reports"** → **"Shift Summary"**
-2. Select date range
-3. See all shifts with:
-   - Cashier name
-   - Shift duration
-   - Total sales
-   - Cash reconciliation
-   - Shortage/overage amount
+#### Report Charts & Visualizations
 
-#### Voided Transactions Report
+**1. Sales Trend Chart**
+- Line or area graph showing sales over days
+- Perfect for: Identifying patterns, peak/slow days
+- Hover over points to see exact sales amounts
+- Use to plan: Staffing levels, promotions, inventory orders
 
-1. Click **"Reports"** → **"Voided Transactions"**
-2. Shows all reversed sales
-3. Helps audit unusual activity
-4. See who voided and when
+**2. Peak Hours Chart**
+- Bar chart showing which hours are busiest
+- Example: 12-1 PM is busiest, 3-4 AM is slowest
+- Use to: Schedule more cashiers during busy hours
 
-#### Export Reports
+**3. Peak Days Chart**
+- Bar chart showing busiest days of week
+- Example: Saturdays busier than Mondays
+- Use to: Plan shifts, promotions, inventory
 
-All reports can be exported:
-- **PDF** – For printing or sharing
-- **CSV** – For Excel analysis
-- **Image** – For presentations
+**4. Peak Months Chart**
+- Bar chart showing seasonal patterns
+- Which months have highest/lowest sales
+- Use to: Plan annual inventory, promotions, staffing
 
-Steps:
-1. Generate report
-2. Look for **"Export"** button
-3. Choose format
-4. Report downloads automatically
+**5. Payment Methods Chart**
+- Pie chart showing breakdown
+- Example: 60% Cash, 30% Card, 10% E-Wallet
+- Use to: Ensure proper payment equipment (card reader, e-wallet setup)
+
+**6. Sales by Category Chart**
+- Bar chart showing revenue by product category
+- Example: Beverages earn most, Snacks second
+- Use to: Focus marketing on best categories, stock more winners
+
+**7. Top Products Table/Chart**
+- Which items sold most quantity
+- Which generated most revenue
+- Use to: Stock more of best sellers, order ahead for popular items
+
+#### Export Reports to PDF or CSV
+
+1. Generate the report with your date range
+2. Look for **"Export PDF"** or **"Export CSV"** button
+3. Click to download
+4. Perfect for:
+   - Sharing with business partners
+   - Keeping official records
+   - Detailed analysis in spreadsheet
+   - Printing for filing
 
 ---
 
@@ -522,126 +706,198 @@ Steps:
 
 #### Store Information
 
-1. Click **"Settings"**
-2. Click **"Store Information"**
-3. Update:
-   - **Store Name** – Your business name
-   - **Store Address** – Full address
+Configure your store's details (shown on receipts and reports):
+
+1. Click **"Settings"** in main navigation
+2. Look for **"Store Information"** section
+3. Edit the following:
+   - **Store Name** – Official business name
+     - Appears on all receipts
+   - **Store Address** – Full location
+     - Appears on all receipts
    - **Phone Number** – Contact number
-   - **Email** – Store email
-   - **Store Logo** – Upload PNG/JPG image
-   - **Website** – If you have one
+     - Appears on all receipts
+   - **Email** – Store email address
+   - **Store Logo** – Upload company logo
+     - Click to upload PNG or JPG image
+     - Appears on digital receipts
 
 4. Click **"Save"**
-
-This info appears on receipts and reports.
-
-#### Tax Settings
-
-1. Click **"Settings"** → **"Tax"**
-2. Set **VAT Rate** (Value Added Tax)
-   - Standard is 12% in Philippines
-   - Enter as decimal: 0.12 for 12%
-3. Click **"Save"**
-
-The system automatically calculates tax on all sales.
-
-#### Discount Settings
-
-1. Click **"Settings"** → **"Discounts"**
-2. Set **Senior/PWD Discount %**
-   - Default: 20%
-   - This is what cashiers can apply
-3. Click **"Save"**
+5. Changes take effect immediately
+6. All future receipts will use updated information
 
 #### Printer Configuration
 
-1. Click **"Settings"** → **"Printer"**
-2. **Printer Name** – Your printer model
-3. **Paper Width** – Usually 80mm for thermal printers
-4. **Auto-print** – Enable to print receipts automatically
-5. Click **"Save"**
+Before receipts can print, configure your thermal printer:
 
-**Common Thermal Printers:**
-- Epson TM-M30
-- Star Micronics
-- Sewoo LK-P200
-- Xprinter 58mm
+1. Click **"Settings"** → Find **"Printer Connection"** section
+2. Choose your connection type:
 
-#### Email Settings
+**For USB Printer:**
+1. Click **"Connect USB"** button
+2. Your printer list appears
+3. Select your printer from the list
+4. Click **"Connect"**
+5. Message shows "Printer Connected" ✓
 
-1. Click **"Settings"** → **"Email"**
-2. Configure:
-   - Email provider (Gmail, Outlook, etc.)
-   - Sender email
-   - Sender name
-3. Click **"Save"**
+**For Bluetooth Printer:**
+1. Click **"Connect Bluetooth"** button
+2. Make sure printer is in pairing mode
+3. System discovers nearby devices
+4. Select your printer
+5. Click **"Connect"**
+6. Message shows "Printer Connected" ✓
 
-Used for password resets and receipts.
+3. **Set Paper Width:**
+   - Select from dropdown
+   - Most thermal receipt printers: **80mm**
+   - Some mobile printers: 58mm
+   - Check printer specifications
+
+4. Click **"Test Print"**
+   - A test receipt prints
+   - Verify it works
+
+5. You're done! Receipts will now print automatically after checkout.
+
+#### User Access (for Shift Monitoring)
+
+View current active shifts (if shift management is enabled):
+- Shows who has an active shift open
+- Displays shift statistics
+- Managers can view this for monitoring
+
+---
+
+### 📋 Shift History (Manager Dashboard)
+
+Track all historical shift data and cashier performance:
+
+1. Click **"Shift History"** in navigation
+2. See a list of all past shifts (organized by date):
+   - **Cashier Name** – Who worked
+   - **Start Time** – When they opened
+   - **End Time** – When they closed
+   - **Duration** – Hours worked
+   - **Total Sales** – Revenue during shift
+   - **Starting Cash** – Opening amount counted
+   - **Closing Cash** – Final amount counted
+   - **Shortage/Overage** – Any discrepancy
+
+3. **Click a shift** to view detailed breakdown:
+   - All transactions during that shift (complete list)
+   - Individual itemized sales
+   - Payment method breakdown
+   - Detailed cash reconciliation
+
+4. **Filter shifts by:**
+   - **From Date / To Date** – View shifts in date range
+   - **Cashier Search** – Find specific person's shifts
+   - Results update in real-time
+
+**Use this to:**
+- Track cashier performance and consistency
+- Identify cash handling discrepancies
+- Audit cash management
+- Resolve conflicts over missing cash
+- Verify reported sales against recorded sales
+- Calculate commissions (if applicable)
 
 ---
 
 ## Common Tasks
 
-### How to Check Daily Sales
+### How to Check Today's Sales
 
-1. **Quick View:** Look at Dashboard when you login
-2. **Detailed Report:**
-   - Click **"Reports"** → **"Sales Report"**
-   - Select today's date
-   - See total, breakdown by product, etc.
+**Quick View (Fastest):**
+1. Log in
+2. Look at Dashboard's top 4 cards
+3. "Today's Revenue" card shows immediate total
+4. Takes 2 seconds!
+
+**Detailed View:**
+1. Go to **Reports**
+2. Select **"Today"** preset
+3. View summary numbers and charts
+4. Export to PDF if needed
 
 ### How to Reorder Low Stock Items
 
-1. Click **"Inventory"**
-2. Use **"Low Stock"** filter
-3. See items below alert threshold
-4. Contact suppliers to order
-5. When items arrive, **Edit Product** and update stock
+1. Log in - **Dashboard** shows "Inventory Alerts" box
+2. Items shown in red if below alert threshold
+3. Click **"Manage"** link to go to Inventory
+4. Products with LOW STOCK are highlighted
+5. Contact your suppliers to order
+6. When items arrive:
+   - Edit product or use "Quick Add Stock"
+   - Update stock quantity
+   - Save
 
-### How to Handle Customer Returning Item
+### How to Handle Customer Return (Refund)
 
-**Option 1 - If Still Same Day (Not Yet Shift Closed):**
-1. Click **"Transactions"**
-2. Find the sale
-3. Click **"Void Transaction"**
-4. Confirm
-5. Items returned to inventory
-6. Refund customer
+**If sale was today (same shift):**
+1. Go to **Transactions** page
+2. Find the sale in the list
+3. Click to view details
+4. Click **"Void Transaction"**
+5. Confirm
+6. System:
+   - Reverses the sale
+   - Returns items to inventory
+   - Stop showing in revenue
+7. Give customer their money back from register
 
-**Option 2 - If Previous Day:**
-1. Find transaction in history
-2. Click **"Void"**
-3. Refund from cash register
-4. Process return manually
+**If sale was previous day:**
+1. Find transaction in Transactions
+2. Click **"Void"** to reverse it
+3. Confirm
+4. Manually refund customer from cash register (system won't auto-refund)
+5. Items return to inventory
+6. Sale is marked as voided and out of revenue
 
-### How to See How Much Money Cashier Made
+### How to See Performance by Staff Member
 
-1. Click **"Reports"** → **"Shift Summary"**
-2. Select the date
-3. See each cashier's shift:
-   - Total sales
-   - Payment breakdown
-   - Cash vs expected
+1. Go to **Reports**
+2. Or go to **Shift History**
+3. Search for specific cashier name
+4. See their:
+   - Total sales they processed
+   - Number of transactions
+   - Cash handling accuracy
+   - Time worked
+   - Payment methods they handled
 
 ### How to Find Who Voided a Sale
 
-1. Click **"Reports"** → **"Voided Transactions"**
-2. Filter by date
-3. See user who voided
-4. Click to see reason (if noted)
+1. Go to **Transactions**
+2. Look for transactions with Status = **"Voided"**
+3. Note shows which staff member voided it
+4. Open transaction details to see full info
+5. OR go to **Reports** → Look for voided transactions report
 
 ### How to Train a New Cashier
 
-1. Add them in **"Users"** menu
-2. Give temporary password
-3. Have them login on first shift
-4. Change password on first login
-5. Show them:
-   - How to open shift
-   - How to add products to cart
-   - How to take payment
-   - How to close shift
+**First Day Setup:**
+1. Create user in **Users** page
+   - Role: **Cashier**
+   - Give them initial password
+2. Show them POS Terminal
+3. Walk through:
+   - How to search for products (barcode, search, category)
+   - How to adjust quantities
+   - How to apply Senior discount
+   - How to process cash payment
+   - How to complete checkout
+4. Let them practice on slow shift with supervisor nearby
+5. Answer questions as they arise
+
+**Tips for Training:**
+- Start with simple order (1-2 items)
+- Practice barcode scanning
+- Show them common products by name
+- Explain payment modal
+- Show how to handle cash and give change
+- Have them watch experienced cashier first
 
 ---
 
@@ -649,240 +905,376 @@ Used for password resets and receipts.
 
 ### "I Forgot My Password"
 
-1. Click **"Forgot Password"** on login
-2. Enter email
-3. Check email for reset link
-4. Create new password
-5. Try logging in again
+**Steps:**
+1. Go to login page
+2. Click **"Forgot your password?"** link
+3. Enter your email address
+4. Check email inbox for "Password Reset Link"
+5. Click link in email
+6. Create new password
+7. Log in with new password
 
 **If you don't receive email:**
-- Check spam folder
-- Ask admin to reset for you
-- Try different email address
-
-### "I Can't Process Sales - Shift Not Open"
-
-**Solution:**
-1. Click **"Open Shift"**
-2. Enter starting cash
-3. Try sale again
-
-**If already open somewhere:**
-- Only ONE shift per register allowed
-- Another cashier might have it open
-- Ask manager to close it first
+- Check spam/junk folder
+- Ask your manager to reset for you
+- Verify email is correct in system
 
 ### "Barcode Scanner Not Working"
 
-Try these steps:
+**Troubleshooting steps:**
 
-1. **Check Connection:**
-   - Is scanner plugged in?
-   - Battery charged (if wireless)?
+1. **Is scanner plugged in?**
+   - Check USB or wireless connection
+   - Try different USB port
+   - Replace batteries if wireless
 
-2. **Test Barcode:**
-   - Try scanning a different barcode
-   - Barcode might be damaged/unreadable
+2. **Try different barcode:**
+   - Barcode might be damaged or unreadable
+   - Try scanning different product
 
-3. **Use Camera Instead:**
-   - Click **Camera Icon**
-   - Hold product barcode to camera
-   - Wait for recognition
+3. **Use alternate methods:**
+   - **Keyboard Entry**: Type SKU directly in search
+   - **Manual Search**: Click product from list
+   - **Camera Scan**: Click camera icon, point at barcode
 
-4. **Manual Entry:**
-   - Use **Search** to find product by name
-   - Click to add to cart
-
-5. **Ask Manager:**
-   - If scanner still won't work, report to manager
+4. **If still broken:**
+   - Tell your manager to troubleshoot
+   - Use manual search temporarily
 
 ### "Receipt Won't Print"
 
-1. **Check Printer:**
-   - Is it plugged in?
-   - Is there paper?
-   - Is it online/connected?
+**Troubleshooting:**
 
-2. **Try Again:**
-   - Click **"Reprint Receipt"**
-   - Sometimes delayed
+1. **Is printer plugged in?**
+   - Check power cable
+   - Is power button on?
 
-3. **Manual Print:**
-   - Ask customer to email receipt
-   - Or hand-write receipt
+2. **Is there paper?**
+   - Open thermal printer access
+   - Check paper roll
+   - Add paper if  empty
 
-4. **Tell Manager:**
-   - Inform supervisor
-   - They'll check printer
+3. **Is printer online?**
+   - Check printer display/lights
+   - Some printers have on/off switch
+   - Verify in settings
 
-### "Wrong Item Added to Cart"
+4. **Try again:**
+   - Click **"Reprint Receipt"** in transaction details
+   - Sometimes just delayed
 
-1. Click the **"X"** or **"Delete"** button next to item
-2. Item removed from cart
-3. Add correct item instead
+5. **Manual workaround:**
+   - Sale is still recorded
+   - Can hand-write receipt if necessary
+   - Or ask customer for email to print later
 
-**If Already Paid:**
-1. Offer to accept return
-2. Process **"Void Transaction"** (manager permission)
-3. Process correct sale
+6. **Notify manager:**
+   - Tell supervisor aboutprinter issue
+   - They'll fix or replace
 
-### "Discount Not Applying"
+### "I Can't Add Item to Cart - Says Out of Stock"
 
-**For Senior/PWD:**
-1. Customer showed proper ID?
-2. Click **"Senior/PWD"** button before payment
-3. Discount appears automatically
+**Situation:** Trying to add more items but system says stock limit reached.
 
-**For Manual Discount:**
-1. Click **"Discount"** button
-2. Enter percentage (20) or amount (100)
-3. Check if applied to total
+**Reason:** Cart already has maximum stock of that product.
 
-**If Still Not Working:**
-- Ask manager to help
-- Might need manual adjustment
+**Solution:**
+1. Check **Inventory** to verify actual stock
+2. If stock is higher than what system shows:
+   - Have manager update inventory stock quantity
+   - Then try adding to cart again
 
-### "I Can't See a Product in Search"
+**Prevent in future:**
+- Keep inventory counts accurate
+- Update stock when items arrive
 
-**Possible Reasons:**
-1. Product is **Out of Stock** (removed from display)
-2. Product name spelled differently
-3. Product deleted from inventory
+### "Tax/Discount Not Calculating Correctly"
 
-**Solutions:**
-1. Try different search term
-2. Ask manager to check inventory
-3. Add product to inventory if missing
-4. Check if product is active
+1. Check **Settings** for Tax rate
+2. Verify Senior discount was properly activated
+3. If manual discount was applied, check amount
+4. If still wrong, note the transaction and tell manager
+5. Manager can investigate and correct if needed
 
-### "Cash Count Doesn't Match at Close"
+### "I Accidentally Voided Wrong Transaction"
 
-**Common Causes:**
-- Miscounted cash (recount)
-- Gave wrong change (check)
-- Lost receipt/transaction
-- Forgot to record customer payment
+⚠️ **Uh oh!** Voiding cannot be undone.
 
-**What to Do:**
-1. Recount all cash slowly
-2. Report discrepancy to manager
-3. Check last few transactions
-4. Don't close shift with major discrepancy
-5. Ask manager to investigate
+**Immediate action:**
+1. Tell your manager IMMEDIATELY
+2. Manager will:
+   - View the voided transaction in history
+   - See it's marked as "Voided"
+   - Can manually adjust records if needed
+   - Process refund or reversal
+
+**Prevention:**
+- Double-check transaction details before clicking void
+- Void only when absolutely sure
+- Ask manager if unsure
+
+### "System is Running Slow / Transactions Loading Slow"
+
+1. **Check internet connection:**
+   - Is WiFi connected?
+   - Try reloading page (F5)
+
+2. **Close unnecessary pages:**
+   - Close extra browser tabs
+   - Close other applications
+
+3. **Clear browser cache:**
+   - Try different browser
+   - Or refresh (Ctrl+R or Cmd+R)
+
+4. **Restart computer:**
+   - Shut down terminal
+   - Restart
+
+5. **Tell manager if persists:**
+   - May be server issue
+   - Might need IT support
+
+### "Customer Says Amount is Wrong"
+
+**Always verify:**
+1. Check receipt for itemization
+2. Manually count items listed
+3. Verify price of each item in system
+4. Add up subtotal
+5. Check discount was applied correctly if applicable
+6. Verify payment amount matches
+
+**If customer is right:**
+1. Apologize
+2. Process refund difference or void and repeat
+3. Tell manager about the error
+
+**If customer is wrong:**
+1. Politely show them the receipt breakdown
+2. Explain calculation
+3. If they insist: Escalate to manager
+
+### "Product Not Showing in POS Terminal"
+
+**Possible reasons:**
+1. **Product is inactive** – Stock set to 0
+   - Manager needs to re-activate it
+2. **Product doesn't exist** – Never added to inventory
+   - Manager needs to create it
+3. **Stock is depleted** – But still shows
+   - Check inventory; may need restock
+4. **Product category is hidden** – Wrong filter applied
+   - Clear filters, select "All Categories"
+
+**What to do:**
+1. Try searching by name or SKU
+2. Check if product exists in Inventory
+3. Tell manager if product needs to be added
+4. Ask manager if stock levels need updating
 
 ---
 
 ## Tips & Tricks
 
-### ⚡ Speed Tips for Cashiers
+### ⚡ Speed Tips for Fast Checkout
 
-**Go Faster:**
-- **Use Barcode Scanner** – Much faster than searching
-- **Know Your Products** – Can scan without looking at system
-- **Pre-scan Items** – Scan as customer puts items on counter
-- **Keyboard Shortcuts:**
-  - **Tab Key** – Jump to next field
-  - **Enter Key** – Confirm/Process
+**These will make you faster:**
 
-### 💾 Running Out of Inventory?
+1. **Memorize your product barcodes**
+   - Scan without looking at screen
+   - Just listen for beep
 
-1. Keep eye on low stock alerts
-2. Order when at 30% stock (don't wait until 0)
-3. Update stock immediately when items arrive
-4. Communicate with manager about popular items
+2. **Master barcode scanner speed**
+   - Scan as customer places items on counter
+   - Don't wait for customer to hand you all items
 
-### 📊 Check Daily Performance
+3. **Use keyboard shortcuts** (if available)
+   - Tab = Jump to next field
+   - Enter = Confirm/Process
+   - Delete = Remove last item
 
-**For Managers:**
-Add this to your daily routine:
-1. Check Dashboard first thing
-2. Review afternoon sales
-3. Check for any voided transactions (unusual?)
-4. Confirm team's performance
+4. **Prep payment method**
+   - Ask "Cash or card?" while they scan items
+   - Have card reader ready
+   - Reduces waiting time
 
-### 🎯 Improve Sales
+5. **Batch similar actions**
+   - Don't adjust quantity after every scan
+   - Scan all items first, then adjust quantities
 
-**Use the Reports to:**
-- See best-selling products → Stock more
-- See peak hours → Staff more during busy times
-- See payment methods → Ensure card reader works
-- See customer trends → Plan promotions
+### 💾 Stock Management Tips
+
+1. **When receiving inventory:**
+   - Use "Quick Add Stock" feature
+   - Don't manually edit entire product
+
+2. **Monitor low stock daily:**
+   - Check Dashboard Inventory Alerts
+   - Order when at 30% stock, not 0%
+
+3. **Accurate counts:**
+   - Don't estimation; actually count
+   - Prevents "mysterious" missing stock
+
+4. **Keep prices current:**
+   - Update prices when suppliers change costs
+   - Adjust retail prices accordingly
+
+### 📊 Daily Routine for Managers
+
+**Do this every day:**
+
+1. **First Thing:**
+   - Check Dashboard
+   - Review today's revenue so far
+   - Check low stock alerts
+
+2. **Mid-Day:**
+   - Spot-check a few transactions
+   - Verify any large sales
+   - Check for unusual activity
+
+3. **End of Day:**
+   - Review all day's sales in Transactions
+   - Check for voided transactions (why?)
+   - Verify all staff shifts closed properly
+   - Count cash and verify reports
+   - Plan next day's staffing
+
+### 🎯 Use Reports to Improve Business
+
+**Weekly Actions:**
+
+1. **Check Top Selling Products**
+   - Stock more of winners
+   - Consider removing slow sellers
+
+2. **Review Peak Hours**
+   - Schedule more staff during busy hours
+   - Run skeleton crew during slow hours
+   - Save labor costs
+
+3. **Analyze Payment Methods**
+   - Ensure you support main payment types
+   - Card reader working if needed
+   - E-wallet setup if 10%+ using
+
+4. **Category Performance**
+   - Increase shelf space for top categories
+   - Promote low-performing categories
+   - Adjust marketing focus
 
 ### 🔒 Keep Your Login Safe
 
-**Protect Your Account:**
-- Never share password
-- Log out when leaving
-- Don't let others see password entry
-- Change password monthly
+**Protect your account:**
+- Never share your password
+- Log out when leaving terminal/computer
+- Don't let others see your password entry
+- Change password every month
 - Report suspicious activity to manager
+- Use strong passwords (mix letters, numbers, special chars)
 
-### 📞 When to Contact Manager
+### 📞 When to Contact Your Manager
 
-You MUST contact manager for:
-- Voiding large transactions
-- System issues/errors
-- Opening two shifts in one terminal
-- Printer problems
-- Low stock of frequently bought items
-- Unusual discrepancies
-- Password reset
-- Adding/removing staff
+You MUST escalate to manager for:
+- ✓ System errors or crashes
+- ✓ Voiding large transactions (>₱1,000)
+- ✓ Printer/hardware problems
+- ✓ Adding stock that doesn't match counts
+- ✓ Major discrepancies in cash
+- ✓ Customer disputes about prices/amounts
+- ✓ Adding or training new staff
+- ✓ Password resets
+- ✓ Access issues (can't log in)
+- ✓ Multiple people trying to use one account
 
-### ✅ End of Day Checklist
+### ✅ End of Day Checklist for Cashiers
 
-**For Cashiers:**
+Before leaving your shift:
 
-- [ ] All sales processed
+**Cart & Sales:**
+- [ ] All transactions completed
 - [ ] Cart is empty
-- [ ] Close shift by clicking "Close Shift"
-- [ ] Count cash in register
-- [ ] Enter closing amount
-- [ ] Review discrepancy (shortage/overage)
-- [ ] Print Z-Report
-- [ ] Give report to manager
-- [ ] Return keys/hardware if applicable
-- [ ] Log out of system
+- [ ] No pending orders
 
-**For Managers:**
+**Daily Close:**
+- [ ] Count all cash in your register
+- [ ] Note the final amount
+- [ ] Compare to system's expected amount
+- [ ] Sign off/log out
+- [ ] Inform manager of any discrepancies
 
-- [ ] Review all sales reports
-- [ ] Check for unusual voided transactions
-- [ ] Verify all cashier reconciliations
-- [ ] Check inventory alerts
-- [ ] Plan next day's staffing
-- [ ] Prepare orders for low stock items
-- [ ] Back up system (if applicable)
+**Handoff:**
+- [ ] Give cash to manager
+- [ ] Provide written count of your cash
+- [ ] Report any issues from your shift
+- [ ] Return any hardware (scanner, etc.)
+
+### ✅ End of Day Checklist for Managers
+
+Before going home:
+
+1. **Sales Review:**
+   - [ ] Check all day's transactions
+   - [ ] Look for unusual voids
+   - [ ] Verify total matches cash received
+
+2. **Cash Audit:**
+   - [ ] Count all cash
+   - [ ] Verify against system's expected total
+   - [ ] Investigate discrepancies (shortage/overage)
+
+3. **Inventory Check:**
+   - [ ] Review low stock alerts
+   - [ ] Note items to reorder
+   - [ ] Spot-check counts if any issues
+
+4. **Staff Audit:**
+   - [ ] Review each cashier's transactions
+   - [ ] Check shift opening/closing times
+   - [ ] Verify all shifts were properly closed
+
+5. **Plan for Tomorrow:**
+   - [ ] Schedule staff based on expected traffic
+   - [ ] Prepare inventory orders
+   - [ ] Note any issues to address
+   - [ ] Back up data if applicable
 
 ---
 
 ## Quick Reference
 
-### Button Legend
+### Button & Icon Legend
 
 | Icon | Meaning | Use |
 |------|---------|-----|
-| ➕ | Add | Create new item |
+| ➕ | Add | Create new product/staff/order |
 | ✏️ | Edit | Modify existing item |
 | 🗑️ | Delete | Remove item |
-| 👁️ | View | See details |
-| ⏸️ | Hold | Save for later |
+| 👁️ | View | See full details |
+| 🔄 | Recall | Bring back saved order |
 | 📋 | Copy | Duplicate |
-| 🎥 | Camera | Scan with phone camera |
-| 🔊 | Sound | Audio feedback |
+| 📷 | Camera | Scan barcode with phone |
+| 🔊 | Sound | Audio feedback toggle |
 | 🖨️ | Print | Print receipt/report |
-| 📊 | Chart | View graph/Analytics |
-| ⚙️ | Settings | Configure |
+| 📊 | Chart | View analytics |
+| ⚙️ | Settings | Configure system |
+| 🔍 | Search | Find items |
+| 📅 | Calendar | Select date |
+| ✓ | Confirm | Approve action |
+| ✗ | Cancel | Discard action |
 
 ### Keyboard Shortcuts
 
 | Key | Action |
 |-----|--------|
-| **Esc** | Cancel / Close dialog |
-| **Enter** | Confirm / Submit |
-| **Tab** | Next field |
-| **Shift Tab** | Previous field |
-| **Ctrl S** | Save (some pages) |
+| **Esc** | Cancel / Close modal |
+| **Enter** | Confirm / Submit form |
+| **Tab** | Jump to next field |
+| **Shift+Tab** | Jump to previous field |
+| **Ctrl+S** | Save (some pages) |
+| **F5** | Refresh page |
 
 ---
 
@@ -890,37 +1282,42 @@ You MUST contact manager for:
 
 **Can't figure something out?**
 
-1. **Check this manual** – Might answer your question
-2. **Ask a coworker** – They might know
-3. **Contact your manager** – They can help
-4. **System Help Icon** – Click **"?"** in system (if available)
-5. **Contact system admin** – For technical issues
+1. **Check this manual** – Search for your question
+2. **Ask a coworker** – They might know the answer
+3. **Contact your manager** – They can help or escalate
+4. **In-system help** – Look for **"?"** icon (if available)
+5. **Take your time** – Don't rush; getting it right matters more
 
 ---
 
 ## Final Tips
 
-✅ **Do:**
-- Read this manual thoroughly
+### ✅ Do These Things:
+- Read this manual when confused
 - Ask questions if unsure
-- Practice on slow days
-- Keep password private
+- Practice during slow shifts
+- Keep your password private
 - Report errors immediately
-- Thank customers
 - Handle money carefully
+- Thank customers always
+- Say sorry if you make mistakes
+- Pay attention to details
 
-❌ **Don't:**
-- Play around with settings
-- Delete transactions without reason
-- Share login credentials
+### ❌ Don't Do These:
+- Play around with settings you don't understand
+- Delete transactions without good reason
+- Share your login details
 - Process sales after shift closes
 - Leave cash unattended
-- Forget to backup data
+- Make up numbers; always count
+- Rush through transactions
+- Be rude to customers or staff
+- Ignore system errors
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** April 2026
-**For:** Inertia POS System v1.0
+**Document Version:** 2.0
+**Last Updated:** December 2024
+**For:** Inertia POS System - Production
 
-**Questions?** Contact your system administrator or store manager.
+**Questions or suggestions?** Contact your system administrator or store manager.
