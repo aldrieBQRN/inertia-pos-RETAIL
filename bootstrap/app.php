@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Inertia\Inertia;
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\SuperAdminMiddleware;
+use App\Http\Middleware\SecurityHeaders;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,11 +22,13 @@ return Application::configure(basePath: dirname(__DIR__))
         // 1. THIS LINE ENSURES REACT GETS THE DATA
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
+            SecurityHeaders::class,
         ]);
 
         // 2. Your existing Admin alias
         $middleware->alias([
             'admin' => AdminMiddleware::class,
+            'super_admin' => SuperAdminMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

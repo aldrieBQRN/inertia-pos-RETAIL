@@ -284,7 +284,7 @@ This creates a symbolic link for accessing uploaded images and logos.
 **Terminal 1 – Start Laravel Backend:**
 
 ```bash
-php artisan serve
+php artisan serve --host=127.0.0.1 --port=8000
 ```
 
 The backend will run on `http://localhost:8000`

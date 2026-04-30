@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
 export default function SystemInfo({ auth, settings }) {
@@ -18,7 +18,12 @@ export default function SystemInfo({ auth, settings }) {
         support_phone: settings?.support_phone || '',
         company_address: settings?.company_address || '',
         logo: null,
+        payment_methods: JSON.stringify(Array.isArray(settings?.payment_methods) ? settings.payment_methods : []),
     });
+
+    useEffect(() => {
+        setData('payment_methods', JSON.stringify(paymentMethods));
+    }, [paymentMethods]);
 
     // Reset state when opening modal
     const openModal = () => {
@@ -62,9 +67,6 @@ export default function SystemInfo({ auth, settings }) {
                     didOpen: () => { Swal.showLoading(); }
                 });
 
-                // Add payment methods to form data before posting
-                setData('payment_methods', JSON.stringify(paymentMethods));
-
                 post(route('developer.system.update'), {
                     preserveScroll: true,
                     forceFormData: true,
@@ -106,6 +108,69 @@ export default function SystemInfo({ auth, settings }) {
     const inputClasses = "w-full border-gray-200 bg-gray-50/50 rounded-none sm:rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400";
     const labelClasses = "block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5";
     const errorClasses = "text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide";
+
+    const persistPaymentMethods = (methodsToSave) => {
+        Swal.fire({
+            title: 'Saving Payment Methods...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        router.post(route('developer.system.update'), {
+            payment_methods: JSON.stringify(methodsToSave),
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                Swal.fire({
+                    title: 'Saved',
+                    text: 'Payment methods updated successfully.',
+                    icon: 'success',
+                    confirmButtonColor: '#111827',
+                    customClass: {
+                        popup: 'rounded-none sm:rounded-xl',
+                        confirmButton: 'rounded-none sm:rounded-lg px-8 py-3 font-bold text-sm'
+                    }
+                });
+            },
+            onError: () => {
+                Swal.fire({
+                    title: 'Save Failed',
+                    text: 'Unable to save payment methods. Please try again.',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626',
+                    customClass: {
+                        popup: 'rounded-none sm:rounded-xl',
+                        confirmButton: 'rounded-none sm:rounded-lg px-8 py-3 font-bold text-sm'
+                    }
+                });
+            }
+        });
+    };
+
+    const confirmDeletePaymentMethod = (idx) => {
+        Swal.fire({
+            title: 'Delete payment method?',
+            text: 'This method will be removed after you save System Information.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#f3f4f6',
+            confirmButtonText: 'Yes, Delete',
+            cancelButtonText: '<span class="text-gray-700 font-bold">Cancel</span>',
+            reverseButtons: true,
+            customClass: {
+                popup: 'rounded-none sm:rounded-xl',
+                confirmButton: 'rounded-none sm:rounded-lg px-6 py-3 font-bold text-sm shadow-md',
+                cancelButton: 'rounded-none sm:rounded-lg px-6 py-3 font-bold text-sm border border-gray-200 hover:bg-gray-200 transition-all'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const updated = paymentMethods.filter((_, i) => i !== idx);
+                setPaymentMethods(updated);
+                persistPaymentMethods(updated);
+            }
+        });
+    };
 
     return (
         <AuthenticatedLayout
@@ -220,10 +285,7 @@ export default function SystemInfo({ auth, settings }) {
                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                                 </button>
                                                 <button
-                                                    onClick={() => {
-                                                        const updated = paymentMethods.filter((_, i) => i !== idx);
-                                                        setPaymentMethods(updated);
-                                                    }}
+                                                    onClick={() => confirmDeletePaymentMethod(idx)}
                                                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                 >
                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -331,8 +393,11 @@ export default function SystemInfo({ auth, settings }) {
                                         const updated = [...paymentMethods];
                                         updated[editingMethod] = newMethod;
                                         setPaymentMethods(updated);
+                                        persistPaymentMethods(updated);
                                     } else {
-                                        setPaymentMethods([...paymentMethods, newMethod]);
+                                        const updated = [...paymentMethods, newMethod];
+                                        setPaymentMethods(updated);
+                                        persistPaymentMethods(updated);
                                     }
                                     setIsPaymentModalOpen(false);
                                 }}

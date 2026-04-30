@@ -11,9 +11,10 @@ export default defineConfig({
         react(),
     ],
     server: {
-        host: '0.0.0.0', // Exposes Vite to your local network
+        host: '127.0.0.1',
         hmr: {
-            host: 'localhost', // Ensures Hot Module Replacement works locally
+            host: 'localhost',
+            protocol: 'ws',
         },
     },
 });

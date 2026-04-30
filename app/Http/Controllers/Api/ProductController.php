@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Services\ImageCompressionService;
+use App\Services\ActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -100,6 +101,14 @@ class ProductController extends Controller
 
             $product = Product::create($data);
 
+            // Log the product creation (optional - controlled by audit config)
+            ActivityService::logCreate('Product', $product->id, "Created product: {$product->name} (SKU: {$product->sku})", [
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'price' => $product->price / 100,
+                'stock' => $product->stock_quantity,
+            ]);
+
             return response()->json($product->fresh(), 201);
         } catch (\Exception $e) {
             Log::error('Product creation failed: ' . $e->getMessage());
@@ -160,7 +169,22 @@ class ProductController extends Controller
                 }
             }
 
+            $oldValues = [
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'price' => $product->price / 100,
+                'stock' => $product->stock_quantity,
+            ];
+
             $product->update($data);
+
+            // Log the product update (optional - controlled by audit config)
+            ActivityService::logUpdate('Product', $product->id, "Updated product: {$product->name} (SKU: {$product->sku})", $oldValues, [
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'price' => $product->price / 100,
+                'stock' => $product->stock_quantity,
+            ]);
 
             return response()->json($product->fresh());
         } catch (\Exception $e) {
@@ -179,6 +203,14 @@ class ProductController extends Controller
             // if a user tries to delete a product belonging to another store.
             $product = Product::findOrFail($id);
 
+            // Store product info for logging before deletion
+            $productInfo = [
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'price' => $product->price / 100,
+                'stock' => $product->stock_quantity,
+            ];
+
             // Ensure the associated image file is removed from storage
             if ($product->image_path) {
                 $oldPath = str_replace('/storage/', '', $product->image_path);
@@ -186,6 +218,9 @@ class ProductController extends Controller
             }
 
             $product->delete();
+
+            // Log the product deletion (critical)
+            ActivityService::logDelete('Product', $id, "Deleted product: {$product->name} (SKU: {$product->sku})", $productInfo);
 
             return response()->json(['message' => 'Product deleted successfully'], 200);
         } catch (\Illuminate\Database\QueryException $e) {
@@ -215,6 +250,9 @@ class ProductController extends Controller
 
         // Atomic increment of the stock level
         $product->increment('stock_quantity', $request->quantity);
+
+        // Log the stock adjustment (optional - controlled by audit config)
+        ActivityService::logStockAdjust($id, $request->quantity, "Stock adjusted for: {$product->name}");
 
         return response()->json([
             'message' => 'Stock updated successfully',

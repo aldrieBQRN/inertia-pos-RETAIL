@@ -14,6 +14,7 @@ use App\Mail\PaymentApprovedMail;
 use App\Mail\PaymentRejectedMail;
 use App\Mail\StoreSuspendedMail;
 use App\Mail\TenantInviteMail;
+use App\Services\ActivityService;
 use App\Services\ImageCompressionService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -291,11 +292,18 @@ class DeveloperController extends Controller
             'price' => 'required|numeric|min:0',
         ]);
 
-        Plan::create([
+        $plan = Plan::create([
             'name' => $request->name,
             'duration_months' => $request->duration_months,
             'price' => $request->price,
             'is_active' => true,
+        ]);
+
+        ActivityService::logCreate('Plan', $plan->id, "Created plan: {$plan->name}", [
+            'name' => $plan->name,
+            'duration_months' => $plan->duration_months,
+            'price' => $plan->price,
+            'is_active' => $plan->is_active,
         ]);
 
         return redirect()->back()->with('success', 'New pricing plan created successfully!');
@@ -335,6 +343,22 @@ class DeveloperController extends Controller
             ]);
         });
 
+        ActivityService::log(
+            'tenant.invite',
+            'create',
+            'Store',
+            $user->store_id,
+            "Invited new tenant owner: {$user->name} ({$user->email})",
+            null,
+            [
+                'store_id' => $user->store_id,
+                'owner_name' => $user->name,
+                'owner_email' => $user->email,
+                'plan_id' => $plan->id,
+                'subscription_ends_at' => optional($endsAt)->toDateString(),
+            ]
+        );
+
         $setupUrl = URL::temporarySignedRoute('tenant.setup', now()->addDays(7), ['user' => $user->id]);
         Mail::to($user->email)->send(new TenantInviteMail($user, $setupUrl));
 
@@ -343,8 +367,20 @@ class DeveloperController extends Controller
 
     public function toggleStatus(Store $store)
     {
+        $oldStatus = $store->status;
         $store->update(['status' => !$store->status]);
         $action = $store->status ? 'reactivated' : 'suspended';
+
+        ActivityService::log(
+            $store->status ? 'store.reactivate' : 'store.suspend',
+            'update',
+            'Store',
+            $store->id,
+            "Store {$store->name} was {$action}",
+            ['status' => $oldStatus],
+            ['status' => $store->status, 'store_name' => $store->name]
+        );
+
         return redirect()->back()->with('success', "Tenant has been {$action} successfully.");
     }
 
@@ -353,6 +389,20 @@ class DeveloperController extends Controller
         $admin = $store->users()->where('role', 'admin')->first();
         if ($admin) {
             Mail::to($admin->email)->send(new SubscriptionReminderMail($store));
+
+            ActivityService::log(
+                'store.reminder',
+                'action',
+                'Store',
+                $store->id,
+                "Sent subscription reminder to {$admin->email}",
+                null,
+                [
+                    'store_name' => $store->name,
+                    'recipient_email' => $admin->email,
+                ]
+            );
+
             return redirect()->back()->with('success', "Payment link sent to {$admin->email}.");
         }
         return redirect()->back()->with('error', 'No owner found for this store.');
@@ -363,6 +413,7 @@ class DeveloperController extends Controller
      */
     public function approvePayment(SubscriptionPayment $payment)
     {
+        $oldStatus = $payment->status;
         $store = $payment->store;
         $plan = Plan::find($payment->plan_id) ?? $store->plan;
 
@@ -396,6 +447,19 @@ class DeveloperController extends Controller
             Mail::to($owner->email)->send(new PaymentApprovedMail($payment, $pdfContent));
         }
 
+        ActivityService::logPayment(
+            'approve',
+            $payment->id,
+            "Approved subscription payment {$payment->reference_number} for {$store->name}",
+            [
+                'reference_number' => $payment->reference_number,
+                'store_name' => $store->name,
+                'old_status' => $oldStatus,
+                'new_status' => 'approved',
+                'new_subscription_end' => optional($newEnd)->toDateString(),
+            ]
+        );
+
         return redirect()->back()->with('success', "Payment approved and receipt emailed.");
     }
 
@@ -405,6 +469,7 @@ class DeveloperController extends Controller
     public function rejectPayment(Request $request, SubscriptionPayment $payment)
     {
         $request->validate(['reason' => 'required|string|max:500']);
+        $oldStatus = $payment->status;
         $payment->update(['status' => 'rejected']);
 
         $paymentUrl = route('tenant.billing.portal');
@@ -413,6 +478,18 @@ class DeveloperController extends Controller
         if ($owner) {
             Mail::to($owner->email)->send(new PaymentRejectedMail($payment, $request->reason, $paymentUrl));
         }
+
+        ActivityService::logPayment(
+            'reject',
+            $payment->id,
+            "Rejected subscription payment {$payment->reference_number}",
+            [
+                'reference_number' => $payment->reference_number,
+                'old_status' => $oldStatus,
+                'new_status' => 'rejected',
+                'reason' => $request->reason,
+            ]
+        );
 
         return redirect()->back()->with('success', 'Payment rejected. The tenant has been notified.');
     }
@@ -423,22 +500,6 @@ class DeveloperController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function impersonate(User $user)
-    {
-        session()->put('impersonator_id', Auth::id());
-        Auth::login($user);
-        return redirect()->route('dashboard');
-    }
-
-    public function leaveImpersonation()
-    {
-        if (session()->has('impersonator_id')) {
-            $superAdminId = session()->pull('impersonator_id');
-            Auth::loginUsingId($superAdminId);
-        }
-        return redirect()->route('developer.index');
-    }
-
     public function storeAnnouncement(Request $request)
     {
         $request->validate([
@@ -447,12 +508,26 @@ class DeveloperController extends Controller
         ]);
 
         Announcement::where('is_active', true)->update(['is_active' => false]);
-        Announcement::create(['message' => $request->message, 'style' => $request->style, 'is_active' => true]);
+        $announcement = Announcement::create(['message' => $request->message, 'style' => $request->style, 'is_active' => true]);
 
         $adminEmails = User::where('role', 'admin')->pluck('email')->toArray();
         if (!empty($adminEmails)) {
             Mail::bcc($adminEmails)->send(new SystemAnnouncementMail($request->message));
         }
+
+        ActivityService::log(
+            'announcement.create',
+            'create',
+            'Announcement',
+            $announcement->id,
+            'Published a system announcement',
+            null,
+            [
+                'message' => $announcement->message,
+                'style' => $announcement->style,
+                'is_active' => $announcement->is_active,
+            ]
+        );
 
         return redirect()->back()->with('success', 'Announcement broadcasted!');
     }
@@ -460,6 +535,15 @@ class DeveloperController extends Controller
     public function clearAnnouncement()
     {
         Announcement::where('is_active', true)->update(['is_active' => false]);
+
+        ActivityService::log(
+            'announcement.clear',
+            'update',
+            'Announcement',
+            null,
+            'Cleared active system announcements'
+        );
+
         return redirect()->back()->with('success', 'Announcement cleared.');
     }
 
@@ -467,12 +551,23 @@ class DeveloperController extends Controller
     {
         if (Auth::user()->role !== 'super_admin') abort(403);
 
+        $oldStatus = $store->status;
         $store->update(['status' => false]);
 
         $owner = $store->users()->where('role', 'admin')->first();
         if ($owner && $owner->email) {
             Mail::to($owner->email)->send(new StoreSuspendedMail($store));
         }
+
+        ActivityService::log(
+            'store.suspend',
+            'update',
+            'Store',
+            $store->id,
+            "Store {$store->name} suspended",
+            ['status' => $oldStatus],
+            ['status' => false, 'store_name' => $store->name]
+        );
 
         return redirect()->back()->with('success', "{$store->name} has been suspended.");
     }
@@ -492,6 +587,18 @@ class DeveloperController extends Controller
         if ($payments->isEmpty()) {
             return redirect()->back()->with('error', 'No pending payments to download.');
         }
+
+        ActivityService::log(
+            'report.export.pending_payments',
+            'action',
+            'SubscriptionPayment',
+            null,
+            'Exported pending approvals PDF',
+            null,
+            [
+                'records_count' => $payments->count(),
+            ]
+        );
 
         $pdf = Pdf::loadView('pdf.pending_list', compact('payments'))
             ->setPaper('a4', 'landscape')
@@ -528,11 +635,92 @@ class DeveloperController extends Controller
     }
 
     /**
+     * Display Policy Documents Page
+     */
+    public function policies()
+    {
+        if (Auth::user()->role !== 'super_admin') abort(403);
+
+        $keys = [
+            'terms_of_service',
+            'privacy_policy',
+            'staff_terms_of_service',
+            'staff_privacy_policy',
+        ];
+
+        $settings = SystemSetting::whereIn('key', $keys)->pluck('value', 'key')->toArray();
+
+        foreach ($keys as $key) {
+            $settings[$key] = $settings[$key] ?? '';
+        }
+
+        return Inertia::render('Developer/Policies', [
+            'policySettings' => $settings,
+        ]);
+    }
+
+    /**
+     * Save Policy Documents
+     */
+    public function updatePolicies(Request $request)
+    {
+        if (Auth::user()->role !== 'super_admin') abort(403);
+
+        $validated = $request->validate([
+            'terms_of_service' => 'nullable|string|max:65000',
+            'privacy_policy' => 'nullable|string|max:65000',
+            'staff_terms_of_service' => 'nullable|string|max:65000',
+            'staff_privacy_policy' => 'nullable|string|max:65000',
+        ]);
+
+        $keys = [
+            'terms_of_service',
+            'privacy_policy',
+            'staff_terms_of_service',
+            'staff_privacy_policy',
+        ];
+
+        $oldSettings = SystemSetting::whereIn('key', $keys)->pluck('value', 'key')->toArray();
+
+        foreach ($keys as $key) {
+            SystemSetting::updateOrCreate(
+                ['key' => $key],
+                ['value' => $validated[$key] ?? null]
+            );
+        }
+
+        $newSettings = SystemSetting::whereIn('key', $keys)->pluck('value', 'key')->toArray();
+
+        if ($oldSettings !== $newSettings) {
+            ActivityService::log(
+                'system.policies.update',
+                'update',
+                'SystemSetting',
+                null,
+                'Updated policy documents',
+                $oldSettings,
+                $newSettings
+            );
+        }
+
+        return redirect()->back()->with('success', 'Policy documents updated successfully.');
+    }
+
+    /**
      * Save System Information
      */
     public function updateSystemInfo(\Illuminate\Http\Request $request)
     {
         if (\Illuminate\Support\Facades\Auth::user()->role !== 'super_admin') abort(403);
+
+        $oldSettings = SystemSetting::whereIn('key', [
+            'app_name',
+            'support_email',
+            'support_phone',
+            'company_address',
+            'logo_path',
+            'payment_methods',
+        ])->pluck('value', 'key')->toArray();
 
         $request->validate([
             'app_name' => 'nullable|string|max:255',
@@ -585,12 +773,94 @@ class DeveloperController extends Controller
             // Handle payment methods
             if ($request->has('payment_methods') && $request->input('payment_methods') !== null) {
                 $paymentMethods = json_decode($request->input('payment_methods'), true);
-                if (is_array($paymentMethods) && !empty($paymentMethods)) {
+                if (is_array($paymentMethods)) {
+                    $oldPaymentMethods = json_decode($oldSettings['payment_methods'] ?? '[]', true) ?: [];
+
                     \App\Models\SystemSetting::updateOrCreate(
                         ['key' => 'payment_methods'],
                         ['value' => json_encode($paymentMethods)]
                     );
+
+                    $makeKey = function (array $method): string {
+                        $type = strtolower((string) ($method['type'] ?? ''));
+                        $number = preg_replace('/\s+/', '', (string) ($method['number'] ?? ''));
+                        return $type . '|' . $number;
+                    };
+
+                    $oldByKey = collect($oldPaymentMethods)->mapWithKeys(fn($m) => [$makeKey($m) => $m]);
+                    $newByKey = collect($paymentMethods)->mapWithKeys(fn($m) => [$makeKey($m) => $m]);
+
+                    $removedKeys = $oldByKey->keys()->diff($newByKey->keys());
+                    foreach ($removedKeys as $key) {
+                        $method = $oldByKey->get($key);
+                        ActivityService::log(
+                            'system.payment_methods.delete',
+                            'delete',
+                            'SystemSetting',
+                            null,
+                            'Deleted payment method from system information',
+                            ['payment_method' => $method],
+                            null
+                        );
+                    }
+
+                    $addedKeys = $newByKey->keys()->diff($oldByKey->keys());
+                    foreach ($addedKeys as $key) {
+                        $method = $newByKey->get($key);
+                        ActivityService::log(
+                            'system.payment_methods.create',
+                            'create',
+                            'SystemSetting',
+                            null,
+                            'Added payment method to system information',
+                            null,
+                            ['payment_method' => $method]
+                        );
+                    }
+
+                    $commonKeys = $newByKey->keys()->intersect($oldByKey->keys());
+                    foreach ($commonKeys as $key) {
+                        $oldMethod = $oldByKey->get($key);
+                        $newMethod = $newByKey->get($key);
+
+                        if ($oldMethod !== $newMethod) {
+                            ActivityService::log(
+                                'system.payment_methods.update',
+                                'update',
+                                'SystemSetting',
+                                null,
+                                'Updated payment method in system information',
+                                ['payment_method' => $oldMethod],
+                                ['payment_method' => $newMethod]
+                            );
+                        }
+                    }
                 }
+            }
+
+            $newSettings = SystemSetting::whereIn('key', [
+                'app_name',
+                'support_email',
+                'support_phone',
+                'company_address',
+                'logo_path',
+                'payment_methods',
+            ])->pluck('value', 'key')->toArray();
+
+            $oldSettingsForLog = $oldSettings;
+            $newSettingsForLog = $newSettings;
+            unset($oldSettingsForLog['payment_methods'], $newSettingsForLog['payment_methods']);
+
+            if ($oldSettingsForLog !== $newSettingsForLog) {
+                ActivityService::log(
+                    'system.update',
+                    'update',
+                    'SystemSetting',
+                    null,
+                    'Updated system information settings',
+                    $oldSettingsForLog,
+                    $newSettingsForLog
+                );
             }
 
             return redirect()->back()->with('success', 'System Information updated successfully.');
@@ -674,6 +944,13 @@ class DeveloperController extends Controller
             $user->save();
         }
 
+        ActivityService::logCreate('User', $user->id, "Created global user: {$user->name} ({$user->email})", [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'is_admin' => $user->is_admin,
+        ]);
+
         return redirect()->back()->with('success', 'User created successfully.');
     }
 
@@ -696,6 +973,20 @@ class DeveloperController extends Controller
             'country'      => ['nullable', 'string', 'max:100'],
             'avatar'       => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ]);
+
+        $oldValues = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'is_admin' => $user->is_admin,
+            'phone_number' => $user->phone_number,
+            'address' => $user->address,
+            'city' => $user->city,
+            'province' => $user->province,
+            'country' => $user->country,
+        ];
+        $oldRole = $user->role;
+        $oldEmail = $user->email;
 
         $user->name = $request->name;
         $user->email = $request->email;
@@ -720,9 +1011,30 @@ class DeveloperController extends Controller
         // Only update the password if a new one was provided
         if ($request->filled('password')) {
             $user->password = \Illuminate\Support\Facades\Hash::make($request->password);
+            ActivityService::logPasswordChange($user->id, "Password changed for global user: {$user->name}");
         }
 
         $user->save();
+
+        if ($oldRole !== $user->role) {
+            ActivityService::logRoleChange($user->id, $oldRole, $user->role, "Global role changed for {$user->name}");
+        }
+
+        if ($oldEmail !== $user->email) {
+            ActivityService::logEmailChange($user->id, $oldEmail, $user->email, "Global email changed for {$user->name}");
+        }
+
+        ActivityService::logUpdate('User', $user->id, "Updated global user: {$user->name}", $oldValues, [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'is_admin' => $user->is_admin,
+            'phone_number' => $user->phone_number,
+            'address' => $user->address,
+            'city' => $user->city,
+            'province' => $user->province,
+            'country' => $user->country,
+        ]);
 
         return redirect()->back()->with('success', 'User updated successfully.');
     }
@@ -746,6 +1058,13 @@ class DeveloperController extends Controller
         if ($user->avatar_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->avatar_path)) {
             \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar_path);
         }
+
+        ActivityService::logDelete('User', $user->id, "Deleted global user: {$user->name} ({$user->email})", [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'is_admin' => $user->is_admin,
+        ]);
 
         $user->delete();
 

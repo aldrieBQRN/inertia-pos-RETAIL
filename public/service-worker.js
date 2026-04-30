@@ -33,29 +33,47 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
   // Skip non-GET requests
-  if (event.request.method !== 'GET') {
+  if (request.method !== 'GET') {
     return;
   }
 
+  // Always fetch fresh for HTML pages and API (never cache)
+  const isHtmlRequest = request.headers.get('accept')?.includes('text/html') ||
+                        url.pathname === '/' ||
+                        url.pathname.endsWith('.php') ||
+                        url.pathname.startsWith('/api/');
+
+  if (isHtmlRequest) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          return response;
+        })
+        .catch(() => {
+          // Return offline response (no cached fallback)
+          return new Response('Offline', { status: 503 });
+        })
+    );
+    return;
+  }
+
+  // Cache-first for static assets (images, build files, CSS, JS)
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request).then((response) => {
-        // Don't cache non-successful responses
+    caches.match(request).then((response) => {
+      return response || fetch(request).then((response) => {
         if (!response || response.status !== 200 || response.type === 'error') {
           return response;
         }
-
         const responseToCache = response.clone();
         caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
+          cache.put(request, responseToCache);
         });
-
         return response;
       });
-    }).catch(() => {
-      // Return offline page or response
-      return new Response('Offline - Please check your connection', { status: 503 });
     })
   );
 });

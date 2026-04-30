@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
+use App\Services\ActivityService;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -47,6 +49,18 @@ class LoginRequest extends FormRequest
 
         // Attempt to log the user in using the provided credentials
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+            $attemptedUser = User::where('email', (string) $this->input('email'))->first();
+
+            ActivityService::logSecurityAction(
+                'login_failed',
+                'Failed login attempt',
+                [
+                    'email' => (string) $this->input('email'),
+                    '_actor_user_id' => $attemptedUser?->id,
+                    '_actor_store_id' => $attemptedUser?->store_id,
+                ]
+            );
+
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

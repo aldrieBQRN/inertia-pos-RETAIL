@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\ActivityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,6 +36,16 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
+        ActivityService::logSecurityAction(
+            'login_success',
+            'User logged in successfully',
+            [
+                'user_id' => $request->user()->id,
+                'email' => $request->user()->email,
+                'role' => $request->user()->role,
+            ]
+        );
+
         $role = $request->user()->role;
 
         // Redirect based on role
@@ -53,6 +64,17 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        if (Auth::check()) {
+            ActivityService::logSecurityAction(
+                'logout',
+                'User logged out',
+                [
+                    'user_id' => Auth::id(),
+                    'email' => Auth::user()->email,
+                ]
+            );
+        }
+
         Auth::guard('web')->logout();
 
         // Clear session data and regenerate the CSRF token

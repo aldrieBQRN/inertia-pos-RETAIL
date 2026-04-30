@@ -26,7 +26,6 @@ class HandleInertiaRequests extends Middleware
             // Share authenticated user data globally
             'auth' => [
                 'user' => $request->user(),
-                'is_impersonating' => $request->session()->has('impersonator_id'),
                 'csrf_token' => csrf_token(),
             ],
 

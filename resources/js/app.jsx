@@ -7,8 +7,8 @@ import { createRoot } from 'react-dom/client';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
-// Register Service Worker for PWA functionality
-if ('serviceWorker' in navigator) {
+// Register Service Worker only in production so development refresh always uses the latest UI.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/service-worker.js')
             .then(registration => {
@@ -17,6 +17,20 @@ if ('serviceWorker' in navigator) {
             .catch(error => {
                 console.log('Service Worker registration failed:', error);
             });
+    });
+} else if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+        try {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map((registration) => registration.unregister()));
+
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
+            }
+        } catch (error) {
+            console.log('Service Worker cleanup failed:', error);
+        }
     });
 }
 

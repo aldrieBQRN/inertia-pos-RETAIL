@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL; // <-- ADDED THIS IMPORT
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
@@ -30,6 +31,11 @@ class AppServiceProvider extends ServiceProvider
     {
         // Configures Vite to prefetch assets for improved frontend performance
         Vite::prefetch(concurrency: 3);
+
+        // Production guardrail: never change user flow, only record the risk if debug is left on.
+        if (app()->environment('production') && config('app.debug')) {
+            Log::warning('Production debug mode is enabled. Set APP_DEBUG=false before deploying.');
+        }
 
         // Force HTTPS if running through a secure proxy like Ngrok
         if (request()->header('x-forwarded-proto') === 'https') {

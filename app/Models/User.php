@@ -110,4 +110,12 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Store::class);
     }
+
+    /**
+     * Scope to filter users by store.
+     */
+    public function scopeForStore($query, $storeId)
+    {
+        return $query->where('store_id', $storeId);
+    }
 }

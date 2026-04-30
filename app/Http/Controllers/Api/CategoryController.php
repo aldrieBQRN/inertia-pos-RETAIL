@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Services\ActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -42,12 +43,21 @@ class CategoryController extends Controller
             'color' => $request->color ?? '#3B82F6',
         ]);
 
+        ActivityService::logCreate('Category', $category->id, "Created category: {$category->name}", [
+            'name' => $category->name,
+            'color' => $category->color,
+        ]);
+
         return response()->json($category, 201);
     }
 
     public function update(Request $request, $id)
     {
         $category = Category::findOrFail($id);
+        $oldValues = [
+            'name' => $category->name,
+            'color' => $category->color,
+        ];
 
         // Validate with CUSTOM friendly error messages
         $request->validate([
@@ -71,12 +81,21 @@ class CategoryController extends Controller
             'color' => $request->color ?? $category->color,
         ]);
 
+        ActivityService::logUpdate('Category', $category->id, "Updated category: {$category->name}", $oldValues, [
+            'name' => $category->name,
+            'color' => $category->color,
+        ]);
+
         return response()->json($category);
     }
 
     public function destroy($id)
     {
         $category = Category::findOrFail($id);
+        $categoryValues = [
+            'name' => $category->name,
+            'color' => $category->color,
+        ];
 
         if ($category->products()->count() > 0) {
             return response()->json([
@@ -85,6 +104,8 @@ class CategoryController extends Controller
         }
 
         $category->delete();
+
+        ActivityService::logDelete('Category', $id, "Deleted category: {$categoryValues['name']}", $categoryValues);
 
         return response()->json(['message' => 'Category deleted']);
     }

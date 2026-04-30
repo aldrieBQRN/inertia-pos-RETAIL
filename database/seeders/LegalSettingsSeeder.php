@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\SystemSetting;
+use Illuminate\Database\Seeder;
 
 class LegalSettingsSeeder extends Seeder
 {
@@ -12,87 +12,126 @@ class LegalSettingsSeeder extends Seeder
      */
     public function run(): void
     {
-        // ---------------------------------------------------------
-        // 1. STORE OWNER (TENANT) POLICIES
-        // ---------------------------------------------------------
-        SystemSetting::updateOrCreate(
-            ['key' => 'terms_of_service'],
-            ['value' => '
-                <h2>1. Acceptance of Terms</h2>
-                <p>By accessing and using this Cloud Point-of-Sale (POS) system, the Store Owner ("Tenant") accepts and agrees to be bound by the terms and provisions of this agreement. Any participation in this service will constitute acceptance of this agreement.</p>
+        $documents = [
+            'terms_of_service' => <<<'HTML'
+<section>
+    <h2>1. Agreement to Terms</h2>
+    <p>By creating an account or using this platform, the Store Owner agrees to these Terms of Service. If you do not agree, do not use the service.</p>
 
-                <h2>2. Provision of Service</h2>
-                <p>We provide a cloud-based POS system designed to manage sales, inventory, and staff. We reserve the right to modify, suspend, or discontinue the service with or without notice at any time to ensure system integrity and security.</p>
+    <h2>2. Service Scope</h2>
+    <p>The platform provides tools for point-of-sale, inventory tracking, reporting, and staff operations. Features may be updated from time to time to improve reliability, security, and performance.</p>
 
-                <h2>3. Data Ownership and Security</h2>
-                <ul>
-                    <li><strong>Your Data:</strong> The Tenant retains all rights to the data inputted into the system, including sales records and customer data.</li>
-                    <li><strong>Security:</strong> We implement industry-standard security measures, but the Tenant is strictly responsible for maintaining the confidentiality of their administrative credentials.</li>
-                </ul>
+    <h2>3. Account Responsibility</h2>
+    <p>You are responsible for keeping account credentials secure and for activity performed under your account. You must notify support immediately if you suspect unauthorized access.</p>
 
-                <h2>4. Limitation of Liability</h2>
-                <p>In no event shall the platform providers be liable for any indirect, incidental, special, or consequential damages arising out of the use of or inability to use the system, including hardware failures, connectivity drops, or data loss.</p>
-            ']
-        );
+    <h2>4. Data Ownership</h2>
+    <p>You retain ownership of your business data. You grant us permission to process and store that data only to provide and maintain the service.</p>
 
-        SystemSetting::updateOrCreate(
-            ['key' => 'privacy_policy'],
-            ['value' => '
-                <h2>1. Information We Collect</h2>
-                <p>We collect information to provide better and more secure services to our Tenants. This includes:</p>
-                <ul>
-                    <li><strong>Account Information:</strong> Store name, business address, and administrative contact details.</li>
-                    <li><strong>Usage Data:</strong> System interaction logs, hardware connection status, and transaction volumes for system optimization and load balancing.</li>
-                </ul>
+    <h2>5. Acceptable Use</h2>
+    <p>You agree not to misuse the platform, attempt unauthorized access, interfere with system operation, or use the service for unlawful activity.</p>
 
-                <h2>2. How We Use Your Information</h2>
-                <p>The collected data is used exclusively to maintain and improve the POS platform, provide technical customer support, and ensure billing accuracy. We do not sell your business data to third parties under any circumstances.</p>
+    <h2>6. Availability and Changes</h2>
+    <p>We strive for reliable uptime but do not guarantee uninterrupted service. We may perform maintenance, release updates, or modify features as needed.</p>
 
-                <h2>3. Data Processing and Storage</h2>
-                <p>All data is encrypted in transit and at rest. As the Store Owner, you are the primary data controller for your customers\' data, and we act securely as the data processor.</p>
-            ']
-        );
+    <h2>7. Fees and Billing</h2>
+    <p>Subscription plans, billing schedules, and renewal terms are shown in your account. Non-payment may result in account suspension according to your plan terms.</p>
 
-        // ---------------------------------------------------------
-        // 2. STAFF / CASHIER POLICIES
-        // ---------------------------------------------------------
-        SystemSetting::updateOrCreate(
-            ['key' => 'staff_terms_of_service'],
-            ['value' => '
-                <h2>1. Acceptable Use Policy</h2>
-                <p>As an authorized staff member, you agree to use this Point of Sale (POS) system strictly for official business purposes as directed by your store management. You must not process unauthorized transactions, apply unapproved discounts, or attempt to access restricted administrative areas.</p>
+    <h2>8. Suspension and Termination</h2>
+    <p>We may suspend or terminate access for security reasons, policy violations, or unpaid balances. You may stop using the service at any time.</p>
 
-                <h2>2. Account Security & Accountability</h2>
-                <ul>
-                    <li><strong>Credential Protection:</strong> You are responsible for maintaining the confidentiality of your password. Never share your login details with other staff members.</li>
-                    <li><strong>System Accountability:</strong> All transactions, voided sales, and cash drawer interactions performed under your account are logged and attributed directly to you.</li>
-                </ul>
+    <h2>9. Limitation of Liability</h2>
+    <p>To the maximum extent allowed by law, the service is provided as-is and we are not liable for indirect or consequential losses, including business interruption, data loss, or lost profits.</p>
 
-                <h2>3. Hardware & Equipment</h2>
-                <p>You agree to handle the POS terminal, receipt printer, and cash drawer with care. Any technical issues, physical damage, or hardware malfunctions must be reported to the store manager immediately.</p>
+    <h2>10. Contact</h2>
+    <p>For questions about these terms, contact support through your system administrator or designated support channel.</p>
+</section>
+HTML,
+            'privacy_policy' => <<<'HTML'
+<section>
+    <h2>1. Overview</h2>
+    <p>This Privacy Policy explains how platform data is collected, used, stored, and protected when you use the service.</p>
 
-                <h2>4. Termination of Access</h2>
-                <p>Your store management reserves the right to suspend or terminate your access to this system at any time, for any reason, including violation of store policies, mishandling of funds, or termination of your employment.</p>
-            ']
-        );
+    <h2>2. Information We Collect</h2>
+    <ul>
+        <li><strong>Account Data:</strong> Business name, contact details, and account profile information.</li>
+        <li><strong>Operational Data:</strong> Sales records, inventory data, staff activity, and transaction logs entered by authorized users.</li>
+        <li><strong>Technical Data:</strong> Device details, IP address, browser metadata, and diagnostic logs required for support and security.</li>
+    </ul>
 
-        SystemSetting::updateOrCreate(
-            ['key' => 'staff_privacy_policy'],
-            ['value' => '
-                <h2>1. Employee Data Collection</h2>
-                <p>To create and maintain your secure staff account, this system collects your personal information, including your full name, address, and phone number. This data is collected on behalf of your employer (the Store Owner) strictly for operational and payroll tracking purposes.</p>
+    <h2>3. How We Use Information</h2>
+    <p>We use information to provide service functionality, process transactions, secure accounts, troubleshoot issues, send operational notices, and improve product quality.</p>
 
-                <h2>2. Tracking and Monitoring</h2>
-                <p>Please be aware that your usage of the POS system is continuously monitored by the system to prevent fraud. This includes:</p>
-                <ul>
-                    <li>Login and logout timestamps (Shift and attendance tracking).</li>
-                    <li>Sales performance, voids, and transaction history.</li>
-                    <li>System interaction logs (e.g., deleted cart items, opened cash drawers without a sale).</li>
-                </ul>
+    <h2>4. Data Sharing</h2>
+    <p>We do not sell personal data. Data may be shared only with trusted service providers who support hosting, security, communications, or payment workflows, and only as required to deliver the service.</p>
 
-                <h2>3. Data Visibility and Security</h2>
-                <p>Your personal information and daily performance data are visible only to your authorized Store Administrators and the core System Provider. We process this data securely and do not sell your personal information to any third-party marketers.</p>
-            ']
-        );
+    <h2>5. Data Security</h2>
+    <p>We use reasonable administrative, technical, and organizational safeguards to protect data against unauthorized access, alteration, disclosure, or destruction.</p>
+
+    <h2>6. Data Retention</h2>
+    <p>Data is retained as long as needed for operations, compliance, dispute handling, and legitimate business needs, unless a longer period is required by law.</p>
+
+    <h2>7. Your Rights</h2>
+    <p>Depending on applicable law, users may request access, correction, or deletion of personal data through the account owner or support channel.</p>
+
+    <h2>8. Policy Updates</h2>
+    <p>We may update this policy from time to time. Material changes will be communicated through appropriate in-app or account notices.</p>
+</section>
+HTML,
+            'staff_terms_of_service' => <<<'HTML'
+<section>
+    <h2>1. Authorized Use</h2>
+    <p>Staff accounts are for official business use only. Users must follow store policies and manager instructions while operating the platform.</p>
+
+    <h2>2. Login Security</h2>
+    <p>Each staff member must keep credentials private and must not share accounts. Any suspected account misuse must be reported immediately.</p>
+
+    <h2>3. Transaction Integrity</h2>
+    <p>All sales, voids, discounts, and cash drawer actions must be performed honestly and according to store rules. Fraudulent or unauthorized activity is strictly prohibited.</p>
+
+    <h2>4. Accountability and Monitoring</h2>
+    <p>Actions performed under a staff account are recorded and may be reviewed by authorized managers for audit and compliance.</p>
+
+    <h2>5. Equipment Care</h2>
+    <p>Staff must handle POS devices, printers, and connected hardware responsibly and report malfunctions or damage promptly.</p>
+
+    <h2>6. Access Removal</h2>
+    <p>Store management may suspend or revoke staff access at any time due to role changes, policy violations, or employment status updates.</p>
+
+    <h2>7. Policy Compliance</h2>
+    <p>By using the platform, staff confirm they understand and agree to follow this policy and all related store procedures.</p>
+</section>
+HTML,
+            'staff_privacy_policy' => <<<'HTML'
+<section>
+    <h2>1. Staff Data We Process</h2>
+    <p>To manage user accounts and operations, the system processes staff profile details and job-related activity records.</p>
+
+    <h2>2. Operational Monitoring</h2>
+    <p>For security and accountability, the system records operational events such as login times, shift activity, transaction actions, and related audit logs.</p>
+
+    <h2>3. Purpose of Processing</h2>
+    <p>Staff data is processed for account administration, fraud prevention, business reporting, and compliance with internal controls.</p>
+
+    <h2>4. Access to Staff Data</h2>
+    <p>Staff data is accessible only to authorized administrators, managers, and system operators with a legitimate business need.</p>
+
+    <h2>5. Data Protection</h2>
+    <p>Reasonable safeguards are applied to protect staff data from unauthorized access, disclosure, or misuse.</p>
+
+    <h2>6. Retention and Deletion</h2>
+    <p>Staff records are retained according to legal, operational, and audit requirements. When retention is no longer required, records are securely removed.</p>
+
+    <h2>7. Questions</h2>
+    <p>Staff with questions about data handling should contact their store administrator or the designated support channel.</p>
+</section>
+HTML,
+        ];
+
+        foreach ($documents as $key => $value) {
+            SystemSetting::updateOrCreate(
+                ['key' => $key],
+                ['value' => trim($value)]
+            );
+        }
     }
 }

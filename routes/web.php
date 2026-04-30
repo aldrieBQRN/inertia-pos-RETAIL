@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\DeveloperController;
 use App\Http\Controllers\Api\SetupController;
+use App\Http\Controllers\Api\ActivityLogController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\TenantSetupController;
@@ -195,6 +196,12 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class])->grou
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+    // API: Activity Logs (Admin Audit Trail)
+    Route::get('/api/activity-logs', [\App\Http\Controllers\Api\ActivityLogController::class, 'index'])->name('activity-logs.index');
+    Route::get('/api/activity-logs/{id}', [\App\Http\Controllers\Api\ActivityLogController::class, 'show'])->name('activity-logs.show');
+    Route::get('/api/activity-logs/summary', [\App\Http\Controllers\Api\ActivityLogController::class, 'summary'])->name('activity-logs.summary');
+    Route::get('/api/activity-logs/export', [\App\Http\Controllers\Api\ActivityLogController::class, 'export'])->name('activity-logs.export');
 });
 
 
@@ -202,13 +209,15 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class])->grou
  * SUPER ADMIN / DEVELOPER ROUTES
  * (Strictly for System Maintainers)
  */
-Route::middleware(['auth'])->prefix('developer')->group(function () {
+Route::middleware(['auth', 'super_admin'])->prefix('developer')->group(function () {
 
     // 1. Core Management Pages
     Route::get('/', [DeveloperController::class, 'index'])->name('developer.index');
     Route::get('/tenants', [DeveloperController::class, 'tenants'])->name('developer.tenants');
     Route::get('/billing', [DeveloperController::class, 'billing'])->name('developer.billing');
     Route::get('/broadcasts', [DeveloperController::class, 'broadcasts'])->name('developer.broadcasts');
+    Route::get('/activity-logs', [\App\Http\Controllers\Api\ActivityLogController::class, 'index'])->name('developer.activity-logs');
+    Route::get('/policies', [DeveloperController::class, 'policies'])->name('developer.policies');
 
     // 2. Finance Separation
     Route::get('/payments/pending', [DeveloperController::class, 'pendingApprovals'])->name('developer.payments.pending');
@@ -231,6 +240,7 @@ Route::middleware(['auth'])->prefix('developer')->group(function () {
     // 5. System Management
     Route::get('/system-info', [DeveloperController::class, 'systemInfo'])->name('developer.system.info');
     Route::post('/system-info', [DeveloperController::class, 'updateSystemInfo'])->name('developer.system.update');
+    Route::post('/policies', [DeveloperController::class, 'updatePolicies'])->name('developer.policies.update');
 
     // 5.5. Announcements/Broadcasts
     Route::post('/announcements', [DeveloperController::class, 'storeAnnouncement'])->name('developer.announcements.store');
@@ -241,14 +251,6 @@ Route::middleware(['auth'])->prefix('developer')->group(function () {
     Route::post('/users', [DeveloperController::class, 'storeUser'])->name('developer.users.store');
     Route::put('/users/{user}', [DeveloperController::class, 'updateUser'])->name('developer.users.update');
     Route::delete('/users/{user}', [DeveloperController::class, 'destroyUser'])->name('developer.users.destroy');
-});
-
-/**
- * IMPERSONATION TOOLS
- */
-Route::middleware(['auth'])->group(function () {
-    Route::post('/impersonate/{user}', [DeveloperController::class, 'impersonate'])->name('impersonate');
-    Route::match(['get', 'post'], '/impersonate/leave', [DeveloperController::class, 'leaveImpersonation'])->name('impersonate.leave');
 });
 
 require __DIR__ . '/auth.php';

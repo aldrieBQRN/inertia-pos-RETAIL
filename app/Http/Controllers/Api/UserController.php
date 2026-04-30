@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Mail\StaffInvite;
 use App\Mail\EmailVerificationOtp;
+use App\Services\ActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -69,7 +70,14 @@ class UserController extends Controller
         // 3. Send the Email Invitation
         Mail::to($user->email)->send(new StaffInvite($user, $setupUrl));
 
-        return redirect()->back()->with('success', 'User created and invite sent successfully.');
+        // 4. Log the critical user creation
+        ActivityService::logCreate('User', $user->id, "Created user: {$user->name} ({$user->email}) with role: {$user->role}", [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+        ]);
+
+        return redirect()->back()->with('success', 'User created and invite sent successfully');
     }
 
     /**
@@ -93,6 +101,19 @@ class UserController extends Controller
             'password'       => 'nullable|string|min:8', // Optional during edit
         ]);
 
+        // Store old values for audit trail
+        $oldEmail = $user->email;
+        $oldRole = $user->role;
+        $oldValues = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'phone_number' => $user->phone_number,
+            'address' => $user->address,
+            'city' => $user->city,
+            'province' => $user->province,
+        ];
+
         $user->update([
             'name'           => $request->name,
             'email'          => $request->email,
@@ -109,7 +130,30 @@ class UserController extends Controller
             $user->update([
                 'password' => Hash::make($request->password)
             ]);
+            // Log password change (critical)
+            ActivityService::logPasswordChange($user->id, "Password changed for user: {$user->name}");
         }
+
+        // Log role change if it changed (critical)
+        if ($oldRole !== $user->role) {
+            ActivityService::logRoleChange($user->id, $oldRole, $user->role);
+        }
+
+        // Log email change if it changed (critical)
+        if ($oldEmail !== $user->email) {
+            ActivityService::logEmailChange($user->id, $oldEmail, $user->email);
+        }
+
+        // Log general update with before/after values
+        ActivityService::logUpdate('User', $user->id, "Updated user: {$user->name}", $oldValues, [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'phone_number' => $user->phone_number,
+            'address' => $user->address,
+            'city' => $user->city,
+            'province' => $user->province,
+        ]);
 
         return redirect()->back()->with('success', 'User updated successfully.');
     }
@@ -123,6 +167,13 @@ class UserController extends Controller
         if ($user->store_id !== Auth::user()->store_id) {
             abort(403, 'Unauthorized action.');
         }
+
+        // Log the deletion (critical)
+        ActivityService::logDelete('User', $user->id, "Deleted user: {$user->name} ({$user->email})", [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+        ]);
 
         $user->delete();
 
@@ -161,6 +212,13 @@ class UserController extends Controller
         // 3. Send HTML formatted email
         Mail::to($request->email)->send(new EmailVerificationOtp($otp, $request->email, true));
 
+        // 4. Log OTP generation (critical security event)
+        ActivityService::logSecurityAction('otp_generated', "Generated OTP for staff email verification", [
+            'staff_id' => $staff->id,
+            'staff_name' => $staff->name,
+            'target_email' => $request->email,
+        ]);
+
         return response()->json(['message' => 'OTP sent successfully.']);
     }
 
@@ -188,9 +246,19 @@ class UserController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $oldEmail = $staff->email;
+
         $staff->email = $cacheData['email'];
         $staff->email_verified_at = now();
         $staff->save();
+
+        // Log email change via OTP verification (critical)
+        ActivityService::logEmailChange(
+            $staff->id,
+            $oldEmail,
+            $staff->email,
+            "Email updated via OTP verification for user: {$staff->name}"
+        );
 
         // 4. Clean up cache
         Cache::forget('staff_email_otp_' . $request->staff_id);

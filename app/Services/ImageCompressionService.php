@@ -6,6 +6,7 @@ use Illuminate\Http\UploadedFile;
 use Intervention\Image\ImageManager;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Image Compression Service
@@ -20,6 +21,14 @@ class ImageCompressionService
     public function __construct()
     {
         $this->imageManager = new ImageManager('gd');
+    }
+
+    /**
+     * Generate a secure random filename
+     */
+    private function generateRandomFilename(string $extension = 'webp'): string
+    {
+        return bin2hex(random_bytes(16)) . '.' . $extension;
     }
 
     /**
@@ -49,8 +58,8 @@ class ImageCompressionService
             // Convert to WebP and compress
             $webpImage = $image->toWebp(quality: $quality);
 
-            // Generate a unique filename with .webp extension
-            $filename = uniqid() . '_' . time() . '.webp';
+            // Generate a secure random filename with .webp extension
+            $filename = $this->generateRandomFilename('webp');
             $fullPath = $path . '/' . $filename;
 
             // Store the compressed image - convert to string
@@ -58,10 +67,15 @@ class ImageCompressionService
 
             return $fullPath;
         } catch (\Exception $e) {
-            // Fallback: store original if compression fails
+            // Fallback: store original with random filename if compression fails
             // Log the error but don't break the upload
             Log::warning('Image compression failed: ' . $e->getMessage());
-            return $file->store($path, 'public');
+
+            // Get the original extension
+            $extension = $file->getClientOriginalExtension();
+            $filename = $this->generateRandomFilename($extension);
+
+            return Storage::disk('public')->putFileAs($path, $file, $filename);
         }
     }
 

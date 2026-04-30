@@ -7,6 +7,7 @@ use App\Models\Store;
 use App\Models\SystemSetting;
 use App\Models\Shift;
 use App\Models\Sale;
+use App\Services\ActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -124,6 +125,13 @@ class SettingController extends Controller
         // Find the current user's specific store
         $store = Store::findOrFail(Auth::user()->store_id);
 
+        $oldValues = [
+            'store_name' => $store->name,
+            'address' => $store->address,
+            'phone' => $store->phone,
+            'logo_path' => $store->logo_path,
+        ];
+
         $store->name = $request->store_name;
         $store->address = $request->address;
         $store->phone = $request->phone;
@@ -142,6 +150,21 @@ class SettingController extends Controller
         }
 
         $store->save();
+
+        ActivityService::log(
+            'store.settings.update',
+            'update',
+            'Store',
+            $store->id,
+            "Updated store details: {$store->name}",
+            $oldValues,
+            [
+                'store_name' => $store->name,
+                'address' => $store->address,
+                'phone' => $store->phone,
+                'logo_path' => $store->logo_path,
+            ]
+        );
 
         return redirect()->back()->with('success', 'Store settings updated!');
     }

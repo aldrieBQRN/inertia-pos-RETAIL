@@ -42,7 +42,7 @@ class Kernel extends ConsoleKernel
                 Log::error('Subscription due warning email failed');
             });
 
-        // Process queued jobs (emails, notifications, etc.)
+        // Process default queued jobs (emails, notifications, etc.)
         // Runs every minute to check for pending jobs
         $schedule->command('queue:work', ['--max-jobs' => 1, '--max-time' => 60])
             ->everyMinute()
@@ -51,11 +51,27 @@ class Kernel extends ConsoleKernel
                 Log::error('Queue worker failed');
             });
 
-        // Clean up old failed jobs (optional)
-        // Runs daily at midnight
-        $schedule->command('queue:flush')
+        // Process audit log queue explicitly so activity logs do not build up.
+        $schedule->command('queue:work', ['--queue' => 'logs', '--max-jobs' => 25, '--max-time' => 60])
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->onFailure(function () {
+                Log::error('Audit log queue worker failed');
+            });
+
+        // Prune old failed jobs while keeping recent failures visible for debugging.
+        $schedule->command('queue:prune-failed', ['--hours' => 168])
             ->daily()
             ->withoutOverlapping();
+
+        // Prune old activity logs using the configured retention window
+        // Runs monthly on the 1st day at 2:00 AM
+        $schedule->command('activity-logs:prune')
+            ->monthlyOn(1, '02:00')
+            ->withoutOverlapping()
+            ->onFailure(function () {
+                Log::error('Activity log pruning failed');
+            });
     }
 
     /**

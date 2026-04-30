@@ -3,7 +3,7 @@ import { Head, usePage } from '@inertiajs/react';
 
 export default function Error({ status }) {
     // We grab the global props we set up earlier in HandleInertiaRequests
-    const { auth, csrf_token } = usePage().props;
+    usePage();
 
     const title = {
         503: '503: Service Unavailable',
@@ -22,19 +22,6 @@ export default function Error({ status }) {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 relative">
             <Head title={title} />
-
-            {/* IMPERSONATION RESCUE BANNER */}
-            {auth?.is_impersonating && (
-                <div className="absolute top-0 left-0 w-full bg-red-600 text-white px-6 py-3 flex justify-between items-center shadow-lg z-50">
-                    <span className="font-bold text-sm">⚠️ You hit an error page while impersonating a tenant.</span>
-                    <form action="/impersonate/leave" method="POST" className="inline">
-                        <input type="hidden" name="_token" value={csrf_token || ''} />
-                        <button type="submit" className="bg-white text-red-600 px-4 py-2 rounded font-bold text-xs shadow hover:bg-red-50 transition-colors">
-                            RETURN TO ADMIN
-                        </button>
-                    </form>
-                </div>
-            )}
 
             <div className="text-center space-y-6">
                 <h1 className="text-9xl font-black text-blue-600 tracking-tighter drop-shadow-sm">
