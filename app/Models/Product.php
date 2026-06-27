@@ -29,6 +29,7 @@ class Product extends Model
         'sku',
         'price',
         'cost_price',
+        'wholesale_price',
         'stock_quantity',
         'low_stock_threshold',
         'category_id',
@@ -45,6 +46,7 @@ class Product extends Model
         'is_active' => 'boolean',
         'stock_quantity' => 'integer',
         'price' => 'integer',
+        'wholesale_price' => 'integer',
     ];
 
     /**
@@ -65,6 +67,17 @@ class Product extends Model
     {
         return Attribute::make(
             get: fn() => number_format($this->price / 100, 2)
+        );
+    }
+
+    /**
+     * Accessor: Formats the integer wholesale price (cents) into a human-readable decimal.
+     * Usage: $product->display_wholesale_price
+     */
+    protected function displayWholesalePrice(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->wholesale_price !== null ? number_format($this->wholesale_price / 100, 2) : null
         );
     }
 

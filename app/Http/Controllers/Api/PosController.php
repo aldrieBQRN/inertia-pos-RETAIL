@@ -26,8 +26,10 @@ class PosController extends Controller
         // 1. Validation for cart contents and payment info
         $request->validate([
             'cart' => 'required|array|min:1',
-            'cart.*.id' => 'required|exists:products,id',
+            'cart.*.id' => 'nullable|exists:products,id',
             'cart.*.quantity' => 'required|integer|min:1',
+            'cart.*.name' => 'nullable|string',
+            'cart.*.price' => 'required|numeric',
             // ADDED CREDIT AND DEBIT CARDS
             'payment_method' => 'required|string|in:cash,gcash,maya,card,credit_card,debit_card',
             'cash_given' => 'nullable|numeric',
@@ -82,29 +84,45 @@ class PosController extends Controller
 
             // 3. Process each item in the cart
             foreach ($request->cart as $item) {
-                $product = Product::lockForUpdate()->find($item['id']);
+                $unitPrice = (int) round($item['price'] * 100);
 
-                if (!$product) {
-                    throw new \Exception("Item no longer available in catalog.");
+                if (isset($item['id']) && $item['id'] !== null) {
+                    $product = Product::lockForUpdate()->find($item['id']);
+
+                    if (!$product) {
+                        throw new \Exception("Item no longer available in catalog.");
+                    }
+
+                    if ($product->stock_quantity < $item['quantity']) {
+                        throw new \Exception("Insufficient stock for {$product->name}. Only {$product->stock_quantity} remaining.");
+                    }
+
+                    // Update inventory level
+                    $product->decrement('stock_quantity', $item['quantity']);
+
+                    $subtotal = $unitPrice * $item['quantity'];
+
+                    // Record the sale item detail
+                    SaleItem::create([
+                        'sale_id' => $sale->id,
+                        'product_id' => $product->id,
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $unitPrice,
+                        'subtotal' => $subtotal,
+                    ]);
+                } else {
+                    // Custom item
+                    $subtotal = $unitPrice * $item['quantity'];
+
+                    SaleItem::create([
+                        'sale_id' => $sale->id,
+                        'product_id' => null,
+                        'custom_name' => $item['name'] ?? 'Custom Item',
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $unitPrice,
+                        'subtotal' => $subtotal,
+                    ]);
                 }
-
-                if ($product->stock_quantity < $item['quantity']) {
-                    throw new \Exception("Insufficient stock for {$product->name}. Only {$product->stock_quantity} remaining.");
-                }
-
-                // Update inventory level
-                $product->decrement('stock_quantity', $item['quantity']);
-
-                $subtotal = $product->price * $item['quantity'];
-
-                // Record the sale item detail
-                SaleItem::create([
-                    'sale_id' => $sale->id,
-                    'product_id' => $product->id,
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $product->price,
-                    'subtotal' => $subtotal,
-                ]);
 
                 $calculatedTotal += $subtotal;
             }

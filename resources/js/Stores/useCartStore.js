@@ -7,15 +7,32 @@ const useCartStore = create(
             cart: [],
             isSenior: false,
 
-            addToCart: (product) => {
+            addToCart: (product, quantity = 1, priceOverride = null) => {
                 const { cart } = get();
                 const existingItem = cart.find(item => item.id === product.id);
+                const appliedPrice = priceOverride !== null ? priceOverride : product.price;
+
                 if (existingItem) {
-                    if (existingItem.quantity + 1 > product.stock_quantity) return;
-                    set({ cart: cart.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item) });
+                    const newQty = existingItem.quantity + quantity;
+                    if (newQty > product.stock_quantity) {
+                        const allowedQty = product.stock_quantity - existingItem.quantity;
+                        if (allowedQty <= 0) return;
+                        set({
+                            cart: cart.map(item => item.id === product.id
+                                ? { ...item, price: appliedPrice, quantity: product.stock_quantity }
+                                : item)
+                        });
+                        return;
+                    }
+                    set({
+                        cart: cart.map(item => item.id === product.id
+                            ? { ...item, price: appliedPrice, quantity: newQty }
+                            : item)
+                    });
                 } else {
-                    if (product.stock_quantity < 1) return;
-                    set({ cart: [...cart, { ...product, quantity: 1 }] });
+                    const finalQty = Math.min(quantity, product.stock_quantity);
+                    if (finalQty < 1) return;
+                    set({ cart: [...cart, { ...product, price: appliedPrice, quantity: finalQty }] });
                 }
             },
 

@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import Swal from 'sweetalert2';
 import { router } from '@inertiajs/react';
+import { Capacitor } from '@capacitor/core';
+import { BleClient } from '@capacitor-community/bluetooth-le';
 
 const encode = (text) => new TextEncoder().encode(text);
 const formatCurrency = (amount) => parseFloat(amount || 0).toLocaleString('en-PH', {
@@ -18,7 +20,7 @@ const usePrinterStore = create(
     persist(
         (set, get) => ({
             // --- PERSISTENT SETTINGS (Saved in LocalStorage) ---
-            paperWidth: '58mm',
+            paperWidth: '80mm',
             isPrinterEnabled: false, // Tracks if the user INTENTIONALLY wants the printer active
 
             // --- VOLATILE STATE (In-Memory only) ---
@@ -192,34 +194,68 @@ const usePrinterStore = create(
             },
 
             connectBluetooth: async () => {
-                try {
-                    const device = await navigator.bluetooth.requestDevice({
-                        filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
-                        optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
-                    });
+                if (Capacitor.isNativePlatform()) {
+                    try {
+                        await BleClient.initialize();
+                        const device = await BleClient.requestDevice({
+                            services: ['000018f0-0000-1000-8000-00805f9b34fb']
+                        });
 
-                    device.addEventListener('gattserverdisconnected', get()._handleBtDisconnect);
-                    await device.gatt.connect();
+                        await BleClient.connect(device.deviceId, () => {
+                            Swal.fire({ icon: 'warning', title: 'Printer Offline', text: 'Bluetooth Disconnected', toast: true, position: 'bottom-end', showConfirmButton: false, timer: 3000 });
+                            set({ bluetoothDevice: null });
+                        });
 
-                    set({ bluetoothDevice: device, isPrinterEnabled: true });
-                    Swal.fire({ icon: 'success', title: 'Bluetooth Printer Connected', timer: 1500, showConfirmButton: false });
-                } catch (error) {
-                    if (error.message.includes('User cancelled')) return;
+                        set({ bluetoothDevice: device, isPrinterEnabled: true });
+                        Swal.fire({ icon: 'success', title: 'Bluetooth Printer Connected', timer: 1500, showConfirmButton: false });
+                    } catch (error) {
+                        console.error("Capacitor Bluetooth connection failed:", error);
+                        if (error.message && error.message.includes('cancelled')) return;
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Bluetooth Failed',
+                            text: 'Make sure your printer is turned ON and Bluetooth is enabled.',
+                            confirmButtonColor: '#3B82F6'
+                        });
+                    }
+                } else {
+                    try {
+                        const device = await navigator.bluetooth.requestDevice({
+                            filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
+                            optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+                        });
 
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Bluetooth Failed',
-                        text: 'Make sure your printer is turned ON and in pairing mode.',
-                        confirmButtonColor: '#3B82F6'
-                    });
+                        device.addEventListener('gattserverdisconnected', get()._handleBtDisconnect);
+                        await device.gatt.connect();
+
+                        set({ bluetoothDevice: device, isPrinterEnabled: true });
+                        Swal.fire({ icon: 'success', title: 'Bluetooth Printer Connected', timer: 1500, showConfirmButton: false });
+                    } catch (error) {
+                        if (error.message.includes('User cancelled')) return;
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Bluetooth Failed',
+                            text: 'Make sure your printer is turned ON and in pairing mode.',
+                            confirmButtonColor: '#3B82F6'
+                        });
+                    }
                 }
             },
 
             // Manual disconnect button from settings
-            disconnect: () => {
+            disconnect: async () => {
                 const { bluetoothDevice } = get();
-                if (bluetoothDevice && bluetoothDevice.gatt.connected) {
-                    bluetoothDevice.gatt.disconnect();
+                if (bluetoothDevice) {
+                    if (Capacitor.isNativePlatform()) {
+                        try {
+                            await BleClient.disconnect(bluetoothDevice.deviceId || bluetoothDevice.id);
+                        } catch (err) {
+                            console.warn("BleClient disconnect failed:", err);
+                        }
+                    } else if (bluetoothDevice.gatt && bluetoothDevice.gatt.connected) {
+                        bluetoothDevice.gatt.disconnect();
+                    }
                 }
                 // When manually disconnected, we intentionally turn OFF auto-connect
                 set({ usbDevice: null, bluetoothDevice: null, isPrinterEnabled: false });
@@ -265,7 +301,32 @@ const usePrinterStore = create(
                 }
 
                 try {
-                    if (isMobile) {
+                    if (Capacitor.isNativePlatform()) {
+                        let device = get().bluetoothDevice;
+
+                        if (!device) {
+                            await connectBluetooth();
+                            device = get().bluetoothDevice;
+                        } else {
+                            try {
+                                await BleClient.connect(device.deviceId || device.id);
+                            } catch (err) {
+                                // Already connected or temporary connection issue
+                            }
+                        }
+
+                        if (!device) throw new Error("Bluetooth connection failed.");
+
+                        const serviceUuid = '000018f0-0000-1000-8000-00805f9b34fb';
+                        const characteristicUuid = '00002af1-0000-1000-8000-00805f9b34fb';
+                        const chunkSize = 20;
+
+                        for (let i = 0; i < commands.length; i += chunkSize) {
+                            const chunk = commands.slice(i, i + chunkSize);
+                            await BleClient.write(device.deviceId || device.id, serviceUuid, characteristicUuid, chunk);
+                        }
+                        return true;
+                    } else if (isMobile) {
                         let device = get().bluetoothDevice;
 
                         if (!device) {
@@ -334,13 +395,11 @@ const usePrinterStore = create(
             printReceipt: async (trx, settings) => {
                 const { paperWidth, executePrint } = get();
                 const is80 = paperWidth === '80mm';
-                const lineCap = is80 ? 42 : 32;
-                const priceCap = 11;
-                const nameCap = lineCap - priceCap - 1;
+                const lineCap = is80 ? 48 : 32;
                 const separator = "-".repeat(lineCap) + "\n";
                 const fmt = (cents) => (cents / 100).toLocaleString('en-PH', { minimumFractionDigits: 2 });
 
-                const storeName = settings?.store_name || "POS";
+                const storeName = settings?.store_name || "Aivin Variety Store";
                 const storeAddress = settings?.store_address || settings?.address || "";
                 const storePhone = settings?.store_phone || settings?.phone || "";
 
@@ -368,14 +427,41 @@ const usePrinterStore = create(
                 ];
                 finalCommands = [...finalCommands, ...header];
 
+                // Item columns header
+                if (is80) {
+                    finalCommands.push(...encode("QTY  DESCRIPTION            PRICE     AMOUNT\n"));
+                } else {
+                    finalCommands.push(...encode("QTY  ITEM             PRICE   AMOUNT\n"));
+                }
+                finalCommands.push(...encode(separator));
+
                 // Calculate original subtotal from items
                 let originalSubtotal = 0;
                 trx.items.forEach(item => {
-                    const name = (item.product?.name || item.name || 'Item').substring(0, nameCap);
-                    const qtyLine = `${item.quantity}x ${name}`;
-                    const lineTotal = fmt(item.quantity * (item.unit_price || item.price));
-                    originalSubtotal += item.quantity * (item.unit_price || item.price);
-                    finalCommands.push(...encode(qtyLine.padEnd(nameCap + 1) + lineTotal.padStart(priceCap) + "\n"));
+                    const quantity = item.quantity;
+                    const priceVal = item.unit_price || item.price || 0;
+                    const amountVal = priceVal * quantity;
+                    originalSubtotal += amountVal;
+
+                    const desc = item.product?.name || item.custom_name || item.name || 'Item';
+                    const formattedPrice = fmt(priceVal);
+                    const formattedAmount = fmt(amountVal);
+
+                    if (is80) {
+                        // 80mm column metrics: QTY (4), DESC (21), PRICE (10), AMOUNT (10)
+                        const qtyStr = (quantity + "x").padEnd(4);
+                        const descStr = desc.substring(0, 21).padEnd(21);
+                        const priceStr = formattedPrice.padStart(10);
+                        const amountStr = formattedAmount.padStart(10);
+                        finalCommands.push(...encode(`${qtyStr} ${descStr} ${priceStr} ${amountStr}\n`));
+                    } else {
+                        // 58mm column metrics: QTY (3), DESC (12), PRICE (7), AMOUNT (8)
+                        const qtyStr = (quantity + "x").padEnd(3);
+                        const descStr = desc.substring(0, 12).padEnd(12);
+                        const priceStr = formattedPrice.padStart(7);
+                        const amountStr = formattedAmount.padStart(8);
+                        finalCommands.push(...encode(`${qtyStr} ${descStr} ${priceStr} ${amountStr}\n`));
+                    }
                 });
 
                 if (trx.is_senior) {
@@ -390,8 +476,8 @@ const usePrinterStore = create(
                 finalCommands.push(0x1B, 0x45, 0x01, ...encode("TOTAL".padEnd(10) + fmt(trx.total_amount).padStart(lineCap - 10) + "\n"), 0x1B, 0x45, 0x00);
 
                 if (trx.payment_method === 'cash') {
-                    const finalCashGiven = (trx.cash_given > 0 ? trx.cash_given * 100 : trx.total_amount);
-                    const finalChange = (trx.cash_given > 0 ? trx.change * 100 : 0);
+                    const finalCashGiven = (trx.cash_given > 0 ? trx.cash_given : trx.total_amount);
+                    const finalChange = (trx.cash_given > 0 ? trx.change : 0);
                     finalCommands.push(
                         ...encode("Cash Given:".padEnd(lineCap - 12) + fmt(finalCashGiven).padStart(12) + "\n"),
                         ...encode("Change:".padEnd(lineCap - 12) + fmt(finalChange).padStart(12) + "\n")
@@ -401,7 +487,6 @@ const usePrinterStore = create(
                     if (trx.payment_method === 'credit_card') formattedMethod = 'CREDIT CARD';
                     if (trx.payment_method === 'debit_card') formattedMethod = 'DEBIT CARD';
 
-                    // FIXED: Removed the Reference line entirely so it doesn't print on the receipt
                     finalCommands.push(
                         ...encode("Payment:".padEnd(15) + (formattedMethod).padStart(lineCap - 15) + "\n")
                     );
@@ -410,8 +495,9 @@ const usePrinterStore = create(
                 finalCommands.push(
                     0x0A, 0x1B, 0x61, 0x01, // Center align for footer
                     ...encode(separator),
-                    ...encode("Thank you for your purchase!\n"),
-                    ...encode("Please come again.\n"),
+                    ...encode("No Return, No Exchange.\n"),
+                    ...encode("Thank you for shopping at\n"),
+                    ...encode("Aivin Variety Store!\n"),
                     0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x41 // Cut paper
                 );
 

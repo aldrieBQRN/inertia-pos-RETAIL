@@ -33,6 +33,21 @@ export default function Settings({ auth }) {
 
     const [showShiftModal, setShowShiftModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false); // Edit Store Modal State
+    const [isFullScreen, setIsFullScreen] = useState(false);
+
+    const toggleFullScreen = () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => console.error(err));
+        } else {
+            document.exitFullscreen();
+        }
+    };
+
+    useEffect(() => {
+        const handler = () => setIsFullScreen(!!document.fullscreenElement);
+        document.addEventListener('fullscreenchange', handler);
+        return () => document.removeEventListener('fullscreenchange', handler);
+    }, []);
 
     // Unified state for handling the 4 different legal modals
     const [activeModal, setActiveModal] = useState(null); // null, 'admin_terms', 'admin_privacy', 'staff_terms', 'staff_privacy'
@@ -324,17 +339,34 @@ export default function Settings({ auth }) {
                                     )}
                                 </div>
 
-                                {/* Action Button (Admin Only) */}
-                                <div className="w-full relative z-10 mt-2 sm:mt-4">
+                                {/* Action Button (Admin/Cashier) */}
+                                <div className="w-full relative z-10 mt-2 sm:mt-4 space-y-2">
                                     {user?.is_admin && (
                                         <button
                                             onClick={() => setShowEditModal(true)}
                                             className="w-full flex items-center justify-center gap-2 px-6 py-3 sm:py-3.5 rounded-md sm:rounded-md bg-gray-900 text-white font-semibold text-sm hover:bg-black transition-all active:scale-[0.98] sm:shadow-[0_4px_12px_rgb(0,0,0,0.1)]"
                                         >
-                                            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                             Edit Details
                                         </button>
                                     )}
+
+                                    <button
+                                        onClick={toggleFullScreen}
+                                        className="w-full flex items-center justify-center gap-2 px-6 py-3 sm:py-3.5 rounded-md sm:rounded-md border border-gray-200 bg-white text-gray-800 font-semibold text-sm hover:bg-gray-50 transition-all active:scale-[0.98]"
+                                    >
+                                        {isFullScreen ? (
+                                            <>
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 9L4.5 4.5M9 9H4.5M9 9V4.5M15 9l4.5-4.5M15 9h4.5M15 9V4.5M15 15l4.5 4.5M15 15h4.5M15 15v4.5M9 15l-4.5 4.5M9 15H4.5M9 15v4.5" /></svg>
+                                                Exit Full Screen
+                                            </>
+                                        ) : (
+                                            <>
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75v4.5m0-4.5h-4.5m4.5 0L15 9m5.25 11.25v-4.5m0 4.5h-4.5m4.5 0L15 15" /></svg>
+                                                Go Full Screen
+                                            </>
+                                        )}
+                                    </button>
                                 </div>
                             </div>
                         </div>

@@ -64,6 +64,7 @@ class ProductController extends Controller
             'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
             'cost_price' => 'nullable|numeric|min:0',
+            'wholesale_price' => 'nullable|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
             'sku' => [
                 'required',
@@ -83,6 +84,9 @@ class ProductController extends Controller
             $data['price'] = $request->price * 100;
             if ($request->cost_price) {
                 $data['cost_price'] = $request->cost_price * 100;
+            }
+            if ($request->wholesale_price) {
+                $data['wholesale_price'] = $request->wholesale_price * 100;
             }
 
             // Process and store the product image file
@@ -128,6 +132,7 @@ class ProductController extends Controller
             'category_id' => 'sometimes|exists:categories,id',
             'price' => 'sometimes|numeric|min:0',
             'cost_price' => 'nullable|numeric|min:0',
+            'wholesale_price' => 'nullable|numeric|min:0',
             'stock_quantity' => 'sometimes|integer|min:0',
             'image' => 'nullable|image|max:2048',
             'sku' => [
@@ -149,6 +154,9 @@ class ProductController extends Controller
             }
             if ($request->has('cost_price')) {
                 $data['cost_price'] = $request->cost_price * 100;
+            }
+            if ($request->has('wholesale_price')) {
+                $data['wholesale_price'] = $request->wholesale_price !== null ? ($request->wholesale_price * 100) : null;
             }
 
             // Handle image replacement
@@ -258,5 +266,90 @@ class ProductController extends Controller
             'message' => 'Stock updated successfully',
             'new_stock' => $product->stock_quantity
         ]);
+    }
+
+    /**
+     * Import a list of products from JSON.
+     */
+    public function bulkImport(Request $request)
+    {
+        $request->validate([
+            'products' => 'required|array|min:1',
+            'products.*.name' => 'required|string|max:255',
+            'products.*.sku' => 'required|string',
+            'products.*.price' => 'required|numeric|min:0',
+            'products.*.cost_price' => 'nullable|numeric|min:0',
+            'products.*.wholesale_price' => 'nullable|numeric|min:0',
+            'products.*.stock_quantity' => 'required|integer|min:0',
+            'products.*.category_name' => 'nullable|string|max:255',
+        ]);
+
+        \Illuminate\Support\Facades\DB::beginTransaction();
+
+        try {
+            $storeId = Auth::user()->store_id;
+            $importedCount = 0;
+
+            foreach ($request->products as $item) {
+                // Find or create category
+                $categoryId = null;
+                if (!empty($item['category_name'])) {
+                    $categoryName = trim($item['category_name']);
+                    $category = \App\Models\Category::where('name', $categoryName)->first();
+                    if (!$category) {
+                        $category = \App\Models\Category::create([
+                            'name' => $categoryName,
+                            'color' => '#' . substr(md5($categoryName), 0, 6)
+                        ]);
+                    }
+                    $categoryId = $category->id;
+                } else {
+                    $categoryName = 'General';
+                    $category = \App\Models\Category::where('name', $categoryName)->first();
+                    if (!$category) {
+                        $category = \App\Models\Category::create([
+                            'name' => $categoryName,
+                            'color' => '#6B7280'
+                        ]);
+                    }
+                    $categoryId = $category->id;
+                }
+
+                $productData = [
+                    'name' => trim($item['name']),
+                    'category_id' => $categoryId,
+                    'price' => (int) round($item['price'] * 100),
+                    'cost_price' => isset($item['cost_price']) && $item['cost_price'] !== '' ? (int) round($item['cost_price'] * 100) : null,
+                    'wholesale_price' => isset($item['wholesale_price']) && $item['wholesale_price'] !== '' ? (int) round($item['wholesale_price'] * 100) : null,
+                    'stock_quantity' => (int) $item['stock_quantity'],
+                    'sku' => trim($item['sku']),
+                    'is_active' => true,
+                ];
+
+                // Find existing product by SKU under this store
+                $product = Product::where('sku', $productData['sku'])->first();
+
+                if ($product) {
+                    $product->update($productData);
+                } else {
+                    Product::create($productData);
+                }
+                $importedCount++;
+            }
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully imported {$importedCount} products."
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            Log::error('Bulk import failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to import products: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

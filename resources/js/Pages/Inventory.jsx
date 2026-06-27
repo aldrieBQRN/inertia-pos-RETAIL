@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -10,6 +10,8 @@ import Swal from 'sweetalert2';
 import { printLabels, downloadLabelImage } from '@/Utils/printLabels';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 export default function Inventory({ auth }) {
     const [products, setProducts] = useState([]);
@@ -40,8 +42,59 @@ export default function Inventory({ auth }) {
         mode: 'thermal' // 'thermal' or 'a4'
     });
 
+    const lastKeyTimeRef = useRef(0);
+    const isScanningRef = useRef(false);
+
+    useEffect(() => {
+        if (!showModal) return;
+
+        const handleGlobalKeyDown = (e) => {
+            const now = Date.now();
+            const timeDiff = now - lastKeyTimeRef.current;
+            lastKeyTimeRef.current = now;
+
+            // Detect if sequence is typed extremely fast (< 45ms key-to-key)
+            if (timeDiff < 45) {
+                isScanningRef.current = true;
+            }
+
+            // If we are currently in scanning mode (scanner is typing the barcode)
+            if (isScanningRef.current) {
+                // If the user's cursor is NOT inside the SKU / Barcode input field
+                if (document.activeElement && document.activeElement.name !== 'sku') {
+                    // Stop character from being input
+                    e.preventDefault();
+
+                    // Clean the first character which typed before the speed threshold triggered
+                    const activeEl = document.activeElement;
+                    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+                        if (timeDiff < 45 && !activeEl.dataset.scanCleaned) {
+                            activeEl.value = activeEl.value.slice(0, -1);
+                            const event = new Event('input', { bubbles: true });
+                            activeEl.dispatchEvent(event);
+                            activeEl.dataset.scanCleaned = 'true';
+                        }
+                    }
+                }
+            }
+
+            // Reset scanner state when key interval is slow (> 100ms)
+            if (timeDiff >= 100) {
+                isScanningRef.current = false;
+                if (document.activeElement) {
+                    delete document.activeElement.dataset.scanCleaned;
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleGlobalKeyDown, true);
+        return () => {
+            window.removeEventListener('keydown', handleGlobalKeyDown, true);
+        };
+    }, [showModal]);
+
     const [formData, setFormData] = useState({
-        name: '', category_id: '', price: '', cost_price: '', stock_quantity: '', sku: '', image: null
+        name: '', category_id: '', price: '', cost_price: '', wholesale_price: '', stock_quantity: '', sku: '', image: null
     });
 
     const formatCurrency = (cents) => {
@@ -112,15 +165,48 @@ export default function Inventory({ auth }) {
     const paginatedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     const handleQuickAdd = async (product) => {
+        const costPriceText = product.cost_price 
+            ? `₱${formatCurrency(product.cost_price)}` 
+            : '—';
+
         const { value: quantity } = await Swal.fire({
             title: `Restock: ${product.name}`,
+            html: `
+                <div class="text-left bg-gray-50 p-4 rounded-lg border border-gray-200 mb-2">
+                    <div class="flex justify-between text-sm py-1.5">
+                        <span class="text-gray-500 font-bold">Cost Price:</span>
+                        <span class="text-gray-900 font-black">${costPriceText}</span>
+                    </div>
+                    <div class="flex justify-between text-sm py-1.5 border-t border-dashed border-gray-200 mt-1">
+                        <span class="text-gray-500 font-bold">Current Stock:</span>
+                        <span class="text-gray-900 font-black">${product.stock_quantity} Left</span>
+                    </div>
+                    <div class="flex justify-between text-sm py-1.5 border-t border-dashed border-gray-200 mt-1">
+                        <span class="text-indigo-600 font-bold">Total Restock Cost:</span>
+                        <span class="text-indigo-600 font-black text-base" id="swal-total-cost">₱0.00</span>
+                    </div>
+                </div>
+            `,
             input: 'number',
             inputLabel: 'Quantity to add to current inventory',
             inputPlaceholder: 'Enter amount...',
             showCancelButton: true,
             confirmButtonText: 'Update Stock',
+            confirmButtonColor: '#3085d6',
             inputValidator: (value) => {
                 if (!value || value <= 0) return 'Please enter a valid positive number.';
+            },
+            didOpen: () => {
+                const input = Swal.getInput();
+                const totalCostEl = document.getElementById('swal-total-cost');
+                if (input && totalCostEl) {
+                    input.addEventListener('input', (e) => {
+                        const qty = parseFloat(e.target.value) || 0;
+                        const costPrice = product.cost_price ? product.cost_price / 100 : 0;
+                        const totalCost = qty * costPrice;
+                        totalCostEl.textContent = `₱${totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    });
+                }
             }
         });
 
@@ -276,6 +362,208 @@ export default function Inventory({ auth }) {
         }
     };
 
+    const downloadTemplate = async () => {
+        try {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Products Template');
+
+            worksheet.columns = [
+                { header: 'Barcode/SKU', key: 'sku', width: 20 },
+                { header: 'Product Name', key: 'name', width: 30 },
+                { header: 'Category Name', key: 'category_name', width: 25 },
+                { header: 'Retail Price', key: 'price', width: 15 },
+                { header: 'Wholesale Price', key: 'wholesale_price', width: 18 },
+                { header: 'Cost Price', key: 'cost_price', width: 15 },
+                { header: 'Stock Quantity', key: 'stock_quantity', width: 15 }
+            ];
+
+            worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' } };
+            worksheet.getRow(1).fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: '4F46E5' }
+            };
+
+            worksheet.addRow({
+                sku: '88010020',
+                name: 'Sample Variety Item A',
+                category_name: 'Snacks',
+                price: 15.50,
+                wholesale_price: 13.00,
+                cost_price: 10.00,
+                stock_quantity: 100
+            });
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            saveAs(blob, 'Aivin_POS_Products_Template.xlsx');
+            Swal.fire({ icon: 'success', title: 'Template Downloaded!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+        } catch (e) {
+            Swal.fire('Error', 'Failed to generate template file.', 'error');
+        }
+    };
+
+    const exportExcel = async () => {
+        try {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Inventory Report');
+
+            worksheet.columns = [
+                { header: 'Barcode/SKU', key: 'sku', width: 20 },
+                { header: 'Product Name', key: 'name', width: 30 },
+                { header: 'Category Name', key: 'category_name', width: 25 },
+                { header: 'Retail Price (PHP)', key: 'price', width: 18 },
+                { header: 'Wholesale Price (PHP)', key: 'wholesale_price', width: 18 },
+                { header: 'Cost Price (PHP)', key: 'cost_price', width: 18 },
+                { header: 'Stock Quantity', key: 'stock_quantity', width: 15 }
+            ];
+
+            worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' } };
+            worksheet.getRow(1).fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: '16A34A' }
+            };
+
+            products.forEach(p => {
+                worksheet.addRow({
+                    sku: p.sku || 'N/A',
+                    name: p.name || 'Unknown',
+                    category_name: p.category?.name || 'Uncategorized',
+                    price: p.price / 100,
+                    wholesale_price: p.wholesale_price ? p.wholesale_price / 100 : '',
+                    cost_price: p.cost_price ? p.cost_price / 100 : '',
+                    stock_quantity: p.stock_quantity
+                });
+            });
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const dateStr = new Date().toISOString().split('T')[0];
+            saveAs(blob, `Inventory_Backup_${dateStr}.xlsx`);
+            Swal.fire({ icon: 'success', title: 'Export Completed!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+        } catch (e) {
+            Swal.fire('Error', 'Failed to export inventory data.', 'error');
+        }
+    };
+
+    const parseCSV = (text) => {
+        const lines = text.split(/\r?\n/);
+        const result = [];
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            const row = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            const clean = (val) => val ? val.replace(/^["']|["']$/g, '').trim() : '';
+            const sku = clean(row[0]);
+            const name = clean(row[1]);
+            const category_name = clean(row[2]);
+            const price = parseFloat(clean(row[3])) || 0;
+            const wholesale_price = parseFloat(clean(row[4])) || null;
+            const cost_price = parseFloat(clean(row[5])) || null;
+            const stock_quantity = parseInt(clean(row[6]), 10) || 0;
+
+            if (sku && name) {
+                result.push({
+                    sku, name, category_name, price, wholesale_price, cost_price, stock_quantity
+                });
+            }
+        }
+        return result;
+    };
+
+    const handleImport = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        Swal.fire({
+            title: 'Processing File...',
+            text: 'Please wait while we validate and import your product list.',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        try {
+            const isCsv = file.name.endsWith('.csv');
+            const reader = new FileReader();
+
+            reader.onload = async (evt) => {
+                try {
+                    let importedProducts = [];
+
+                    if (isCsv) {
+                        const csvContent = new TextDecoder('utf-8').decode(evt.target.result);
+                        importedProducts = parseCSV(csvContent);
+                    } else {
+                        const workbook = new ExcelJS.Workbook();
+                        await workbook.xlsx.load(evt.target.result);
+                        const worksheet = workbook.worksheets[0];
+
+                        worksheet.eachRow((row, rowNumber) => {
+                            if (rowNumber === 1) return;
+
+                            const getCellString = (colNum) => {
+                                const val = row.getCell(colNum).value;
+                                if (val && typeof val === 'object' && val.text) return val.text;
+                                return val?.toString() || '';
+                            };
+
+                            const sku = getCellString(1);
+                            const name = getCellString(2);
+                            const category_name = getCellString(3);
+                            const price = parseFloat(row.getCell(4).value) || 0;
+                            const wholesale_price = parseFloat(row.getCell(5).value) || null;
+                            const cost_price = parseFloat(row.getCell(6).value) || null;
+                            const stock_quantity = parseInt(row.getCell(7).value, 10) || 0;
+
+                            if (sku && name) {
+                                importedProducts.push({
+                                    sku: sku.trim(),
+                                    name: name.trim(),
+                                    category_name: category_name.trim(),
+                                    price: price,
+                                    wholesale_price: wholesale_price,
+                                    cost_price: cost_price,
+                                    stock_quantity: stock_quantity
+                                });
+                            }
+                        });
+                    }
+
+                    if (importedProducts.length === 0) {
+                        Swal.fire('No Data Found', 'Make sure your file has data below the headers and matches the template structure.', 'warning');
+                        return;
+                    }
+
+                    const response = await axios.post('/api/products/import', { products: importedProducts });
+                    if (response.data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Import Successful!',
+                            text: response.data.message,
+                            confirmButtonColor: '#10B981'
+                        });
+                        loadAllProducts(false);
+                    } else {
+                        throw new Error(response.data.message);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire('Import Failed', err.message || 'An error occurred during import. Check file formatting.', 'error');
+                }
+            };
+
+            if (isCsv) {
+                reader.readAsArrayBuffer(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        } catch (err) {
+            Swal.fire('Error', 'Could not read the uploaded file.', 'error');
+        } finally {
+            e.target.value = '';
+        }
+    };
+
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
     const handleFileChange = (e) => setFormData({ ...formData, image: e.target.files[0] });
 
@@ -318,7 +606,7 @@ export default function Inventory({ auth }) {
     const openAddModal = () => {
         setEditMode(false);
         setEditingId(null);
-        setFormData({ name: '', category_id: '', price: '', cost_price: '', stock_quantity: '', sku: '', image: null });
+        setFormData({ name: '', category_id: '', price: '', cost_price: '', wholesale_price: '', stock_quantity: '', sku: '', image: null });
         setShowModal(true);
     };
 
@@ -330,6 +618,7 @@ export default function Inventory({ auth }) {
             category_id: p.category_id || '',
             price: (p.price / 100).toFixed(2),
             cost_price: p.cost_price ? (p.cost_price / 100).toFixed(2) : '',
+            wholesale_price: p.wholesale_price ? (p.wholesale_price / 100).toFixed(2) : '',
             stock_quantity: p.stock_quantity,
             sku: p.sku,
             image: null
@@ -360,6 +649,7 @@ export default function Inventory({ auth }) {
             data.append('category_id', formData.category_id);
             data.append('price', formData.price);
             data.append('cost_price', formData.cost_price);
+            data.append('wholesale_price', formData.wholesale_price);
             data.append('stock_quantity', formData.stock_quantity);
             data.append('sku', cleanSku);
             if(formData.image) data.append('image', formData.image);
@@ -489,6 +779,46 @@ export default function Inventory({ auth }) {
                                 )}
 
                             </div>
+
+                            {auth.user.is_admin && (
+                                <div className="border-t border-gray-100 pt-3 flex flex-wrap gap-3 items-center justify-between">
+                                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                        Inventory Data Operations
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        <button
+                                            onClick={downloadTemplate}
+                                            className="px-4 py-2 text-xs font-bold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg shadow-sm transition-all active:scale-95 flex items-center gap-1.5"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 text-gray-500"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                            Download Template
+                                        </button>
+
+                                        <button
+                                            onClick={() => document.getElementById('excel-import-input').click()}
+                                            className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-all active:scale-95 flex items-center gap-1.5"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
+                                            Import Excel/CSV
+                                        </button>
+                                        <input
+                                            id="excel-import-input"
+                                            type="file"
+                                            accept=".xlsx,.xls,.csv"
+                                            className="hidden"
+                                            onChange={handleImport}
+                                        />
+
+                                        <button
+                                            onClick={exportExcel}
+                                            className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-all active:scale-95 flex items-center gap-1.5"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                                            Export Excel
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -501,6 +831,7 @@ export default function Inventory({ auth }) {
                                         <th className="p-4 w-32">Barcode</th>
                                         <th className="p-4">Product Details</th>
                                         <th className="p-4">Category</th>
+                                        <th className="p-4 text-right">Cost Price</th>
                                         <th className="p-4 text-right">Price</th>
                                         <th className="p-4 text-center">Inventory</th>
                                         <th className="p-4 text-center">Actions</th>
@@ -516,6 +847,7 @@ export default function Inventory({ auth }) {
                                                     <div className="h-4 bg-gray-200 rounded w-40"></div>
                                                 </td>
                                                 <td className="p-4"><div className="h-6 bg-gray-200 rounded-lg w-20"></div></td>
+                                                <td className="p-4 text-right"><div className="h-5 bg-gray-200 rounded w-16 ml-auto"></div></td>
                                                 <td className="p-4 flex justify-end"><div className="h-5 bg-gray-200 rounded w-16"></div></td>
                                                 <td className="p-4">
                                                     <div className="flex items-center justify-center gap-2">
@@ -533,7 +865,7 @@ export default function Inventory({ auth }) {
                                         ))
                                     ) : paginatedProducts.length === 0 ? (
                                         <tr>
-                                            <td colSpan="6" className="p-12 text-center text-gray-500">
+                                            <td colSpan="7" className="p-12 text-center text-gray-500">
                                                 <div className="flex flex-col items-center justify-center py-6">
                                                     <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
@@ -562,14 +894,24 @@ export default function Inventory({ auth }) {
                                                 <td className="p-4">
                                                     {p.category ? (
                                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-white border border-gray-200 text-gray-600 shadow-sm">
-                                                            <span className="w-2 h-2 rounded-full border border-black/10" style={{ backgroundColor: p.category.color || '#3B82F6' }}></span>
+                                                            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.category.color || '#3B82F6' }}></span>
                                                             {p.category.name}
                                                         </span>
                                                     ) : (
                                                         <span className="text-gray-400 text-sm italic">Uncategorized</span>
                                                     )}
                                                 </td>
-                                                <td className="p-4 font-black text-gray-900 text-right tracking-tight">₱{formatCurrency(p.price)}</td>
+                                                <td className="p-4 text-right tracking-tight">
+                                                    <div className="font-semibold text-gray-500">
+                                                        {p.cost_price ? `₱${formatCurrency(p.cost_price)}` : '—'}
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 text-right tracking-tight">
+                                                    <div className="font-black text-gray-900">₱{formatCurrency(p.price)}</div>
+                                                    {p.wholesale_price && (
+                                                        <div className="text-[10px] text-gray-400 font-bold mt-0.5" title="Wholesale Price">WS: ₱{formatCurrency(p.wholesale_price)}</div>
+                                                    )}
+                                                </td>
                                                 <td className="p-4">
                                                     <div className="flex items-center justify-center gap-2">
                                                         <span className={`px-2.5 py-1 rounded-md text-xs font-black tracking-wider uppercase ${p.stock_quantity <= 10 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
@@ -661,12 +1003,17 @@ export default function Inventory({ auth }) {
                                             ) : (
                                                 <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 mb-1">Uncategorized</div>
                                             )}
-                                            <div className="flex justify-between items-end mt-1.5">
-                                                <p className="font-black text-gray-900 text-xl tracking-tight">₱{formatCurrency(p.price)}</p>
-                                                <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest ${p.stock_quantity <= 10 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                                                    {p.stock_quantity} Left
-                                                </span>
-                                            </div>
+                                             <div className="flex justify-between items-end mt-1.5">
+                                                 <div className="flex flex-col items-end">
+                                                     <p className="font-black text-gray-900 text-xl tracking-tight">₱{formatCurrency(p.price)}</p>
+                                                     {p.wholesale_price && (
+                                                         <p className="text-[10px] text-gray-400 font-bold mt-0.5">WS: ₱{formatCurrency(p.wholesale_price)}</p>
+                                                     )}
+                                                 </div>
+                                                 <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest ${p.stock_quantity <= 10 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                                                     {p.stock_quantity} Left
+                                                 </span>
+                                             </div>
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-100 mt-1">
@@ -859,21 +1206,33 @@ export default function Inventory({ auth }) {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Initial Stock</label>
-                                        <input type="number" name="stock_quantity" required value={formData.stock_quantity} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱)</label>
-                                        <input type="number" step="0.01" name="cost_price" value={formData.cost_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
-                                    </div>
-                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                     <div>
+                                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Initial Stock</label>
+                                         <input type="number" name="stock_quantity" required value={formData.stock_quantity} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0" />
+                                     </div>
+                                     <div>
+                                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱)</label>
+                                         <input type="number" step="0.01" name="cost_price" value={formData.cost_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
+                                     </div>
+                                     <div>
+                                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Wholesale Price (₱)</label>
+                                         <input type="number" step="0.01" name="wholesale_price" value={formData.wholesale_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
+                                     </div>
+                                 </div>
 
                                 <div>
                                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">SKU / Barcode</label>
                                     <div className="flex gap-2">
-                                            <input name="sku" required value={formData.sku} onChange={handleChange} className="flex-1 border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400 font-mono" placeholder="Scan..." />
+                                            <input
+                                                name="sku"
+                                                required
+                                                value={formData.sku}
+                                                onChange={handleChange}
+                                                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
+                                                className="flex-1 border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400 font-mono"
+                                                placeholder="Scan..."
+                                            />
                                         <button type="button" onClick={() => setShowScanner(true)} className="bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 px-4 py-3 rounded-lg transition-colors active:scale-95" title="Scan Barcode">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" /></svg>
                                         </button>

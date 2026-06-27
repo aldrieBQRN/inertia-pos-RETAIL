@@ -395,7 +395,7 @@ If you ran the seeders, use these credentials:
 
 ### For Admins (Full Access)
 
-1. **Dashboard** – Monitor business performance with real-time KPIs, sales trends, and analytics at a glance.
+1. **Dashboard** – View daily KPIs and sales trends
 2. **Inventory** – Add/edit products and manage stock
 3. **Transactions** – View sales history, void transactions, reprint receipts
 4. **Shifts** – Review past shifts and cash reconciliation
