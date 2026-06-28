@@ -141,6 +141,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     useEffect(() => {
         const handlePOSKeys = (e) => {
             if (showQtyModal) {
+                if (e.key === 'Enter' && e.target === searchInputRef.current) {
+                    return;
+                }
                 if (e.key === 'Escape') {
                     e.preventDefault();
                     setShowQtyModal(false);
@@ -443,6 +446,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
         if (e.key === 'Enter') {
             e.preventDefault();
+            e.stopPropagation();
             
             // If an item in the search results is highlighted via arrow keys, select it
             if (productNavIndex !== -1 && productNavIndex < filteredProducts.length) {
