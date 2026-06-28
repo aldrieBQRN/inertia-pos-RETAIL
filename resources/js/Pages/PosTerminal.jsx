@@ -1244,7 +1244,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
                                                 e.preventDefault();
-                                                document.getElementById('custom-retail-input')?.focus();
+                                                document.getElementById('custom-cost-input')?.focus();
                                             }
                                         }}
                                         className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
@@ -1263,6 +1263,12 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     min="0"
                                     value={customItemForm.cost_price}
                                     onChange={(e) => setCustomItemForm({ ...customItemForm, cost_price: e.target.value })}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            document.getElementById('custom-retail-input')?.focus();
+                                        }
+                                    }}
                                     className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
                                     placeholder="0.00"
                                 />
@@ -1302,7 +1308,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
                                                 e.preventDefault();
-                                                document.getElementById('custom-cost-input')?.focus();
+                                                document.getElementById('custom-item-form-submit-btn')?.click();
                                             }
                                         }}
                                         className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
