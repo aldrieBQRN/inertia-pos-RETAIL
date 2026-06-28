@@ -41,12 +41,26 @@ export default function CartSidebar({
     const [focusedIndex, setFocusedIndex] = useState(-1);
 
     const cartBottomRef = useRef(null);
+    const sidebarRef = useRef(null);
 
     useEffect(() => {
         if (cartBottomRef.current) {
             cartBottomRef.current.scrollIntoView({ behavior: 'smooth' });
         }
     }, [cart]);
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (showPaymentModal || showSuccessModal || disabled) return;
+            if (sidebarRef.current && !sidebarRef.current.contains(e.target)) {
+                setFocusedIndex(-1);
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [showPaymentModal, showSuccessModal, disabled]);
 
     useEffect(() => {
         const handleResetNav = () => {
@@ -357,7 +371,7 @@ export default function CartSidebar({
 
     return (
         <>
-            <div className="flex flex-col h-full relative bg-white">
+            <div ref={sidebarRef} className="flex flex-col h-full relative bg-white">
                 {/* HEADER */}
                 <div className="px-3 py-2 md:px-3 md:py-2.5 flex justify-between items-center border-b border-gray-100 bg-white">
                     <div className="flex items-center gap-1 md:gap-1.5">
