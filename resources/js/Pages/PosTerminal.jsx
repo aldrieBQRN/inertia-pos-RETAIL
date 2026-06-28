@@ -251,9 +251,6 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 } else if (e.key === 'F9') {
                     e.preventDefault();
                     generateCustomItemSKU();
-                } else if (e.key === 'F12') {
-                    e.preventDefault();
-                    document.getElementById('custom-item-form-submit-btn')?.click();
                 }
                 return;
             }
@@ -1195,7 +1192,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     type="submit"
                                     className="w-full py-3.5 bg-gray-900 hover:bg-black text-white font-black text-sm uppercase tracking-widest rounded-lg shadow-lg transition-all active:scale-[0.98]"
                                 >
-                                    Add Custom (Enter / F12)
+                                    Add Custom (Enter)
                                 </button>
                                 <button
                                     type="button"
