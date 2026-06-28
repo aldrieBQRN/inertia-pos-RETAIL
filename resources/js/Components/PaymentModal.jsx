@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
  * PaymentModal Component
  * Grouped UI: Main category (Cash, E-Wallet, Card) -> Sub-method
  */
-export default function PaymentModal({ total, onClose, onConfirm, isProcessing }) {
+export default function PaymentModal({ total, onClose, onConfirm, isProcessing, showFKeys = true }) {
     // Top-level category: 'cash', 'ewallet', 'card'
     const [category, setCategory] = useState('cash');
 
@@ -169,7 +169,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing }
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 md:w-7 md:h-7">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider">Cash (F1)</span>
+                            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider">{showFKeys ? "Cash (F1)" : "Cash"}</span>
                         </button>
 
                         {/* E-Wallet Button */}
@@ -182,7 +182,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing }
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 md:w-7 md:h-7">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
                             </svg>
-                            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider">E-Wallet (F2)</span>
+                            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider">{showFKeys ? "E-Wallet (F2)" : "E-Wallet"}</span>
                         </button>
 
                         {/* Card Button */}
@@ -195,7 +195,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing }
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 md:w-7 md:h-7">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                             </svg>
-                            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider">Card (F7)</span>
+                            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider">{showFKeys ? "Card (F7)" : "Card"}</span>
                         </button>
                     </div>
 
@@ -208,7 +208,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing }
                                 className={`flex flex-col items-center justify-center py-2.5 rounded-lg border-2 transition-all duration-200 gap-1 shadow-sm
                                     ${method === 'gcash' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-100 bg-white text-gray-400 hover:bg-gray-50'}`}
                             >
-                                <span className="font-black text-[11px] uppercase tracking-wider">GCash (F3)</span>
+                                <span className="font-black text-[11px] uppercase tracking-wider">{showFKeys ? "GCash (F3)" : "GCash"}</span>
                             </button>
                             <button
                                 type="button"
@@ -216,7 +216,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing }
                                 className={`flex flex-col items-center justify-center py-2.5 rounded-lg border-2 transition-all duration-200 gap-1 shadow-sm
                                     ${method === 'maya' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-100 bg-white text-gray-400 hover:bg-gray-50'}`}
                             >
-                                <span className="font-black text-[11px] uppercase tracking-wider">Maya (F4)</span>
+                                <span className="font-black text-[11px] uppercase tracking-wider">{showFKeys ? "Maya (F4)" : "Maya"}</span>
                             </button>
                         </div>
                     )}
@@ -230,7 +230,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing }
                                 className={`flex flex-col items-center justify-center py-2.5 rounded-lg border-2 transition-all duration-200 gap-1 shadow-sm
                                     ${method === 'credit_card' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-100 bg-white text-gray-400 hover:bg-gray-50'}`}
                             >
-                                <span className="font-black text-[10px] md:text-[11px] uppercase tracking-wider">Credit (F8)</span>
+                                <span className="font-black text-[10px] md:text-[11px] uppercase tracking-wider">{showFKeys ? "Credit (F8)" : "Credit"}</span>
                             </button>
                             <button
                                 type="button"
@@ -238,7 +238,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing }
                                 className={`flex flex-col items-center justify-center py-2.5 rounded-lg border-2 transition-all duration-200 gap-1 shadow-sm
                                     ${method === 'debit_card' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-100 bg-white text-gray-400 hover:bg-gray-50'}`}
                             >
-                                <span className="font-black text-[10px] md:text-[11px] uppercase tracking-wider">Debit (F9)</span>
+                                <span className="font-black text-[10px] md:text-[11px] uppercase tracking-wider">{showFKeys ? "Debit (F9)" : "Debit"}</span>
                             </button>
                         </div>
                     )}

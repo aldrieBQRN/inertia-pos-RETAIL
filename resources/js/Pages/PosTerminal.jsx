@@ -60,6 +60,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     const [customCategoryNavIndex, setCustomCategoryNavIndex] = useState(-1);
     const [productNavIndex, setProductNavIndex] = useState(-1);
     const [heldOrdersNavIndex, setHeldOrdersNavIndex] = useState(-1);
+    const [showFKeys, setShowFKeys] = useState(true);
 
     useEffect(() => {
         localStorage.setItem('pos_show_results_only', showResultsOnly);
@@ -68,6 +69,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     useEffect(() => {
         const handleResize = () => {
             setIsMobile(window.innerWidth < 768);
+            setShowFKeys(window.innerWidth >= 1024);
         };
         handleResize();
         window.addEventListener('resize', handleResize);
@@ -707,6 +709,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                         onEditItemQty={(item) => triggerQtyModal(item, true)}
                         onClose={isMobile ? () => setIsMobileCartOpen(false) : undefined}
                         disabled={isAnyModalOpen}
+                        showFKeys={showFKeys}
                     />
                 </div>
 
@@ -731,10 +734,10 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     disabled={isAnyModalOpen}
                                     className={`px-3 h-[46px] rounded-md border border-gray-200 transition-all flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed ${selectedCategory === 'all' ? 'bg-white text-gray-500' : ''}`}
                                     style={selectedCategory !== 'all' ? { backgroundColor: `${themeColor}15`, color: themeColor, borderColor: themeColor } : {}}
-                                    title="Category Filter (F5)"
+                                    title={showFKeys ? "Category Filter (F5)" : "Category Filter"}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" /></svg>
-                                    <span>Category (F5)</span>
+                                    <span>{showFKeys ? "Category (F5)" : "Category"}</span>
                                 </button>
                                 {showCategoryDropdown && (
                                     <>
@@ -744,7 +747,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                                 onClick={() => {setSelectedCategory('all'); setShowCategoryDropdown(false); setCategoryNavIndex(-1); window.dispatchEvent(new CustomEvent('reset-cart-nav'));}} 
                                                 className={`w-full text-left px-4 py-2.5 text-base font-bold transition-colors ${categoryNavIndex === 0 ? 'bg-indigo-600 text-white' : selectedCategory === 'all' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
                                             >
-                                                All Categories (F5)
+                                                {showFKeys ? "All Categories (F5)" : "All Categories"}
                                             </button>
                                             {categories.map((c, idx) => {
                                                 const isHighlighted = categoryNavIndex === (idx + 1);
@@ -770,7 +773,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                 <input
                                     ref={searchInputRef}
                                     type="text"
-                                    placeholder="Search... (F1)"
+                                    placeholder={showFKeys ? "Search... (F1)" : "Search..."}
                                     className="w-full pl-9 pr-3 py-2.5 rounded-md bg-white border border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all outline-none text-base font-semibold disabled:bg-gray-100/50 disabled:cursor-not-allowed disabled:text-gray-400"
                                     value={searchQuery}
                                     onChange={(e) => { setSearchQuery(e.target.value); window.dispatchEvent(new CustomEvent('reset-cart-nav')); }}
@@ -796,7 +799,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         <div className={`w-9 h-5 rounded-full transition-colors ${isWholesaleActive ? 'bg-indigo-600' : 'bg-gray-200'}`}></div>
                                         <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${isWholesaleActive ? 'transform translate-x-4' : ''}`}></div>
                                     </div>
-                                    <span className="ml-2 text-xs font-black uppercase tracking-wider text-gray-500 font-mono">Wholesale Mode (F2)</span>
+                                    <span className="ml-2 text-xs font-black uppercase tracking-wider text-gray-500 font-mono">{showFKeys ? "Wholesale Mode (F2)" : "Wholesale Mode"}</span>
                                 </label>
 
                                 <label className="flex items-center cursor-pointer select-none">
@@ -811,7 +814,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         <div className={`w-9 h-5 rounded-full transition-colors ${showResultsOnly ? 'bg-indigo-600' : 'bg-gray-200'}`}></div>
                                         <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showResultsOnly ? 'transform translate-x-4' : ''}`}></div>
                                     </div>
-                                    <span className="ml-2 text-xs font-black uppercase tracking-wider text-gray-500 font-mono">Results Only (F3)</span>
+                                    <span className="ml-2 text-xs font-black uppercase tracking-wider text-gray-500 font-mono">{showFKeys ? "Results Only (F3)" : "Results Only"}</span>
                                 </label>
                             </div>
 
@@ -821,7 +824,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                 className="px-3 py-2 bg-gray-900 hover:bg-black text-white rounded-md text-xs font-black uppercase tracking-wider active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                                Custom Item (F4)
+                                {showFKeys ? "Custom Item (F4)" : "Custom Item"}
                             </button>
                         </div>
                     </div>
@@ -942,6 +945,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             onRecallClick={fetchHeldOrders}
                             onEditItemQty={(item) => triggerQtyModal(item, true)}
                             disabled={isAnyModalOpen}
+                            showFKeys={showFKeys}
                         />
                     </div>
                 )}
@@ -1132,8 +1136,8 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             {/* SKU / Barcode */}
                             <div>
                                 <div className="flex justify-between items-center mb-1.5 ml-0.5">
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">SKU / Barcode (F1)</label>
-                                    <span className="text-[10px] text-indigo-600 font-black font-mono uppercase tracking-wider mr-1">Generate SKU (F2)</span>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">{showFKeys ? "SKU / Barcode (F1)" : "SKU / Barcode"}</label>
+                                    {showFKeys && <span className="text-[10px] text-indigo-600 font-black font-mono uppercase tracking-wider mr-1">Generate SKU (F2)</span>}
                                 </div>
                                 <div className="flex gap-2">
                                     <input
@@ -1156,7 +1160,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         onClick={generateCustomItemSKU}
                                         disabled={isCheckingSku}
                                         className="bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 px-3.5 py-2.5 rounded-lg transition-colors active:scale-95 disabled:opacity-50"
-                                        title="Generate SKU (F2)"
+                                        title={showFKeys ? "Generate SKU (F2)" : "Generate SKU"}
                                     >
                                         {isCheckingSku ? (
                                             <svg className="animate-spin h-4 w-4 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -1169,7 +1173,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
                             {/* Product Name */}
                             <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Name (F3)</label>
+                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Product Name (F3)" : "Product Name"}</label>
                                 <input
                                     id="custom-name-input"
                                     type="text"
@@ -1193,7 +1197,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             {/* Category & Initial Stock */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Category (F5)</label>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Category (F5)" : "Category"}</label>
                                     <div className="relative">
                                         <button
                                             id="custom-category-input"
@@ -1207,7 +1211,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                                     setCustomCategoryNavIndex(-1);
                                                 }
                                             }}
-                                            className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-950 shadow-sm text-left flex justify-between items-center outline-none"
+                                            className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-955 shadow-sm text-left flex justify-between items-center outline-none"
                                         >
                                             <span className="truncate">
                                                 {categories.find(c => c.id === customItemForm.category_id)?.name || 'Select Category...'}
@@ -1258,7 +1262,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Initial Stock (F6)</label>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Initial Stock (F6)" : "Initial Stock"}</label>
                                     <input
                                         id="custom-stock-input"
                                         type="number"
@@ -1280,7 +1284,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
                             {/* Cost Price */}
                             <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱) (F7)</label>
+                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Cost Price (₱) (F7)" : "Cost Price (₱)"}</label>
                                 <input
                                     id="custom-cost-input"
                                     type="number"
@@ -1302,7 +1306,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             {/* Retail Price & Wholesale Price */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Retail Price (₱) (F8)</label>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Retail Price (₱) (F8)" : "Retail Price (₱)"}</label>
                                     <input
                                         id="custom-retail-input"
                                         type="number"
@@ -1322,7 +1326,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Wholesale Price (₱) (F9)</label>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Wholesale Price (₱) (F9)" : "Wholesale Price (₱)"}</label>
                                     <input
                                         id="custom-wholesale-input"
                                         type="number"

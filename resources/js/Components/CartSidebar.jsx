@@ -19,7 +19,8 @@ export default function CartSidebar({
     onPrintReceipt,
     onRecallClick,
     onEditItemQty,
-    disabled = false
+    disabled = false,
+    showFKeys = true
 }) {
     // --- STORE SELECTORS ---
     const cart = useCartStore((state) => state.cart);
@@ -384,7 +385,7 @@ export default function CartSidebar({
                         )}
                         <div>
                             <h2 className="text-base md:text-lg font-black text-gray-900 tracking-tight">
-                                Current Order (F6)
+                                {showFKeys ? "Current Order (F6)" : "Current Order"}
                             </h2>
                             <span className="text-[10px] md:text-xs font-semibold text-gray-500">
                                 {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
@@ -394,21 +395,21 @@ export default function CartSidebar({
 
                     <div className="flex gap-1.5">
                         {/* Recall Button */}
-                        <button onClick={onRecallClick} disabled={disabled} className="px-3 h-[46px] bg-white text-blue-600 hover:bg-blue-50 rounded-md transition-all border border-blue-200 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed" title="Recall (F7)">
+                        <button onClick={onRecallClick} disabled={disabled} className="px-3 h-[46px] bg-white text-blue-600 hover:bg-blue-50 rounded-md transition-all border border-blue-200 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed" title={showFKeys ? "Recall (F7)" : "Recall"}>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <span>Recall (F7)</span>
+                            <span>{showFKeys ? "Recall (F7)" : "Recall"}</span>
                         </button>
 
                         {/* Clear Cart Button */}
-                        <button onClick={handleClearCart} disabled={disabled} className="px-3 h-[46px] bg-white text-red-600 hover:bg-red-50 rounded-md transition-all border border-red-200 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed" title="Clear Cart (F10)">
+                        <button onClick={handleClearCart} disabled={disabled} className="px-3 h-[46px] bg-white text-red-600 hover:bg-red-50 rounded-md transition-all border border-red-200 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed" title={showFKeys ? "Clear Cart (F10)" : "Clear Cart"}>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-                            <span>Clear (F10)</span>
+                            <span>{showFKeys ? "Clear (F10)" : "Clear"}</span>
                         </button>
 
                         {/* Senior Discount Button */}
-                        <button onClick={toggleSenior} disabled={disabled} className={`px-3 h-[46px] rounded-md transition-all border flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed ${isSenior ? 'bg-yellow-100 text-yellow-700 border-yellow-300' : 'bg-white text-yellow-600 border-yellow-200 hover:bg-yellow-50'}`} title="Discount (F9)">
+                        <button onClick={toggleSenior} disabled={disabled} className={`px-3 h-[46px] rounded-md transition-all border flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed ${isSenior ? 'bg-yellow-100 text-yellow-700 border-yellow-300' : 'bg-white text-yellow-600 border-yellow-200 hover:bg-yellow-50'}`} title={showFKeys ? "Discount (F9)" : "Discount"}>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
-                            <span>Discount (F9)</span>
+                            <span>{showFKeys ? "Discount (F9)" : "Discount"}</span>
                         </button>
                     </div>
                 </div>
@@ -536,21 +537,21 @@ export default function CartSidebar({
                             disabled={disabled || cart.length === 0}
                             className="w-full py-2.5 md:py-3.5 rounded-lg bg-orange-100 text-orange-600 font-extrabold text-[11px] sm:text-xs md:text-sm lg:text-base hover:bg-orange-200 active:bg-orange-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors active:scale-95"
                         >
-                            Save (F8)
+                            {showFKeys ? "Save (F8)" : "Save"}
                         </button>
                         <button
                             onClick={openCashDrawer}
                             disabled={disabled}
                             className="w-full py-2.5 md:py-3.5 rounded-lg bg-zinc-100 text-zinc-700 font-extrabold text-[11px] sm:text-xs md:text-sm lg:text-base hover:bg-zinc-200 border border-zinc-300 hover:border-zinc-400 active:bg-zinc-300 transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Drawer (F11)
+                            {showFKeys ? "Drawer (F11)" : "Drawer"}
                         </button>
                         <button
                             onClick={() => setShowPaymentModal(true)}
                             disabled={disabled || cart.length === 0}
                             className="w-full py-2.5 md:py-3.5 rounded-lg bg-green-600 text-white font-extrabold text-[11px] sm:text-xs md:text-sm lg:text-base shadow-lg hover:bg-green-700 active:bg-green-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all active:scale-95"
                         >
-                            Checkout (F12)
+                            {showFKeys ? "Checkout (F12)" : "Checkout"}
                         </button>
                     </div>
                 </div>
@@ -563,6 +564,7 @@ export default function CartSidebar({
                     onClose={() => setShowPaymentModal(false)}
                     onConfirm={handleFinalizePayment}
                     isProcessing={isProcessing}
+                    showFKeys={showFKeys}
                 />,
                 document.body
             )}
