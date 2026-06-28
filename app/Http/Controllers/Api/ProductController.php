@@ -342,7 +342,7 @@ class ProductController extends Controller
 
                 if ($productExists) {
                     $skippedCount++;
-                    $skippedSkus[] = $sku;
+                    $skippedSkus[] = $sku . ' - ' . trim($item['name']);
                     continue;
                 }
 
