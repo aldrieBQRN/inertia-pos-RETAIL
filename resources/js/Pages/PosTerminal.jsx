@@ -163,6 +163,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
             }
 
             if (isFKey) {
+                if (e.key !== 'F6') {
+                    window.dispatchEvent(new CustomEvent('reset-cart-nav'));
+                }
                 setTimeout(() => {
                     setProductNavIndex(-1);
                 }, 0);
