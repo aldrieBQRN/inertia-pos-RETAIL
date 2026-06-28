@@ -46,7 +46,16 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     const [qtyModalInput, setQtyModalInput] = useState('1');
     const [isQtyEditMode, setIsQtyEditMode] = useState(false);
     const [showCustomItemModal, setShowCustomItemModal] = useState(false);
-    const [customItemForm, setCustomItemForm] = useState({ name: '', price: '' });
+    const [customItemForm, setCustomItemForm] = useState({
+        sku: '',
+        name: '',
+        category_id: '',
+        stock_quantity: '0',
+        cost_price: '',
+        price: '',
+        wholesale_price: ''
+    });
+    const [isCheckingSku, setIsCheckingSku] = useState(false);
     const [productNavIndex, setProductNavIndex] = useState(-1);
     const [heldOrdersNavIndex, setHeldOrdersNavIndex] = useState(-1);
 
@@ -272,23 +281,24 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
     const { total } = getComputations ? getComputations() : { total: 0 };
 
+    const loadProductsAndCategories = async (showLoading = false) => {
+        if (showLoading) setIsLoading(true);
+        try {
+            const [prodRes, catRes] = await Promise.all([
+                axios.get('/api/products?all=true'),
+                axios.get('/api/categories')
+            ]);
+            setProducts(prodRes.data);
+            setCategories(catRes.data);
+        } catch (error) {
+            console.error("Error loading products/categories:", error);
+        } finally {
+            if (showLoading) setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchInitialData = async () => {
-            setIsLoading(true);
-            try {
-                const [prodRes, catRes] = await Promise.all([
-                    axios.get('/api/products?all=true'),
-                    axios.get('/api/categories')
-                ]);
-                setProducts(prodRes.data || []);
-                setCategories(catRes.data || []);
-            } catch (error) {
-                console.error("POS Init Error:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchInitialData();
+        loadProductsAndCategories(true);
 
         const interval = setInterval(async () => {
             if (isPolling.current) return;
@@ -431,38 +441,100 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         }, 100);
     };
 
+    const generateCustomItemSKU = async () => {
+        setIsCheckingSku(true);
+        try {
+            const response = await axios.get('/api/products/next-sku');
+            if (response.data.success && response.data.next_sku) {
+                setCustomItemForm(prev => ({ ...prev, sku: response.data.next_sku }));
+            } else {
+                throw new Error("Invalid next SKU response");
+            }
+        } catch (error) {
+            console.error("SKU generation failed:", error);
+            Swal.fire('Error', 'Could not generate next sequential SKU.', 'error');
+        } finally {
+            setIsCheckingSku(false);
+        }
+    };
+
     const handleOpenCustomItemModal = () => {
-        setCustomItemForm({ name: '', price: '' });
+        setCustomItemForm({
+            sku: '',
+            name: '',
+            category_id: '',
+            stock_quantity: '0',
+            cost_price: '',
+            price: '',
+            wholesale_price: ''
+        });
         setShowCustomItemModal(true);
         if (searchInputRef.current) searchInputRef.current.blur();
     };
 
-    const handleAddCustomItem = (e) => {
+    const handleAddCustomItem = async (e) => {
         if (e) e.preventDefault();
-        const { name, price } = customItemForm;
-        if (!name.trim() || !price) {
-            Swal.fire({ icon: 'error', title: 'Fields Required', text: 'Please enter product name and price.', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
+        const { sku, name, category_id, stock_quantity, cost_price, price, wholesale_price } = customItemForm;
+
+        if (!name.trim() || !price || !category_id || !sku.trim() || stock_quantity === '') {
+            Swal.fire({ icon: 'error', title: 'Fields Required', text: 'Please fill in SKU, Product Name, Category, Retail Price, and Initial Stock.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
             return;
         }
 
         const numericPrice = parseFloat(price);
         if (isNaN(numericPrice) || numericPrice <= 0) {
-            Swal.fire({ icon: 'error', title: 'Invalid Price', text: 'Please enter a valid price.', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
+            Swal.fire({ icon: 'error', title: 'Invalid Price', text: 'Please enter a valid retail price.', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
             return;
         }
 
-        const customProduct = {
-            id: `custom-${Date.now()}`,
-            name: name.trim(),
-            sku: 'N/A',
-            price: Math.round(numericPrice * 100),
-            stock_quantity: 999999,
-            category: { name: 'Custom Item', color: '#111827' }
-        };
+        const skuExists = products.some(p => p.sku === sku.trim());
+        if (skuExists) {
+            Swal.fire({ icon: 'error', title: 'Duplicate SKU', text: 'A product with this SKU already exists.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+            return;
+        }
 
-        addToCart(customProduct, 1);
-        setShowCustomItemModal(false);
-        setCustomItemForm({ name: '', price: '' });
+        setIsLoading(true);
+        try {
+            const postData = {
+                sku: sku.trim(),
+                name: name.trim(),
+                category_id: category_id,
+                stock_quantity: parseInt(stock_quantity, 10),
+                price: numericPrice,
+                cost_price: cost_price ? parseFloat(cost_price) : null,
+                wholesale_price: wholesale_price ? parseFloat(wholesale_price) : null
+            };
+
+            const res = await axios.post('/api/products', postData);
+            
+            const newProduct = res.data;
+            const appliedPrice = (isWholesaleActive && newProduct.wholesale_price !== null && newProduct.wholesale_price !== undefined) 
+                ? newProduct.wholesale_price 
+                : newProduct.price;
+
+            addToCart(newProduct, 1, appliedPrice);
+
+            setShowCustomItemModal(false);
+            setCustomItemForm({
+                sku: '',
+                name: '',
+                category_id: '',
+                stock_quantity: '0',
+                cost_price: '',
+                price: '',
+                wholesale_price: ''
+            });
+
+            await loadProductsAndCategories(false);
+
+            Swal.fire({ icon: 'success', title: 'Product Added!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+        } catch (error) {
+            console.error("Failed to add product:", error);
+            const errorMsg = error.response?.data?.error || 'An error occurred while saving the product.';
+            Swal.fire({ icon: 'error', title: 'Save Failed', text: errorMsg });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handlePrintReceipt = async (trxId) => {
@@ -948,50 +1020,143 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
             {/* CUSTOM ITEM MODAL */}
             {showCustomItemModal && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[110] p-4 backdrop-blur-sm">
-                    <div className="bg-white w-full max-w-sm rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
-                        <div className="p-4 border-b flex justify-between items-center bg-gray-50 shrink-0">
-                            <h3 className="font-black text-gray-800 uppercase tracking-wider text-xs">Add Custom Item</h3>
-                            <button onClick={() => setShowCustomItemModal(false)} className="text-gray-400 hover:text-gray-900 text-2xl font-medium">&times;</button>
+                <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[110] p-0 sm:p-4 backdrop-blur-sm transition-opacity">
+                    <div className="bg-white w-full max-w-md h-auto max-h-[85vh] sm:max-h-[90vh] rounded-t-lg sm:rounded-lg shadow-2xl flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in">
+                        {/* Header */}
+                        <div className="bg-gray-50 px-4 py-4 border-b flex justify-between items-center shrink-0">
+                            <h2 className="text-lg md:text-xl font-black text-gray-800 tracking-tight">Add Custom Item</h2>
+                            <button
+                                onClick={() => setShowCustomItemModal(false)}
+                                className="p-1.5 bg-gray-200 rounded-full text-gray-500 hover:bg-red-100 hover:text-red-500 transition-colors shadow-sm"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
                         </div>
-                        <form onSubmit={handleAddCustomItem} className="p-5 flex flex-col gap-4">
+                        {/* Scrollable Form body */}
+                        <form onSubmit={handleAddCustomItem} className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar flex flex-col gap-4 bg-white">
+                            {/* SKU / Barcode */}
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Product Name</label>
+                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">SKU / Barcode</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        required
+                                        value={customItemForm.sku}
+                                        onChange={(e) => setCustomItemForm({ ...customItemForm, sku: e.target.value })}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
+                                        className="flex-1 border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm font-mono"
+                                        placeholder="Scan or type barcode..."
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={generateCustomItemSKU}
+                                        disabled={isCheckingSku}
+                                        className="bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 px-3.5 py-2.5 rounded-lg transition-colors active:scale-95 disabled:opacity-50"
+                                        title="Generate SKU"
+                                    >
+                                        {isCheckingSku ? (
+                                            <svg className="animate-spin h-4 w-4 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        ) : (
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Product Name */}
+                            <div>
+                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Name</label>
                                 <input
                                     type="text"
                                     required
                                     value={customItemForm.name}
                                     onChange={(e) => setCustomItemForm({ ...customItemForm, name: e.target.value })}
-                                    className="w-full border border-gray-300 bg-gray-50 rounded-lg focus:ring-2 focus:ring-gray-950 focus:border-gray-950 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
-                                    placeholder="Enter item name..."
-                                    autoFocus
+                                    className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
+                                    placeholder="e.g. Classic Cappuccino"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Price</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    required
-                                    value={customItemForm.price}
-                                    onChange={(e) => setCustomItemForm({ ...customItemForm, price: e.target.value })}
-                                    className="w-full border border-gray-300 bg-gray-50 rounded-lg focus:ring-2 focus:ring-gray-950 focus:border-gray-950 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
-                                    placeholder="0.00"
-                                />
+
+                            {/* Category & Initial Stock */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Category</label>
+                                    <select
+                                        required
+                                        value={customItemForm.category_id}
+                                        onChange={(e) => setCustomItemForm({ ...customItemForm, category_id: e.target.value })}
+                                        className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
+                                    >
+                                        <option value="">Select Category...</option>
+                                        {categories.map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Initial Stock</label>
+                                    <input
+                                        type="number"
+                                        required
+                                        value={customItemForm.stock_quantity}
+                                        onChange={(e) => setCustomItemForm({ ...customItemForm, stock_quantity: e.target.value })}
+                                        className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
+                                        placeholder="0"
+                                    />
+                                </div>
                             </div>
-                            <div className="flex gap-2 justify-end pt-2 border-t mt-2">
+
+                            {/* Price Group: Cost Price, Retail Price, Wholesale Price */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={customItemForm.cost_price}
+                                        onChange={(e) => setCustomItemForm({ ...customItemForm, cost_price: e.target.value })}
+                                        className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Retail Price (₱)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        required
+                                        value={customItemForm.price}
+                                        onChange={(e) => setCustomItemForm({ ...customItemForm, price: e.target.value })}
+                                        className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Wholesale Price (₱)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={customItemForm.wholesale_price}
+                                        onChange={(e) => setCustomItemForm({ ...customItemForm, wholesale_price: e.target.value })}
+                                        className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Actions Group */}
+                            <div className="flex flex-col gap-2 mt-4 pt-4 border-t shrink-0">
+                                <button
+                                    type="submit"
+                                    className="w-full py-3.5 bg-gray-900 hover:bg-black text-white font-black text-sm uppercase tracking-widest rounded-lg shadow-lg transition-all active:scale-[0.98]"
+                                >
+                                    Add Custom (Enter)
+                                </button>
                                 <button
                                     type="button"
                                     onClick={() => setShowCustomItemModal(false)}
-                                    className="px-4 py-2 text-xs font-bold text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-all"
+                                    className="w-full py-3 bg-white text-gray-755 border border-gray-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-[0.98]"
                                 >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md transition-all active:scale-[0.98]"
-                                >
-                                    Add Custom
+                                    Cancel (Esc)
                                 </button>
                             </div>
                         </form>
