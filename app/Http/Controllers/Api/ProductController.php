@@ -293,7 +293,7 @@ class ProductController extends Controller
             $rowNumber = 1; // Header is at row 1 in Excel template, data starts at row 2
 
             foreach ($request->products as $item) {
-                $rowNumber++;
+                $displayRow = $item['rowNum'] ?? ($importedCount + 2);
                 
                 // Track missing/invalid fields for this specific row
                 $rowErrors = [];
@@ -321,7 +321,7 @@ class ProductController extends Controller
                 }
 
                 if (!empty($rowErrors)) {
-                    $errors[] = "Row {$rowNumber}: " . implode(', ', $rowErrors);
+                    $errors[] = "Row {$displayRow}: " . implode(', ', $rowErrors);
                     continue;
                 }
 

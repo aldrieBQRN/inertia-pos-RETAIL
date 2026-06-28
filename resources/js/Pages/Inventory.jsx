@@ -369,25 +369,55 @@ export default function Inventory({ auth }) {
                 views: [{ showGridLines: true }]
             });
 
-            worksheet.columns = [
-                { header: 'Barcode/SKU', key: 'sku', width: 20 },
-                { header: 'Product Name', key: 'name', width: 30 },
-                { header: 'Category Name', key: 'category_name', width: 25 },
-                { header: 'Retail Price', key: 'price', width: 15 },
-                { header: 'Wholesale Price', key: 'wholesale_price', width: 18 },
-                { header: 'Cost Price', key: 'cost_price', width: 15 },
-                { header: 'Stock Quantity', key: 'stock_quantity', width: 15 }
-            ];
+            // Set column widths
+            worksheet.getColumn('A').width = 20; // Barcode/SKU
+            worksheet.getColumn('B').width = 30; // Product Name
+            worksheet.getColumn('C').width = 25; // Category Name
+            worksheet.getColumn('D').width = 15; // Retail Price
+            worksheet.getColumn('E').width = 18; // Wholesale Price
+            worksheet.getColumn('F').width = 15; // Cost Price
+            worksheet.getColumn('G').width = 15; // Stock Quantity
 
-            // Header styling (Row 1)
-            worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' }, size: 11 };
-            worksheet.getRow(1).fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: '4F46E5' }
-            };
-            worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'left' };
-            worksheet.getRow(1).height = 25;
+            // Add Store Header (Rows 1 to 3)
+            const storeName = settings?.store_name || 'POS Store';
+            const storeAddress = settings?.address || '';
+            const storeContact = settings?.phone ? `Contact: ${settings.phone}` : '';
+
+            // Store Name
+            worksheet.mergeCells('A1:G1');
+            worksheet.getCell('A1').value = storeName.toUpperCase();
+            worksheet.getCell('A1').font = { bold: true, color: { argb: '4F46E5' }, size: 14 };
+            worksheet.getRow(1).height = 24;
+
+            // Address and Contact
+            worksheet.mergeCells('A2:G2');
+            worksheet.getCell('A2').value = `${storeAddress} | ${storeContact}`;
+            worksheet.getCell('A2').font = { color: { argb: '555555' }, size: 9 };
+            worksheet.getRow(2).height = 16;
+
+            // Title
+            worksheet.mergeCells('A3:G3');
+            worksheet.getCell('A3').value = 'PRODUCT DATA IMPORT TEMPLATE';
+            worksheet.getCell('A3').font = { bold: true, color: { argb: '333333' }, size: 10 };
+            worksheet.getRow(3).height = 18;
+
+            // Empty spacing row
+            worksheet.getRow(4).height = 10;
+
+            // Header styling (Row 5)
+            const headers = ['Barcode/SKU', 'Product Name', 'Category Name', 'Retail Price', 'Wholesale Price', 'Cost Price', 'Stock Quantity'];
+            headers.forEach((h, colIndex) => {
+                const cell = worksheet.getRow(5).getCell(colIndex + 1);
+                cell.value = h;
+                cell.font = { bold: true, color: { argb: 'FFFFFF' }, size: 10 };
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: '4F46E5' }
+                };
+                cell.alignment = { vertical: 'middle', horizontal: colIndex >= 3 ? 'right' : 'left' };
+            });
+            worksheet.getRow(5).height = 25;
 
             // Generate category validation list from active system categories
             const catNames = categories.map(c => c.name).filter(Boolean);
@@ -401,7 +431,7 @@ export default function Inventory({ auth }) {
                 categoriesSheet.getCell(`A${index + 1}`).value = name;
             });
 
-            // Add sample row at Row 2
+            // Add sample row at Row 6
             worksheet.addRow({
                 sku: '88010020',
                 name: 'Sample Product A',
@@ -412,8 +442,8 @@ export default function Inventory({ auth }) {
                 stock_quantity: 50
             });
 
-            // Set styling & validation for data rows (rows 2 to 200)
-            for (let i = 2; i <= 200; i++) {
+            // Set styling & validation for data rows (rows 6 to 205)
+            for (let i = 6; i <= 205; i++) {
                 const row = worksheet.getRow(i);
                 
                 // Align columns appropriately
@@ -556,35 +586,87 @@ export default function Inventory({ auth }) {
     const exportExcel = async () => {
         try {
             const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('Inventory Report');
+            const worksheet = workbook.addWorksheet('Inventory Report', {
+                views: [{ showGridLines: true }]
+            });
 
-            worksheet.columns = [
-                { header: 'Barcode/SKU', key: 'sku', width: 20 },
-                { header: 'Product Name', key: 'name', width: 30 },
-                { header: 'Category Name', key: 'category_name', width: 25 },
-                { header: 'Retail Price (PHP)', key: 'price', width: 18 },
-                { header: 'Wholesale Price (PHP)', key: 'wholesale_price', width: 18 },
-                { header: 'Cost Price (PHP)', key: 'cost_price', width: 18 },
-                { header: 'Stock Quantity', key: 'stock_quantity', width: 15 }
-            ];
+            // Set column widths
+            worksheet.getColumn('A').width = 20; // Barcode/SKU
+            worksheet.getColumn('B').width = 30; // Product Name
+            worksheet.getColumn('C').width = 25; // Category Name
+            worksheet.getColumn('D').width = 18; // Retail Price
+            worksheet.getColumn('E').width = 18; // Wholesale Price
+            worksheet.getColumn('F').width = 18; // Cost Price
+            worksheet.getColumn('G').width = 15; // Stock Quantity
 
-            worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' } };
-            worksheet.getRow(1).fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: '16A34A' }
-            };
+            // Add Store Header (Rows 1 to 3)
+            const storeName = settings?.store_name || 'POS Store';
+            const storeAddress = settings?.address || '';
+            const storeContact = settings?.phone ? `Contact: ${settings.phone}` : '';
 
-            products.forEach(p => {
-                worksheet.addRow({
-                    sku: p.sku || 'N/A',
-                    name: p.name || 'Unknown',
-                    category_name: p.category?.name || 'Uncategorized',
-                    price: p.price / 100,
-                    wholesale_price: p.wholesale_price ? p.wholesale_price / 100 : '',
-                    cost_price: p.cost_price ? p.cost_price / 100 : '',
-                    stock_quantity: p.stock_quantity
-                });
+            // Store Name
+            worksheet.mergeCells('A1:G1');
+            worksheet.getCell('A1').value = storeName.toUpperCase();
+            worksheet.getCell('A1').font = { bold: true, color: { argb: '16A34A' }, size: 16 };
+            worksheet.getRow(1).height = 28;
+
+            // Address and Contact
+            worksheet.mergeCells('A2:G2');
+            worksheet.getCell('A2').value = `${storeAddress} | ${storeContact}`;
+            worksheet.getCell('A2').font = { color: { argb: '555555' }, size: 9 };
+            worksheet.getRow(2).height = 16;
+
+            // Title
+            worksheet.mergeCells('A3:G3');
+            worksheet.getCell('A3').value = `INVENTORY STATUS & BACKUP REPORT (Generated: ${new Date().toLocaleString()})`;
+            worksheet.getCell('A3').font = { bold: true, color: { argb: '333333' }, size: 11 };
+            worksheet.getRow(3).height = 20;
+
+            // Empty spacing row
+            worksheet.getRow(4).height = 10;
+
+            // Headers on Row 5
+            const headers = ['Barcode/SKU', 'Product Name', 'Category Name', 'Retail Price (PHP)', 'Wholesale Price (PHP)', 'Cost Price (PHP)', 'Stock Quantity'];
+            headers.forEach((h, colIndex) => {
+                const cell = worksheet.getRow(5).getCell(colIndex + 1);
+                cell.value = h;
+                cell.font = { bold: true, color: { argb: 'FFFFFF' }, size: 10 };
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: '16A34A' } // Sleek green theme for reports
+                };
+                cell.alignment = { vertical: 'middle', horizontal: colIndex >= 3 ? 'right' : 'left' };
+            });
+            worksheet.getRow(5).height = 25;
+
+            // Add product rows starting from Row 6
+            products.forEach((p, idx) => {
+                const rowIndex = idx + 6;
+                const row = worksheet.getRow(rowIndex);
+
+                row.getCell(1).value = p.sku || 'N/A';
+                row.getCell(2).value = p.name || 'Unknown';
+                row.getCell(3).value = p.category?.name || 'Uncategorized';
+                row.getCell(4).value = p.price / 100;
+                row.getCell(5).value = p.wholesale_price ? p.wholesale_price / 100 : '';
+                row.getCell(6).value = p.cost_price ? p.cost_price / 100 : '';
+                row.getCell(7).value = p.stock_quantity;
+
+                // Format cell alignments
+                row.getCell(1).alignment = { horizontal: 'left' };
+                row.getCell(2).alignment = { horizontal: 'left' };
+                row.getCell(3).alignment = { horizontal: 'left' };
+                row.getCell(4).alignment = { horizontal: 'right' };
+                row.getCell(5).alignment = { horizontal: 'right' };
+                row.getCell(6).alignment = { horizontal: 'right' };
+                row.getCell(7).alignment = { horizontal: 'right' };
+
+                // Number formats
+                row.getCell(4).numFmt = '#,##0.00';
+                row.getCell(5).numFmt = '#,##0.00';
+                row.getCell(6).numFmt = '#,##0.00';
+                row.getCell(7).numFmt = '#,##0';
             });
 
             const buffer = await workbook.xlsx.writeBuffer();
@@ -647,8 +729,17 @@ export default function Inventory({ auth }) {
                         const workbook = new ExcelJS.Workbook();
                         await workbook.xlsx.load(evt.target.result);
                         const worksheet = workbook.worksheets[0];
+                        let headerRowNumber = 1;
                         worksheet.eachRow((row, rowNumber) => {
-                            if (rowNumber === 1) return;
+                            const valA = row.getCell(1).value?.toString() || '';
+                            const valB = row.getCell(2).value?.toString() || '';
+                            if (valA.includes('Barcode/SKU') || valB.includes('Product Name')) {
+                                headerRowNumber = rowNumber;
+                            }
+                        });
+
+                        worksheet.eachRow((row, rowNumber) => {
+                            if (rowNumber <= headerRowNumber) return;
 
                             const getCellString = (colNum) => {
                                 const val = row.getCell(colNum).value;
@@ -667,6 +758,7 @@ export default function Inventory({ auth }) {
                             // Add to list if any product identifier is present (backend will validate completeness)
                             if (sku || name || category_name) {
                                 importedProducts.push({
+                                    rowNum: rowNumber,
                                     sku: sku.trim(),
                                     name: name.trim(),
                                     category_name: category_name.trim(),
