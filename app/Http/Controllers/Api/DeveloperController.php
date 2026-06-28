@@ -755,7 +755,7 @@ class DeveloperController extends Controller
                     ]);
 
                     // Skip compression for SVG as it is vector-based and not supported by the GD decoder
-                    if ($file->getClientOriginalExtension() === 'svg' || $file->getMimeType() === 'image/svg+xml') {
+                    if (strtolower($file->getClientOriginalExtension()) === 'svg' || str_contains(strtolower($file->getMimeType()), 'svg')) {
                         $logoPath = $file->store('system', 'public');
                     } else {
                         $imageCompression = new ImageCompressionService();
