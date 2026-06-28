@@ -1188,40 +1188,6 @@ export default function Inventory({ auth }) {
                         <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar">
                             <form id="product-form" onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-500">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Name</label>
-                                    <input name="name" required value={formData.name} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="e.g. Classic Cappuccino" />
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Category</label>
-                                        <select name="category_id" value={formData.category_id} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm" required>
-                                            <option value="">Select Category...</option>
-                                            {categories.map(cat => ( <option key={cat.id} value={cat.id}>{cat.name}</option> ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Retail Price (₱)</label>
-                                        <input type="number" step="0.01" name="price" required value={formData.price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                     <div>
-                                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Initial Stock</label>
-                                         <input type="number" name="stock_quantity" required value={formData.stock_quantity} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0" />
-                                     </div>
-                                     <div>
-                                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱)</label>
-                                         <input type="number" step="0.01" name="cost_price" value={formData.cost_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
-                                     </div>
-                                     <div>
-                                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Wholesale Price (₱)</label>
-                                         <input type="number" step="0.01" name="wholesale_price" value={formData.wholesale_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
-                                     </div>
-                                 </div>
-
-                                <div>
                                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">SKU / Barcode</label>
                                     <div className="flex gap-2">
                                             <input
@@ -1244,6 +1210,40 @@ export default function Inventory({ auth }) {
                                             )}
                                         </button>
                                     </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Name</label>
+                                    <input name="name" required value={formData.name} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="e.g. Classic Cappuccino" />
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Category</label>
+                                        <select name="category_id" value={formData.category_id} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm" required>
+                                            <option value="">Select Category...</option>
+                                            {categories.map(cat => ( <option key={cat.id} value={cat.id}>{cat.name}</option> ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Initial Stock</label>
+                                         <input type="number" name="stock_quantity" required value={formData.stock_quantity} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0" />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                     <div>
+                                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱)</label>
+                                         <input type="number" step="0.01" name="cost_price" value={formData.cost_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
+                                     </div>
+                                     <div>
+                                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Retail Price (₱)</label>
+                                         <input type="number" step="0.01" name="price" required value={formData.price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
+                                     </div>
+                                     <div>
+                                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Wholesale Price (₱)</label>
+                                         <input type="number" step="0.01" name="wholesale_price" value={formData.wholesale_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
+                                     </div>
                                 </div>
 
                                 <div>
