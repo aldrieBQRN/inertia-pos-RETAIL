@@ -352,4 +352,35 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get the next sequential auto-incrementing SKU prefixed with 'ITEM-'.
+     */
+    public function getNextSku()
+    {
+        $storeId = Auth::user()->store_id;
+
+        // Fetch all product SKUs starting with ITEM- for this store
+        $skus = Product::where('store_id', $storeId)
+            ->where('sku', 'like', 'ITEM-%')
+            ->pluck('sku');
+
+        $maxNumber = 0;
+        foreach ($skus as $sku) {
+            if (preg_match('/^ITEM-(\d+)$/', $sku, $matches)) {
+                $num = (int)$matches[1];
+                if ($num > $maxNumber) {
+                    $maxNumber = $num;
+                }
+            }
+        }
+
+        $nextNumber = $maxNumber + 1;
+        $nextSku = 'ITEM-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+
+        return response()->json([
+            'success' => true,
+            'next_sku' => $nextSku
+        ]);
+    }
 }

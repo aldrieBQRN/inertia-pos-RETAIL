@@ -577,19 +577,19 @@ export default function Inventory({ auth }) {
 
     const generateSKU = async () => {
         setIsCheckingSku(true);
-        let isUnique = false;
-        let newSku = '';
-        let attempts = 0;
-
-        while (!isUnique && attempts < 5) {
-            newSku = Math.floor(10000000 + Math.random() * 90000000).toString();
-            if (!checkSkuExists(newSku)) isUnique = true;
-            attempts++;
+        try {
+            const response = await axios.get('/api/products/next-sku');
+            if (response.data.success && response.data.next_sku) {
+                setFormData(prev => ({ ...prev, sku: response.data.next_sku }));
+            } else {
+                throw new Error("Invalid next SKU response");
+            }
+        } catch (error) {
+            console.error("SKU generation failed:", error);
+            Swal.fire('Error', 'Could not generate next sequential SKU.', 'error');
+        } finally {
+            setIsCheckingSku(false);
         }
-        setIsCheckingSku(false);
-
-        if (isUnique) setFormData(prev => ({ ...prev, sku: newSku }));
-        else Swal.fire('Error', 'Could not generate a unique SKU.', 'error');
     };
 
     const handleScan = (data) => {

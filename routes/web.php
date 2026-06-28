@@ -166,6 +166,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class])->grou
     // API: Operational (Sales & Inventory)
     Route::post('/api/checkout', [PosController::class, 'checkout']);
     Route::get('/api/products', [ProductController::class, 'index']);
+    Route::get('/api/products/next-sku', [ProductController::class, 'getNextSku']);
     Route::post('/api/products', [ProductController::class, 'store']);
     Route::post('/api/products/import', [ProductController::class, 'bulkImport']);
     Route::put('/api/products/{id}', [ProductController::class, 'update']);
