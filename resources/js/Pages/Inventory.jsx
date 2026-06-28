@@ -828,12 +828,30 @@ export default function Inventory({ auth }) {
 
                     const response = await axios.post('/api/products/import', { products: importedProducts });
                     if (response.data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Import Successful!',
-                            text: response.data.message,
-                            confirmButtonColor: '#10B981'
-                        });
+                        const { imported_count, skipped_count, skipped_skus } = response.data;
+                        if (skipped_count > 0) {
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Import Completed with Skips',
+                                html: `
+                                    <div class="text-left font-sans text-sm p-1">
+                                        <p class="font-bold text-gray-800">Successfully imported <span class="text-green-600 font-semibold">${imported_count}</span> new products.</p>
+                                        <p class="mt-3 text-amber-700 font-semibold">Skipped <span class="font-bold">${skipped_count}</span> duplicate products (Barcode/SKU already exists in database):</p>
+                                        <div class="mt-2 max-h-32 overflow-y-auto bg-amber-50 p-2 rounded border border-amber-200 font-mono text-xs text-amber-800 select-all">
+                                            ${skipped_skus.join('<br>')}
+                                        </div>
+                                    </div>
+                                `,
+                                confirmButtonColor: '#1B3A69'
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Import Successful!',
+                                text: `Successfully imported all ${imported_count} products.`,
+                                confirmButtonColor: '#1B3A69'
+                            });
+                        }
                         loadAllProducts(false);
                     } else {
                         throw new Error(response.data.message);

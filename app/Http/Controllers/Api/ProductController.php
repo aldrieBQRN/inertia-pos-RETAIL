@@ -289,6 +289,8 @@ class ProductController extends Controller
         try {
             $storeId = Auth::user()->store_id;
             $importedCount = 0;
+            $skippedCount = 0;
+            $skippedSkus = [];
             $errors = [];
             $rowNumber = 1; // Header is at row 1 in Excel template, data starts at row 2
 
@@ -325,6 +327,17 @@ class ProductController extends Controller
                     continue;
                 }
 
+                $sku = trim($item['sku']);
+
+                // Find existing product by SKU under this store
+                $productExists = Product::where('sku', $sku)->where('store_id', $storeId)->exists();
+
+                if ($productExists) {
+                    $skippedCount++;
+                    $skippedSkus[] = $sku;
+                    continue;
+                }
+
                 // Find or create category
                 $categoryId = null;
                 $categoryName = trim($item['category_name']);
@@ -344,19 +357,12 @@ class ProductController extends Controller
                     'cost_price' => (int) round($item['cost_price'] * 100),
                     'wholesale_price' => (int) round($item['wholesale_price'] * 100),
                     'stock_quantity' => (int) $item['stock_quantity'],
-                    'sku' => trim($item['sku']),
+                    'sku' => $sku,
                     'is_active' => true,
                     'store_id' => $storeId, // Ensure store_id is set
                 ];
 
-                // Find existing product by SKU under this store
-                $product = Product::where('sku', $productData['sku'])->first();
-
-                if ($product) {
-                    $product->update($productData);
-                } else {
-                    Product::create($productData);
-                }
+                Product::create($productData);
                 $importedCount++;
             }
 
@@ -373,7 +379,10 @@ class ProductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Successfully imported {$importedCount} products."
+                'message' => "Successfully imported {$importedCount} products.",
+                'imported_count' => $importedCount,
+                'skipped_count' => $skippedCount,
+                'skipped_skus' => $skippedSkus,
             ]);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\DB::rollBack();
