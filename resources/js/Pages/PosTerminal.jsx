@@ -378,7 +378,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         if (showLoading) setIsLoading(true);
         try {
             const [prodRes, catRes] = await Promise.all([
-                axios.get('/api/products?all=true'),
+                axios.get('/api/products?all=true&active=true'),
                 axios.get('/api/categories')
             ]);
             setProducts(prodRes.data);
@@ -397,7 +397,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
             if (isPolling.current) return;
             isPolling.current = true;
             try {
-                const res = await axios.get('/api/products?all=true');
+                const res = await axios.get('/api/products?all=true&active=true');
                 setProducts(res.data || []);
             } catch (e) { console.warn("Sync failed."); }
             finally { isPolling.current = false; }

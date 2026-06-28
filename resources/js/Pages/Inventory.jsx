@@ -34,6 +34,8 @@ export default function Inventory({ auth }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterCategory, setFilterCategory] = useState('');
     const [showLowStock, setShowLowStock] = useState(false);
+    const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'active', 'archived'
+    const [activeDropdownId, setActiveDropdownId] = useState(null);
 
     const [printState, setPrintState] = useState({
         isOpen: false,
@@ -110,12 +112,27 @@ export default function Inventory({ auth }) {
             loadAllProducts(false);
         }, 5000);
 
-        return () => clearInterval(interval);
+        const handleOutsideClick = (e) => {
+            if (!e.target.closest('.action-dropdown-container')) {
+                setActiveDropdownId(null);
+            }
+        };
+        window.addEventListener('click', handleOutsideClick);
+
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('click', handleOutsideClick);
+        };
     }, []);
 
     useEffect(() => {
+        setActiveDropdownId(null);
+    }, [currentPage]);
+
+    useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, filterCategory, showLowStock]);
+        setActiveDropdownId(null);
+    }, [searchTerm, filterCategory, showLowStock, filterStatus]);
 
     const fetchSettings = async () => {
         try { const res = await axios.get('/api/settings'); setSettings(res.data); } catch (e) {}
@@ -157,9 +174,16 @@ export default function Inventory({ auth }) {
             const matchesCategory = filterCategory ? p.category_id?.toString() === filterCategory.toString() : true;
             const matchesLowStock = showLowStock ? p.stock_quantity <= 10 : true;
 
-            return matchesSearch && matchesCategory && matchesLowStock;
+            let matchesStatus = true;
+            if (filterStatus === 'active') {
+                matchesStatus = p.is_active;
+            } else if (filterStatus === 'archived') {
+                matchesStatus = !p.is_active;
+            }
+
+            return matchesSearch && matchesCategory && matchesLowStock && matchesStatus;
         });
-    }, [products, searchTerm, filterCategory, showLowStock]);
+    }, [products, searchTerm, filterCategory, showLowStock, filterStatus]);
 
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
     const paginatedProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -934,7 +958,7 @@ export default function Inventory({ auth }) {
     const openAddModal = () => {
         setEditMode(false);
         setEditingId(null);
-        setFormData({ name: '', category_id: '', price: '', cost_price: '', wholesale_price: '', stock_quantity: '', sku: '', image: null });
+        setFormData({ name: '', category_id: '', price: '', cost_price: '', wholesale_price: '', stock_quantity: '', sku: '', image: null, is_active: true });
         setShowModal(true);
     };
 
@@ -949,7 +973,8 @@ export default function Inventory({ auth }) {
             wholesale_price: p.wholesale_price ? (p.wholesale_price / 100).toFixed(2) : '',
             stock_quantity: p.stock_quantity,
             sku: p.sku,
-            image: null
+            image: null,
+            is_active: p.is_active !== undefined ? !!p.is_active : true
         });
         setShowModal(true);
     };
@@ -980,6 +1005,7 @@ export default function Inventory({ auth }) {
             data.append('wholesale_price', formData.wholesale_price);
             data.append('stock_quantity', formData.stock_quantity);
             data.append('sku', cleanSku);
+            data.append('is_active', formData.is_active ? '1' : '0');
             if(formData.image) data.append('image', formData.image);
 
             if(editMode) {
@@ -1000,13 +1026,45 @@ export default function Inventory({ auth }) {
         }
     };
 
-    const handleDelete = async (id) => {
+    const handleToggleActive = async (product) => {
+        const action = product.is_active ? 'Archive' : 'Restore';
+        const actionPast = product.is_active ? 'archived' : 'restored';
+        
+        const result = await Swal.fire({
+            title: `${action} this product?`,
+            text: product.is_active 
+                ? `Archiving "${product.name}" will hide it from the POS sales screen, but keep its sales logs.`
+                : `Restoring "${product.name}" will make it available again on the POS sales screen.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#1B3A69',
+            cancelButtonColor: '#d33',
+            confirmButtonText: `Yes, ${action}!`
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const res = await axios.patch(`/api/products/${product.id}/toggle-active`);
+                if (res.data.success) {
+                    Swal.fire('Updated!', `Product has been successfully ${actionPast}.`, 'success');
+                    loadAllProducts(false);
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Error', `Failed to ${action.toLowerCase()} the product.`, 'error');
+            }
+        }
+    };
+
+    const handleDelete = async (product) => {
+        const id = product.id;
         const result = await Swal.fire({
             title: 'Delete this product?',
             text: "This action will remove the item from the inventory. Note: Items with sales history cannot be deleted.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
+            confirmButtonColor: '#1B3A69',
+            cancelButtonColor: '#d33',
             confirmButtonText: 'Confirm Delete'
         });
 
@@ -1016,13 +1074,49 @@ export default function Inventory({ auth }) {
                 loadAllProducts(false); // Silent reload
                 Swal.fire('Deleted!', 'Product successfully removed.', 'success');
             } catch (error) {
-                const serverMessage = error.response?.data?.error;
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Deletion Restricted',
-                    text: serverMessage || "This product is linked to sales records and cannot be deleted for auditing purposes.",
-                    footer: '<b>Solution:</b> Set stock to 0 or mark as inactive instead.'
-                });
+                const isLinked = error.response?.data?.error === 'linked_to_transactions';
+                const serverMessage = error.response?.data?.message || error.response?.data?.error;
+                
+                if (isLinked) {
+                    if (!product.is_active) {
+                        Swal.fire({
+                            title: 'Cannot Delete Product',
+                            text: 'This product has sales history and is already archived. It cannot be permanently deleted for auditing purposes.',
+                            icon: 'info',
+                            confirmButtonColor: '#1B3A69'
+                        });
+                    } else {
+                        const archiveResult = await Swal.fire({
+                            title: 'Cannot Delete Product',
+                            text: 'This product has sales history and cannot be permanently deleted. Would you like to Archive it instead to hide it from the POS terminal?',
+                            icon: 'info',
+                            showCancelButton: true,
+                            confirmButtonColor: '#1B3A69',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Yes, Archive it!',
+                            cancelButtonText: 'No'
+                        });
+
+                        if (archiveResult.isConfirmed) {
+                            try {
+                                const res = await axios.patch(`/api/products/${id}/toggle-active`);
+                                if (res.data.success) {
+                                    Swal.fire('Archived!', 'The product has been archived successfully.', 'success');
+                                    loadAllProducts(false);
+                                }
+                            } catch (e) {
+                                Swal.fire('Error', 'Failed to archive the product.', 'error');
+                            }
+                        }
+                    }
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Deletion Restricted',
+                        text: serverMessage || "This product is linked to sales records and cannot be deleted for auditing purposes.",
+                        footer: '<b>Solution:</b> Set stock to 0 or archive the product instead.'
+                    });
+                }
             }
         }
     };
@@ -1049,7 +1143,7 @@ export default function Inventory({ auth }) {
                                 <svg className="w-5 h-5 text-gray-400 absolute left-4 top-3 sm:top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                             </div>
 
-                            <div className={`grid grid-cols-2 gap-2 sm:gap-3 w-full ${auth.user.is_admin ? 'lg:grid-cols-5' : 'lg:grid-cols-3'}`}>
+                            <div className={`grid grid-cols-2 gap-2 sm:gap-3 w-full ${auth.user.is_admin ? 'lg:grid-cols-6' : 'lg:grid-cols-4'}`}>
                                 <select
                                     value={filterCategory}
                                     onChange={(e) => setFilterCategory(e.target.value)}
@@ -1057,6 +1151,16 @@ export default function Inventory({ auth }) {
                                 >
                                     <option value="">All Categories</option>
                                     {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                </select>
+
+                                <select
+                                    value={filterStatus}
+                                    onChange={(e) => setFilterStatus(e.target.value)}
+                                    className="col-span-1 lg:col-span-1 w-full bg-white border border-gray-200 rounded-lg py-2.5 sm:py-3 pl-3 pr-8 focus:ring-2 focus:ring-blue-500 focus:bg-white text-gray-600 text-xs sm:text-sm font-medium transition-colors"
+                                >
+                                    <option value="all">All Statuses</option>
+                                    <option value="active">Active Only</option>
+                                    <option value="archived">Archived Only</option>
                                 </select>
 
                                 <button
@@ -1152,7 +1256,7 @@ export default function Inventory({ auth }) {
 
                     {/* TABLE: DESKTOP VIEW */}
                     <div className="hidden md:block bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 mx-4 sm:mx-0">
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto min-h-[320px]">
                             <table className="w-full text-left">
                                 <thead className="bg-gray-50 border-b text-gray-500 uppercase text-[10px] font-black tracking-wider">
                                     <tr>
@@ -1162,7 +1266,7 @@ export default function Inventory({ auth }) {
                                         <th className="p-4 text-right">Cost Price</th>
                                         <th className="p-4 text-right">Price</th>
                                         <th className="p-4 text-center">Inventory</th>
-                                        <th className="p-4 text-center">Actions</th>
+                                        <th className="p-4 text-center w-24">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -1208,7 +1312,7 @@ export default function Inventory({ auth }) {
                                             </td>
                                         </tr>
                                     ) : (
-                                        paginatedProducts.map((p) => (
+                                        paginatedProducts.map((p, index) => (
                                             <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                                                 <td className="p-4"><Barcode value={p.sku} width={1} height={25} fontSize={10} /></td>
                                                 <td className="p-4 flex items-center gap-3">
@@ -1217,7 +1321,14 @@ export default function Inventory({ auth }) {
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-300"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
                                                         )}
                                                     </div>
-                                                    <span className="font-bold text-gray-800">{p.name}</span>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-gray-800">{p.name}</span>
+                                                        {!p.is_active && (
+                                                            <span className="inline-flex items-center w-max px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest uppercase bg-slate-100 text-slate-500 border border-slate-200 mt-0.5 animate-pulse">
+                                                                Archived
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="p-4">
                                                     {p.category ? (
@@ -1250,27 +1361,109 @@ export default function Inventory({ auth }) {
                                                         </button>
                                                     </div>
                                                 </td>
-                                                <td className="p-4 text-center flex justify-center gap-2">
-                                                    {auth.user.is_admin && (
-                                                        <button onClick={() => openEditModal(p)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-100 rounded-lg transition-colors" title="Edit">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+                                                <td className="p-4 text-center action-dropdown-container overflow-visible">
+                                                    <div className="relative inline-block text-left">
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setActiveDropdownId(activeDropdownId === p.id ? null : p.id);
+                                                            }}
+                                                            className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors inline-flex items-center justify-center border border-gray-150 shadow-sm"
+                                                            title="Actions"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+                                                            </svg>
                                                         </button>
-                                                    )}
 
-                                                    {/* OPEN PRINT MODAL BUTTON */}
-                                                    <button onClick={() => setPrintState({ isOpen: true, product: p, quantity: 1, mode: 'thermal' })} className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors" title="Print Labels">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
-                                                    </button>
+                                                        {activeDropdownId === p.id && (
+                                                            <div className={`absolute right-0 w-48 bg-white rounded-lg border border-gray-150 shadow-xl z-50 py-1 divide-y divide-gray-50 text-left ${
+                                                                index >= paginatedProducts.length - 3 && paginatedProducts.length > 3 
+                                                                    ? 'bottom-full mb-1' 
+                                                                    : 'top-full mt-1'
+                                                            }`}>
+                                                                <div className="py-1">
+                                                                    {auth.user.is_admin && (
+                                                                        <button 
+                                                                            onClick={() => {
+                                                                                setActiveDropdownId(null);
+                                                                                openEditModal(p);
+                                                                            }} 
+                                                                            className="w-full px-3 py-2 text-[11px] font-bold text-blue-700 hover:bg-blue-50 transition-colors flex items-center gap-2"
+                                                                        >
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+                                                                            Edit Product
+                                                                        </button>
+                                                                    )}
 
-                                                    <button onClick={() => downloadLabelImage(p, settings?.store_name || 'POS STORE')} className="p-2 text-green-500 hover:text-green-700 hover:bg-green-100 rounded-lg transition-colors" title="Save Barcode Image">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => {
+                                                                            setActiveDropdownId(null);
+                                                                            setPrintState({ isOpen: true, product: p, quantity: 1, mode: 'thermal' });
+                                                                        }} 
+                                                                        className="w-full px-3 py-2 text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                                                                    >
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
+                                                                        Print Labels
+                                                                    </button>
 
-                                                    {auth.user.is_admin && (
-                                                        <button onClick={() => handleDelete(p.id)} className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors" title="Delete">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-                                                        </button>
-                                                    )}
+                                                                    <button 
+                                                                        onClick={() => {
+                                                                            setActiveDropdownId(null);
+                                                                            downloadLabelImage(p, settings?.store_name || 'POS STORE');
+                                                                        }} 
+                                                                        className="w-full px-3 py-2 text-[11px] font-bold text-green-700 hover:bg-green-50 transition-colors flex items-center gap-2"
+                                                                    >
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                                                        Save PNG Barcode
+                                                                    </button>
+                                                                </div>
+
+                                                                <div className="py-1">
+                                                                    {auth.user.is_admin && (
+                                                                        <button 
+                                                                            onClick={() => {
+                                                                                setActiveDropdownId(null);
+                                                                                handleToggleActive(p);
+                                                                            }} 
+                                                                            className={`w-full px-3 py-2 text-[11px] font-bold transition-colors flex items-center gap-2 ${p.is_active ? 'text-slate-600 hover:bg-slate-50' : 'text-emerald-700 hover:bg-emerald-50'}`}
+                                                                        >
+                                                                            {p.is_active ? (
+                                                                                <>
+                                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+                                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                                                                                    </svg>
+                                                                                    Archive Product
+                                                                                </>
+                                                                            ) : (
+                                                                                <>
+                                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+                                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                                                                                    </svg>
+                                                                                    Restore Product
+                                                                                </>
+                                                                            )}
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+
+                                                                <div className="py-1">
+                                                                    {auth.user.is_admin && (
+                                                                        <button 
+                                                                            onClick={() => {
+                                                                                setActiveDropdownId(null);
+                                                                                handleDelete(p);
+                                                                            }} 
+                                                                            className="w-full px-3 py-2 text-[11px] font-bold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                                                                        >
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                                                            Delete Product
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))
@@ -1322,7 +1515,14 @@ export default function Inventory({ auth }) {
                                             )}
                                         </div>
                                         <div className="flex-1 flex flex-col justify-center">
-                                            <h3 className="font-bold text-gray-900 text-lg leading-tight tracking-tight">{p.name}</h3>
+                                            <h3 className="font-bold text-gray-900 text-lg leading-tight tracking-tight flex items-center gap-2">
+                                                {p.name}
+                                                {!p.is_active && (
+                                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest uppercase bg-slate-100 text-slate-500 border border-slate-200 animate-pulse">
+                                                        Archived
+                                                    </span>
+                                                )}
+                                            </h3>
                                             {p.category ? (
                                                 <div className="flex items-center gap-1.5 mt-1 mb-1">
                                                     <span className="w-2.5 h-2.5 rounded-full border border-black/10" style={{ backgroundColor: p.category.color || '#3B82F6' }}></span>
@@ -1350,7 +1550,7 @@ export default function Inventory({ auth }) {
                                             + Stock
                                         </button>
                                     </div>
-                                    <div className={`grid gap-2 pt-1 ${auth.user.is_admin ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2'}`}>
+                                    <div className={`grid gap-2 pt-1 ${auth.user.is_admin ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-2'}`}>
                                         {auth.user.is_admin && (
                                             <button onClick={() => openEditModal(p)} className="py-2 text-xs font-bold text-blue-700 bg-blue-50 rounded-lg border border-blue-200 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
@@ -1370,7 +1570,28 @@ export default function Inventory({ auth }) {
                                         </button>
 
                                         {auth.user.is_admin && (
-                                            <button onClick={() => handleDelete(p.id)} className="py-2 text-xs font-bold text-red-600 bg-red-50 rounded-lg border border-red-100 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5">
+                                            <button 
+                                                onClick={() => handleToggleActive(p)} 
+                                                className={`py-2 text-xs font-bold rounded-lg border shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5 ${p.is_active ? 'text-slate-700 bg-slate-50 border-slate-200' : 'text-emerald-700 bg-emerald-50 border-emerald-200'}`}
+                                            >
+                                                {p.is_active ? (
+                                                    <>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+                                                        Archive
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                                                        </svg>
+                                                        Restore
+                                                    </>
+                                                )}
+                                            </button>
+                                        )}
+
+                                        {auth.user.is_admin && (
+                                            <button onClick={() => handleDelete(p)} className="py-2 text-xs font-bold text-red-600 bg-red-50 rounded-lg border border-red-100 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
                                                 Delete
                                             </button>
@@ -1559,24 +1780,40 @@ export default function Inventory({ auth }) {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                     <div>
-                                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱)</label>
-                                         <input type="number" step="0.01" name="cost_price" required value={formData.cost_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
-                                     </div>
-                                     <div>
-                                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Retail Price (₱)</label>
-                                         <input type="number" step="0.01" name="price" required value={formData.price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
-                                     </div>
-                                     <div>
-                                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Wholesale Price (₱)</label>
-                                         <input type="number" step="0.01" name="wholesale_price" required value={formData.wholesale_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
-                                     </div>
+                                <div>
+                                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱)</label>
+                                     <input type="number" step="0.01" name="cost_price" required value={formData.cost_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Retail Price (₱)</label>
+                                        <input type="number" step="0.01" name="price" required value={formData.price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Wholesale Price (₱)</label>
+                                        <input type="number" step="0.01" name="wholesale_price" required value={formData.wholesale_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
+                                    </div>
                                 </div>
 
                                 <div>
                                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Image (Optional)</label>
                                     <input type="file" accept="image/*" onChange={handleFileChange} className="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-gray-100 file:text-gray-700 file:hover:bg-gray-200 file:transition-colors bg-gray-50 rounded-lg cursor-pointer border border-gray-300"/>
+                                </div>
+
+                                <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                    <input
+                                        type="checkbox"
+                                        name="is_active"
+                                        id="is_active_checkbox"
+                                        checked={!!formData.is_active}
+                                        onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    />
+                                    <label htmlFor="is_active_checkbox" className="select-none cursor-pointer">
+                                        <span className="block text-sm font-bold text-gray-900">Active Status</span>
+                                        <span className="block text-[10px] text-gray-500 mt-0.5">If unchecked, this product will be archived and hidden from the POS terminal screen.</span>
+                                    </label>
                                 </div>
                             </form>
                         </div>

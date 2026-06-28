@@ -165,6 +165,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class])->grou
     Route::post('/api/products/import', [ProductController::class, 'bulkImport']);
     Route::put('/api/products/{id}', [ProductController::class, 'update']);
     Route::delete('/api/products/{id}', [ProductController::class, 'destroy']);
+    Route::patch('/api/products/{id}/toggle-active', [ProductController::class, 'toggleActive']);
     Route::post('/api/products/{id}/stock', [ProductController::class, 'adjustStock']);
 
     Route::get('/api/categories', [CategoryController::class, 'index']);

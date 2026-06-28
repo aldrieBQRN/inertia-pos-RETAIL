@@ -44,6 +44,11 @@ class ProductController extends Controller
             $query->where('stock_quantity', '<=', 10);
         }
 
+        // Active status constraint: filter by active status if specified
+        if ($request->has('active')) {
+            $query->where('is_active', filter_var($request->active, FILTER_VALIDATE_BOOLEAN));
+        }
+
         $query->orderBy('created_at', 'desc');
 
         // Return unpaginated results for export operations or paginated for UI display
@@ -75,6 +80,7 @@ class ProductController extends Controller
                 })
             ],
             'image' => 'nullable|image|max:2048',
+            'is_active' => 'sometimes|boolean',
         ]);
 
         try {
@@ -143,6 +149,7 @@ class ProductController extends Controller
                     return $query->where('store_id', Auth::user()->store_id);
                 })->ignore($id)
             ],
+            'is_active' => 'sometimes|boolean',
         ]);
 
         try {
@@ -235,7 +242,8 @@ class ProductController extends Controller
             // Integrity check: Prevent deletion if the product is referenced in transaction logs
             if ($e->getCode() == "23000") {
                 return response()->json([
-                    'error' => 'This product is linked to existing transaction records and cannot be deleted.'
+                    'error' => 'linked_to_transactions',
+                    'message' => 'This product has sales history and cannot be deleted. Would you like to Archive it instead?'
                 ], 409);
             }
 
@@ -423,5 +431,36 @@ class ProductController extends Controller
             'success' => true,
             'next_sku' => $nextSku
         ]);
+    }
+
+    /**
+     * Toggle the active/archive status of a product.
+     */
+    public function toggleActive($id)
+    {
+        try {
+            $product = Product::findOrFail($id);
+            $product->is_active = !$product->is_active;
+            $product->save();
+
+            $status = $product->is_active ? 'activated' : 'archived';
+            
+            // Log update activity
+            ActivityService::logUpdate(
+                'Product', 
+                $id, 
+                "Product status updated to {$status}: {$product->name} (SKU: {$product->sku})", 
+                ['is_active' => $product->is_active], 
+                ['is_active' => !$product->is_active]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => "Product successfully {$status}.",
+                'is_active' => $product->is_active
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to toggle product status: ' . $e->getMessage()], 500);
+        }
     }
 }
