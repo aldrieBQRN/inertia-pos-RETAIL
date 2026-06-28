@@ -48,7 +48,7 @@ class ImageCompressionService
     ): string {
         try {
             // Read the file and compress
-            $image = $this->imageManager->read($file->getStream());
+            $image = $this->imageManager->read($file->getRealPath());
 
             // Resize if maxWidth is specified
             if ($maxWidth) {
@@ -75,7 +75,10 @@ class ImageCompressionService
             $extension = $file->getClientOriginalExtension();
             $filename = $this->generateRandomFilename($extension);
 
-            return Storage::disk('public')->putFileAs($path, $file, $filename);
+            if ($file->isValid() && !empty($file->getRealPath())) {
+                return Storage::disk('public')->putFileAs($path, $file, $filename);
+            }
+            throw new \Exception('Uploaded file is invalid or has no valid real path: ' . $e->getMessage());
         }
     }
 
