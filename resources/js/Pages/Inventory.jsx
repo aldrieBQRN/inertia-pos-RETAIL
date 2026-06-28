@@ -391,8 +391,15 @@ export default function Inventory({ auth }) {
 
             // Generate category validation list from active system categories
             const catNames = categories.map(c => c.name).filter(Boolean);
-            const categoriesList = catNames.length > 0 ? catNames.join(',') : 'Clothing & Apparel,Electronics,Home & Garden,Sports & Outdoors,Accessories';
-            const defaultCategory = catNames.length > 0 ? catNames[0] : 'Clothing & Apparel';
+            const listSource = catNames.length > 0 ? catNames : ['Clothing & Apparel', 'Electronics', 'Home & Garden', 'Sports & Outdoors', 'Accessories'];
+            const defaultCategory = listSource[0];
+
+            // Create a hidden worksheet to store category validation values
+            const categoriesSheet = workbook.addWorksheet('CategoryList');
+            categoriesSheet.state = 'hidden';
+            listSource.forEach((name, index) => {
+                categoriesSheet.getCell(`A${index + 1}`).value = name;
+            });
 
             // Add sample row at Row 2
             worksheet.addRow({
@@ -453,7 +460,7 @@ export default function Inventory({ auth }) {
                 row.getCell('C').dataValidation = {
                     type: 'list',
                     allowBlank: false,
-                    formulae: [`"${categoriesList}"`],
+                    formulae: [`CategoryList!$A$1:$A$${listSource.length}`],
                     showErrorMessage: true,
                     errorTitle: 'Field Required',
                     error: 'Category Name is required. Please choose one from the dropdown menu.',
