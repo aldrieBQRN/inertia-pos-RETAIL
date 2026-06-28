@@ -13,89 +13,94 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class DemoSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->command->info('🎬 Starting Comprehensive Demo Data Seeding...');
+        $this->command->info('🎬 Starting Clean Demo Data Seeding...');
 
-        // ========== 1. CREATE STORE ==========
-        $store = Store::firstOrCreate(
-            ['name' => 'Metro Retail Hub'],
-            [
-                'address' => '456 Shopping Center, BGC, Taguig City, Philippines',
-                'phone' => '+63 2 8765 4321',
-                'status' => true,
-                'logo_path' => null,
-                'plan_id' => Plan::where('name', 'Monthly Starter')->first()?->id ?? 1,
-                'subscription_ends_at' => now()->addMonths(1),
-            ]
-        );
+        // ========== 1. CLEAN EXISTING TABLES ==========
+        Schema::disableForeignKeyConstraints();
+        SaleItem::truncate();
+        Sale::truncate();
+        Shift::truncate();
+        Product::truncate();
+        Category::truncate();
+        User::truncate();
+        Store::truncate();
+        Schema::enableForeignKeyConstraints();
+        $this->command->info('🧹 Existing tables cleared.');
+
+        // ========== 2. CREATE STORE ==========
+        $store = Store::create([
+            'name' => 'Metro Retail Hub',
+            'address' => '456 Shopping Center, BGC, Taguig City, Philippines',
+            'phone' => '+63 2 8765 4321',
+            'status' => true,
+            'logo_path' => null,
+            'plan_id' => Plan::where('name', 'Monthly Starter')->first()?->id ?? 1,
+            'subscription_ends_at' => now()->addMonths(1),
+        ]);
         $this->command->info('✅ Store Created: ' . $store->name);
 
-        // ========== 2. CREATE USERS ==========
-        // DEV / SUPER ADMIN
-        $dev = User::firstOrCreate(
-            ['email' => 'dev@email.com'],
-            [
-                'name' => 'System Developer',
-                'password' => Hash::make('password'),
-                'role' => 'super_admin',
-                'is_admin' => true,
-                'store_id' => null,
-                'account_number' => 'DEV-001',
-                'phone_number' => '+63 917 123 4567',
-                'address' => '456 Developer Ave, Makati',
-                'city' => 'Makati',
-                'province' => 'NCR',
-                'country' => 'Philippines',
-                'email_verified_at' => now(),
-            ]
-        );
+        // ========== 3. CREATE USERS (ONLY ONE OF EACH) ==========
+        // DEVELOPER / SUPER ADMIN
+        $dev = User::create([
+            'name' => 'System Developer',
+            'email' => 'dev@email.com',
+            'password' => Hash::make('password'),
+            'role' => 'super_admin',
+            'is_admin' => true,
+            'store_id' => null,
+            'account_number' => 'DEV-001',
+            'phone_number' => '+63 917 123 4567',
+            'address' => '456 Developer Ave, Makati',
+            'city' => 'Makati',
+            'province' => 'NCR',
+            'country' => 'Philippines',
+            'email_verified_at' => now(),
+        ]);
         $this->command->info('✅ Developer: dev@email.com / password');
 
         // ADMIN USER
-        $admin = User::firstOrCreate(
-            ['email' => 'admin@email.com'],
-            [
-                'name' => 'Store Manager',
-                'password' => Hash::make('password'),
-                'role' => 'admin',
-                'is_admin' => true,
-                'store_id' => $store->id,
-                'account_number' => 'ADM-001',
-                'phone_number' => '+63 917 234 5678',
-                'address' => '123 Main Street',
-                'city' => 'Manila',
-                'province' => 'NCR',
-                'country' => 'Philippines',
-                'email_verified_at' => now(),
-            ]
-        );
-        $this->command->info('✅ Admin: admin@email.com / password');
+        $admin = User::create([
+            'name' => 'Store Manager',
+            'email' => 'admin@email.com',
+            'password' => Hash::make('password123'),
+            'role' => 'admin',
+            'is_admin' => true,
+            'store_id' => $store->id,
+            'account_number' => 'ADM-001',
+            'phone_number' => '+63 917 234 5678',
+            'address' => '123 Main Street',
+            'city' => 'Manila',
+            'province' => 'NCR',
+            'country' => 'Philippines',
+            'email_verified_at' => now(),
+        ]);
+        $this->command->info('✅ Admin: admin@email.com / password123');
 
         // CASHIER USER
-        $cashier = User::firstOrCreate(
-            ['email' => 'cashier@email.com'],
-            [
-                'name' => 'John Cashier',
-                'password' => Hash::make('password'),
-                'role' => 'cashier',
-                'is_admin' => false,
-                'store_id' => $store->id,
-                'account_number' => 'CSR-001',
-                'phone_number' => '+63 917 345 6789',
-                'address' => '789 Side Street',
-                'city' => 'Manila',
-                'province' => 'NCR',
-                'country' => 'Philippines',
-                'email_verified_at' => now(),
-            ]
-        );
-        $this->command->info('✅ Cashier: cashier@email.com / password');
+        $cashier = User::create([
+            'name' => 'John Cashier',
+            'email' => 'cashier@email.com',
+            'password' => Hash::make('cashier123'),
+            'role' => 'cashier',
+            'is_admin' => false,
+            'store_id' => $store->id,
+            'account_number' => 'CSR-001',
+            'phone_number' => '+63 917 345 6789',
+            'address' => '789 Side Street',
+            'city' => 'Manila',
+            'province' => 'NCR',
+            'country' => 'Philippines',
+            'email_verified_at' => now(),
+        ]);
+        $this->command->info('✅ Cashier: cashier@email.com / cashier123');
 
-        // ========== 3. CREATE CATEGORIES ==========
+        // ========== 4. CREATE CATEGORIES ==========
         $categories = [
             'Clothing & Apparel' => '#3B82F6',
             'Electronics' => '#8B5CF6',
@@ -106,21 +111,23 @@ class DemoSeeder extends Seeder
 
         $categoryIds = [];
         foreach ($categories as $name => $color) {
-            $category = Category::firstOrCreate(
-                ['name' => $name, 'store_id' => $store->id],
-                ['color' => $color]
-            );
+            $category = Category::create([
+                'name' => $name,
+                'store_id' => $store->id,
+                'color' => $color
+            ]);
             $categoryIds[$name] = $category->id;
         }
         $this->command->info('✅ Categories Created: ' . implode(', ', array_keys($categories)));
 
-        // ========== 4. CREATE PRODUCTS WITH INVENTORY ==========
+        // ========== 5. CREATE PRODUCTS WITH INVENTORY AND WHOLESALE PRICE ==========
         $products = [
             // CLOTHING & APPAREL
             [
                 'name' => 'Cotton T-Shirt (Unisex)',
                 'sku' => 'CLOTH-001',
                 'price' => 49900, // ₱499
+                'wholesale_price' => 39900, // ₱399
                 'cost_price' => 20000,
                 'stock_quantity' => 250,
                 'low_stock_threshold' => 50,
@@ -130,6 +137,7 @@ class DemoSeeder extends Seeder
                 'name' => 'Denim Jeans (Blue)',
                 'sku' => 'CLOTH-002',
                 'price' => 149900,
+                'wholesale_price' => 129900,
                 'cost_price' => 60000,
                 'stock_quantity' => 120,
                 'low_stock_threshold' => 30,
@@ -139,6 +147,7 @@ class DemoSeeder extends Seeder
                 'name' => 'Sports Running Shoes',
                 'sku' => 'CLOTH-003',
                 'price' => 349900,
+                'wholesale_price' => 299900,
                 'cost_price' => 140000,
                 'stock_quantity' => 85,
                 'low_stock_threshold' => 25,
@@ -148,6 +157,7 @@ class DemoSeeder extends Seeder
                 'name' => 'Winter Jacket',
                 'sku' => 'CLOTH-004',
                 'price' => 599900,
+                'wholesale_price' => 499900,
                 'cost_price' => 250000,
                 'stock_quantity' => 50,
                 'low_stock_threshold' => 15,
@@ -158,6 +168,7 @@ class DemoSeeder extends Seeder
                 'name' => 'Wireless Bluetooth Earbuds',
                 'sku' => 'ELEC-001',
                 'price' => 189900,
+                'wholesale_price' => 159900,
                 'cost_price' => 80000,
                 'stock_quantity' => 75,
                 'low_stock_threshold' => 20,
@@ -167,6 +178,7 @@ class DemoSeeder extends Seeder
                 'name' => 'USB-C Fast Charging Cable',
                 'sku' => 'ELEC-002',
                 'price' => 29900,
+                'wholesale_price' => 19900,
                 'cost_price' => 10000,
                 'stock_quantity' => 300,
                 'low_stock_threshold' => 100,
@@ -176,6 +188,7 @@ class DemoSeeder extends Seeder
                 'name' => 'Portable Power Bank 20000mAh',
                 'sku' => 'ELEC-003',
                 'price' => 99900,
+                'wholesale_price' => 79900,
                 'cost_price' => 40000,
                 'stock_quantity' => 110,
                 'low_stock_threshold' => 25,
@@ -185,6 +198,7 @@ class DemoSeeder extends Seeder
                 'name' => 'LED USB Desk Lamp',
                 'sku' => 'ELEC-004',
                 'price' => 79900,
+                'wholesale_price' => 59900,
                 'cost_price' => 32000,
                 'stock_quantity' => 95,
                 'low_stock_threshold' => 30,
@@ -195,6 +209,7 @@ class DemoSeeder extends Seeder
                 'name' => 'Stainless Steel Water Bottle',
                 'sku' => 'HOME-001',
                 'price' => 59900,
+                'wholesale_price' => 45900,
                 'cost_price' => 25000,
                 'stock_quantity' => 200,
                 'low_stock_threshold' => 50,
@@ -204,8 +219,9 @@ class DemoSeeder extends Seeder
                 'name' => 'Ceramic Coffee Mug Set (6pc)',
                 'sku' => 'HOME-002',
                 'price' => 89900,
+                'wholesale_price' => 69900,
                 'cost_price' => 35000,
-                'stock_quantity' => 8,  // LOW STOCK ITEM - ALERT
+                'stock_quantity' => 18,
                 'low_stock_threshold' => 15,
                 'category_id' => $categoryIds['Home & Garden'],
             ],
@@ -214,6 +230,7 @@ class DemoSeeder extends Seeder
                 'name' => 'Yoga Mat Non-Slip',
                 'sku' => 'SPORT-001',
                 'price' => 69900,
+                'wholesale_price' => 49900,
                 'cost_price' => 28000,
                 'stock_quantity' => 100,
                 'low_stock_threshold' => 20,
@@ -224,114 +241,62 @@ class DemoSeeder extends Seeder
                 'name' => 'Leather Wallet',
                 'sku' => 'ACC-001',
                 'price' => 89900,
+                'wholesale_price' => 74900,
                 'cost_price' => 36000,
-                'stock_quantity' => 5,  // LOW STOCK ITEM - ALERT
+                'stock_quantity' => 45,
                 'low_stock_threshold' => 20,
                 'category_id' => $categoryIds['Accessories'],
             ],
         ];
 
         foreach ($products as $productData) {
-            Product::firstOrCreate(
-                ['sku' => $productData['sku'], 'store_id' => $store->id],
-                array_merge($productData, ['store_id' => $store->id])
-            );
+            Product::create(array_merge($productData, ['store_id' => $store->id]));
         }
-        $this->command->info('✅ Products Created: ' . count($products) . ' items in inventory');
+        $this->command->info('✅ Products Created: ' . count($products) . ' items with wholesale prices in inventory');
 
-        // ========== 5. CREATE SHIFTS ==========
+        // ========== 6. CREATE SHIFTS AND SALES TRANSACTIONS ==========
         $productsForSales = Product::where('store_id', $store->id)->get();
 
-        // Morning shift (Cashier) - Last 5 days
-        for ($i = 5; $i >= 0; $i--) {
+        // Seed 6 shifts (last 3 days)
+        for ($i = 3; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
 
-            // Morning Shift - Cashier
-            $morningShift = Shift::firstOrCreate(
-                [
-                    'store_id' => $store->id,
-                    'user_id' => $cashier->id,
-                    'start_time' => $date->copy()->setTime(6, 0),
-                ],
-                [
-                    'end_time' => $date->copy()->setTime(14, 0),
-                    'starting_cash' => 50000,
-                    'cash_sales' => rand(300000, 600000),
-                    'expenses' => rand(5000, 15000),
-                    'expected_cash' => 0,
-                    'actual_cash' => 0,
-                    'difference' => 0,
-                    'status' => 'closed',
-                ]
-            );
-            // Calculate cash reconciliation
-            $cashSales = $morningShift->cash_sales;
-            $expectedCash = $morningShift->starting_cash + $cashSales;
-            $actualCash = $expectedCash + rand(-5000, 5000);
-            $morningShift->update([
-                'expected_cash' => $expectedCash,
-                'actual_cash' => $actualCash,
-                'difference' => $actualCash - $expectedCash,
+            // Shift - Cashier
+            $shift = Shift::create([
+                'store_id' => $store->id,
+                'user_id' => $cashier->id,
+                'start_time' => $date->copy()->setTime(8, 0),
+                'end_time' => $date->copy()->setTime(17, 0),
+                'starting_cash' => 50000,
+                'cash_sales' => 0,
+                'expenses' => rand(500, 1500),
+                'expected_cash' => 0,
+                'actual_cash' => 0,
+                'difference' => 0,
+                'status' => 'closed',
             ]);
 
-            // Evening Shift - Admin
-            $eveningShift = Shift::firstOrCreate(
-                [
-                    'store_id' => $store->id,
-                    'user_id' => $admin->id,
-                    'start_time' => $date->copy()->setTime(14, 0),
-                ],
-                [
-                    'end_time' => $date->copy()->setTime(22, 0),
-                    'starting_cash' => 75000,
-                    'cash_sales' => rand(400000, 800000),
-                    'expenses' => rand(10000, 25000),
-                    'expected_cash' => 0,
-                    'actual_cash' => 0,
-                    'difference' => 0,
-                    'status' => 'closed',
-                ]
-            );
-            // Calculate cash reconciliation
-            $cashSales = $eveningShift->cash_sales;
-            $expectedCash = $eveningShift->starting_cash + $cashSales;
-            $actualCash = $expectedCash + rand(-5000, 5000);
-            $eveningShift->update([
-                'expected_cash' => $expectedCash,
-                'actual_cash' => $actualCash,
-                'difference' => $actualCash - $expectedCash,
-            ]);
-        }
-        $this->command->info('✅ Shifts Created: 12 shifts with detailed cash reconciliation');
+            // Create some transactions for this shift
+            $cashSalesTotal = 0;
+            $transactionCount = rand(5, 10);
 
-        // ========== 6. CREATE SALES WITH ITEMS ==========
-        $transactionCount = 0;
-        for ($i = 5; $i >= 0; $i--) {
-            $date = Carbon::now()->subDays($i);
-            $startHour = 6;
-            $endHour = 22;
-
-            // Create 15-25 transactions per day
-            for ($t = 0; $t < rand(15, 25); $t++) {
-                $hour = rand($startHour, $endHour - 1);
-                $minute = rand(0, 59);
-                $transactionTime = $date->copy()->setTime($hour, $minute);
-
-                // Choose transaction type
+            for ($t = 0; $t < $transactionCount; $t++) {
+                $transactionTime = $date->copy()->setTime(rand(9, 16), rand(0, 59));
                 $paymentMethods = ['cash', 'debit_card', 'credit_card', 'gcash'];
                 $paymentMethod = $paymentMethods[array_rand($paymentMethods)];
+                $isWholesale = (rand(1, 5) === 1); // 20% chance of wholesale transaction
 
                 $sale = Sale::create([
                     'store_id' => $store->id,
                     'invoice_number' => 'INV-' . strtoupper(uniqid()),
                     'cashier_id' => $cashier->id,
                     'total_amount' => 0,
-                    'discount_amount' => rand(0, 1) ? rand(1000, 5000) : 0,
+                    'discount_amount' => rand(1, 10) === 1 ? rand(5000, 15000) : 0, // 10% chance of discount
                     'payment_method' => $paymentMethod,
                     'payment_reference' => in_array($paymentMethod, ['debit_card', 'credit_card', 'gcash'])
                         ? 'REF-' . rand(100000, 999999)
                         : null,
-                    'is_senior' => rand(0, 1) ? true : false,
+                    'is_senior' => rand(1, 20) === 1, // 5% chance of senior discount
                     'cash_given' => 0,
                     'change' => 0,
                     'status' => 'completed',
@@ -341,13 +306,14 @@ class DemoSeeder extends Seeder
                 ]);
 
                 $total = 0;
-                $itemCount = rand(1, 5);
+                $itemCount = rand(1, 4);
 
-                // Add 1-5 items per transaction
                 for ($j = 0; $j < $itemCount; $j++) {
                     $product = $productsForSales->random();
                     $quantity = rand(1, 3);
-                    $unitPrice = $product->price;
+                    
+                    // Use wholesale_price if wholesale flag is active, otherwise standard price
+                    $unitPrice = ($isWholesale && $product->wholesale_price !== null) ? $product->wholesale_price : $product->price;
                     $subtotal = $unitPrice * $quantity;
 
                     SaleItem::create([
@@ -357,6 +323,7 @@ class DemoSeeder extends Seeder
                         'quantity' => $quantity,
                         'unit_price' => $unitPrice,
                         'subtotal' => $subtotal,
+                        'custom_name' => null,
                         'created_at' => $transactionTime,
                         'updated_at' => $transactionTime,
                     ]);
@@ -369,36 +336,46 @@ class DemoSeeder extends Seeder
                     }
                 }
 
-                // Update sale with total
+                // Apply discounts
                 $total -= $sale->discount_amount;
                 if ($sale->is_senior) {
                     $total = (int) ($total * 0.80); // 20% senior discount
                 }
+                if ($total < 0) $total = 0;
 
                 $sale->update(['total_amount' => $total]);
 
-                // Calculate cash given and change for cash transactions
                 if ($paymentMethod === 'cash') {
-                    $cashGiven = ceil($total / 10000) * 10000; // Round up to nearest 1000
+                    $cashGiven = ceil($total / 10000) * 10000;
                     $change = $cashGiven - $total;
                     $sale->update([
                         'cash_given' => $cashGiven,
                         'change' => $change,
                     ]);
+                    $cashSalesTotal += $total;
                 }
-
-                $transactionCount++;
             }
+
+            // Update shift statistics
+            $expectedCash = $shift->starting_cash + $cashSalesTotal - $shift->expenses;
+            $actualCash = $expectedCash + rand(-100, 100); // minor difference
+            $shift->update([
+                'cash_sales' => $cashSalesTotal,
+                'expected_cash' => $expectedCash,
+                'actual_cash' => $actualCash,
+                'difference' => $actualCash - $expectedCash,
+            ]);
         }
-        $this->command->info('✅ Sales Transactions Created: ' . $transactionCount . ' transactions with items');
+
+        $this->command->info('✅ Shift and sales transaction history seeded successfully.');
 
         // ========== SUMMARY ==========
         $this->command->info('');
         $this->command->info('═══════════════════════════════════════════════════════════════');
-        $this->command->info('🎉 DEMO DATA SEEDING COMPLETED SUCCESSFULLY!');
+        $this->command->info('🎉 SEEDING COMPLETED SUCCESSFULLY!');
         $this->command->info('═══════════════════════════════════════════════════════════════');
         $this->command->info('');
-        $this->command->info('📊 DEMO CREDENTIALS:');
+        $this->command->info('📊 USER CREDENTIALS:');
         $this->command->info('  👨‍💻 Developer:    dev@email.com / password');
         $this->command->info('  👔 Admin:       admin@email.com / password123');
         $this->command->info('  💳 Cashier:     cashier@email.com / cashier123');
@@ -406,21 +383,10 @@ class DemoSeeder extends Seeder
         $this->command->info('🏪 STORE DATA:');
         $this->command->info('  Store Name:    ' . $store->name);
         $this->command->info('  Store Address: ' . $store->address);
-        $this->command->info('  Phone:        ' . $store->phone);
         $this->command->info('');
         $this->command->info('📦 INVENTORY:');
         $this->command->info('  Categories:   ' . count($categories));
         $this->command->info('  Products:     ' . $productsForSales->count());
-        $this->command->info('');
-        $this->command->info('👥 STAFF:');
-        $this->command->info('  Admin Staff:  1 Manager');
-        $this->command->info('  Cashiers:     1 Cashier');
-        $this->command->info('');
-        $this->command->info('💰 TRANSACTIONS:');
-        $this->command->info('  Shifts:       12 (6 days × 2 shifts)');
-        $this->command->info('  Sales:        ' . $transactionCount . ' transactions');
-        $this->command->info('  Days Covered: Last 6 days');
-        $this->command->info('');
         $this->command->info('═══════════════════════════════════════════════════════════════');
     }
 }
