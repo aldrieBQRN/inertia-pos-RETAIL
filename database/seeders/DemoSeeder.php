@@ -68,7 +68,7 @@ class DemoSeeder extends Seeder
         $admin = User::create([
             'name' => 'Store Manager',
             'email' => 'admin@email.com',
-            'password' => Hash::make('password123'),
+            'password' => Hash::make('password'),
             'role' => 'admin',
             'is_admin' => true,
             'store_id' => $store->id,
@@ -80,13 +80,13 @@ class DemoSeeder extends Seeder
             'country' => 'Philippines',
             'email_verified_at' => now(),
         ]);
-        $this->command->info('✅ Admin: admin@email.com / password123');
+        $this->command->info('✅ Admin: admin@email.com / password');
 
         // CASHIER USER
         $cashier = User::create([
             'name' => 'John Cashier',
             'email' => 'cashier@email.com',
-            'password' => Hash::make('cashier123'),
+            'password' => Hash::make('password'),
             'role' => 'cashier',
             'is_admin' => false,
             'store_id' => $store->id,
@@ -98,7 +98,7 @@ class DemoSeeder extends Seeder
             'country' => 'Philippines',
             'email_verified_at' => now(),
         ]);
-        $this->command->info('✅ Cashier: cashier@email.com / cashier123');
+        $this->command->info('✅ Cashier: cashier@email.com / password');
 
         // ========== 4. CREATE CATEGORIES ==========
         $categories = [
@@ -377,8 +377,8 @@ class DemoSeeder extends Seeder
         $this->command->info('');
         $this->command->info('📊 USER CREDENTIALS:');
         $this->command->info('  👨‍💻 Developer:    dev@email.com / password');
-        $this->command->info('  👔 Admin:       admin@email.com / password123');
-        $this->command->info('  💳 Cashier:     cashier@email.com / cashier123');
+        $this->command->info('  👔 Admin:       admin@email.com / password');
+        $this->command->info('  💳 Cashier:     cashier@email.com / password');
         $this->command->info('');
         $this->command->info('🏪 STORE DATA:');
         $this->command->info('  Store Name:    ' . $store->name);
