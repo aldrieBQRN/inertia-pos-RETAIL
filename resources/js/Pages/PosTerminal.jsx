@@ -1117,6 +1117,12 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         required
                                         value={customItemForm.sku}
                                         onChange={(e) => setCustomItemForm({ ...customItemForm, sku: e.target.value })}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                document.getElementById('custom-name-input')?.focus();
+                                            }
+                                        }}
                                         className="flex-1 border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm font-mono"
                                         placeholder="Scan or type barcode..."
                                     />
@@ -1145,6 +1151,15 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     required
                                     value={customItemForm.name}
                                     onChange={(e) => setCustomItemForm({ ...customItemForm, name: e.target.value })}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            setShowCustomCategoryDropdown(true);
+                                            const currentIdx = categories.findIndex(c => c.id === customItemForm.category_id);
+                                            setCustomCategoryNavIndex(currentIdx !== -1 ? currentIdx : 0);
+                                            document.getElementById('custom-category-input')?.focus();
+                                        }
+                                    }}
                                     className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
                                     placeholder="e.g. Classic Cappuccino"
                                 />
@@ -1226,6 +1241,12 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         min="0"
                                         value={customItemForm.stock_quantity}
                                         onChange={(e) => setCustomItemForm({ ...customItemForm, stock_quantity: e.target.value })}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                document.getElementById('custom-retail-input')?.focus();
+                                            }
+                                        }}
                                         className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
                                         placeholder="0"
                                     />
@@ -1259,6 +1280,12 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         min="0.01"
                                         value={customItemForm.price}
                                         onChange={(e) => setCustomItemForm({ ...customItemForm, price: e.target.value })}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                document.getElementById('custom-wholesale-input')?.focus();
+                                            }
+                                        }}
                                         className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
                                         placeholder="0.00"
                                     />
@@ -1272,6 +1299,12 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         min="0"
                                         value={customItemForm.wholesale_price}
                                         onChange={(e) => setCustomItemForm({ ...customItemForm, wholesale_price: e.target.value })}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                document.getElementById('custom-cost-input')?.focus();
+                                            }
+                                        }}
                                         className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
                                         placeholder="0.00"
                                     />
