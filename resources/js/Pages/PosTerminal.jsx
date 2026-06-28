@@ -141,15 +141,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     useEffect(() => {
         const handlePOSKeys = (e) => {
             if (showQtyModal) {
-                if (e.key === 'Enter' && e.target === searchInputRef.current) {
-                    return;
-                }
                 if (e.key === 'Escape') {
                     e.preventDefault();
                     closeQtyModal();
-                } else if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleConfirmQty();
                 }
                 return;
             }
@@ -367,7 +361,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
         window.addEventListener('keydown', handlePOSKeys);
         return () => window.removeEventListener('keydown', handlePOSKeys);
-    }, [showPaymentModal, showQtyModal, showHeldOrdersModal, showCustomItemModal, showCategoryDropdown, categoryNavIndex, categories, customItemForm, isCheckingSku, showCustomCategoryDropdown, customCategoryNavIndex]);
+    }, [showPaymentModal, showQtyModal, showHeldOrdersModal, showCustomItemModal, showCategoryDropdown, categoryNavIndex, categories, customItemForm, isCheckingSku, showCustomCategoryDropdown, customCategoryNavIndex, heldOrders, heldOrdersNavIndex]);
 
     const cart = useCartStore((state) => state.cart);
     const addToCart = useCartStore((state) => state.addToCart);
