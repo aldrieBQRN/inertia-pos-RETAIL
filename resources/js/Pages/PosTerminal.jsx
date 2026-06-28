@@ -146,8 +146,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 }
                 if (e.key === 'Escape') {
                     e.preventDefault();
-                    setShowQtyModal(false);
-                    setQtyModalProduct(null);
+                    closeQtyModal();
                 } else if (e.key === 'Enter') {
                     e.preventDefault();
                     handleConfirmQty();
@@ -497,6 +496,18 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         setIsQtyEditMode(isEdit);
         setShowQtyModal(true);
         if (searchInputRef.current) searchInputRef.current.blur();
+    };
+
+    const closeQtyModal = () => {
+        setShowQtyModal(false);
+        setQtyModalProduct(null);
+        setIsQtyEditMode(false);
+        setTimeout(() => {
+            if (searchInputRef.current) {
+                searchInputRef.current.focus();
+                searchInputRef.current.select();
+            }
+        }, 50);
     };
 
     const handleConfirmQty = (e) => {
@@ -1055,7 +1066,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                         <div className="bg-gray-50 px-4 py-4 border-b flex justify-between items-center shrink-0">
                             <h2 className="text-lg md:text-xl font-black text-gray-800 tracking-tight">Enter Quantity</h2>
                             <button
-                                onClick={() => { setShowQtyModal(false); setQtyModalProduct(null); }}
+                                onClick={closeQtyModal}
                                 className="p-1.5 bg-gray-200 rounded-full text-gray-500 hover:bg-red-100 hover:text-red-500 transition-colors shadow-sm"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -1088,8 +1099,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     onKeyDown={(e) => {
                                         if (e.key === 'Escape') {
                                             e.preventDefault();
-                                            setShowQtyModal(false);
-                                            setQtyModalProduct(null);
+                                            closeQtyModal();
                                         }
                                     }}
                                 />
@@ -1110,7 +1120,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => { setShowQtyModal(false); setQtyModalProduct(null); }}
+                                    onClick={closeQtyModal}
                                     className="w-full py-3 bg-white text-gray-755 border border-gray-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-[0.98]"
                                 >
                                     Cancel (Esc)
