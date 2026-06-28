@@ -50,7 +50,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         sku: '',
         name: '',
         category_id: '',
-        stock_quantity: '0',
+        stock_quantity: '',
         cost_price: '',
         price: '',
         wholesale_price: ''
@@ -541,7 +541,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
             sku: '',
             name: '',
             category_id: '',
-            stock_quantity: '0',
+            stock_quantity: '',
             cost_price: '',
             price: '',
             wholesale_price: ''
@@ -592,7 +592,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 sku: '',
                 name: '',
                 category_id: '',
-                stock_quantity: '0',
+                stock_quantity: '',
                 cost_price: '',
                 price: '',
                 wholesale_price: ''
