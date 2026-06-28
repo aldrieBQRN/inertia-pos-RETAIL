@@ -743,6 +743,17 @@ class DeveloperController extends Controller
 
                     $file = $request->file('logo');
 
+                    \Illuminate\Support\Facades\Log::info('Logo upload debug:', [
+                        'isValid' => $file->isValid(),
+                        'error' => $file->getError(),
+                        'errorMessage' => $file->getErrorMessage(),
+                        'realPath' => $file->getRealPath(),
+                        'pathname' => $file->getPathname(),
+                        'mimeType' => $file->getMimeType(),
+                        'clientOriginalName' => $file->getClientOriginalName(),
+                        'clientOriginalExtension' => $file->getClientOriginalExtension(),
+                    ]);
+
                     // Skip compression for SVG as it is vector-based and not supported by the GD decoder
                     if ($file->getClientOriginalExtension() === 'svg' || $file->getMimeType() === 'image/svg+xml') {
                         $logoPath = $file->store('system', 'public');
