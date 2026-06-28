@@ -1113,7 +1113,10 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                         <form onSubmit={handleAddCustomItem} className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar flex flex-col gap-4 bg-white">
                             {/* SKU / Barcode */}
                             <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">SKU / Barcode (F1)</label>
+                                <div className="flex justify-between items-center mb-1.5 ml-0.5">
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">SKU / Barcode (F1)</label>
+                                    <span className="text-[10px] text-indigo-600 font-black font-mono uppercase tracking-wider mr-1">Generate SKU (F9)</span>
+                                </div>
                                 <div className="flex gap-2">
                                     <input
                                         id="custom-sku-input"
