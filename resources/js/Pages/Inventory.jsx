@@ -446,15 +446,39 @@ export default function Inventory({ auth }) {
                 row.getCell('F').numFmt = '#,##0.00';
                 row.getCell('G').numFmt = '#,##0';
 
-                // Data Validations
+                // Data Validations (ALL required: allowBlank: false / Ignore Blank unchecked)
+                // Barcode/SKU
+                row.getCell('A').dataValidation = {
+                    type: 'custom',
+                    formulae: [`LEN(TRIM(A${i}))>0`],
+                    allowBlank: false,
+                    showErrorMessage: true,
+                    errorTitle: 'Field Required',
+                    error: 'Barcode/SKU is required. You cannot leave this field blank.',
+                    promptTitle: 'Barcode/SKU',
+                    prompt: 'Enter unique Barcode or SKU.'
+                };
+
+                // Product Name
+                row.getCell('B').dataValidation = {
+                    type: 'custom',
+                    formulae: [`LEN(TRIM(B${i}))>0`],
+                    allowBlank: false,
+                    showErrorMessage: true,
+                    errorTitle: 'Field Required',
+                    error: 'Product Name is required. You cannot leave this field blank.',
+                    promptTitle: 'Product Name',
+                    prompt: 'Enter product name.'
+                };
+
                 // Category dropdown
                 row.getCell('C').dataValidation = {
                     type: 'list',
-                    allowBlank: true,
+                    allowBlank: false,
                     formulae: [`"${categoriesList}"`],
                     showErrorMessage: true,
-                    errorTitle: 'Invalid Category',
-                    error: 'Please choose an existing category from the dropdown menu.',
+                    errorTitle: 'Field Required',
+                    error: 'Category Name is required. Please choose one from the dropdown menu.',
                     promptTitle: 'Select Category',
                     prompt: 'Choose a category to ensure correct import matching.'
                 };
@@ -464,9 +488,10 @@ export default function Inventory({ auth }) {
                     type: 'decimal',
                     operator: 'greaterThanOrEqual',
                     formulae: [0],
+                    allowBlank: false,
                     showErrorMessage: true,
-                    errorTitle: 'Invalid Price',
-                    error: 'Retail Price must be a positive number.',
+                    errorTitle: 'Field Required',
+                    error: 'Retail Price is required and must be a positive number.',
                     promptTitle: 'Retail Price',
                     prompt: 'Enter selling price (e.g. 15.50).'
                 };
@@ -476,9 +501,10 @@ export default function Inventory({ auth }) {
                     type: 'decimal',
                     operator: 'greaterThanOrEqual',
                     formulae: [0],
+                    allowBlank: false,
                     showErrorMessage: true,
-                    errorTitle: 'Invalid Price',
-                    error: 'Wholesale Price must be a positive number.',
+                    errorTitle: 'Field Required',
+                    error: 'Wholesale Price is required and must be a positive number.',
                     promptTitle: 'Wholesale Price',
                     prompt: 'Enter wholesale price (e.g. 13.00).'
                 };
@@ -488,9 +514,10 @@ export default function Inventory({ auth }) {
                     type: 'decimal',
                     operator: 'greaterThanOrEqual',
                     formulae: [0],
+                    allowBlank: false,
                     showErrorMessage: true,
-                    errorTitle: 'Invalid Price',
-                    error: 'Cost Price must be a positive number.',
+                    errorTitle: 'Field Required',
+                    error: 'Cost Price is required and must be a positive number.',
                     promptTitle: 'Cost Price',
                     prompt: 'Enter cost price (e.g. 10.00).'
                 };
@@ -500,9 +527,10 @@ export default function Inventory({ auth }) {
                     type: 'whole',
                     operator: 'greaterThanOrEqual',
                     formulae: [0],
+                    allowBlank: false,
                     showErrorMessage: true,
-                    errorTitle: 'Invalid Quantity',
-                    error: 'Stock Quantity must be a positive integer.',
+                    errorTitle: 'Field Required',
+                    error: 'Stock Quantity is required and must be a positive integer.',
                     promptTitle: 'Stock Quantity',
                     prompt: 'Enter current stock count.'
                 };
