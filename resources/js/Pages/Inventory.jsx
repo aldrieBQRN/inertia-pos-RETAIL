@@ -369,44 +369,66 @@ export default function Inventory({ auth }) {
                 views: [{ showGridLines: true }]
             });
 
-            worksheet.columns = [
-                { header: 'Barcode/SKU', key: 'sku', width: 20 },
-                { header: 'Product Name', key: 'name', width: 30 },
-                { header: 'Category Name', key: 'category_name', width: 25 },
-                { header: 'Retail Price', key: 'price', width: 15 },
-                { header: 'Wholesale Price', key: 'wholesale_price', width: 18 },
-                { header: 'Cost Price', key: 'cost_price', width: 15 },
-                { header: 'Stock Quantity', key: 'stock_quantity', width: 15 }
-            ];
+            // Set column widths
+            worksheet.getColumn('A').width = 20; // Barcode/SKU
+            worksheet.getColumn('B').width = 30; // Product Name
+            worksheet.getColumn('C').width = 25; // Category Name
+            worksheet.getColumn('D').width = 15; // Retail Price
+            worksheet.getColumn('E').width = 18; // Wholesale Price
+            worksheet.getColumn('F').width = 15; // Cost Price
+            worksheet.getColumn('G').width = 15; // Stock Quantity
 
-            // Header styling
-            worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' }, size: 11 };
-            worksheet.getRow(1).fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: '4F46E5' }
-            };
-            worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'left' };
-            worksheet.getRow(1).height = 25;
+            // Add instruction rows at the top
+            worksheet.mergeCells('A1:G1');
+            worksheet.getCell('A1').value = '📝 DATA ENTRY INSTRUCTIONS:';
+            worksheet.getCell('A1').font = { bold: true, color: { argb: '4F46E5' }, size: 12 };
+            worksheet.getRow(1).height = 20;
+
+            worksheet.mergeCells('A2:G2');
+            worksheet.getCell('A2').value = '• Option A: Enter product data directly into the table cells below. Select from the dropdown for Category Name.';
+            worksheet.getCell('A2').font = { size: 10, color: { argb: '374151' } };
+            worksheet.getRow(2).height = 18;
+
+            worksheet.mergeCells('A3:G3');
+            worksheet.getCell('A3').value = '• Option B (Data Entry Form): Click any cell inside the table (Row 5+), then press Alt + D then O on your keyboard to open Excel\'s built-in vertical Data Entry Form.';
+            worksheet.getCell('A3').font = { bold: true, size: 10, color: { argb: '16A34A' } };
+            worksheet.getRow(3).height = 18;
+
+            // Empty spacing row
+            worksheet.getRow(4).height = 10;
 
             // Generate category validation list from active system categories
             const catNames = categories.map(c => c.name).filter(Boolean);
             const categoriesList = catNames.length > 0 ? catNames.join(',') : 'Clothing & Apparel,Electronics,Home & Garden,Sports & Outdoors,Accessories';
-
-            // Add sample row matching first active category
             const defaultCategory = catNames.length > 0 ? catNames[0] : 'Clothing & Apparel';
-            worksheet.addRow({
-                sku: '88010020',
-                name: 'Sample Product A',
-                category_name: defaultCategory,
-                price: 150.00,
-                wholesale_price: 130.00,
-                cost_price: 100.00,
-                stock_quantity: 50
+
+            // Create a native Excel Table (ListObject) starting at A5
+            // This enables the Excel built-in Data Entry Form (Alt + D + O)
+            worksheet.addTable({
+                name: 'ProductsTable',
+                ref: 'A5',
+                headerRow: true,
+                totalsRow: false,
+                style: {
+                    theme: 'TableStyleMedium9', // Premium blue table styling
+                    showRowStripes: true,
+                },
+                columns: [
+                    { name: 'Barcode/SKU', filterButton: true },
+                    { name: 'Product Name', filterButton: true },
+                    { name: 'Category Name', filterButton: true },
+                    { name: 'Retail Price', filterButton: true },
+                    { name: 'Wholesale Price', filterButton: true },
+                    { name: 'Cost Price', filterButton: true },
+                    { name: 'Stock Quantity', filterButton: true }
+                ],
+                rows: [
+                    ['88010020', 'Sample Product A', defaultCategory, 150.00, 130.00, 100.00, 50]
+                ]
             });
 
-            // Set styling & validation for data rows (rows 2 to 200)
-            for (let i = 2; i <= 200; i++) {
+            // Set styling & validation for data rows (rows 6 to 205)
+            for (let i = 6; i <= 205; i++) {
                 const row = worksheet.getRow(i);
                 
                 // Align columns appropriately
