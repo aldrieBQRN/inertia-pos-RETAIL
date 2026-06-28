@@ -73,7 +73,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
         return () => {
             window.removeEventListener('keydown', handleModalKeyDown);
         };
-    }, [category, onClose]);
+    }, [category, method, cashGiven, reference, total, onClose, onConfirm]);
 
     const handleCashChange = (e) => {
         let inputVal = e.target.value;
