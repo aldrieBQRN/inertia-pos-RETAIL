@@ -535,6 +535,28 @@ export default function Inventory({ auth }) {
                     prompt: 'Enter current stock count.'
                 };
             }
+            // Add conditional formatting to highlight empty cells in soft red if the row is partially filled
+            worksheet.addConditionalFormatting({
+                ref: 'A6:G205',
+                rules: [
+                    {
+                        type: 'expression',
+                        formulae: ['AND(A6="", COUNTA($A6:$G6)>0)'],
+                        style: {
+                            fill: {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                bgColor: { argb: 'FEE2E2' },
+                                fgColor: { argb: 'FEE2E2' }
+                            },
+                            font: {
+                                color: { argb: '991B1B' },
+                                bold: true
+                            }
+                        }
+                    }
+                ]
+            });
 
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
