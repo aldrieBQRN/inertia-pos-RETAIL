@@ -138,6 +138,18 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     // Global key listener for main POS screen
     useEffect(() => {
         const handlePOSKeys = (e) => {
+            if (showQtyModal) {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setShowQtyModal(false);
+                    setQtyModalProduct(null);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleConfirmQty();
+                }
+                return;
+            }
+
             const isFKey = e.key.match(/^F[1-9]$|^F1[0-2]$/);
             
             // Intercept and prevent browser native defaults for POS F-keys
@@ -221,8 +233,8 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 return;
             }
 
-            // Suspend POS shortcuts if checkout modal or quantity modal is open
-            if (showPaymentModal || showQtyModal) {
+            // Suspend POS shortcuts if checkout modal is open
+            if (showPaymentModal) {
                 return;
             }
 

@@ -63,6 +63,9 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing }
             } else if (e.key === 'Escape') {
                 e.preventDefault();
                 onClose();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                handleManualSubmit();
             }
         };
 
@@ -92,11 +95,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing }
         setCashGiven(formattedVal);
     };
 
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            handleManualSubmit();
-        }
-    };
+
 
     /**
      * Validates input details based on the selected payment method
@@ -257,7 +256,6 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing }
                                         className="w-full px-4 py-3 text-xl font-black text-gray-900 border-gray-300 rounded-lg focus:ring-gray-900 focus:border-gray-900 shadow-sm"
                                         value={cashGiven}
                                         onChange={handleCashChange}
-                                        onKeyDown={handleKeyDown}
                                         placeholder="0.00"
                                     />
                                 </div>
@@ -278,7 +276,6 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing }
                                     className="w-full px-4 py-3 text-base font-black text-gray-900 font-mono tracking-widest border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm"
                                     value={reference}
                                     onChange={(e) => setReference(e.target.value)}
-                                    onKeyDown={handleKeyDown}
                                     placeholder={getReferencePlaceholder()}
                                 />
                             </div>
