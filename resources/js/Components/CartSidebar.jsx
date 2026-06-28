@@ -438,7 +438,7 @@ export default function CartSidebar({
                                                  removeFromCart(item.id);
                                              }}
                                              disabled={disabled}
-                                             className={`w-6 h-6 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-850 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto'}`}
+                                             className={`w-6 h-6 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-855 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
                                              title="Decrease"
                                          >
                                             -
@@ -452,7 +452,7 @@ export default function CartSidebar({
                                                  handleIncreaseQty(item);
                                              }}
                                              disabled={disabled}
-                                             className={`w-6 h-6 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-855 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto'}`}
+                                             className={`w-6 h-6 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-855 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
                                              title="Increase"
                                          >
                                             +
@@ -470,7 +470,7 @@ export default function CartSidebar({
                                                  handleRemoveEntireItem(item);
                                              }}
                                              disabled={disabled}
-                                             className={`text-gray-400 hover:text-red-500 p-0.5 rounded transition-all shrink-0 ml-1 opacity-100 disabled:opacity-30 disabled:cursor-not-allowed ${focusedIndex === index ? 'md:opacity-100' : 'md:opacity-0 md:group-hover:opacity-100'}`}
+                                             className={`text-gray-405 hover:text-red-500 p-0.5 rounded transition-all shrink-0 ml-1 disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'md:opacity-100' : 'md:opacity-0 md:group-hover:opacity-100')}`}
                                              title="Delete"
                                          >
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
