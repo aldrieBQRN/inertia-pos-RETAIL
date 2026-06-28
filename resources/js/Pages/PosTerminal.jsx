@@ -145,8 +145,10 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 e.preventDefault();
             }
 
-            // Ignore if standard typing in input/textarea (unless it's an F-key)
-            if (!isFKey && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+            const isControlKey = e.key === 'Escape' || e.key === 'Enter';
+
+            // Ignore if standard typing in input/textarea (unless it's an F-key or control key)
+            if (!isFKey && !isControlKey && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
                 return;
             }
 
@@ -268,8 +270,11 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                     document.getElementById('custom-sku-input')?.focus();
                 } else if (e.key === 'F2') {
                     e.preventDefault();
-                    document.getElementById('custom-name-input')?.focus();
+                    generateCustomItemSKU();
                 } else if (e.key === 'F3') {
+                    e.preventDefault();
+                    document.getElementById('custom-name-input')?.focus();
+                } else if (e.key === 'F5') {
                     e.preventDefault();
                     setShowCustomCategoryDropdown(prev => {
                         const next = !prev;
@@ -281,21 +286,18 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                         }
                         return next;
                     });
-                } else if (e.key === 'F5') {
-                    e.preventDefault();
-                    document.getElementById('custom-stock-input')?.focus();
                 } else if (e.key === 'F6') {
                     e.preventDefault();
-                    document.getElementById('custom-cost-input')?.focus();
+                    document.getElementById('custom-stock-input')?.focus();
                 } else if (e.key === 'F7') {
                     e.preventDefault();
-                    document.getElementById('custom-retail-input')?.focus();
+                    document.getElementById('custom-cost-input')?.focus();
                 } else if (e.key === 'F8') {
                     e.preventDefault();
-                    document.getElementById('custom-wholesale-input')?.focus();
+                    document.getElementById('custom-retail-input')?.focus();
                 } else if (e.key === 'F9') {
                     e.preventDefault();
-                    generateCustomItemSKU();
+                    document.getElementById('custom-wholesale-input')?.focus();
                 }
                 return;
             }
@@ -1115,7 +1117,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             <div>
                                 <div className="flex justify-between items-center mb-1.5 ml-0.5">
                                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">SKU / Barcode (F1)</label>
-                                    <span className="text-[10px] text-indigo-600 font-black font-mono uppercase tracking-wider mr-1">Generate SKU (F9)</span>
+                                    <span className="text-[10px] text-indigo-600 font-black font-mono uppercase tracking-wider mr-1">Generate SKU (F2)</span>
                                 </div>
                                 <div className="flex gap-2">
                                     <input
@@ -1138,7 +1140,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         onClick={generateCustomItemSKU}
                                         disabled={isCheckingSku}
                                         className="bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 px-3.5 py-2.5 rounded-lg transition-colors active:scale-95 disabled:opacity-50"
-                                        title="Generate SKU (F9)"
+                                        title="Generate SKU (F2)"
                                     >
                                         {isCheckingSku ? (
                                             <svg className="animate-spin h-4 w-4 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -1151,7 +1153,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
                             {/* Product Name */}
                             <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Name (F2)</label>
+                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Name (F3)</label>
                                 <input
                                     id="custom-name-input"
                                     type="text"
@@ -1175,7 +1177,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             {/* Category & Initial Stock */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Category (F3)</label>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Category (F5)</label>
                                     <div className="relative">
                                         <button
                                             id="custom-category-input"
@@ -1240,7 +1242,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Initial Stock (F5)</label>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Initial Stock (F6)</label>
                                     <input
                                         id="custom-stock-input"
                                         type="number"
@@ -1262,7 +1264,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
                             {/* Cost Price */}
                             <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱) (F6)</label>
+                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱) (F7)</label>
                                 <input
                                     id="custom-cost-input"
                                     type="number"
@@ -1284,7 +1286,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             {/* Retail Price & Wholesale Price */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Retail Price (₱) (F7)</label>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Retail Price (₱) (F8)</label>
                                     <input
                                         id="custom-retail-input"
                                         type="number"
@@ -1304,7 +1306,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Wholesale Price (₱) (F8)</label>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Wholesale Price (₱) (F9)</label>
                                     <input
                                         id="custom-wholesale-input"
                                         type="number"
