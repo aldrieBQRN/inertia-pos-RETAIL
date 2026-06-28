@@ -56,6 +56,8 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         wholesale_price: ''
     });
     const [isCheckingSku, setIsCheckingSku] = useState(false);
+    const [showCustomCategoryDropdown, setShowCustomCategoryDropdown] = useState(false);
+    const [customCategoryNavIndex, setCustomCategoryNavIndex] = useState(-1);
     const [productNavIndex, setProductNavIndex] = useState(-1);
     const [heldOrdersNavIndex, setHeldOrdersNavIndex] = useState(-1);
 
@@ -224,6 +226,40 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
             // Intercept shortcuts specifically for the Add Custom Item modal if open
             if (showCustomItemModal) {
+                if (showCustomCategoryDropdown) {
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        setShowCustomCategoryDropdown(false);
+                        setCustomCategoryNavIndex(-1);
+                        return;
+                    }
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (categories.length > 0) {
+                            setCustomCategoryNavIndex(prev => Math.min(prev + 1, categories.length - 1));
+                        }
+                        return;
+                    }
+                    if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (categories.length > 0) {
+                            setCustomCategoryNavIndex(prev => Math.max(prev - 1, 0));
+                        }
+                        return;
+                    }
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (customCategoryNavIndex !== -1 && customCategoryNavIndex < categories.length) {
+                            const selectedCat = categories[customCategoryNavIndex];
+                            setCustomItemForm(prev => ({ ...prev, category_id: selectedCat.id }));
+                            setShowCustomCategoryDropdown(false);
+                            setCustomCategoryNavIndex(-1);
+                            document.getElementById('custom-stock-input')?.focus();
+                        }
+                        return;
+                    }
+                }
+
                 if (e.key === 'Escape') {
                     e.preventDefault();
                     setShowCustomItemModal(false);
@@ -235,7 +271,16 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                     document.getElementById('custom-name-input')?.focus();
                 } else if (e.key === 'F3') {
                     e.preventDefault();
-                    document.getElementById('custom-category-input')?.focus();
+                    setShowCustomCategoryDropdown(prev => {
+                        const next = !prev;
+                        if (next) {
+                            const currentIdx = categories.findIndex(c => c.id === customItemForm.category_id);
+                            setCustomCategoryNavIndex(currentIdx !== -1 ? currentIdx : 0);
+                        } else {
+                            setCustomCategoryNavIndex(-1);
+                        }
+                        return next;
+                    });
                 } else if (e.key === 'F5') {
                     e.preventDefault();
                     document.getElementById('custom-stock-input')?.focus();
@@ -304,7 +349,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
         window.addEventListener('keydown', handlePOSKeys);
         return () => window.removeEventListener('keydown', handlePOSKeys);
-    }, [showPaymentModal, showQtyModal, showHeldOrdersModal, showCustomItemModal, showCategoryDropdown, categoryNavIndex, categories, customItemForm, isCheckingSku]);
+    }, [showPaymentModal, showQtyModal, showHeldOrdersModal, showCustomItemModal, showCategoryDropdown, categoryNavIndex, categories, customItemForm, isCheckingSku, showCustomCategoryDropdown, customCategoryNavIndex]);
 
     const cart = useCartStore((state) => state.cart);
     const addToCart = useCartStore((state) => state.addToCart);
@@ -501,6 +546,8 @@ export default function PosTerminal({ auth, store_settings, settings }) {
             price: '',
             wholesale_price: ''
         });
+        setShowCustomCategoryDropdown(false);
+        setCustomCategoryNavIndex(-1);
         setShowCustomItemModal(true);
         if (searchInputRef.current) searchInputRef.current.blur();
     };
@@ -548,6 +595,8 @@ export default function PosTerminal({ auth, store_settings, settings }) {
             addToCart(newProduct, 1, appliedPrice);
 
             setShowCustomItemModal(false);
+            setShowCustomCategoryDropdown(false);
+            setCustomCategoryNavIndex(-1);
             setCustomItemForm({
                 sku: '',
                 name: '',
@@ -1115,18 +1164,53 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Category (F3)</label>
-                                    <select
-                                        id="custom-category-input"
-                                        required
-                                        value={customItemForm.category_id}
-                                        onChange={(e) => setCustomItemForm({ ...customItemForm, category_id: e.target.value })}
-                                        className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
-                                    >
-                                        <option value="">Select Category...</option>
-                                        {categories.map(cat => (
-                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                        ))}
-                                    </select>
+                                    <div className="relative">
+                                        <button
+                                            id="custom-category-input"
+                                            type="button"
+                                            onClick={() => {
+                                                setShowCustomCategoryDropdown(!showCustomCategoryDropdown);
+                                                if (!showCustomCategoryDropdown) {
+                                                    const currentIdx = categories.findIndex(c => c.id === customItemForm.category_id);
+                                                    setCustomCategoryNavIndex(currentIdx !== -1 ? currentIdx : 0);
+                                                } else {
+                                                    setCustomCategoryNavIndex(-1);
+                                                }
+                                            }}
+                                            className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-950 shadow-sm text-left flex justify-between items-center outline-none"
+                                        >
+                                            <span className="truncate">
+                                                {categories.find(c => c.id === customItemForm.category_id)?.name || 'Select Category...'}
+                                            </span>
+                                            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                        </button>
+                                        {showCustomCategoryDropdown && (
+                                            <>
+                                                <div className="fixed inset-0 z-40" onClick={() => { setShowCustomCategoryDropdown(false); setCustomCategoryNavIndex(-1); }}></div>
+                                                <div className="absolute left-0 right-0 mt-1 bg-white rounded-lg shadow-2xl border border-gray-100 z-50 py-1 max-h-48 overflow-y-auto custom-scrollbar">
+                                                    {categories.map((cat, idx) => {
+                                                        const isHighlighted = customCategoryNavIndex === idx;
+                                                        const isSelected = customItemForm.category_id === cat.id;
+                                                        return (
+                                                            <button
+                                                                key={cat.id}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setCustomItemForm({ ...customItemForm, category_id: cat.id });
+                                                                    setShowCustomCategoryDropdown(false);
+                                                                    setCustomCategoryNavIndex(-1);
+                                                                }}
+                                                                className={`w-full text-left px-4 py-2 text-sm font-bold flex items-center gap-2 transition-colors ${isHighlighted ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-50'}`}
+                                                            >
+                                                                <span className={`w-2.5 h-2.5 rounded-full ${isHighlighted ? 'bg-white' : ''}`} style={!isHighlighted ? { backgroundColor: cat.color } : {}}></span>
+                                                                <span className={isHighlighted ? 'text-white' : isSelected ? 'text-indigo-600' : ''}>{cat.name}</span>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Initial Stock (F5)</label>
