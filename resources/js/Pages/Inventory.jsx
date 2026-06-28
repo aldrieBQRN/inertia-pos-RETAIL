@@ -386,7 +386,7 @@ export default function Inventory({ auth }) {
             // Store Name
             worksheet.mergeCells('A1:G1');
             worksheet.getCell('A1').value = storeName.toUpperCase();
-            worksheet.getCell('A1').font = { bold: true, color: { argb: '4F46E5' }, size: 14 };
+            worksheet.getCell('A1').font = { bold: true, color: { argb: '1B3A69' }, size: 14 };
             worksheet.getCell('A1').alignment = { vertical: 'middle', horizontal: 'center' };
             worksheet.getRow(1).height = 24;
 
@@ -423,7 +423,7 @@ export default function Inventory({ auth }) {
                 cell.fill = {
                     type: 'pattern',
                     pattern: 'solid',
-                    fgColor: { argb: '4F46E5' }
+                    fgColor: { argb: '1B3A69' }
                 };
                 cell.alignment = { vertical: 'middle', horizontal: colIndex >= 3 ? 'right' : 'left' };
             });
@@ -632,7 +632,7 @@ export default function Inventory({ auth }) {
             // Store Name
             worksheet.mergeCells('A1:G1');
             worksheet.getCell('A1').value = storeName.toUpperCase();
-            worksheet.getCell('A1').font = { bold: true, color: { argb: '16A34A' }, size: 16 };
+            worksheet.getCell('A1').font = { bold: true, color: { argb: '1B3A69' }, size: 16 };
             worksheet.getCell('A1').alignment = { vertical: 'middle', horizontal: 'center' };
             worksheet.getRow(1).height = 28;
 
@@ -669,7 +669,7 @@ export default function Inventory({ auth }) {
                 cell.fill = {
                     type: 'pattern',
                     pattern: 'solid',
-                    fgColor: { argb: '16A34A' } // Sleek green theme for reports
+                    fgColor: { argb: '1B3A69' } // Sleek navy theme for reports
                 };
                 cell.alignment = { vertical: 'middle', horizontal: colIndex >= 3 ? 'right' : 'left' };
             });
