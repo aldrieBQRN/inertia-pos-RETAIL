@@ -290,7 +290,7 @@ class ProductController extends Controller
             $storeId = Auth::user()->store_id;
             $importedCount = 0;
             $errors = [];
-            $rowNumber = 5; // Header is at row 5 in Excel template, data starts at row 6
+            $rowNumber = 1; // Header is at row 1 in Excel template, data starts at row 2
 
             foreach ($request->products as $item) {
                 $rowNumber++;
