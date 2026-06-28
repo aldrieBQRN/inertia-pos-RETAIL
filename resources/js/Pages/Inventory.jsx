@@ -1324,7 +1324,7 @@ export default function Inventory({ auth }) {
                                                     <div className="flex flex-col">
                                                         <span className="font-bold text-gray-800">{p.name}</span>
                                                         {!p.is_active && (
-                                                            <span className="inline-flex items-center w-max px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest uppercase bg-slate-100 text-slate-500 border border-slate-200 mt-0.5 animate-pulse">
+                                                            <span className="inline-flex items-center w-max px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest uppercase bg-slate-100 text-slate-500 border border-slate-200 mt-0.5">
                                                                 Archived
                                                             </span>
                                                         )}
@@ -1518,7 +1518,7 @@ export default function Inventory({ auth }) {
                                             <h3 className="font-bold text-gray-900 text-lg leading-tight tracking-tight flex items-center gap-2">
                                                 {p.name}
                                                 {!p.is_active && (
-                                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest uppercase bg-slate-100 text-slate-500 border border-slate-200 animate-pulse">
+                                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest uppercase bg-slate-100 text-slate-500 border border-slate-200">
                                                         Archived
                                                     </span>
                                                 )}
