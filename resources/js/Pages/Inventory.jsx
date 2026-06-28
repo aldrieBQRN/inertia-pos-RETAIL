@@ -365,7 +365,9 @@ export default function Inventory({ auth }) {
     const downloadTemplate = async () => {
         try {
             const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('Products Template');
+            const worksheet = workbook.addWorksheet('Products Template', {
+                views: [{ showGridLines: true }]
+            });
 
             worksheet.columns = [
                 { header: 'Barcode/SKU', key: 'sku', width: 20 },
@@ -377,28 +379,119 @@ export default function Inventory({ auth }) {
                 { header: 'Stock Quantity', key: 'stock_quantity', width: 15 }
             ];
 
-            worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' } };
+            // Header styling
+            worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' }, size: 11 };
             worksheet.getRow(1).fill = {
                 type: 'pattern',
                 pattern: 'solid',
                 fgColor: { argb: '4F46E5' }
             };
+            worksheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'left' };
+            worksheet.getRow(1).height = 25;
 
+            // Generate category validation list from active system categories
+            const catNames = categories.map(c => c.name).filter(Boolean);
+            const categoriesList = catNames.length > 0 ? catNames.join(',') : 'Clothing & Apparel,Electronics,Home & Garden,Sports & Outdoors,Accessories';
+
+            // Add sample row matching first active category
+            const defaultCategory = catNames.length > 0 ? catNames[0] : 'Clothing & Apparel';
             worksheet.addRow({
                 sku: '88010020',
-                name: 'Sample Variety Item A',
-                category_name: 'Snacks',
-                price: 15.50,
-                wholesale_price: 13.00,
-                cost_price: 10.00,
-                stock_quantity: 100
+                name: 'Sample Product A',
+                category_name: defaultCategory,
+                price: 150.00,
+                wholesale_price: 130.00,
+                cost_price: 100.00,
+                stock_quantity: 50
             });
+
+            // Set styling & validation for data rows (rows 2 to 200)
+            for (let i = 2; i <= 200; i++) {
+                const row = worksheet.getRow(i);
+                
+                // Align columns appropriately
+                row.getCell('A').alignment = { horizontal: 'left' };
+                row.getCell('B').alignment = { horizontal: 'left' };
+                row.getCell('C').alignment = { horizontal: 'left' };
+                row.getCell('D').alignment = { horizontal: 'right' };
+                row.getCell('E').alignment = { horizontal: 'right' };
+                row.getCell('F').alignment = { horizontal: 'right' };
+                row.getCell('G').alignment = { horizontal: 'right' };
+
+                // Number formatting
+                row.getCell('D').numFmt = '#,##0.00';
+                row.getCell('E').numFmt = '#,##0.00';
+                row.getCell('F').numFmt = '#,##0.00';
+                row.getCell('G').numFmt = '#,##0';
+
+                // Data Validations
+                // Category dropdown
+                row.getCell('C').dataValidation = {
+                    type: 'list',
+                    allowBlank: true,
+                    formulae: [`"${categoriesList}"`],
+                    showErrorMessage: true,
+                    errorTitle: 'Invalid Category',
+                    error: 'Please choose an existing category from the dropdown menu.',
+                    promptTitle: 'Select Category',
+                    prompt: 'Choose a category to ensure correct import matching.'
+                };
+
+                // Retail Price
+                row.getCell('D').dataValidation = {
+                    type: 'decimal',
+                    operator: 'greaterThanOrEqual',
+                    formulae: [0],
+                    showErrorMessage: true,
+                    errorTitle: 'Invalid Price',
+                    error: 'Retail Price must be a positive number.',
+                    promptTitle: 'Retail Price',
+                    prompt: 'Enter selling price (e.g. 15.50).'
+                };
+
+                // Wholesale Price
+                row.getCell('E').dataValidation = {
+                    type: 'decimal',
+                    operator: 'greaterThanOrEqual',
+                    formulae: [0],
+                    showErrorMessage: true,
+                    errorTitle: 'Invalid Price',
+                    error: 'Wholesale Price must be a positive number.',
+                    promptTitle: 'Wholesale Price',
+                    prompt: 'Enter wholesale price (e.g. 13.00).'
+                };
+
+                // Cost Price
+                row.getCell('F').dataValidation = {
+                    type: 'decimal',
+                    operator: 'greaterThanOrEqual',
+                    formulae: [0],
+                    showErrorMessage: true,
+                    errorTitle: 'Invalid Price',
+                    error: 'Cost Price must be a positive number.',
+                    promptTitle: 'Cost Price',
+                    prompt: 'Enter cost price (e.g. 10.00).'
+                };
+
+                // Stock Quantity
+                row.getCell('G').dataValidation = {
+                    type: 'whole',
+                    operator: 'greaterThanOrEqual',
+                    formulae: [0],
+                    showErrorMessage: true,
+                    errorTitle: 'Invalid Quantity',
+                    error: 'Stock Quantity must be a positive integer.',
+                    promptTitle: 'Stock Quantity',
+                    prompt: 'Enter current stock count.'
+                };
+            }
 
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             saveAs(blob, 'Aivin_POS_Products_Template.xlsx');
-            Swal.fire({ icon: 'success', title: 'Template Downloaded!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+            Swal.fire({ icon: 'success', title: 'Data Entry Form Downloaded!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
         } catch (e) {
+            console.error(e);
             Swal.fire('Error', 'Failed to generate template file.', 'error');
         }
     };
