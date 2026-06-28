@@ -550,6 +550,10 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         setCustomCategoryNavIndex(-1);
         setShowCustomItemModal(true);
         if (searchInputRef.current) searchInputRef.current.blur();
+
+        setTimeout(() => {
+            document.getElementById('custom-sku-input')?.focus();
+        }, 150);
     };
 
     const handleAddCustomItem = async (e) => {
