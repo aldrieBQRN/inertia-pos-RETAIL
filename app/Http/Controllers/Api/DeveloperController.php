@@ -770,7 +770,7 @@ class DeveloperController extends Controller
                     Log::error('Logo compression failed: ' . $e->getMessage());
                     // Fallback to original upload safely
                     $file = $request->file('logo');
-                    if ($file->isValid() && !empty($file->getRealPath())) {
+                    if ($file->isValid() && !empty($file->getPathname())) {
                         $logoPath = $file->store('system', 'public');
                         \App\Models\SystemSetting::updateOrCreate(
                             ['key' => 'logo_path'],
