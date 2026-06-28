@@ -1105,19 +1105,21 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                 </div>
                             </div>
 
-                            {/* Price Group: Cost Price, Retail Price, Wholesale Price */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱)</label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        value={customItemForm.cost_price}
-                                        onChange={(e) => setCustomItemForm({ ...customItemForm, cost_price: e.target.value })}
-                                        className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
-                                        placeholder="0.00"
-                                    />
-                                </div>
+                            {/* Cost Price */}
+                            <div>
+                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={customItemForm.cost_price}
+                                    onChange={(e) => setCustomItemForm({ ...customItemForm, cost_price: e.target.value })}
+                                    className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
+                                    placeholder="0.00"
+                                />
+                            </div>
+
+                            {/* Retail Price & Wholesale Price */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Retail Price (₱)</label>
                                     <input
