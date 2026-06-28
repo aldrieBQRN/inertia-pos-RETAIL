@@ -427,6 +427,7 @@ export default function CartSidebar({
                                         if (disabled) return;
                                         window.dispatchEvent(new CustomEvent('close-category-dropdown'));
                                         window.dispatchEvent(new CustomEvent('reset-catalog-nav'));
+                                        setFocusedIndex(index);
                                     }}
                                     className={`grid grid-cols-[90px_1fr_100px_110px] gap-2 px-3 py-3 items-center border-b border-gray-100 hover:bg-gray-50 transition-colors text-base font-bold group cursor-pointer ${focusedIndex === index ? 'ring-2 ring-inset ring-indigo-500 bg-indigo-50/40' : ''}`}
                                 >
