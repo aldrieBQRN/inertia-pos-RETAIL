@@ -20,7 +20,7 @@ class ImageCompressionService
 
     public function __construct()
     {
-        $this->imageManager = new ImageManager('gd');
+        $this->imageManager = ImageManager::gd();
     }
 
     /**

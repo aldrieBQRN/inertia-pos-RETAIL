@@ -749,12 +749,17 @@ class DeveloperController extends Controller
                     );
                 } catch (\Exception $e) {
                     Log::error('Logo compression failed: ' . $e->getMessage());
-                    // Fallback to original upload
-                    $logoPath = $request->file('logo')->store('system', 'public');
-                    \App\Models\SystemSetting::updateOrCreate(
-                        ['key' => 'logo_path'],
-                        ['value' => $logoPath]
-                    );
+                    // Fallback to original upload safely
+                    $file = $request->file('logo');
+                    if ($file->isValid() && !empty($file->getRealPath())) {
+                        $logoPath = $file->store('system', 'public');
+                        \App\Models\SystemSetting::updateOrCreate(
+                            ['key' => 'logo_path'],
+                            ['value' => $logoPath]
+                        );
+                    } else {
+                        return back()->withErrors(['logo' => 'The uploaded logo could not be processed. Please try another image file.']);
+                    }
                 }
             }
 
