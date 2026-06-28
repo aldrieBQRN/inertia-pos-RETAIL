@@ -743,7 +743,7 @@ class DeveloperController extends Controller
 
                     $file = $request->file('logo');
 
-                    \Illuminate\Support\Facades\Log::info('Logo upload debug:', [
+                    \Illuminate\Support\Facades\Log::warning('Logo upload debug:', [
                         'isValid' => $file->isValid(),
                         'error' => $file->getError(),
                         'errorMessage' => $file->getErrorMessage(),
