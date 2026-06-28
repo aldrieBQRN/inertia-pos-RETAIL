@@ -741,8 +741,16 @@ class DeveloperController extends Controller
                         Storage::disk('public')->delete($currentLogo->value);
                     }
 
-                    $imageCompression = new ImageCompressionService();
-                    $logoPath = $imageCompression->compressLogo($request->file('logo'));
+                    $file = $request->file('logo');
+
+                    // Skip compression for SVG as it is vector-based and not supported by the GD decoder
+                    if ($file->getClientOriginalExtension() === 'svg' || $file->getMimeType() === 'image/svg+xml') {
+                        $logoPath = $file->store('system', 'public');
+                    } else {
+                        $imageCompression = new ImageCompressionService();
+                        $logoPath = $imageCompression->compressLogo($file);
+                    }
+
                     \App\Models\SystemSetting::updateOrCreate(
                         ['key' => 'logo_path'],
                         ['value' => $logoPath]
