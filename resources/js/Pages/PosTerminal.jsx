@@ -217,8 +217,44 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 return;
             }
 
-            // Suspend POS shortcuts if checkout modal, quantity modal, or custom item modal is open
-            if (showPaymentModal || showQtyModal || showCustomItemModal) {
+            // Suspend POS shortcuts if checkout modal or quantity modal is open
+            if (showPaymentModal || showQtyModal) {
+                return;
+            }
+
+            // Intercept shortcuts specifically for the Add Custom Item modal if open
+            if (showCustomItemModal) {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setShowCustomItemModal(false);
+                } else if (e.key === 'F1') {
+                    e.preventDefault();
+                    document.getElementById('custom-sku-input')?.focus();
+                } else if (e.key === 'F2') {
+                    e.preventDefault();
+                    document.getElementById('custom-name-input')?.focus();
+                } else if (e.key === 'F3') {
+                    e.preventDefault();
+                    document.getElementById('custom-category-input')?.focus();
+                } else if (e.key === 'F5') {
+                    e.preventDefault();
+                    document.getElementById('custom-stock-input')?.focus();
+                } else if (e.key === 'F6') {
+                    e.preventDefault();
+                    document.getElementById('custom-cost-input')?.focus();
+                } else if (e.key === 'F7') {
+                    e.preventDefault();
+                    document.getElementById('custom-retail-input')?.focus();
+                } else if (e.key === 'F8') {
+                    e.preventDefault();
+                    document.getElementById('custom-wholesale-input')?.focus();
+                } else if (e.key === 'F9') {
+                    e.preventDefault();
+                    generateCustomItemSKU();
+                } else if (e.key === 'F12') {
+                    e.preventDefault();
+                    document.getElementById('custom-item-form-submit-btn')?.click();
+                }
                 return;
             }
 
@@ -271,7 +307,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
         window.addEventListener('keydown', handlePOSKeys);
         return () => window.removeEventListener('keydown', handlePOSKeys);
-    }, [showPaymentModal, showQtyModal, showHeldOrdersModal, showCustomItemModal, showCategoryDropdown, categoryNavIndex, categories]);
+    }, [showPaymentModal, showQtyModal, showHeldOrdersModal, showCustomItemModal, showCategoryDropdown, categoryNavIndex, categories, customItemForm, isCheckingSku]);
 
     const cart = useCartStore((state) => state.cart);
     const addToCart = useCartStore((state) => state.addToCart);
@@ -1036,9 +1072,10 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                         <form onSubmit={handleAddCustomItem} className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar flex flex-col gap-4 bg-white">
                             {/* SKU / Barcode */}
                             <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">SKU / Barcode</label>
+                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">SKU / Barcode (F1)</label>
                                 <div className="flex gap-2">
                                     <input
+                                        id="custom-sku-input"
                                         type="text"
                                         required
                                         value={customItemForm.sku}
@@ -1052,7 +1089,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         onClick={generateCustomItemSKU}
                                         disabled={isCheckingSku}
                                         className="bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 px-3.5 py-2.5 rounded-lg transition-colors active:scale-95 disabled:opacity-50"
-                                        title="Generate SKU"
+                                        title="Generate SKU (F9)"
                                     >
                                         {isCheckingSku ? (
                                             <svg className="animate-spin h-4 w-4 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -1065,8 +1102,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
                             {/* Product Name */}
                             <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Name</label>
+                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Name (F2)</label>
                                 <input
+                                    id="custom-name-input"
                                     type="text"
                                     required
                                     value={customItemForm.name}
@@ -1079,8 +1117,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             {/* Category & Initial Stock */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Category</label>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Category (F3)</label>
                                     <select
+                                        id="custom-category-input"
                                         required
                                         value={customItemForm.category_id}
                                         onChange={(e) => setCustomItemForm({ ...customItemForm, category_id: e.target.value })}
@@ -1093,8 +1132,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Initial Stock</label>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Initial Stock (F5)</label>
                                     <input
+                                        id="custom-stock-input"
                                         type="number"
                                         required
                                         value={customItemForm.stock_quantity}
@@ -1107,8 +1147,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
                             {/* Cost Price */}
                             <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱)</label>
+                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱) (F6)</label>
                                 <input
+                                    id="custom-cost-input"
                                     type="number"
                                     step="0.01"
                                     value={customItemForm.cost_price}
@@ -1121,8 +1162,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             {/* Retail Price & Wholesale Price */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Retail Price (₱)</label>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Retail Price (₱) (F7)</label>
                                     <input
+                                        id="custom-retail-input"
                                         type="number"
                                         step="0.01"
                                         required
@@ -1133,8 +1175,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Wholesale Price (₱)</label>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Wholesale Price (₱) (F8)</label>
                                     <input
+                                        id="custom-wholesale-input"
                                         type="number"
                                         step="0.01"
                                         value={customItemForm.wholesale_price}
@@ -1148,10 +1191,11 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             {/* Actions Group */}
                             <div className="flex flex-col gap-2 mt-4 pt-4 border-t shrink-0">
                                 <button
+                                    id="custom-item-form-submit-btn"
                                     type="submit"
                                     className="w-full py-3.5 bg-gray-900 hover:bg-black text-white font-black text-sm uppercase tracking-widest rounded-lg shadow-lg transition-all active:scale-[0.98]"
                                 >
-                                    Add Custom (Enter)
+                                    Add Custom (Enter / F12)
                                 </button>
                                 <button
                                     type="button"
