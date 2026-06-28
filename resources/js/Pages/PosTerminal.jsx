@@ -77,6 +77,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
     const isPolling = useRef(false);
     const lastSearchInputTime = useRef(0);
+    const lastSkuInputTime = useRef(0);
     const searchInputRef = useRef(null);
     const catalogContainerRef = useRef(null);
 
@@ -556,14 +557,35 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         if (e) e.preventDefault();
         const { sku, name, category_id, stock_quantity, cost_price, price, wholesale_price } = customItemForm;
 
-        if (!name.trim() || !price || !category_id || !sku.trim() || stock_quantity === '') {
-            Swal.fire({ icon: 'error', title: 'Fields Required', text: 'Please fill in SKU, Product Name, Category, Retail Price, and Initial Stock.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+        if (!sku.trim()) {
+            Swal.fire({ icon: 'error', title: 'SKU Required', text: 'Please scan or type a SKU/Barcode.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+            document.getElementById('custom-sku-input')?.focus();
+            return;
+        }
+
+        if (!name.trim()) {
+            Swal.fire({ icon: 'error', title: 'Product Name Required', text: 'Please enter a product name.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+            document.getElementById('custom-name-input')?.focus();
+            return;
+        }
+
+        if (!category_id) {
+            Swal.fire({ icon: 'error', title: 'Category Required', text: 'Please select a product category.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+            setShowCustomCategoryDropdown(true);
+            setCustomCategoryNavIndex(0);
+            return;
+        }
+
+        if (stock_quantity === '' || isNaN(parseInt(stock_quantity, 10)) || parseInt(stock_quantity, 10) < 0) {
+            Swal.fire({ icon: 'error', title: 'Initial Stock Required', text: 'Please enter a valid initial stock quantity (0 or more).', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+            document.getElementById('custom-stock-input')?.focus();
             return;
         }
 
         const numericPrice = parseFloat(price);
         if (isNaN(numericPrice) || numericPrice <= 0) {
-            Swal.fire({ icon: 'error', title: 'Invalid Price', text: 'Please enter a valid retail price.', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
+            Swal.fire({ icon: 'error', title: 'Retail Price Required', text: 'Please enter a valid retail price (greater than 0).', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+            document.getElementById('custom-retail-input')?.focus();
             return;
         }
 
@@ -1125,8 +1147,25 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         type="text"
                                         required
                                         value={customItemForm.sku}
-                                        onChange={(e) => setCustomItemForm({ ...customItemForm, sku: e.target.value })}
-                                        onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
+                                        onChange={(e) => {
+                                            lastSkuInputTime.current = Date.now();
+                                            setCustomItemForm({ ...customItemForm, sku: e.target.value });
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                const timeDiff = Date.now() - lastSkuInputTime.current;
+                                                if (timeDiff < 100) {
+                                                    document.getElementById('custom-name-input')?.focus();
+                                                    return;
+                                                }
+                                                if (!customItemForm.sku.trim()) {
+                                                    Swal.fire({ icon: 'error', title: 'SKU Required', text: 'Please scan or type a SKU/Barcode.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+                                                    return;
+                                                }
+                                                document.getElementById('custom-name-input')?.focus();
+                                            }
+                                        }}
                                         className="flex-1 border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm font-mono"
                                         placeholder="Scan or type barcode..."
                                     />
@@ -1146,7 +1185,6 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                 </div>
                             </div>
 
-                            {/* Product Name */}
                             <div>
                                 <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Name (F2)</label>
                                 <input
@@ -1155,6 +1193,17 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     required
                                     value={customItemForm.name}
                                     onChange={(e) => setCustomItemForm({ ...customItemForm, name: e.target.value })}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            if (!customItemForm.name.trim()) {
+                                                Swal.fire({ icon: 'error', title: 'Product Name Required', text: 'Please enter a product name.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+                                                return;
+                                            }
+                                            setShowCustomCategoryDropdown(true);
+                                            setCustomCategoryNavIndex(0);
+                                        }
+                                    }}
                                     className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
                                     placeholder="e.g. Classic Cappuccino"
                                 />
@@ -1220,6 +1269,16 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         required
                                         value={customItemForm.stock_quantity}
                                         onChange={(e) => setCustomItemForm({ ...customItemForm, stock_quantity: e.target.value })}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                if (customItemForm.stock_quantity === '' || isNaN(parseInt(customItemForm.stock_quantity, 10)) || parseInt(customItemForm.stock_quantity, 10) < 0) {
+                                                    Swal.fire({ icon: 'error', title: 'Initial Stock Required', text: 'Please enter a valid stock quantity.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+                                                    return;
+                                                }
+                                                document.getElementById('custom-cost-input')?.focus();
+                                            }
+                                        }}
                                         className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
                                         placeholder="0"
                                     />
@@ -1235,6 +1294,12 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     step="0.01"
                                     value={customItemForm.cost_price}
                                     onChange={(e) => setCustomItemForm({ ...customItemForm, cost_price: e.target.value })}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            document.getElementById('custom-retail-input')?.focus();
+                                        }
+                                    }}
                                     className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
                                     placeholder="0.00"
                                 />
@@ -1251,6 +1316,17 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         required
                                         value={customItemForm.price}
                                         onChange={(e) => setCustomItemForm({ ...customItemForm, price: e.target.value })}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                const numericPrice = parseFloat(customItemForm.price);
+                                                if (isNaN(numericPrice) || numericPrice <= 0) {
+                                                    Swal.fire({ icon: 'error', title: 'Retail Price Required', text: 'Please enter a valid retail price.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+                                                    return;
+                                                }
+                                                document.getElementById('custom-wholesale-input')?.focus();
+                                            }
+                                        }}
                                         className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
                                         placeholder="0.00"
                                     />
