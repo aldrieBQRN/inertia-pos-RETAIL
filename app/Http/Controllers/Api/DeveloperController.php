@@ -963,8 +963,15 @@ class DeveloperController extends Controller
 
         // Handle Avatar Upload on Creation
         if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar_path = $path;
+            try {
+                $imageCompression = new ImageCompressionService();
+                $path = $imageCompression->compressAvatar($request->file('avatar'));
+                $user->avatar_path = $path;
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Avatar compression failed: ' . $e->getMessage());
+                $path = $request->file('avatar')->store('avatars', 'public');
+                $user->avatar_path = $path;
+            }
             $user->save();
         }
 
@@ -1028,8 +1035,15 @@ class DeveloperController extends Controller
             if ($user->avatar_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->avatar_path)) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar_path);
             }
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar_path = $path;
+            try {
+                $imageCompression = new ImageCompressionService();
+                $path = $imageCompression->compressAvatar($request->file('avatar'));
+                $user->avatar_path = $path;
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Avatar compression failed: ' . $e->getMessage());
+                $path = $request->file('avatar')->store('avatars', 'public');
+                $user->avatar_path = $path;
+            }
         }
 
         // Only update the password if a new one was provided
