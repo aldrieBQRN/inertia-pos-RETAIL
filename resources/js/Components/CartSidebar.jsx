@@ -50,16 +50,17 @@ export default function CartSidebar({
     }, [cart]);
 
     useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (sidebarRef.current && !sidebarRef.current.contains(e.target)) {
+        const handleDocClick = (e) => {
+            if (showPaymentModal || showSuccessModal) return;
+            if (!e.target.closest('.cart-item-row')) {
                 setFocusedIndex(-1);
             }
         };
-        document.addEventListener('click', handleClickOutside);
+        document.addEventListener('click', handleDocClick);
         return () => {
-            document.removeEventListener('click', handleClickOutside);
+            document.removeEventListener('click', handleDocClick);
         };
-    }, []);
+    }, [showPaymentModal, showSuccessModal]);
 
     useEffect(() => {
         const handleResetNav = () => {
@@ -442,7 +443,7 @@ export default function CartSidebar({
                                         window.dispatchEvent(new CustomEvent('reset-catalog-nav'));
                                         setFocusedIndex(index);
                                     }}
-                                    className={`grid grid-cols-[90px_1fr_100px_110px] gap-2 px-3 py-3 items-center border-b border-gray-100 hover:bg-gray-50 transition-colors text-base font-bold group cursor-pointer ${focusedIndex === index ? 'ring-2 ring-inset ring-indigo-500 bg-indigo-50/40' : ''}`}
+                                    className={`cart-item-row grid grid-cols-[90px_1fr_100px_110px] gap-2 px-3 py-3 items-center border-b border-gray-100 hover:bg-gray-50 transition-colors text-base font-bold group cursor-pointer ${focusedIndex === index ? 'ring-2 ring-inset ring-indigo-500 bg-indigo-50/40' : ''}`}
                                 >
                                     {/* QTY Column with Hover Controls */}
                                     <div className="flex items-center justify-between h-6 select-none relative w-full">
