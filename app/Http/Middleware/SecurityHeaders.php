@@ -59,7 +59,7 @@ class SecurityHeaders
         $csp = "default-src 'self'; "
             . "script-src {$scriptSrc}; "
             . "style-src 'self' 'unsafe-inline' https://fonts.bunny.net; "
-            . "img-src 'self' data: https:; "
+            . "img-src 'self' data: blob: https:; "
             . "font-src 'self' https://fonts.bunny.net; "
             . "connect-src 'self' https: ws: " . ($isLocal ? "http://localhost:* ws://localhost:*" : "") . "; "
             . "frame-ancestors 'self'; "
