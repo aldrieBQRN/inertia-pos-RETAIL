@@ -477,6 +477,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     };
 
     const triggerQtyModal = (product, isEdit = false) => {
+        if (!isEdit) {
+            window.dispatchEvent(new CustomEvent('reset-cart-nav'));
+        }
         const inCart = cart.find(item => item.id === product.id);
         const currentQty = inCart ? inCart.quantity : 0;
         if (!isEdit && currentQty >= product.stock_quantity) {
@@ -551,6 +554,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     };
 
     const handleOpenCustomItemModal = () => {
+        window.dispatchEvent(new CustomEvent('reset-cart-nav'));
         setCustomItemForm({
             sku: '',
             name: '',
@@ -737,7 +741,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         <div className="fixed inset-0 z-40" onClick={() => { setShowCategoryDropdown(false); setCategoryNavIndex(-1); }}></div>
                                         <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-2xl border border-gray-100 z-50 py-1 animate-fade-in-up max-h-[60vh] overflow-y-auto custom-scrollbar">
                                             <button 
-                                                onClick={() => {setSelectedCategory('all'); setShowCategoryDropdown(false); setCategoryNavIndex(-1);}} 
+                                                onClick={() => {setSelectedCategory('all'); setShowCategoryDropdown(false); setCategoryNavIndex(-1); window.dispatchEvent(new CustomEvent('reset-cart-nav'));}} 
                                                 className={`w-full text-left px-4 py-2.5 text-base font-bold transition-colors ${categoryNavIndex === 0 ? 'bg-indigo-600 text-white' : selectedCategory === 'all' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
                                             >
                                                 All Categories (F5)
@@ -748,7 +752,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                                 return (
                                                     <button 
                                                         key={c.id} 
-                                                        onClick={() => {setSelectedCategory(c.id); setShowCategoryDropdown(false); setCategoryNavIndex(-1);}} 
+                                                        onClick={() => {setSelectedCategory(c.id); setShowCategoryDropdown(false); setCategoryNavIndex(-1); window.dispatchEvent(new CustomEvent('reset-cart-nav'));}} 
                                                         className={`w-full text-left px-4 py-2.5 text-base font-bold flex items-center gap-3 transition-colors ${isHighlighted ? 'bg-indigo-600 text-white' : 'hover:bg-gray-50'}`}
                                                         style={(!isHighlighted && isSelected) ? {color: c.color} : {}}
                                                     >
@@ -769,7 +773,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     placeholder="Search... (F1)"
                                     className="w-full pl-9 pr-3 py-2.5 rounded-md bg-white border border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all outline-none text-base font-semibold disabled:bg-gray-100/50 disabled:cursor-not-allowed disabled:text-gray-400"
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onChange={(e) => { setSearchQuery(e.target.value); window.dispatchEvent(new CustomEvent('reset-cart-nav')); }}
                                     onKeyDown={handleSearchKeyDown}
                                     disabled={isAnyModalOpen}
                                 />

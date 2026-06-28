@@ -51,7 +51,6 @@ export default function CartSidebar({
 
     useEffect(() => {
         const handleClickOutside = (e) => {
-            if (showPaymentModal || showSuccessModal || disabled) return;
             if (sidebarRef.current && !sidebarRef.current.contains(e.target)) {
                 setFocusedIndex(-1);
             }
@@ -60,7 +59,7 @@ export default function CartSidebar({
         return () => {
             document.removeEventListener('click', handleClickOutside);
         };
-    }, [showPaymentModal, showSuccessModal, disabled]);
+    }, []);
 
     useEffect(() => {
         const handleResetNav = () => {
