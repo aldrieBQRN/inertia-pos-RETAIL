@@ -289,41 +289,64 @@ class ProductController extends Controller
         try {
             $storeId = Auth::user()->store_id;
             $importedCount = 0;
+            $errors = [];
+            $rowNumber = 5; // Header is at row 5 in Excel template, data starts at row 6
 
             foreach ($request->products as $item) {
+                $rowNumber++;
+                
+                // Track missing/invalid fields for this specific row
+                $rowErrors = [];
+                
+                if (empty($item['sku'])) {
+                    $rowErrors[] = "Barcode/SKU is empty";
+                }
+                if (empty($item['name'])) {
+                    $rowErrors[] = "Product Name is empty";
+                }
+                if (empty($item['category_name'])) {
+                    $rowErrors[] = "Category Name is empty";
+                }
+                if (!isset($item['price']) || $item['price'] === '' || !is_numeric($item['price'])) {
+                    $rowErrors[] = "Retail Price must be a valid number";
+                }
+                if (!isset($item['wholesale_price']) || $item['wholesale_price'] === '' || !is_numeric($item['wholesale_price'])) {
+                    $rowErrors[] = "Wholesale Price must be a valid number";
+                }
+                if (!isset($item['cost_price']) || $item['cost_price'] === '' || !is_numeric($item['cost_price'])) {
+                    $rowErrors[] = "Cost Price must be a valid number";
+                }
+                if (!isset($item['stock_quantity']) || $item['stock_quantity'] === '' || !is_numeric($item['stock_quantity'])) {
+                    $rowErrors[] = "Stock Quantity must be a valid number";
+                }
+
+                if (!empty($rowErrors)) {
+                    $errors[] = "Row {$rowNumber}: " . implode(', ', $rowErrors);
+                    continue;
+                }
+
                 // Find or create category
                 $categoryId = null;
-                if (!empty($item['category_name'])) {
-                    $categoryName = trim($item['category_name']);
-                    $category = \App\Models\Category::where('name', $categoryName)->first();
-                    if (!$category) {
-                        $category = \App\Models\Category::create([
-                            'name' => $categoryName,
-                            'color' => '#' . substr(md5($categoryName), 0, 6)
-                        ]);
-                    }
-                    $categoryId = $category->id;
-                } else {
-                    $categoryName = 'General';
-                    $category = \App\Models\Category::where('name', $categoryName)->first();
-                    if (!$category) {
-                        $category = \App\Models\Category::create([
-                            'name' => $categoryName,
-                            'color' => '#6B7280'
-                        ]);
-                    }
-                    $categoryId = $category->id;
+                $categoryName = trim($item['category_name']);
+                $category = \App\Models\Category::where('name', $categoryName)->first();
+                if (!$category) {
+                    $category = \App\Models\Category::create([
+                        'name' => $categoryName,
+                        'color' => '#' . substr(md5($categoryName), 0, 6)
+                    ]);
                 }
+                $categoryId = $category->id;
 
                 $productData = [
                     'name' => trim($item['name']),
                     'category_id' => $categoryId,
                     'price' => (int) round($item['price'] * 100),
-                    'cost_price' => isset($item['cost_price']) && $item['cost_price'] !== '' ? (int) round($item['cost_price'] * 100) : null,
-                    'wholesale_price' => isset($item['wholesale_price']) && $item['wholesale_price'] !== '' ? (int) round($item['wholesale_price'] * 100) : null,
+                    'cost_price' => (int) round($item['cost_price'] * 100),
+                    'wholesale_price' => (int) round($item['wholesale_price'] * 100),
                     'stock_quantity' => (int) $item['stock_quantity'],
                     'sku' => trim($item['sku']),
                     'is_active' => true,
+                    'store_id' => $storeId, // Ensure store_id is set
                 ];
 
                 // Find existing product by SKU under this store
@@ -335,6 +358,15 @@ class ProductController extends Controller
                     Product::create($productData);
                 }
                 $importedCount++;
+            }
+
+            if (!empty($errors)) {
+                \Illuminate\Support\Facades\DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Import validation failed. Please correct the Excel file and try again.',
+                    'errors' => $errors
+                ], 422);
             }
 
             \Illuminate\Support\Facades\DB::commit();

@@ -612,9 +612,8 @@ export default function Inventory({ auth }) {
                         const workbook = new ExcelJS.Workbook();
                         await workbook.xlsx.load(evt.target.result);
                         const worksheet = workbook.worksheets[0];
-
                         worksheet.eachRow((row, rowNumber) => {
-                            if (rowNumber === 1) return;
+                            if (rowNumber <= 5) return;
 
                             const getCellString = (colNum) => {
                                 const val = row.getCell(colNum).value;
@@ -630,7 +629,8 @@ export default function Inventory({ auth }) {
                             const cost_price = parseFloat(row.getCell(6).value) || null;
                             const stock_quantity = parseInt(row.getCell(7).value, 10) || 0;
 
-                            if (sku && name) {
+                            // Add to list if any product identifier is present (backend will validate completeness)
+                            if (sku || name || category_name) {
                                 importedProducts.push({
                                     sku: sku.trim(),
                                     name: name.trim(),
@@ -663,7 +663,25 @@ export default function Inventory({ auth }) {
                     }
                 } catch (err) {
                     console.error(err);
-                    Swal.fire('Import Failed', err.message || 'An error occurred during import. Check file formatting.', 'error');
+                    let errMsg = err.message || 'An error occurred during import. Check file formatting.';
+                    
+                    // Format structural validation errors returned by Laravel
+                    if (err.response?.data?.errors && Array.isArray(err.response.data.errors)) {
+                        errMsg = err.response.data.errors.slice(0, 10).join('\n');
+                        if (err.response.data.errors.length > 10) {
+                            errMsg += `\n...and ${err.response.data.errors.length - 10} more errors.`;
+                        }
+                    } else if (err.response?.data?.message) {
+                        errMsg = err.response.data.message;
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Import Failed',
+                        text: errMsg,
+                        customClass: {
+                        }
+                    });
                 }
             };
 
