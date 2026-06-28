@@ -378,7 +378,7 @@ export default function Inventory({ auth }) {
             worksheet.getColumn('F').width = 15; // Cost Price
             worksheet.getColumn('G').width = 15; // Stock Quantity
 
-            // Add Store Header (Rows 1 to 3)
+            // Add Store Header (Rows 1 to 4)
             const storeName = settings?.store_name || 'POS Store';
             const storeAddress = settings?.address || '';
             const storeContact = settings?.phone ? `Contact: ${settings.phone}` : '';
@@ -387,27 +387,37 @@ export default function Inventory({ auth }) {
             worksheet.mergeCells('A1:G1');
             worksheet.getCell('A1').value = storeName.toUpperCase();
             worksheet.getCell('A1').font = { bold: true, color: { argb: '4F46E5' }, size: 14 };
+            worksheet.getCell('A1').alignment = { vertical: 'middle', horizontal: 'center' };
             worksheet.getRow(1).height = 24;
 
-            // Address and Contact
+            // Address
             worksheet.mergeCells('A2:G2');
-            worksheet.getCell('A2').value = `${storeAddress} | ${storeContact}`;
+            worksheet.getCell('A2').value = storeAddress;
             worksheet.getCell('A2').font = { color: { argb: '555555' }, size: 9 };
+            worksheet.getCell('A2').alignment = { vertical: 'middle', horizontal: 'center' };
             worksheet.getRow(2).height = 16;
 
-            // Title
+            // Contact (Phone)
             worksheet.mergeCells('A3:G3');
-            worksheet.getCell('A3').value = 'PRODUCT DATA IMPORT TEMPLATE';
-            worksheet.getCell('A3').font = { bold: true, color: { argb: '333333' }, size: 10 };
-            worksheet.getRow(3).height = 18;
+            worksheet.getCell('A3').value = storeContact;
+            worksheet.getCell('A3').font = { color: { argb: '555555' }, size: 9, italic: true };
+            worksheet.getCell('A3').alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getRow(3).height = 16;
+
+            // Title
+            worksheet.mergeCells('A4:G4');
+            worksheet.getCell('A4').value = 'PRODUCT DATA IMPORT TEMPLATE';
+            worksheet.getCell('A4').font = { bold: true, color: { argb: '333333' }, size: 10 };
+            worksheet.getCell('A4').alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getRow(4).height = 18;
 
             // Empty spacing row
-            worksheet.getRow(4).height = 10;
+            worksheet.getRow(5).height = 10;
 
-            // Header styling (Row 5)
+            // Header styling (Row 6)
             const headers = ['Barcode/SKU', 'Product Name', 'Category Name', 'Retail Price', 'Wholesale Price', 'Cost Price', 'Stock Quantity'];
             headers.forEach((h, colIndex) => {
-                const cell = worksheet.getRow(5).getCell(colIndex + 1);
+                const cell = worksheet.getRow(6).getCell(colIndex + 1);
                 cell.value = h;
                 cell.font = { bold: true, color: { argb: 'FFFFFF' }, size: 10 };
                 cell.fill = {
@@ -417,7 +427,7 @@ export default function Inventory({ auth }) {
                 };
                 cell.alignment = { vertical: 'middle', horizontal: colIndex >= 3 ? 'right' : 'left' };
             });
-            worksheet.getRow(5).height = 25;
+            worksheet.getRow(6).height = 25;
 
             // Generate category validation list from active system categories
             const catNames = categories.map(c => c.name).filter(Boolean);
@@ -431,7 +441,7 @@ export default function Inventory({ auth }) {
                 categoriesSheet.getCell(`A${index + 1}`).value = name;
             });
 
-            // Add sample row at Row 6
+            // Add sample row at Row 7
             worksheet.addRow({
                 sku: '88010020',
                 name: 'Sample Product A',
@@ -442,8 +452,14 @@ export default function Inventory({ auth }) {
                 stock_quantity: 50
             });
 
-            // Set styling & validation for data rows (rows 6 to 205)
-            for (let i = 6; i <= 205; i++) {
+            // Enable worksheet protection to lock header cells (Rows 1 to 6)
+            worksheet.protect('', {
+                selectLockedCells: true,
+                selectUnlockedCells: true
+            });
+
+            // Set styling, validation, and unlock data cells (rows 7 to 206)
+            for (let i = 7; i <= 206; i++) {
                 const row = worksheet.getRow(i);
                 
                 // Align columns appropriately
@@ -460,6 +476,15 @@ export default function Inventory({ auth }) {
                 row.getCell('E').numFmt = '#,##0.00';
                 row.getCell('F').numFmt = '#,##0.00';
                 row.getCell('G').numFmt = '#,##0';
+
+                // Unlock data entry cells for editing on protected sheet
+                row.getCell('A').protection = { locked: false };
+                row.getCell('B').protection = { locked: false };
+                row.getCell('C').protection = { locked: false };
+                row.getCell('D').protection = { locked: false };
+                row.getCell('E').protection = { locked: false };
+                row.getCell('F').protection = { locked: false };
+                row.getCell('G').protection = { locked: false };
 
                 // Data Validations (ALL required: allowBlank: false)
                 // Barcode/SKU
@@ -599,7 +624,7 @@ export default function Inventory({ auth }) {
             worksheet.getColumn('F').width = 18; // Cost Price
             worksheet.getColumn('G').width = 15; // Stock Quantity
 
-            // Add Store Header (Rows 1 to 3)
+            // Add Store Header (Rows 1 to 4)
             const storeName = settings?.store_name || 'POS Store';
             const storeAddress = settings?.address || '';
             const storeContact = settings?.phone ? `Contact: ${settings.phone}` : '';
@@ -608,27 +633,37 @@ export default function Inventory({ auth }) {
             worksheet.mergeCells('A1:G1');
             worksheet.getCell('A1').value = storeName.toUpperCase();
             worksheet.getCell('A1').font = { bold: true, color: { argb: '16A34A' }, size: 16 };
+            worksheet.getCell('A1').alignment = { vertical: 'middle', horizontal: 'center' };
             worksheet.getRow(1).height = 28;
 
-            // Address and Contact
+            // Address
             worksheet.mergeCells('A2:G2');
-            worksheet.getCell('A2').value = `${storeAddress} | ${storeContact}`;
+            worksheet.getCell('A2').value = storeAddress;
             worksheet.getCell('A2').font = { color: { argb: '555555' }, size: 9 };
+            worksheet.getCell('A2').alignment = { vertical: 'middle', horizontal: 'center' };
             worksheet.getRow(2).height = 16;
 
-            // Title
+            // Contact
             worksheet.mergeCells('A3:G3');
-            worksheet.getCell('A3').value = `INVENTORY STATUS & BACKUP REPORT (Generated: ${new Date().toLocaleString()})`;
-            worksheet.getCell('A3').font = { bold: true, color: { argb: '333333' }, size: 11 };
-            worksheet.getRow(3).height = 20;
+            worksheet.getCell('A3').value = storeContact;
+            worksheet.getCell('A3').font = { color: { argb: '555555' }, size: 9, italic: true };
+            worksheet.getCell('A3').alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getRow(3).height = 16;
+
+            // Title
+            worksheet.mergeCells('A4:G4');
+            worksheet.getCell('A4').value = `INVENTORY STATUS & BACKUP REPORT (Generated: ${new Date().toLocaleString()})`;
+            worksheet.getCell('A4').font = { bold: true, color: { argb: '333333' }, size: 11 };
+            worksheet.getCell('A4').alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getRow(4).height = 20;
 
             // Empty spacing row
-            worksheet.getRow(4).height = 10;
+            worksheet.getRow(5).height = 10;
 
-            // Headers on Row 5
+            // Headers on Row 6
             const headers = ['Barcode/SKU', 'Product Name', 'Category Name', 'Retail Price (PHP)', 'Wholesale Price (PHP)', 'Cost Price (PHP)', 'Stock Quantity'];
             headers.forEach((h, colIndex) => {
-                const cell = worksheet.getRow(5).getCell(colIndex + 1);
+                const cell = worksheet.getRow(6).getCell(colIndex + 1);
                 cell.value = h;
                 cell.font = { bold: true, color: { argb: 'FFFFFF' }, size: 10 };
                 cell.fill = {
@@ -638,11 +673,17 @@ export default function Inventory({ auth }) {
                 };
                 cell.alignment = { vertical: 'middle', horizontal: colIndex >= 3 ? 'right' : 'left' };
             });
-            worksheet.getRow(5).height = 25;
+            worksheet.getRow(6).height = 25;
 
-            // Add product rows starting from Row 6
+            // Enable worksheet protection to lock header cells (Rows 1 to 6)
+            worksheet.protect('', {
+                selectLockedCells: true,
+                selectUnlockedCells: true
+            });
+
+            // Add product rows starting from Row 7
             products.forEach((p, idx) => {
-                const rowIndex = idx + 6;
+                const rowIndex = idx + 7;
                 const row = worksheet.getRow(rowIndex);
 
                 row.getCell(1).value = p.sku || 'N/A';
@@ -667,6 +708,15 @@ export default function Inventory({ auth }) {
                 row.getCell(5).numFmt = '#,##0.00';
                 row.getCell(6).numFmt = '#,##0.00';
                 row.getCell(7).numFmt = '#,##0';
+
+                // Unlock data rows cells for editing
+                row.getCell(1).protection = { locked: false };
+                row.getCell(2).protection = { locked: false };
+                row.getCell(3).protection = { locked: false };
+                row.getCell(4).protection = { locked: false };
+                row.getCell(5).protection = { locked: false };
+                row.getCell(6).protection = { locked: false };
+                row.getCell(7).protection = { locked: false };
             });
 
             const buffer = await workbook.xlsx.writeBuffer();
