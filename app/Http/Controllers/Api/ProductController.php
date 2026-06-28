@@ -63,8 +63,8 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
-            'cost_price' => 'nullable|numeric|min:0',
-            'wholesale_price' => 'nullable|numeric|min:0',
+            'cost_price' => 'required|numeric|min:0',
+            'wholesale_price' => 'required|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
             'sku' => [
                 'required',

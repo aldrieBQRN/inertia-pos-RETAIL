@@ -1349,7 +1349,7 @@ export default function Inventory({ auth }) {
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                      <div>
                                          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱)</label>
-                                         <input type="number" step="0.01" name="cost_price" value={formData.cost_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
+                                         <input type="number" step="0.01" name="cost_price" required value={formData.cost_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
                                      </div>
                                      <div>
                                          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Retail Price (₱)</label>
@@ -1357,7 +1357,7 @@ export default function Inventory({ auth }) {
                                      </div>
                                      <div>
                                          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Wholesale Price (₱)</label>
-                                         <input type="number" step="0.01" name="wholesale_price" value={formData.wholesale_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
+                                         <input type="number" step="0.01" name="wholesale_price" required value={formData.wholesale_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
                                      </div>
                                 </div>
 
