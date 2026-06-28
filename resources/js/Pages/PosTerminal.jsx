@@ -844,7 +844,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                     {/* PRODUCT LIST COLUMN HEADERS */}
                     <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 shrink-0 hidden md:block">
                         <div className="grid grid-cols-[140px_1fr_100px_110px] gap-2 text-xs font-black uppercase tracking-wider text-gray-500 font-mono">
-                            <div className="pl-2">Barcode</div>
+                            <div className="pl-2">SKU / Barcode</div>
                             <div className="pl-2">Product Name / Category</div>
                             <div className="text-right">Stock</div>
                             <div className="text-right">Price</div>
