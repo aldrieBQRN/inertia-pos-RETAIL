@@ -20,12 +20,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
-
 /**
  * ========================================================================
  * PUBLIC ONBOARDING (MAGIC LINKS)
