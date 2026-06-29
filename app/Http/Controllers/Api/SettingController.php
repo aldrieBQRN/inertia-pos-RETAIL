@@ -144,8 +144,19 @@ class SettingController extends Controller
                 Storage::disk('public')->delete($oldPath);
             }
 
-            // Save the new logo
-            $path = $request->file('logo')->store('logos', 'public');
+            $file = $request->file('logo');
+            try {
+                // Skip compression for SVG as it is vector-based and not supported by the GD decoder
+                if (strtolower($file->getClientOriginalExtension()) === 'svg' || str_contains(strtolower($file->getMimeType()), 'svg')) {
+                    $path = $file->store('logos', 'public');
+                } else {
+                    $imageCompression = new \App\Services\ImageCompressionService();
+                    $path = $imageCompression->compressLogo($file);
+                }
+            } catch (\Exception $e) {
+                // Fallback to original upload safely
+                $path = $file->store('logos', 'public');
+            }
             $store->logo_path = '/storage/' . $path;
         }
 
