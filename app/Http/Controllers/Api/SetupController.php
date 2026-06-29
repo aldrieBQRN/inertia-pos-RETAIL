@@ -18,6 +18,10 @@ class SetupController extends Controller
      */
     public function show(Request $request, User $user)
     {
+        if (!$user->is_active) {
+            abort(403, 'This invitation has been revoked.');
+        }
+
         // Optional Security Check:
         // If they already have a phone number saved, it means they already set up their account.
         if ($user->phone_number) {
@@ -45,6 +49,10 @@ class SetupController extends Controller
      */
     public function store(Request $request, User $user)
     {
+        if (!$user->is_active) {
+            abort(403, 'This invitation has been revoked.');
+        }
+
         // 1. Validate the personal data
         $request->validate([
             'phone_number' => 'required|string|max:50',

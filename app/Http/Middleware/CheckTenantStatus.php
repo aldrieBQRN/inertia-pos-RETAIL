@@ -13,6 +13,17 @@ class CheckTenantStatus
     {
         $user = Auth::user();
 
+        // 0. Check if the user's access has been revoked
+        if ($user && !$user->is_active) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')->withErrors([
+                'email' => 'Your access has been revoked. Please contact your system administrator.'
+            ]);
+        }
+
         // 1. Skip if the user is a Super Admin (they shouldn't be locked out of the panel)
         if ($user && $user->role === 'super_admin') {
             return $next($request);
