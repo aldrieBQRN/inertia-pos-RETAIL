@@ -2,42 +2,27 @@
     RewriteEngine On
     RewriteBase /
 
-    # Skip rewriting for setup/init scripts and direct PHP execution
-    RewriteRule ^public/(init|storage-link|storage)\.php$ - [L]
-    RewriteRule ^(init|storage-link|storage)\.php$ - [L]
+    # Serve real files and directories directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
 
-    # Route static assets to public folder
+    # Route build assets to public/build
     RewriteRule ^build/(.*)$ public/build/$1 [L]
+
+    # Route images to public/images
     RewriteRule ^images/(.*)$ public/images/$1 [L]
 
-    # For storage files: try public/storage first, then fall back to storage/app/public
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
+    # Route storage files
     RewriteRule ^storage/(.*)$ storage/app/public/$1 [L]
 
+    # Route common public files
     RewriteRule ^favicon\.ico$ public/favicon.ico [L]
+    RewriteRule ^favicon\.png$ public/favicon.png [L]
     RewriteRule ^robots\.txt$ public/robots.txt [L]
-    RewriteRule ^manifest\.json$ public/manifest.json [L]
+    RewriteRule ^manifest\.webmanifest$ public/manifest.webmanifest [L]
+    RewriteRule ^service-worker\.js$ public/service-worker.js [L]
 
-    # Now apply conditions to the main rewrite rule only
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_URI} !^/index.php
-    RewriteCond %{REQUEST_URI} !^/public/
-
-    # Rewrite all remaining requests to index.php
-    RewriteRule ^(.*)$ index.php [QSA,L]
-
-    DirectoryIndex index.php index.html index.htm
+    # Route everything else to root index.php
+    RewriteRule ^ index.php [L]
 </IfModule>
-
-# Permissions for public folder
-<Directory "public">
-    <IfModule mod_authz_core.c>
-        Require all granted
-    </IfModule>
-    <IfModule !mod_authz_core.c>
-        Order allow,deny
-        Allow from all
-    </IfModule>
-</Directory>
