@@ -1,0 +1,47 @@
+name: Auto-Deploy to InfinityFree (Alwin Branch)
+
+on:
+  push:
+    branches:
+      - Alwin
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, mysql, gd
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install & Build
+        run: |
+          composer install --no-ansi --no-interaction --no-dev --prefer-dist --optimize-autoloader
+          npm ci
+          npm run build
+
+      - name: Deploy via FTP to InfinityFree
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          local-dir: ./
+          server-dir: /htdocs/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/tests/**
+            **/e2e/**
+            **/.env
+            **/test-results/**
+            **/playwright-report/**
