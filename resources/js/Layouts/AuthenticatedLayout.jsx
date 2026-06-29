@@ -24,9 +24,20 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
         autoConnectUsb();
     }, [url]);
 
-    // Dynamically pull the global app name and logo from middleware
-    const appName = settings?.app_name || 'System Control Panel';
-    const logoUrl = settings?.logo_path ? `/storage/${settings.logo_path}` : null;
+    // Dynamically pull the global app name or tenant-specific store branding based on role
+    const isSuperAdmin = user.role === 'super_admin';
+    const appName = isSuperAdmin 
+        ? (settings?.app_name || 'System Control Panel')
+        : (settings?.store_name || 'Smart Retail POS');
+
+    const logoUrl = isSuperAdmin
+        ? (settings?.logo_path ? `/storage/${settings.logo_path}` : null)
+        : (settings?.store_logo_path || null);
+
+    // Reset logoError if the logo URL changes (e.g. settings updated)
+    useEffect(() => {
+        setLogoError(false);
+    }, [logoUrl]);
 
     // Helper component for Desktop Nav items
     const NavItem = ({ href, active, icon, label }) => (
