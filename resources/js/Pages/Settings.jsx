@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 import ShiftModal from '@/Components/ShiftModal';
 import usePrinterStore from '@/Stores/usePrinterStore';
@@ -186,6 +186,9 @@ export default function Settings({ auth }) {
             }
             setLogoFile(null);
             setShowEditModal(false); // Close the modal on success
+            
+            // Trigger Inertia reload to dynamically update the shared header logo and store name
+            router.reload();
         } catch (error) {
             console.error(error);
             Swal.fire('Error', 'Failed to save settings.', 'error');
