@@ -40,16 +40,20 @@ export default function Settings({ auth }) {
     });
 
     const [openSections, setOpenSections] = useState({
-        hardware: false,
+        hardware: true,
         shift: false,
         legal: false
     });
 
     const toggleSection = (section) => {
-        setOpenSections(prev => ({
-            ...prev,
-            [section]: !prev[section]
-        }));
+        setOpenSections(prev => {
+            const isOpening = !prev[section];
+            return {
+                hardware: isOpening && section === 'hardware',
+                shift: isOpening && section === 'shift',
+                legal: isOpening && section === 'legal'
+            };
+        });
     };
 
     const toggleShortcuts = () => {
@@ -625,13 +629,6 @@ export default function Settings({ auth }) {
                                                     </div>
                                                     Shift Summary
                                                 </h3>
-
-                                                {/* Status Badge */}
-                                                {settings?.active_shift && (
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">
-                                                        Active Shift
-                                                    </span>
-                                                )}
                                             </div>
                                             <svg 
                                                 className={`w-5 h-5 text-gray-400 group-hover:text-gray-700 transition-transform duration-200 ${openSections.shift ? 'rotate-180' : ''}`} 
@@ -650,8 +647,13 @@ export default function Settings({ auth }) {
                                                 {/* LIVE SHIFT RECONCILIATION SUMMARY */}
                                                 {settings?.active_shift ? (
                                                     <div className="space-y-3 sm:space-y-4">
-                                                        <div className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2">
-                                                            Started: {settings.active_shift.start_time}
+                                                        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                                                            <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                                                Started: {settings.active_shift.start_time}
+                                                            </div>
+                                                            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">
+                                                                Active Shift
+                                                            </span>
                                                         </div>
 
                                                         <div className="grid grid-cols-2 gap-3 sm:gap-4">
