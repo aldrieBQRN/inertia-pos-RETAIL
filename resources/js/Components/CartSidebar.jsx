@@ -77,7 +77,8 @@ export default function CartSidebar({
             const isFKey = e.key.match(/^F[1-9]$|^F1[0-2]$/);
             
             // If F-keys shortcuts are disabled, do not intercept or execute them
-            if (isFKey && !enableShortcuts) {
+            const shortcutsEnabled = enableShortcuts && localStorage.getItem('pos_enable_shortcuts') !== 'false';
+            if (isFKey && !shortcutsEnabled) {
                 return;
             }
 

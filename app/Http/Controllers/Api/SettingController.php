@@ -95,7 +95,6 @@ class SettingController extends Controller
                 'address' => '',
                 'phone' => '',
                 'logo_path' => null,
-                'enable_shortcuts' => true,
                 'active_shift' => $activeShiftData
             ], $legalSettings));
         }
@@ -106,7 +105,6 @@ class SettingController extends Controller
             'address' => $store->address,
             'phone' => $store->phone,
             'logo_path' => $store->logo_path,
-            'enable_shortcuts' => $store->enable_shortcuts,
             'active_shift' => $activeShiftData
         ], $legalSettings));
     }
@@ -122,7 +120,6 @@ class SettingController extends Controller
             'address' => 'nullable|string',
             'phone' => 'nullable|string',
             'logo' => 'nullable|image|max:2048', // Max 2MB
-            'enable_shortcuts' => 'sometimes|boolean',
         ]);
 
         // Find the current user's specific store
@@ -133,13 +130,11 @@ class SettingController extends Controller
             'address' => $store->address,
             'phone' => $store->phone,
             'logo_path' => $store->logo_path,
-            'enable_shortcuts' => $store->enable_shortcuts,
         ];
 
         $store->name = $request->store_name;
         $store->address = $request->address;
         $store->phone = $request->phone;
-        $store->enable_shortcuts = $request->boolean('enable_shortcuts');
 
         // Handle Logo Upload and Cleanup
         if ($request->hasFile('logo')) {
@@ -168,7 +163,6 @@ class SettingController extends Controller
                 'address' => $store->address,
                 'phone' => $store->phone,
                 'logo_path' => $store->logo_path,
-                'enable_shortcuts' => $store->enable_shortcuts,
             ]
         );
 

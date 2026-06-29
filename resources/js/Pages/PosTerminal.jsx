@@ -22,7 +22,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         ...(settings || {})
     };
 
-    const shortcutsEnabled = activeSettings.enable_shortcuts !== false;
+    const shortcutsEnabled = localStorage.getItem('pos_enable_shortcuts') !== 'false';
 
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);

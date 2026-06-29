@@ -17,7 +17,6 @@ class Store extends Model
         'phone',
         'status',
         'logo_path',
-        'enable_shortcuts',
         'plan_id',             // REQUIRED: This allows the ID to be saved
         'subscription_ends_at',
         'last_reminder_sent_at',
@@ -25,7 +24,6 @@ class Store extends Model
 
     protected $casts = [
         'status' => 'boolean',
-        'enable_shortcuts' => 'boolean',
         'subscription_ends_at' => 'datetime',
         'last_reminder_sent_at' => 'datetime', // Good practice to cast this too
     ];
