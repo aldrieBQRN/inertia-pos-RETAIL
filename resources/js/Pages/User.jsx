@@ -204,21 +204,64 @@ export default function User({ auth, users }) {
         }
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = (user) => {
+        if (user.is_active === false) {
+            Swal.fire({
+                title: 'Restore Access?',
+                text: `Restore access for "${user.name}" to use the POS system.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#1B3A69',
+                confirmButtonText: 'Yes, restore access'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    router.patch(route('users.toggle-active', user.id), {}, {
+                        preserveScroll: true,
+                        preserveState: true,
+                        onSuccess: () => Swal.fire('Restored!', 'User access has been restored successfully.', 'success')
+                    });
+                }
+            });
+            return;
+        }
+
         Swal.fire({
             title: 'Revoke Access?',
-            text: "This user will lose access to the POS system immediately.",
+            text: "This user will lose access to the POS system immediately. Note: Users with sales history cannot be permanently deleted.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
             confirmButtonText: 'Yes, revoke access'
         }).then((result) => {
             if (result.isConfirmed) {
-                destroy(route('users.destroy', id), {
+                destroy(route('users.destroy', user.id), {
                     preserveScroll: true,
                     preserveState: true,
                     onSuccess: () => Swal.fire('Revoked!', 'The user has been removed.', 'success'),
-                    onError: () => Swal.fire('Error', 'You cannot delete this user.', 'error')
+                    onError: (errors) => {
+                        if (errors.delete === 'linked_to_sales') {
+                            Swal.fire({
+                                title: 'Cannot Delete User',
+                                text: 'This user has processed sales records and cannot be permanently deleted. Would you like to revoke their access instead?',
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#1B3A69',
+                                cancelButtonColor: '#d33',
+                                confirmButtonText: 'Yes, Revoke Access',
+                                cancelButtonText: 'No'
+                            }).then((archiveResult) => {
+                                if (archiveResult.isConfirmed) {
+                                    router.patch(route('users.toggle-active', user.id), {}, {
+                                        preserveScroll: true,
+                                        preserveState: true,
+                                        onSuccess: () => Swal.fire('Revoked!', 'User access has been revoked successfully.', 'success')
+                                    });
+                                }
+                            });
+                        } else {
+                            Swal.fire('Error', errors.message || 'You cannot delete this user.', 'error');
+                        }
+                    }
                 });
             }
         });
@@ -236,7 +279,15 @@ export default function User({ auth, users }) {
         );
     };
 
-    const StatusBadge = ({ termsAcceptedAt }) => {
+    const StatusBadge = ({ termsAcceptedAt, isActive }) => {
+        if (isActive === false) {
+            return (
+                <span className="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-rose-100 text-rose-700 border-rose-200 inline-flex items-center gap-1 cursor-default">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                    Revoked
+                </span>
+            );
+        }
         if (termsAcceptedAt) {
             return (
                 <span className="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 border-emerald-200 inline-flex items-center gap-1 cursor-default">
@@ -364,17 +415,38 @@ export default function User({ auth, users }) {
                                                     </div>
                                                 </td>
                                                 <td className="p-4"><RoleBadge role={u.role} /></td>
-                                                <td className="p-4"><StatusBadge termsAcceptedAt={u.terms_accepted_at} /></td>
+                                                <td className="p-4"><StatusBadge termsAcceptedAt={u.terms_accepted_at} isActive={u.is_active} /></td>
                                                 <td className="p-4 text-center flex justify-center gap-2">
-                                                    {/* NEW: View Profile Button */}
                                                     <button onClick={() => openViewModal(u)} className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="View Profile">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                                     </button>
                                                     <button onClick={() => openEditModal(u)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-100 rounded-lg transition-colors" title="Edit">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
                                                     </button>
-                                                    <button onClick={() => handleDelete(u.id)} disabled={auth.user.id === u.id} className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent" title={auth.user.id === u.id ? "Cannot revoke self" : "Revoke Access"}>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                                                    <button 
+                                                        onClick={() => handleDelete(u)} 
+                                                        disabled={auth.user.id === u.id} 
+                                                        className={`p-2 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent ${
+                                                            u.is_active === false 
+                                                                ? 'text-green-600 hover:text-green-800 hover:bg-green-100' 
+                                                                : 'text-red-500 hover:text-red-700 hover:bg-red-100'
+                                                        }`} 
+                                                        title={auth.user.id === u.id 
+                                                            ? "Cannot revoke self" 
+                                                            : u.is_active === false 
+                                                                ? "Restore Access" 
+                                                                : "Revoke Access"
+                                                        }
+                                                    >
+                                                        {u.is_active === false ? (
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                            </svg>
+                                                        ) : (
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                            </svg>
+                                                        )}
                                                     </button>
                                                 </td>
                                             </tr>
@@ -405,8 +477,6 @@ export default function User({ auth, users }) {
                             </div>
                         ) : (
                             paginatedUsers.map((u) => {
-                                const locString = [u.city, u.province].filter(Boolean).join(', ');
-
                                 return (
                                 <div key={u.id} className="p-4 flex flex-col gap-3 active:bg-gray-50 transition-colors">
                                     <div className="flex items-start gap-4 border-b border-gray-100 pb-3">
@@ -424,8 +494,9 @@ export default function User({ auth, users }) {
                                                     <h3 className="font-bold text-gray-900 text-lg leading-tight tracking-tight">{u.name}</h3>
                                                     {u.account_number && <span className="text-[10px] text-gray-400 font-mono mt-0.5">Acc: {u.account_number}</span>}
                                                 </div>
-                                                <div className="flex flex-col items-end gap-1">
-                                                    <RoleBadge role={u.role} />
+                                                <div className="flex flex-col items-end gap-1.5">
+                                                     <RoleBadge role={u.role} />
+                                                     <StatusBadge termsAcceptedAt={u.terms_accepted_at} isActive={u.is_active} />
                                                 </div>
                                             </div>
                                             <p className="text-xs font-medium text-gray-500 mt-2">{u.email}</p>
@@ -435,8 +506,16 @@ export default function User({ auth, users }) {
                                     <div className="grid grid-cols-3 gap-2 pt-1">
                                         <button onClick={() => openViewModal(u)} className="py-2.5 text-xs font-bold text-gray-700 bg-gray-50 rounded-lg border border-gray-200 shadow-sm active:scale-95 transition-transform">View Profile</button>
                                         <button onClick={() => openEditModal(u)} className="py-2.5 text-xs font-bold text-blue-700 bg-blue-50 rounded-lg border border-blue-200 shadow-sm active:scale-95 transition-transform">Edit</button>
-                                        <button onClick={() => handleDelete(u.id)} disabled={auth.user.id === u.id} className="py-2.5 text-xs font-bold text-red-600 bg-red-50 rounded-lg border border-red-100 shadow-sm active:scale-95 transition-transform disabled:opacity-40 disabled:scale-100">
-                                            Revoke
+                                        <button 
+                                            onClick={() => handleDelete(u)} 
+                                            disabled={auth.user.id === u.id} 
+                                            className={`py-2.5 text-xs font-bold rounded-lg border shadow-sm active:scale-95 transition-transform disabled:opacity-40 disabled:scale-100 ${
+                                                u.is_active === false 
+                                                    ? 'text-green-700 bg-green-50 border-green-100' 
+                                                    : 'text-red-600 bg-red-50 border-red-100'
+                                            }`}
+                                        >
+                                            {u.is_active === false ? 'Restore' : 'Revoke'}
                                         </button>
                                     </div>
                                 </div>

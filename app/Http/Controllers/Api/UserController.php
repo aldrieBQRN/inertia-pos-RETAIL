@@ -168,6 +168,15 @@ class UserController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Check if the user has processed sales history
+        $hasSales = \App\Models\Sale::where('cashier_id', $user->id)->exists();
+        if ($hasSales) {
+            return redirect()->back()->withErrors([
+                'delete' => 'linked_to_sales',
+                'message' => 'This user has processed sales records and cannot be permanently deleted.'
+            ]);
+        }
+
         // Log the deletion (critical)
         ActivityService::logDelete('User', $user->id, "Deleted user: {$user->name} ({$user->email})", [
             'name' => $user->name,
@@ -178,6 +187,42 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->back()->with('success', 'User deleted successfully.');
+    }
+
+    /**
+     * Toggle the user's active status.
+     */
+    public function toggleActive(User $user)
+    {
+        // Security check: Ensure the Admin belongs to the same store
+        if ($user->store_id !== Auth::user()->store_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Do not allow toggling own status
+        if ($user->id === Auth::id()) {
+            abort(403, 'You cannot revoke your own access.');
+        }
+
+        $user->update([
+            'is_active' => !$user->is_active
+        ]);
+
+        // Log the deactivation/reactivation (critical security event)
+        ActivityService::logSecurityAction(
+            $user->is_active ? 'user_restored' : 'user_revoked',
+            "User access " . ($user->is_active ? 'restored' : 'revoked') . " for: {$user->name} ({$user->email})",
+            [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'role' => $user->role,
+                '_actor_user_id' => Auth::id(),
+                '_actor_store_id' => Auth::user()->store_id,
+            ]
+        );
+
+        $statusMsg = $user->is_active ? 'restored' : 'revoked';
+        return redirect()->back()->with('success', "User access {$statusMsg} successfully.");
     }
 
     // ==========================================

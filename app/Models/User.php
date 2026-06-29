@@ -38,6 +38,7 @@ class User extends Authenticatable
         'country',
         'avatar_path',
         'terms_accepted_at',
+        'is_active',
     ];
 
     /**
@@ -71,6 +72,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_admin' => 'boolean',
             'terms_accepted_at' => 'datetime', // <--- Add this exact line
+            'is_active' => 'boolean',
         ];
     }
 

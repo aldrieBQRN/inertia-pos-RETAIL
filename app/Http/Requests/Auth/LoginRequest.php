@@ -47,6 +47,13 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        $user = User::where('email', (string) $this->input('email'))->first();
+        if ($user && !$user->is_active) {
+            throw ValidationException::withMessages([
+                'email' => 'Your access has been revoked. Please contact your system administrator.',
+            ]);
+        }
+
         // Attempt to log the user in using the provided credentials
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             $attemptedUser = User::where('email', (string) $this->input('email'))->first();

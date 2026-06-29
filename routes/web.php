@@ -193,6 +193,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class])->grou
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
 
     // API: Activity Logs (Admin Audit Trail)
     Route::get('/api/activity-logs', [\App\Http\Controllers\Api\ActivityLogController::class, 'index'])->name('activity-logs.index');
