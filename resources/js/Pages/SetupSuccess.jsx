@@ -55,26 +55,22 @@ export default function SetupSuccess({ message, role }) { // <-- Added role prop
                         <p className="text-xs font-black text-emerald-700 uppercase tracking-widest mt-0.5">Next Step</p>
                     </div>
 
-                    {role === 'admin' ? (
-                        <div className="space-y-5 animate-in fade-in duration-500">
-                            <p className="text-sm font-bold text-emerald-900 leading-relaxed">
-                                You may now log in to access the store's administrative dashboard.
-                            </p>
-                            <Link
-                                href={route('login')}
-                                className="flex items-center justify-center w-full py-4 bg-emerald-600 text-white font-black text-[12px] uppercase tracking-widest rounded-lg shadow-[0_4px_14px_rgba(16,185,129,0.4)] hover:bg-emerald-700 hover:shadow-[0_6px_20px_rgba(16,185,129,0.5)] active:scale-[0.98] transition-all gap-2"
-                            >
-                                Go to Login
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                                </svg>
-                            </Link>
-                        </div>
-                    ) : (
+                    <div className="space-y-5 animate-in fade-in duration-500">
                         <p className="text-sm font-bold text-emerald-900 leading-relaxed">
-                            You may now close this window and log in securely at the store's POS terminal.
+                            {role === 'admin' 
+                                ? "You may now log in to access the store's administrative dashboard." 
+                                : "You may now log in to access the store's POS sales terminal."}
                         </p>
-                    )}
+                        <Link
+                            href={route('login')}
+                            className="flex items-center justify-center w-full py-4 bg-emerald-600 text-white font-black text-[12px] uppercase tracking-widest rounded-lg shadow-[0_4px_14px_rgba(16,185,129,0.4)] hover:bg-emerald-700 hover:shadow-[0_6px_20px_rgba(16,185,129,0.5)] active:scale-[0.98] transition-all gap-2"
+                        >
+                            Go to Login
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                            </svg>
+                        </Link>
+                    </div>
                 </div>
 
             </div>

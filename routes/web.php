@@ -96,7 +96,9 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
 
     // POS Terminal
     Route::get('/pos', function (Request $request) {
-        if ($request->user()->role === 'super_admin') return redirect()->route('developer.index');
+        $user = $request->user();
+        if ($user->role === 'super_admin') return redirect()->route('developer.index');
+        if ($user->is_admin) return redirect()->route('dashboard');
         return Inertia::render('PosTerminal');
     })->name('pos');
 
@@ -125,7 +127,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
     })->name('settings');
 
     // User/Staff Management
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users', [UserController::class, 'index'])->name('users.index')->middleware('admin');
 });
 
 
@@ -147,35 +149,38 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class])->grou
     Route::post('/staff/send-otp', [UserController::class, 'sendOtp'])->name('staff.sendOtp');
     Route::post('/staff/verify-otp', [UserController::class, 'verifyOtp'])->name('staff.verifyOtp');
 
-    // API: System Data
+    // API: System Data (Accessible by everyone authenticated)
     Route::get('/api/user', fn(Request $request) => $request->user());
     Route::get('/api/settings', [SettingController::class, 'index']);
-    Route::post('/api/settings', [SettingController::class, 'update']);
 
-    // UPDATED: Dashboard & Reports endpoints
-    Route::get('/api/dashboard', [DashboardController::class, 'index']);
-    Route::get('/api/reports', [DashboardController::class, 'reports']);
-    Route::get('/api/dashboard/export', [DashboardController::class, 'export']); // Kept for legacy CSV export if needed
-
-    // API: Operational (Sales & Inventory)
+    // API: Operational - Shared (Accessible by everyone authenticated)
     Route::post('/api/checkout', [PosController::class, 'checkout']);
     Route::get('/api/products', [ProductController::class, 'index']);
     Route::get('/api/products/next-sku', [ProductController::class, 'getNextSku']);
-    Route::post('/api/products', [ProductController::class, 'store']);
-    Route::post('/api/products/import', [ProductController::class, 'bulkImport']);
-    Route::put('/api/products/{id}', [ProductController::class, 'update']);
-    Route::delete('/api/products/{id}', [ProductController::class, 'destroy']);
-    Route::patch('/api/products/{id}/toggle-active', [ProductController::class, 'toggleActive']);
-    Route::post('/api/products/{id}/stock', [ProductController::class, 'adjustStock']);
-
     Route::get('/api/categories', [CategoryController::class, 'index']);
-    Route::post('/api/categories', [CategoryController::class, 'store']);
-    Route::put('/api/categories/{id}', [CategoryController::class, 'update']);
-    Route::delete('/api/categories/{id}', [CategoryController::class, 'destroy']);
-
     Route::get('/api/transactions', [TransactionController::class, 'index']);
     Route::get('/api/transactions/{id}', [TransactionController::class, 'show']);
-    Route::post('/api/transactions/{id}/void', [TransactionController::class, 'void']);
+
+    // API: Operational & Config - Admin Restricted
+    Route::middleware('admin')->group(function () {
+        Route::post('/api/settings', [SettingController::class, 'update']);
+        Route::get('/api/dashboard', [DashboardController::class, 'index']);
+        Route::get('/api/reports', [DashboardController::class, 'reports']);
+        Route::get('/api/dashboard/export', [DashboardController::class, 'export']);
+
+        Route::post('/api/products', [ProductController::class, 'store']);
+        Route::post('/api/products/import', [ProductController::class, 'bulkImport']);
+        Route::put('/api/products/{id}', [ProductController::class, 'update']);
+        Route::delete('/api/products/{id}', [ProductController::class, 'destroy']);
+        Route::patch('/api/products/{id}/toggle-active', [ProductController::class, 'toggleActive']);
+        Route::post('/api/products/{id}/stock', [ProductController::class, 'adjustStock']);
+
+        Route::post('/api/categories', [CategoryController::class, 'store']);
+        Route::put('/api/categories/{id}', [CategoryController::class, 'update']);
+        Route::delete('/api/categories/{id}', [CategoryController::class, 'destroy']);
+
+        Route::post('/api/transactions/{id}/void', [TransactionController::class, 'void']);
+    });
 
     // API: Shift & Reporting
     Route::get('/api/shifts', [ShiftController::class, 'index']);
@@ -190,10 +195,12 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class])->grou
     Route::delete('/api/held-orders/{id}', [HeldOrderController::class, 'destroy']);
 
     // API: User Management (Admin Actions)
-    Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-    Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
+    Route::middleware('admin')->group(function () {
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+        Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
+    });
 
     // API: Activity Logs (Admin Audit Trail)
     Route::get('/api/activity-logs', [\App\Http\Controllers\Api\ActivityLogController::class, 'index'])->name('activity-logs.index');

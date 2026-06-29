@@ -16,7 +16,13 @@ class SuperAdminMiddleware
         $user = $request->user();
 
         if (! $user || $user->role !== 'super_admin') {
-            abort(403, 'Unauthorized - Super Admin access required');
+            if ($request->expectsJson()) {
+                abort(403, 'Unauthorized - Super Admin access required');
+            }
+            if ($user && $user->is_admin) {
+                return redirect()->route('dashboard');
+            }
+            return redirect()->route('pos');
         }
 
         return $next($request);

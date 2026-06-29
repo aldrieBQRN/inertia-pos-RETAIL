@@ -20,7 +20,10 @@ class AdminMiddleware
     {
         // Check if user exists and has admin status
         if (! $request->user() || ! $request->user()->is_admin) {
-            abort(403, 'Unauthorized access.');
+            if ($request->expectsJson()) {
+                abort(403, 'Unauthorized access.');
+            }
+            return redirect()->route('pos');
         }
 
         return $next($request);
