@@ -40,7 +40,8 @@ export default function Settings({ auth }) {
     });
 
     const [openSections, setOpenSections] = useState({
-        hardware: true,
+        details: !!user?.is_admin,
+        hardware: !user?.is_admin,
         shift: false,
         legal: false
     });
@@ -49,6 +50,7 @@ export default function Settings({ auth }) {
         setOpenSections(prev => {
             const isOpening = !prev[section];
             return {
+                details: isOpening && section === 'details',
                 hardware: isOpening && section === 'hardware',
                 shift: isOpening && section === 'shift',
                 legal: isOpening && section === 'legal'
@@ -373,21 +375,9 @@ export default function Settings({ auth }) {
                                     </p>
                                 </div>
 
-                                {/* Address & Phone list inside Left Card */}
-                                <div className="w-full text-left mt-4 pt-4 border-t border-gray-100 space-y-3.5 relative z-10">
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Address</span>
-                                        <span className="text-sm font-semibold text-gray-800 leading-relaxed mt-0.5">{settings.address || <span className="italic text-gray-400 font-normal">Not configured</span>}</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Phone Number</span>
-                                        <span className="text-sm font-semibold text-gray-800 mt-0.5">{settings.phone || <span className="italic text-gray-400 font-normal">Not configured</span>}</span>
-                                    </div>
-                                </div>
-
                                 {/* Edit Store Details Button (Admin Only) */}
                                 {user?.is_admin && (
-                                    <div className="w-full mt-6 pt-5 border-t border-gray-100 relative z-10">
+                                    <div className="w-full mt-4 pt-4 border-t border-gray-100 relative z-10">
                                         <button
                                             type="button"
                                             onClick={() => setShowEditModal(true)}
@@ -404,7 +394,47 @@ export default function Settings({ auth }) {
                         {/* RIGHT COLUMN: Forms and Configs */}
                         <div className="lg:col-span-8 space-y-2 sm:space-y-6 lg:space-y-8 pb-10 sm:pb-0">
 
-
+                            {/* Store Details Accordion (Admins & Staff) */}
+                            <div className="bg-white sm:rounded-2xl sm:shadow-[0_2px_8px_rgb(0,0,0,0.04)] border-y sm:border border-gray-200/60 overflow-hidden">
+                                <div 
+                                    onClick={() => toggleSection('details')}
+                                    className="px-4 sm:px-8 py-3.5 sm:py-5 border-b border-gray-100/80 bg-white flex justify-between items-center cursor-pointer select-none group"
+                                >
+                                    <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2.5 uppercase sm:normal-case tracking-wider sm:tracking-normal text-[11px] sm:text-sm text-gray-500 sm:text-gray-900">
+                                        <div className="hidden sm:block p-1.5 bg-blue-50 text-blue-600 rounded-md">
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                                        </div>
+                                        Store Details
+                                    </h3>
+                                    <svg 
+                                        className={`w-5 h-5 text-gray-400 group-hover:text-gray-700 transition-transform duration-200 ${openSections.details ? 'rotate-180' : ''}`} 
+                                        fill="none" 
+                                        viewBox="0 0 24 24" 
+                                        stroke="currentColor"
+                                        strokeWidth="2.5"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                    </svg>
+                                </div>
+                                {openSections.details && (
+                                    <div className="p-0 animate-in fade-in duration-300">
+                                        <dl className="divide-y divide-gray-100">
+                                            <div className="px-4 sm:px-8 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50/50 transition-colors">
+                                                <dt className="text-sm font-medium text-gray-500 text-left">Store Name</dt>
+                                                <dd className="mt-1 text-sm font-semibold text-gray-900 sm:mt-0">{settings.store_name || <span className="italic text-gray-400 font-normal">Not configured</span>}</dd>
+                                            </div>
+                                            <div className="px-4 sm:px-8 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50/50 transition-colors">
+                                                <dt className="text-sm font-medium text-gray-500 text-left">Address</dt>
+                                                <dd className="mt-1 text-sm font-semibold text-gray-900 sm:mt-0 sm:text-right max-w-md">{settings.address || <span className="italic text-gray-400 font-normal">Not configured</span>}</dd>
+                                            </div>
+                                            <div className="px-4 sm:px-8 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50/50 transition-colors">
+                                                <dt className="text-sm font-medium text-gray-500 text-left">Phone Number</dt>
+                                                <dd className="mt-1 text-sm font-semibold text-gray-900 sm:mt-0">{settings.phone || <span className="italic text-gray-400 font-normal">Not configured</span>}</dd>
+                                            </div>
+                                        </dl>
+                                    </div>
+                                )}
+                            </div>
 
                             {/* ADMIN ONLY - Legal & Agreements Section */}
                             {user?.is_admin && (
