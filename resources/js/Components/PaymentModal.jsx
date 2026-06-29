@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
  * PaymentModal Component
  * Grouped UI: Main category (Cash, E-Wallet, Card) -> Sub-method
  */
-export default function PaymentModal({ total, onClose, onConfirm, isProcessing, showFKeys = true }) {
+export default function PaymentModal({ total, onClose, onConfirm, isProcessing, showFKeys = true, enableShortcuts = true }) {
     // Top-level category: 'cash', 'ewallet', 'card'
     const [category, setCategory] = useState('cash');
 
@@ -39,6 +39,13 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
     // Global KeyDown listener active only when PaymentModal is mounted (open)
     useEffect(() => {
         const handleModalKeyDown = (e) => {
+            const isFKey = e.key.match(/^F[1-9]$|^F1[0-2]$/);
+
+            // If F-keys shortcuts are disabled, do not intercept or execute them
+            if (isFKey && !enableShortcuts) {
+                return;
+            }
+
             if (e.key === 'F1') {
                 e.preventDefault();
                 handleCategorySelect('cash');
@@ -73,7 +80,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
         return () => {
             window.removeEventListener('keydown', handleModalKeyDown);
         };
-    }, [category, method, cashGiven, reference, total, onClose, onConfirm]);
+    }, [category, method, cashGiven, reference, total, onClose, onConfirm, enableShortcuts]);
 
     const handleCashChange = (e) => {
         let inputVal = e.target.value;

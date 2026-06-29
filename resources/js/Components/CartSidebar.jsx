@@ -20,7 +20,8 @@ export default function CartSidebar({
     onRecallClick,
     onEditItemQty,
     disabled = false,
-    showFKeys = true
+    showFKeys = true,
+    enableShortcuts = true
 }) {
     // --- STORE SELECTORS ---
     const cart = useCartStore((state) => state.cart);
@@ -73,6 +74,13 @@ export default function CartSidebar({
 
     useEffect(() => {
         const handleKeyDown = (e) => {
+            const isFKey = e.key.match(/^F[1-9]$|^F1[0-2]$/);
+            
+            // If F-keys shortcuts are disabled, do not intercept or execute them
+            if (isFKey && !enableShortcuts) {
+                return;
+            }
+
             if (showSuccessModal) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -88,7 +96,6 @@ export default function CartSidebar({
             if (disabled || showPaymentModal) return;
 
             // Ignore if typing in input/textarea (except F-keys)
-            const isFKey = e.key.match(/^F[1-9]$|^F1[0-2]$/);
             if (isFKey) {
                 e.preventDefault();
             }
@@ -207,7 +214,7 @@ export default function CartSidebar({
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [focusedIndex, hoveredItemId, cart, showPaymentModal, showSuccessModal, onEditItemQty, disabled]);
+    }, [focusedIndex, hoveredItemId, cart, showPaymentModal, showSuccessModal, onEditItemQty, disabled, enableShortcuts]);
 
     // Format currency for display
     const formatPrice = (cents) => `${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -576,6 +583,7 @@ export default function CartSidebar({
                     onConfirm={handleFinalizePayment}
                     isProcessing={isProcessing}
                     showFKeys={showFKeys}
+                    enableShortcuts={enableShortcuts}
                 />,
                 document.body
             )}

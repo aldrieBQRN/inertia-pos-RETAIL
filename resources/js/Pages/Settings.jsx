@@ -19,6 +19,7 @@ export default function Settings({ auth }) {
         store_name: '',
         address: '',
         phone: '',
+        enable_shortcuts: true,
         terms_of_service: '',
         privacy_policy: '',
         staff_terms_of_service: '',
@@ -124,6 +125,7 @@ export default function Settings({ auth }) {
         formData.append('store_name', settings.store_name);
         formData.append('address', settings.address || '');
         formData.append('phone', settings.phone || '');
+        formData.append('enable_shortcuts', settings.enable_shortcuts ? '1' : '0');
         if (logoFile) formData.append('logo', logoFile);
 
         try {
@@ -397,6 +399,16 @@ export default function Settings({ auth }) {
                                         <div className="px-4 sm:px-8 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50/50 transition-colors">
                                             <dt className="text-sm font-medium text-gray-500">Phone Number</dt>
                                             <dd className="mt-1 text-sm font-semibold text-gray-900 sm:mt-0">{settings.phone || <span className="italic text-gray-400 font-normal">Not configured</span>}</dd>
+                                        </div>
+                                        <div className="px-4 sm:px-8 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50/50 transition-colors">
+                                            <dt className="text-sm font-medium text-gray-500">Keyboard Shortcuts</dt>
+                                            <dd className="mt-1 text-sm font-semibold sm:mt-0">
+                                                {settings.enable_shortcuts ? (
+                                                    <span className="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 border border-emerald-200">Enabled</span>
+                                                ) : (
+                                                    <span className="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-rose-100 text-rose-700 border border-rose-200">Disabled (Hidden)</span>
+                                                )}
+                                            </dd>
                                         </div>
                                     </dl>
                                 </div>
@@ -765,6 +777,22 @@ export default function Settings({ auth }) {
                                             onChange={handleChange}
                                             className={inputClasses}
                                         />
+                                    </div>
+
+                                    <div className="pt-2">
+                                        <label className="flex items-center gap-3 cursor-pointer select-none">
+                                            <input
+                                                type="checkbox"
+                                                name="enable_shortcuts"
+                                                checked={!!settings.enable_shortcuts}
+                                                onChange={(e) => setSettings({ ...settings, enable_shortcuts: e.target.checked })}
+                                                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 animate-none"
+                                            />
+                                            <div className="text-left">
+                                                <span className="text-sm font-semibold text-gray-800">Enable POS keyboard shortcuts</span>
+                                                <p className="text-[11px] text-gray-500 leading-normal mt-0.5">Allow cashiers to use keyboard function keys (F1-F12) on the terminal.</p>
+                                            </div>
+                                        </label>
                                     </div>
                                 </div>
                             </form>

@@ -64,6 +64,7 @@ class HandleInertiaRequests extends Middleware
                             'store_logo_path' => $store->logo_path ?? null,
                             'address'         => $store->address,
                             'phone'           => $store->phone,
+                            'enable_shortcuts'=> $store->enable_shortcuts,
 
                             // GLOBAL SUPPORT INFO
                             'support_email'   => $globalSettings['support_email'] ?? '',
@@ -80,6 +81,7 @@ class HandleInertiaRequests extends Middleware
                     'store_name'      => $globalAppName,
                     'address'         => $globalSettings['company_address'] ?? '',
                     'phone'           => $globalSettings['support_phone'] ?? '',
+                    'enable_shortcuts'=> true,
                     'support_email'   => $globalSettings['support_email'] ?? '',
                     'support_phone'   => $globalSettings['support_phone'] ?? '',
                     'company_address' => $globalSettings['company_address'] ?? '',

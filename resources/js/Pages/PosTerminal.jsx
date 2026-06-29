@@ -22,6 +22,8 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         ...(settings || {})
     };
 
+    const shortcutsEnabled = activeSettings.enable_shortcuts !== false;
+
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -69,12 +71,12 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     useEffect(() => {
         const handleResize = () => {
             setIsMobile(window.innerWidth < 768);
-            setShowFKeys(window.innerWidth >= 1024);
+            setShowFKeys(shortcutsEnabled && window.innerWidth >= 1024);
         };
         handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    }, [shortcutsEnabled]);
 
 
     const isPolling = useRef(false);
@@ -150,6 +152,11 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
             const isFKey = e.key.match(/^F[1-9]$|^F1[0-2]$/);
             
+            // If F-keys shortcuts are disabled, do not intercept or execute them
+            if (isFKey && !shortcutsEnabled) {
+                return;
+            }
+
             // Intercept and prevent browser native defaults for POS F-keys
             if (isFKey) {
                 e.preventDefault();
@@ -364,7 +371,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
         window.addEventListener('keydown', handlePOSKeys);
         return () => window.removeEventListener('keydown', handlePOSKeys);
-    }, [showPaymentModal, showQtyModal, showHeldOrdersModal, showCustomItemModal, showCategoryDropdown, categoryNavIndex, categories, customItemForm, isCheckingSku, showCustomCategoryDropdown, customCategoryNavIndex, heldOrders, heldOrdersNavIndex]);
+    }, [showPaymentModal, showQtyModal, showHeldOrdersModal, showCustomItemModal, showCategoryDropdown, categoryNavIndex, categories, customItemForm, isCheckingSku, showCustomCategoryDropdown, customCategoryNavIndex, heldOrders, heldOrdersNavIndex, shortcutsEnabled]);
 
     const cart = useCartStore((state) => state.cart);
     const addToCart = useCartStore((state) => state.addToCart);
@@ -722,6 +729,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                         onClose={isMobile ? () => setIsMobileCartOpen(false) : undefined}
                         disabled={isAnyModalOpen}
                         showFKeys={showFKeys}
+                        enableShortcuts={shortcutsEnabled}
                     />
                 </div>
 
@@ -958,6 +966,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             onEditItemQty={(item) => triggerQtyModal(item, true)}
                             disabled={isAnyModalOpen}
                             showFKeys={showFKeys}
+                            enableShortcuts={shortcutsEnabled}
                         />
                     </div>
                 )}
