@@ -226,23 +226,23 @@ export default function User({ auth, users }) {
         }
 
         Swal.fire({
-            title: 'Revoke Access?',
-            text: "This user will lose access to the POS system immediately. Note: Users with sales history cannot be permanently deleted.",
+            title: 'Remove Staff?',
+            text: "Are you sure you want to remove this staff member? This action cannot be undone.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            confirmButtonText: 'Yes, revoke access'
+            confirmButtonText: 'Yes, remove staff'
         }).then((result) => {
             if (result.isConfirmed) {
                 destroy(route('users.destroy', user.id), {
                     preserveScroll: true,
                     preserveState: true,
-                    onSuccess: () => Swal.fire('Revoked!', 'The user has been removed.', 'success'),
+                    onSuccess: () => Swal.fire('Removed!', 'The staff member has been deleted.', 'success'),
                     onError: (errors) => {
                         if (errors.delete === 'linked_to_sales') {
                             Swal.fire({
-                                title: 'Cannot Delete User',
-                                text: 'This user has processed sales records and cannot be permanently deleted. Would you like to revoke their access instead?',
+                                title: 'Cannot Delete Staff',
+                                text: 'This staff member has processed sales records and cannot be permanently deleted. Would you like to revoke their access instead?',
                                 icon: 'warning',
                                 showCancelButton: true,
                                 confirmButtonColor: '#1B3A69',
@@ -432,10 +432,10 @@ export default function User({ auth, users }) {
                                                                 : 'text-red-500 hover:text-red-700 hover:bg-red-100'
                                                         }`} 
                                                         title={auth.user.id === u.id 
-                                                            ? "Cannot revoke self" 
+                                                            ? "Cannot remove self" 
                                                             : u.is_active === false 
                                                                 ? "Restore Access" 
-                                                                : "Revoke Access"
+                                                                : "Remove Staff"
                                                         }
                                                     >
                                                         {u.is_active === false ? (
@@ -444,7 +444,7 @@ export default function User({ auth, users }) {
                                                             </svg>
                                                         ) : (
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                                                             </svg>
                                                         )}
                                                     </button>
@@ -515,7 +515,7 @@ export default function User({ auth, users }) {
                                                     : 'text-red-600 bg-red-50 border-red-100'
                                             }`}
                                         >
-                                            {u.is_active === false ? 'Restore' : 'Revoke'}
+                                            {u.is_active === false ? 'Restore' : 'Remove'}
                                         </button>
                                     </div>
                                 </div>
