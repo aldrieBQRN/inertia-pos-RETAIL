@@ -36,3 +36,9 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
+
+/* Hide native Edge/IE password reveal eye icon */
+input::-ms-reveal,
+input::-ms-clear {
+    display: none !important;
+}
