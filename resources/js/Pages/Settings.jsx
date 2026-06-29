@@ -40,9 +40,9 @@ export default function Settings({ auth }) {
     });
 
     const [openSections, setOpenSections] = useState({
-        hardware: true,
-        shift: true,
-        legal: true
+        hardware: false,
+        shift: false,
+        legal: false
     });
 
     const toggleSection = (section) => {
@@ -503,116 +503,111 @@ export default function Settings({ auth }) {
                                         {openSections.hardware && (
                                             <div className="p-4 sm:p-8 space-y-4 sm:space-y-6 animate-in fade-in duration-300">
 
-                                                {/* Paper Size Selection */}
+                                                {/* POS Keyboard Shortcuts Toggle */}
                                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-5 border border-gray-100 sm:border-gray-200 rounded-md sm:rounded-md bg-white sm:bg-gray-50/50">
                                                     <div className="text-left">
-                                                        <h4 className="font-bold text-gray-900 text-sm sm:text-base">Receipt Width</h4>
-                                                        <p className="text-xs sm:text-[13px] text-gray-500 mt-0.5">Printer character alignment.</p>
+                                                        <h4 className="font-bold text-gray-900 text-sm sm:text-base">POS Keyboard Shortcuts</h4>
+                                                        <p className="text-xs sm:text-[13px] text-gray-500 mt-0.5">Enable or disable function keys (F1-F12) on this terminal.</p>
                                                     </div>
-                                                    <div className="flex bg-gray-100 sm:bg-gray-200/60 rounded-md sm:rounded-md p-1 sm:border border-gray-200 shadow-inner w-full sm:w-auto">
+                                                    <div className="flex items-center">
                                                         <button
-                                                            onClick={() => setPaperWidth('58mm')}
-                                                            className={`flex-1 sm:flex-none px-6 py-2.5 sm:py-2 rounded-md sm:rounded-lg text-sm font-bold transition-all duration-200 ${paperWidth === '58mm' ? 'bg-white text-gray-900 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}
+                                                            type="button"
+                                                            onClick={toggleShortcuts}
+                                                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${localShortcutsEnabled ? 'bg-emerald-500' : 'bg-gray-200'}`}
                                                         >
-                                                            58mm
+                                                            <span
+                                                                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${localShortcutsEnabled ? 'translate-x-5' : 'translate-x-0'}`}
+                                                            />
                                                         </button>
-                                                        <button
-                                                            onClick={() => setPaperWidth('80mm')}
-                                                            className={`flex-1 sm:flex-none px-6 py-2.5 sm:py-2 rounded-md sm:rounded-lg text-sm font-bold transition-all duration-200 ${paperWidth === '80mm' ? 'bg-white text-gray-900 shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}
-                                                        >
-                                                            80mm
-                                                         </button>
                                                     </div>
                                                 </div>
-
-                                                {/* POS Keyboard Shortcuts Toggle */}
-                                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-5 border border-gray-100 sm:border-gray-200 rounded-md sm:rounded-md bg-white sm:bg-gray-50/50">
-                                                     <div className="text-left">
-                                                         <h4 className="font-bold text-gray-900 text-sm sm:text-base">POS Keyboard Shortcuts</h4>
-                                                         <p className="text-xs sm:text-[13px] text-gray-500 mt-0.5">Enable or disable function keys (F1-F12) on this terminal.</p>
-                                                     </div>
-                                                     <div className="flex items-center">
-                                                         <button
-                                                             type="button"
-                                                             onClick={toggleShortcuts}
-                                                             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${localShortcutsEnabled ? 'bg-emerald-500' : 'bg-gray-200'}`}
-                                                         >
-                                                             <span
-                                                                 className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${localShortcutsEnabled ? 'translate-x-5' : 'translate-x-0'}`}
-                                                             />
-                                                         </button>
-                                                     </div>
-                                                 </div>
 
                                                 {/* Full Screen Mode Toggle */}
                                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-5 border border-gray-100 sm:border-gray-200 rounded-md sm:rounded-md bg-white sm:bg-gray-50/50">
                                                     <div className="text-left">
-                                                         <h4 className="font-bold text-gray-900 text-sm sm:text-base">Full Screen Mode</h4>
-                                                         <p className="text-xs sm:text-[13px] text-gray-500 mt-0.5">Toggle full screen view for the POS terminal.</p>
+                                                        <h4 className="font-bold text-gray-900 text-sm sm:text-base">Full Screen Mode</h4>
+                                                        <p className="text-xs sm:text-[13px] text-gray-500 mt-0.5">Toggle full screen view for the POS terminal.</p>
                                                     </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={toggleFullScreen}
-                                                        className="w-full sm:w-auto px-6 py-2.5 bg-gray-900 text-white font-bold text-sm rounded-lg hover:bg-black transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm"
-                                                    >
-                                                        {isFullScreen ? (
-                                                            <>
-                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 9L4.5 4.5M9 9H4.5M9 9V4.5M15 9l4.5-4.5M15 9h4.5M15 9V4.5M15 15l4.5 4.5M15 15h4.5M15 15v4.5M9 15l-4.5 4.5M9 15H4.5M9 15v4.5" /></svg>
-                                                                Exit Full Screen
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75v4.5m0-4.5h-4.5m4.5 0L15 9m5.25 11.25v-4.5m0 4.5h-4.5m4.5 0L15 15" /></svg>
-                                                                Go Full Screen
-                                                            </>
-                                                        )}
-                                                    </button>
+                                                    <div className="flex items-center">
+                                                        <button
+                                                            type="button"
+                                                            onClick={toggleFullScreen}
+                                                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isFullScreen ? 'bg-emerald-500' : 'bg-gray-200'}`}
+                                                        >
+                                                            <span
+                                                                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isFullScreen ? 'translate-x-5' : 'translate-x-0'}`}
+                                                            />
+                                                        </button>
+                                                    </div>
                                                 </div>
 
-                                                {/* Printer Connection Status */}
-                                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 p-4 sm:p-5 border border-gray-100 sm:border-gray-200 rounded-md sm:rounded-md bg-white sm:shadow-sm">
-                                                    <div className="flex items-center gap-3 sm:gap-4 w-full md:w-auto">
-                                                        <div className="relative flex shrink-0">
-                                                            <div className={`p-3 sm:p-4 rounded-md sm:rounded-md transition-colors duration-300 ${usbDevice || bluetoothDevice ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-gray-50 text-gray-400 border border-gray-100'}`}>
-                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 sm:w-7 sm:h-7"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
-                                                            </div>
-                                                            <span className="absolute -top-1 -right-1 flex h-3 w-3 sm:h-3.5 sm:w-3.5">
-                                                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${usbDevice || bluetoothDevice ? 'bg-green-400' : 'bg-red-400'}`}></span>
-                                                                <span className={`relative inline-flex rounded-full h-3 w-3 sm:h-3.5 sm:w-3.5 border-2 border-white ${usbDevice || bluetoothDevice ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                                                            </span>
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="font-bold text-gray-900 text-sm sm:text-[15px]">Thermal Printer</h4>
-                                                            <p className="text-xs sm:text-[13px] font-medium mt-0.5 transition-colors duration-300 flex items-center gap-1.5">
-                                                                Status: <span className={`${usbDevice || bluetoothDevice ? 'text-green-600' : 'text-red-500'}`}>
-                                                                    {usbDevice ? 'Connected (USB)' : bluetoothDevice ? 'Connected (Bluetooth)' : 'Offline'}
+                                                {/* Combined Printer Connection Status & Receipt Width */}
+                                                <div className="flex flex-col gap-4 sm:gap-5 p-4 sm:p-5 border border-gray-100 sm:border-gray-200 rounded-md sm:rounded-md bg-white sm:shadow-sm">
+                                                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                                                        <div className="flex items-center gap-3 sm:gap-4 w-full md:w-auto text-left">
+                                                            <div className="relative flex shrink-0">
+                                                                <div className={`p-3 sm:p-4 rounded-md sm:rounded-md transition-colors duration-300 ${usbDevice || bluetoothDevice ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-gray-50 text-gray-400 border border-gray-100'}`}>
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 sm:w-7 sm:h-7"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
+                                                                </div>
+                                                                <span className="absolute -top-1 -right-1 flex h-3 w-3 sm:h-3.5 sm:w-3.5">
+                                                                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${usbDevice || bluetoothDevice ? 'bg-green-400' : 'bg-red-400'}`}></span>
+                                                                    <span className={`relative inline-flex rounded-full h-3 w-3 sm:h-3.5 sm:w-3.5 border-2 border-white ${usbDevice || bluetoothDevice ? 'bg-green-500' : 'bg-red-500'}`}></span>
                                                                 </span>
-                                                            </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="font-bold text-gray-900 text-sm sm:text-[15px]">Thermal Printer</h4>
+                                                                <p className="text-xs sm:text-[13px] font-medium mt-0.5 transition-colors duration-300 flex items-center gap-1.5">
+                                                                    Status: <span className={`${usbDevice || bluetoothDevice ? 'text-green-600' : 'text-red-500'}`}>
+                                                                        {usbDevice ? 'Connected (USB)' : bluetoothDevice ? 'Connected (Bluetooth)' : 'Offline'}
+                                                                    </span>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex flex-wrap md:flex-nowrap gap-2 sm:gap-3 w-full md:w-auto">
+                                                            {!(usbDevice || bluetoothDevice) ? (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={isMobile ? connectBluetooth : connectUsb}
+                                                                    className="w-full md:w-auto px-6 py-3 sm:py-2.5 bg-blue-600 text-white font-bold sm:font-semibold text-sm rounded-lg sm:rounded-lg shadow-sm hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                                                                >
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
+                                                                    Pair {isMobile ? 'Bluetooth' : 'USB'}
+                                                                </button>
+                                                            ) : (
+                                                                <>
+                                                                    <button type="button" onClick={handleTestPrint} className="flex-1 md:flex-none px-4 sm:px-5 py-3 sm:py-2.5 bg-gray-100 border border-transparent sm:bg-white sm:border-gray-200 text-gray-800 sm:text-gray-700 font-bold sm:font-semibold text-sm rounded-lg sm:rounded-lg sm:shadow-sm hover:bg-gray-200 sm:hover:bg-gray-50 transition-all active:scale-[0.98] whitespace-nowrap">Test Print</button>
+                                                                    <button type="button" onClick={openCashDrawer} className="flex-1 md:flex-none px-4 sm:px-5 py-3 sm:py-2.5 bg-gray-100 border border-transparent sm:bg-white sm:border-gray-200 text-gray-800 sm:text-gray-700 font-bold sm:font-semibold text-sm rounded-lg sm:rounded-lg sm:shadow-sm hover:bg-gray-200 sm:hover:bg-gray-50 transition-all active:scale-[0.98] whitespace-nowrap">Open Drawer</button>
+                                                                    <button type="button" onClick={disconnect} className="flex-1 md:flex-none w-full md:w-auto px-4 sm:px-5 py-3 sm:py-2.5 bg-red-100 sm:bg-red-50 border border-transparent sm:border-red-100 text-red-700 sm:text-red-600 font-bold sm:font-semibold text-sm rounded-lg sm:rounded-lg sm:shadow-sm hover:bg-red-200 sm:hover:bg-red-100 transition-all active:scale-[0.98] whitespace-nowrap">Disconnect</button>
+                                                                </>
+                                                            )}
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex flex-wrap md:flex-nowrap gap-2 sm:gap-3 w-full md:w-auto">
-                                                        {!(usbDevice || bluetoothDevice) ? (
+                                                    {/* Receipt Width Alignment Selector (Embedded) */}
+                                                    <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                                        <div className="text-left">
+                                                            <h5 className="font-bold text-gray-900 text-xs sm:text-sm">Receipt Paper Width</h5>
+                                                            <p className="text-[11px] text-gray-400 mt-0.5">Specify layout width matching printer paper size.</p>
+                                                        </div>
+                                                        <div className="flex bg-gray-100 rounded-lg p-0.5 w-full sm:w-auto border border-gray-200/50">
                                                             <button
                                                                 type="button"
-                                                                onClick={isMobile ? connectBluetooth : connectUsb}
-                                                                className="w-full md:w-auto px-6 py-3 sm:py-2.5 bg-blue-600 text-white font-bold sm:font-semibold text-sm rounded-lg sm:rounded-lg shadow-sm hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                                                                onClick={() => setPaperWidth('58mm')}
+                                                                className={`flex-1 sm:flex-none px-4 py-1.5 rounded-md text-xs font-bold transition-all duration-200 ${paperWidth === '58mm' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                                                             >
-                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
-                                                                Pair {isMobile ? 'Bluetooth' : 'USB'}
+                                                                58mm
                                                             </button>
-                                                        ) : (
-                                                            <>
-                                                                <button type="button" onClick={handleTestPrint} className="flex-1 md:flex-none px-4 sm:px-5 py-3 sm:py-2.5 bg-gray-100 border border-transparent sm:bg-white sm:border-gray-200 text-gray-800 sm:text-gray-700 font-bold sm:font-semibold text-sm rounded-lg sm:rounded-lg sm:shadow-sm hover:bg-gray-200 sm:hover:bg-gray-50 transition-all active:scale-[0.98] whitespace-nowrap">Test Print</button>
-
-                                                                <button type="button" onClick={openCashDrawer} className="flex-1 md:flex-none px-4 sm:px-5 py-3 sm:py-2.5 bg-gray-100 border border-transparent sm:bg-white sm:border-gray-200 text-gray-800 sm:text-gray-700 font-bold sm:font-semibold text-sm rounded-lg sm:rounded-lg sm:shadow-sm hover:bg-gray-200 sm:hover:bg-gray-50 transition-all active:scale-[0.98] whitespace-nowrap">Open Drawer</button>
-
-                                                                <button type="button" onClick={disconnect} className="flex-1 md:flex-none w-full md:w-auto px-4 sm:px-5 py-3 sm:py-2.5 bg-red-100 sm:bg-red-50 border border-transparent sm:border-red-100 text-red-700 sm:text-red-600 font-bold sm:font-semibold text-sm rounded-lg sm:rounded-lg sm:shadow-sm hover:bg-red-200 sm:hover:bg-red-100 transition-all active:scale-[0.98] whitespace-nowrap">Disconnect</button>
-                                                            </>
-                                                        )}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setPaperWidth('80mm')}
+                                                                className={`flex-1 sm:flex-none px-4 py-1.5 rounded-md text-xs font-bold transition-all duration-200 ${paperWidth === '80mm' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                                            >
+                                                                80mm
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
-
                                             </div>
                                         )}
                                     </div>
