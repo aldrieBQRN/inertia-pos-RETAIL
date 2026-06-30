@@ -87,7 +87,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     useEffect(() => {
         // Automatically focus search input on component mount
         const timer = setTimeout(() => {
-            if (searchInputRef.current) {
+            if (searchInputRef.current && window.innerWidth >= 768) {
                 searchInputRef.current.focus();
             }
         }, 150);
@@ -507,7 +507,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         setQtyModalProduct(null);
         setIsQtyEditMode(false);
         setTimeout(() => {
-            if (searchInputRef.current) {
+            if (searchInputRef.current && !isMobile) {
                 searchInputRef.current.focus();
                 searchInputRef.current.select();
             }
@@ -553,7 +553,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         
         setTimeout(() => {
             const searchInput = document.querySelector('input[placeholder*="Search"]');
-            if (searchInput) searchInput.focus();
+            if (searchInput && !isMobile) searchInput.focus();
         }, 100);
     };
 
@@ -715,7 +715,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         <AuthenticatedLayout user={auth.user}>
             <Head title="POS Terminal" />
 
-            <div className="flex h-[calc(100vh-65px)] bg-gray-100 overflow-hidden relative">
+            <div className="pos-terminal flex h-full bg-gray-100 overflow-hidden relative">
 
                 {/* LEFT: CART SIDEBAR (50/50 splits) */}
                 <div className={`flex-1 md:w-1/2 flex-col min-w-0 h-full bg-white ${isMobileCartOpen ? 'flex fixed inset-0 z-50 bg-white' : 'hidden md:flex'}`}>
@@ -734,10 +734,10 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 </div>
 
                 {/* RIGHT PANEL: PRODUCT LISTING (50/50 splits) */}
-                <div className={`w-full md:w-1/2 md:flex-1 min-w-0 bg-gray-50 border-l border-gray-200 flex-col h-full ${isMobileCartOpen ? 'hidden md:flex' : 'flex'}`}>
+                <div className={`w-full md:w-1/2 md:flex-1 min-w-0 bg-gray-50 border-l border-gray-200 md:border-l-2 md:border-gray-300 flex-col h-full ${isMobileCartOpen ? 'hidden md:flex' : 'flex'}`}>
 
                     {/* COMPACT TOOLBAR */}
-                    <div className="p-2 md:p-3 bg-white border-b flex flex-col gap-2 shadow-sm z-10 shrink-0">
+                    <div className="p-2 md:p-3 bg-white border-b md:border-b-2 md:border-gray-300 flex flex-col gap-2 shadow-sm z-10 shrink-0">
                         {/* Row 1: Category & Search */}
                         <div className="flex gap-2 items-center w-full">
                             <div className="relative">
@@ -841,16 +841,17 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             <button
                                 onClick={handleOpenCustomItemModal}
                                 disabled={isAnyModalOpen}
-                                className="px-3 py-2 bg-gray-900 hover:bg-black text-white rounded-md text-xs font-black uppercase tracking-wider active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="p-2 md:px-3 md:py-2 bg-gray-900 hover:bg-black text-white rounded-md text-xs font-black uppercase tracking-wider active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Custom Item"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                                {showFKeys ? "Custom Item (F4)" : "Custom Item"}
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 md:w-3.5 md:h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                <span className="hidden md:inline">{showFKeys ? "Custom Item (F4)" : "Custom Item"}</span>
                             </button>
                         </div>
                     </div>
 
                     {/* PRODUCT LIST COLUMN HEADERS */}
-                    <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 shrink-0 hidden md:block">
+                    <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 md:border-b-2 md:border-gray-300 shrink-0 hidden md:block">
                         <div className="grid grid-cols-[140px_1fr_100px_110px] gap-2 text-xs font-black uppercase tracking-wider text-gray-500 font-mono">
                             <div className="pl-2">SKU / Barcode</div>
                             <div className="pl-2">Product Name / Category</div>
@@ -1058,7 +1059,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                 onClick={() => { setShowHeldOrdersModal(false); setHeldOrdersNavIndex(-1); }}
                                 className="w-full py-3 bg-white text-gray-755 border border-gray-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-[0.98]"
                             >
-                                Cancel (Esc)
+                                Cancel<span className="hidden md:inline"> (Esc)</span>
                             </button>
                         </div>
                     </div>
@@ -1117,19 +1118,19 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             </div>
 
                             {/* Submit & Cancel Buttons */}
-                            <div className="flex flex-col gap-2 mt-5 pb-2 shrink-0">
+                             <div className="flex flex-col gap-2 mt-5 pb-2 shrink-0">
                                 <button
                                     type="submit"
                                     className="w-full py-4 bg-gray-900 hover:bg-black text-white font-black text-sm uppercase tracking-widest rounded-lg shadow-lg transition-all active:scale-[0.98]"
                                 >
-                                    Add to Cart (Enter)
+                                    Add to Cart<span className="hidden md:inline"> (Enter)</span>
                                 </button>
                                 <button
                                     type="button"
                                     onClick={closeQtyModal}
                                     className="w-full py-3 bg-white text-gray-755 border border-gray-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-[0.98]"
                                 >
-                                    Cancel (Esc)
+                                    Cancel<span className="hidden md:inline"> (Esc)</span>
                                 </button>
                             </div>
                         </form>
@@ -1367,20 +1368,20 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             </div>
 
                             {/* Actions Group */}
-                            <div className="flex flex-col gap-2 mt-4 pt-4 border-t shrink-0">
+                             <div className="flex flex-col gap-2 mt-4 pt-4 border-t shrink-0">
                                 <button
                                     id="custom-item-form-submit-btn"
                                     type="submit"
                                     className="w-full py-3.5 bg-gray-900 hover:bg-black text-white font-black text-sm uppercase tracking-widest rounded-lg shadow-lg transition-all active:scale-[0.98]"
                                 >
-                                    Add Custom (Enter)
+                                    Add Custom<span className="hidden md:inline"> (Enter)</span>
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setShowCustomItemModal(false)}
                                     className="w-full py-3 bg-white text-gray-755 border border-gray-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-[0.98]"
                                 >
-                                    Cancel (Esc)
+                                    Cancel<span className="hidden md:inline"> (Esc)</span>
                                 </button>
                             </div>
                         </form>

@@ -2,30 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Modern Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
+/* Custom Modern Scrollbar globally for desktop devices only (hides on mobile) */
+@media (hover: hover) and (pointer: fine) {
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 10px;
-}
+    ::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 10px;
+    }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #d1d5db; /* Tailwind gray-300 */
-    border-radius: 10px;
-}
+    ::-webkit-scrollbar-thumb {
+        background: #d1d5db; /* Tailwind gray-300 */
+        border-radius: 10px;
+    }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af; /* Tailwind gray-400 */
-}
+    ::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af; /* Tailwind gray-400 */
+    }
 
-/* For Firefox */
-.custom-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: #d1d5db transparent;
+    /* For Firefox global scrollbar */
+    html {
+        scrollbar-width: thin;
+        scrollbar-color: #d1d5db transparent;
+    }
 }
 
 /* Hide scrollbar entirely for specific horizontal lists */
@@ -41,4 +43,20 @@
 input::-ms-reveal,
 input::-ms-clear {
     display: none !important;
+}
+
+/* Enhance table header top and bottom borders on desktop and tablet, scoped only to POS Terminal */
+@media (min-width: 768px) {
+    .pos-terminal table thead {
+        border-top: 2px solid #d1d5db !important; /* Tailwind gray-300 */
+        border-bottom: 2px solid #d1d5db !important; /* Tailwind gray-300 */
+    }
+    .pos-terminal table thead tr {
+        border-top: 2px solid #d1d5db !important;
+        border-bottom: 2px solid #d1d5db !important;
+    }
+    .pos-terminal table thead th {
+        border-top: 2px solid #d1d5db !important;
+        border-bottom: 2px solid #d1d5db !important;
+    }
 }

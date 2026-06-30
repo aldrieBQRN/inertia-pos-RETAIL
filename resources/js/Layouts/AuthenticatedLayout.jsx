@@ -63,14 +63,16 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
         </NavLink>
     );
 
+    const isPosTerminal = url === '/pos';
+
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className={isPosTerminal ? "h-screen overflow-hidden flex flex-col bg-gray-100" : "min-h-screen bg-gray-100"}>
 
             {/* FIX: Only show the broadcast banner to Tenants (Admins/Cashiers), never to Super Admin */}
             {user.role !== 'super_admin' && <GlobalBanner />}
 
             {/* Nav remains z-40 so it stays above page content, but below modals (z-50) */}
-            <nav className="border-b border-gray-100 bg-white sticky top-0 z-40">
+            <nav className={`border-b bg-white sticky top-0 z-40 ${isPosTerminal ? 'border-gray-100 md:border-b-2 md:border-gray-300' : 'border-gray-100'}`}>
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
                         <div className="flex">
@@ -289,7 +291,7 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
             )}
 
             {/* REMOVED: relative z-0. Main content will now allow modals to escape. */}
-            <main className="animate-in fade-in duration-500">{children}</main>
+            <main className={`animate-in fade-in duration-500 ${isPosTerminal ? 'flex-1 h-0 overflow-hidden' : ''}`}>{children}</main>
         </div>
     );
 }
