@@ -9,21 +9,26 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - uses: shivammathur/setup-php@v2
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
           extensions: mbstring, xml, ctype, mysql, gd
 
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
-      - name: Install & Build
+      - name: Install PHP Dependencies
+        run: composer install --no-ansi --no-interaction --no-dev --prefer-dist --optimize-autoloader
+
+      - name: Install & Build Frontend Assets
         run: |
-          composer install --no-ansi --no-interaction --no-dev --prefer-dist --optimize-autoloader
           npm ci
           npm run build
 
