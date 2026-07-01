@@ -30,6 +30,33 @@ const usePrinterStore = create(
 
             setPaperWidth: (width) => set({ paperWidth: width }),
 
+            _claimInterfaceForDevice: async (device) => {
+                if (!device.opened) {
+                    await device.open();
+                }
+                if (device.configuration === null) {
+                    await device.selectConfiguration(1);
+                }
+                
+                // Find interface with direction === 'out' endpoint
+                let foundIfaceNumber = null;
+                for (const iface of device.configuration.interfaces) {
+                    for (const alt of iface.alternates || [iface.alternate]) {
+                        const found = alt.endpoints.find(e => e.direction === 'out');
+                        if (found) {
+                            foundIfaceNumber = iface.interfaceNumber;
+                            break;
+                        }
+                    }
+                    if (foundIfaceNumber !== null) break;
+                }
+
+                // Default to interface 0 if not found
+                const targetInterface = foundIfaceNumber !== null ? foundIfaceNumber : 0;
+                await device.claimInterface(targetInterface);
+                return targetInterface;
+            },
+
             /**
              * Initializes listeners for physical hardware events.
              * Prevents redundant listeners by removing old ones first.
@@ -57,13 +84,7 @@ const usePrinterStore = create(
                 if (isPrinterEnabled) {
                     try {
                         const device = event.device;
-                        if (!device.opened) {
-                            await device.open();
-                        }
-                        if (device.configuration === null) {
-                            await device.selectConfiguration(1);
-                        }
-                        await device.claimInterface(0);
+                        await get()._claimInterfaceForDevice(device);
 
                         set({ usbDevice: device });
 
@@ -114,17 +135,7 @@ const usePrinterStore = create(
                     if (devices.length > 0) {
                         const device = devices[0];
 
-                        // Check if already open before opening
-                        if (!device.opened) {
-                            await device.open();
-                        }
-
-                        // Check configuration before selecting
-                        if (device.configuration === null) {
-                            await device.selectConfiguration(1);
-                        }
-
-                        await device.claimInterface(0);
+                        await get()._claimInterfaceForDevice(device);
                         set({ usbDevice: device });
 
                         // Setup listeners in case they refresh the page while it's plugged in
@@ -146,9 +157,7 @@ const usePrinterStore = create(
                     if (existingDevices.length > 0) {
                         try {
                             const knownDevice = existingDevices[0]; // Grab the first authorized device
-                            if (!knownDevice.opened) await knownDevice.open();
-                            if (knownDevice.configuration === null) await knownDevice.selectConfiguration(1);
-                            await knownDevice.claimInterface(0);
+                            await get()._claimInterfaceForDevice(knownDevice);
                             device = knownDevice; // Silent connection successful!
                         } catch (silentError) {
                             console.warn("Silent reconnect failed, falling back to popup...", silentError);
@@ -159,13 +168,7 @@ const usePrinterStore = create(
                     // 2. If no authorized printer found (or it failed), show the browser popup
                     if (!device) {
                         device = await navigator.usb.requestDevice({ filters: [] });
-                        if (!device.opened) {
-                            await device.open();
-                        }
-                        if (device.configuration === null) {
-                            await device.selectConfiguration(1);
-                        }
-                        await device.claimInterface(0);
+                        await get()._claimInterfaceForDevice(device);
                     }
 
                     // User intentionally connected, so enable it globally
@@ -362,8 +365,20 @@ const usePrinterStore = create(
                             if (!deviceToUse) throw new Error("Printer not reachable.");
                         }
 
-                        const endpoint = deviceToUse.configuration.interfaces[0].alternate.endpoints.find(e => e.direction === 'out');
-                        await deviceToUse.transferOut(endpoint.endpointNumber, commands);
+                        // Re-claim and dynamically find the correct bulk-out printing endpoint
+                        const printIfaceNumber = await get()._claimInterfaceForDevice(deviceToUse);
+                        const printInterface = deviceToUse.configuration.interfaces.find(i => i.interfaceNumber === printIfaceNumber);
+                        const alt = printInterface.alternate;
+                        const endpoint = alt.endpoints.find(e => e.direction === 'out');
+
+                        if (!endpoint) throw new Error("No USB print endpoint found on the active interface.");
+
+                        // Send data in chunks of 64 bytes to prevent buffer overflow/transfer errors
+                        const chunkSize = 64;
+                        for (let i = 0; i < commands.length; i += chunkSize) {
+                            const chunk = commands.slice(i, i + chunkSize);
+                            await deviceToUse.transferOut(endpoint.endpointNumber, chunk);
+                        }
 
                         return true;
                     }
