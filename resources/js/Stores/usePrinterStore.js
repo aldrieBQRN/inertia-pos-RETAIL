@@ -450,7 +450,9 @@ const usePrinterStore = create(
                 const header = [
                     0x1B, 0x61, 0x01, // Center align
                     0x1B, 0x45, 0x01, // Bold ON
+                    0x1D, 0x21, 0x11, // Double Width & Double Height ON for store name
                     ...encode(storeName.toUpperCase() + "\n"),
+                    0x1D, 0x21, 0x00, // Reset Size to Normal
                     0x1B, 0x45, 0x00, // Bold OFF
                     0x1B, 0x21, 0x00, // Force standard mode (Bold OFF)
                     ...(storeAddress ? encode(storeAddress + "\n") : []),
@@ -466,8 +468,8 @@ const usePrinterStore = create(
 
                 // Item columns header: Row 1 description header, Row 2 subtotal header
                 const itemHeader = is80
-                    ? "ITEM/DETAILS".padEnd(37) + " " + "PRICE".padStart(10) + "\n"
-                    : "ITEM/DETAILS".padEnd(21) + " " + "PRICE".padStart(8) + "\n";
+                    ? "DESCRIPTION".padEnd(37) + " " + "PRICE".padStart(10) + "\n"
+                    : "DESCRIPTION".padEnd(21) + " " + "PRICE".padStart(8) + "\n";
                 
                 finalCommands.push(...encode(itemHeader));
                 finalCommands.push(...encode(separator));
@@ -531,14 +533,14 @@ const usePrinterStore = create(
                     );
                 }
 
-                finalCommands.push(
-                    0x0A, 0x1B, 0x61, 0x01, // Center align for footer
-                    ...encode(separator),
-                    ...encode("No Return, No Exchange.\n"),
-                    ...encode("Thank you for shopping at\n"),
-                    ...encode("Aivin Variety Store!\n"),
-                    0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x41 // Cut paper
-                );
+                 finalCommands.push(
+                     0x0A, 0x1B, 0x61, 0x01, // Center align for footer
+                     ...encode(separator),
+                     ...encode("-Thank you for shopping with us!-\n\n"),
+                     ...encode("THIS IS NOT A VALID INVOICE\n"),
+                     ...encode("PLEASE ASK FOR VALID INVOICE\n"),
+                     0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x41 // Cut paper
+                 );
 
                 await executePrint(new Uint8Array(finalCommands));
             },
@@ -572,7 +574,9 @@ const usePrinterStore = create(
                 const report = [
                     0x1B, 0x61, 0x01, // Center align
                     0x1B, 0x45, 0x01, // Bold ON
+                    0x1D, 0x21, 0x11, // Double Width & Double Height ON for store name
                     ...encode(storeName.toUpperCase() + "\n"),
+                    0x1D, 0x21, 0x00, // Reset Size to Normal
                     0x1B, 0x45, 0x00, // Bold OFF
                     0x1B, 0x21, 0x00, // Force standard mode (Bold OFF)
                     ...(storeAddress ? encode(storeAddress + "\n") : []),
