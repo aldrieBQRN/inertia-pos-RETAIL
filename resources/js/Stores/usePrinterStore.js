@@ -414,6 +414,29 @@ const usePrinterStore = create(
                 const separator = "-".repeat(lineCap) + "\n";
                 const fmt = (cents) => (cents / 100).toLocaleString('en-PH', { minimumFractionDigits: 2 });
 
+                const wrapText = (text, limit) => {
+                    const words = text.split(' ');
+                    const lines = [];
+                    let currentLine = '';
+                    
+                    words.forEach(word => {
+                        if (word.length > limit) {
+                            if (currentLine) lines.push(currentLine.trim());
+                            lines.push(word.substring(0, limit));
+                            currentLine = word.substring(limit) + ' ';
+                            return;
+                        }
+                        if ((currentLine + word).length > limit) {
+                            lines.push(currentLine.trim());
+                            currentLine = word + ' ';
+                        } else {
+                            currentLine += word + ' ';
+                        }
+                    });
+                    if (currentLine) lines.push(currentLine.trim());
+                    return lines;
+                };
+
                 const storeName = settings?.store_name || "Aivin Variety Store";
                 const storeAddress = settings?.store_address || settings?.address || "";
                 const storePhone = settings?.store_phone || settings?.phone || "";
@@ -461,18 +484,23 @@ const usePrinterStore = create(
                     const formattedPrice = fmt(priceVal);
                     const formattedAmount = fmt(amountVal);
 
-                    // Row 1: Item Name (left) and Unit Price (right)
-                    const row1 = is80
-                        ? desc.substring(0, 37).padEnd(37) + " " + formattedPrice.padStart(10) + "\n"
-                        : desc.substring(0, 21).padEnd(21) + " " + formattedPrice.padStart(8) + "\n";
+                    const descLimit = is80 ? 37 : 21;
+                    const priceLimit = is80 ? 10 : 8;
+                    const nameLines = wrapText(desc, descLimit);
+
+                    // Row 1: First line of Name (left) and Unit Price (right)
+                    let itemLines = nameLines[0].padEnd(descLimit) + " " + formattedPrice.padStart(priceLimit) + "\n";
+
+                    // Row 1 Cont: Print remaining name lines (indented)
+                    for (let i = 1; i < nameLines.length; i++) {
+                        itemLines += `  ${nameLines[i]}\n`;
+                    }
 
                     // Row 2: Quantity (left) and Subtotal Amount (right)
                     const qtyDetail = `${quantity}x`;
-                    const row2 = is80
-                        ? `  ${qtyDetail}`.padEnd(37) + " " + formattedAmount.padStart(10) + "\n"
-                        : `  ${qtyDetail}`.padEnd(21) + " " + formattedAmount.padStart(8) + "\n";
+                    itemLines += `  ${qtyDetail}`.padEnd(descLimit) + " " + formattedAmount.padStart(priceLimit) + "\n";
 
-                    finalCommands.push(...encode(row1 + row2));
+                    finalCommands.push(...encode(itemLines));
                 });
 
                 if (trx.is_senior) {
