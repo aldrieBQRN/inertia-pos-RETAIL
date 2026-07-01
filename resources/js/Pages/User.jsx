@@ -204,27 +204,35 @@ export default function User({ auth, users }) {
         }
     };
 
-    const handleDelete = (user) => {
-        if (user.is_active === false) {
-            Swal.fire({
-                title: 'Restore Access?',
-                text: `Restore access for "${user.name}" to use the POS system.`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#1B3A69',
-                confirmButtonText: 'Yes, restore access'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    router.patch(route('users.toggle-active', user.id), {}, {
-                        preserveScroll: true,
-                        preserveState: true,
-                        onSuccess: () => Swal.fire('Restored!', 'User access has been restored successfully.', 'success')
-                    });
-                }
-            });
-            return;
-        }
+    const handleToggleActive = (user) => {
+        const isRevoking = user.is_active !== false;
+        Swal.fire({
+            title: isRevoking ? 'Revoke Access?' : 'Restore Access?',
+            text: isRevoking 
+                ? `Are you sure you want to revoke system access for "${user.name}"?`
+                : `Restore system access for "${user.name}"?`,
+            icon: isRevoking ? 'warning' : 'question',
+            showCancelButton: true,
+            confirmButtonColor: isRevoking ? '#d33' : '#1B3A69',
+            confirmButtonText: isRevoking ? 'Yes, revoke access' : 'Yes, restore access'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.patch(route('users.toggle-active', user.id), {}, {
+                    preserveScroll: true,
+                    preserveState: true,
+                    onSuccess: () => {
+                        Swal.fire(
+                            isRevoking ? 'Revoked!' : 'Restored!',
+                            isRevoking ? 'User access has been revoked successfully.' : 'User access has been restored successfully.',
+                            'success'
+                        );
+                    }
+                });
+            }
+        });
+    };
 
+    const handleDelete = (user) => {
         Swal.fire({
             title: 'Remove Staff?',
             text: "Are you sure you want to remove this staff member? This action cannot be undone.",
@@ -424,18 +432,18 @@ export default function User({ auth, users }) {
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
                                                     </button>
                                                     <button 
-                                                        onClick={() => handleDelete(u)} 
+                                                        onClick={() => handleToggleActive(u)} 
                                                         disabled={auth.user.id === u.id} 
                                                         className={`p-2 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent ${
                                                             u.is_active === false 
                                                                 ? 'text-green-600 hover:text-green-800 hover:bg-green-100' 
-                                                                : 'text-red-500 hover:text-red-700 hover:bg-red-100'
+                                                                : 'text-amber-600 hover:text-amber-800 hover:bg-amber-100'
                                                         }`} 
                                                         title={auth.user.id === u.id 
-                                                            ? "Cannot remove self" 
+                                                            ? "Cannot modify own status" 
                                                             : u.is_active === false 
                                                                 ? "Restore Access" 
-                                                                : "Remove Staff"
+                                                                : "Revoke Access"
                                                         }
                                                     >
                                                         {u.is_active === false ? (
@@ -444,9 +452,19 @@ export default function User({ auth, users }) {
                                                             </svg>
                                                         ) : (
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                                                             </svg>
                                                         )}
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleDelete(u)} 
+                                                        disabled={auth.user.id === u.id} 
+                                                        className="p-2 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-100 transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+                                                        title={auth.user.id === u.id ? "Cannot delete self" : "Delete Staff"}
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                        </svg>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -503,19 +521,26 @@ export default function User({ auth, users }) {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-3 gap-2 pt-1">
-                                        <button onClick={() => openViewModal(u)} className="py-2.5 text-xs font-bold text-gray-700 bg-gray-50 rounded-lg border border-gray-200 shadow-sm active:scale-95 transition-transform">View Profile</button>
-                                        <button onClick={() => openEditModal(u)} className="py-2.5 text-xs font-bold text-blue-700 bg-blue-50 rounded-lg border border-blue-200 shadow-sm active:scale-95 transition-transform">Edit</button>
+                                    <div className="grid grid-cols-2 gap-2 pt-1">
+                                        <button onClick={() => openViewModal(u)} className="py-2 text-xs font-bold text-gray-700 bg-gray-50 rounded-lg border border-gray-200 shadow-sm active:scale-95 transition-transform">View Profile</button>
+                                        <button onClick={() => openEditModal(u)} className="py-2 text-xs font-bold text-blue-700 bg-blue-50 rounded-lg border border-blue-200 shadow-sm active:scale-95 transition-transform">Edit</button>
+                                        <button 
+                                            onClick={() => handleToggleActive(u)} 
+                                            disabled={auth.user.id === u.id} 
+                                            className={`py-2 text-xs font-bold rounded-lg border shadow-sm active:scale-95 transition-transform disabled:opacity-40 disabled:scale-100 ${
+                                                u.is_active === false 
+                                                    ? 'text-green-700 bg-green-50 border-green-200' 
+                                                    : 'text-amber-700 bg-amber-50 border-amber-200'
+                                            }`}
+                                        >
+                                            {u.is_active === false ? 'Restore Access' : 'Revoke Access'}
+                                        </button>
                                         <button 
                                             onClick={() => handleDelete(u)} 
                                             disabled={auth.user.id === u.id} 
-                                            className={`py-2.5 text-xs font-bold rounded-lg border shadow-sm active:scale-95 transition-transform disabled:opacity-40 disabled:scale-100 ${
-                                                u.is_active === false 
-                                                    ? 'text-green-700 bg-green-50 border-green-100' 
-                                                    : 'text-red-600 bg-red-50 border-red-100'
-                                            }`}
+                                            className="py-2 text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded-lg shadow-sm active:scale-95 transition-transform disabled:opacity-40 disabled:scale-100"
                                         >
-                                            {u.is_active === false ? 'Restore' : 'Remove'}
+                                            Delete Staff
                                         </button>
                                     </div>
                                 </div>
