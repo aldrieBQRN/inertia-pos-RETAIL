@@ -9,6 +9,8 @@ import {
 import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 export default function Reports({ auth }) {
     const user = auth?.user;
@@ -309,14 +311,13 @@ export default function Reports({ auth }) {
         }
     };
 
-    const exportCSV = async () => {
+    const exportExcel = async () => {
         if (stats.total_orders === 0) {
             Swal.fire({ icon: 'info', title: 'No Data', text: 'No records found for this period to export.', confirmButtonColor: '#111827' });
             return;
         }
 
         try {
-            // Get store settings for the header, just like in exportPDF
             const [settingsRes] = await Promise.allSettled([
                 axios.get('/api/settings')
             ]);
@@ -324,95 +325,171 @@ export default function Reports({ auth }) {
             
             const storeName = settings?.store_name || 'POS Store System';
             const storeAddress = settings?.address || '';
-            const storeContact = settings?.phone || '';
+            const storeContact = settings?.phone ? `Contact: ${settings.phone}` : '';
 
-            const escapeCSV = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
-            
-            let csvRows = [];
-            
-            // Add Store Header metadata, similar to the Excel export
-            csvRows.push(`${escapeCSV("STORE NAME")},${escapeCSV(storeName)}`);
-            if (storeAddress) {
-                csvRows.push(`${escapeCSV("ADDRESS")},${escapeCSV(storeAddress)}`);
-            }
-            if (storeContact) {
-                csvRows.push(`${escapeCSV("CONTACT")},${escapeCSV(storeContact)}`);
-            }
-            csvRows.push(`${escapeCSV("REPORT TITLE")},${escapeCSV("BUSINESS ANALYTICS REPORT")}`);
-            csvRows.push(`${escapeCSV("DATE GENERATED")},${escapeCSV(new Date().toLocaleString())}`);
-            
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Analytics Report', {
+                views: [{ showGridLines: true }]
+            });
+
+            // Set column widths
+            worksheet.getColumn('A').width = 35; // Metric / Item Name
+            worksheet.getColumn('B').width = 25; // Value / Count
+            worksheet.getColumn('C').width = 30; // Growth (%)
+
+            // 1. Store Header (Rows 1 to 5)
+            // Store Name
+            worksheet.mergeCells('A1:C1');
+            worksheet.getCell('A1').value = storeName.toUpperCase();
+            worksheet.getCell('A1').font = { bold: true, color: { argb: '1B3A69' }, size: 14 };
+            worksheet.getCell('A1').alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getRow(1).height = 24;
+
+            // Address
+            worksheet.mergeCells('A2:C2');
+            worksheet.getCell('A2').value = storeAddress;
+            worksheet.getCell('A2').font = { color: { argb: '555555' }, size: 9 };
+            worksheet.getCell('A2').alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getRow(2).height = 16;
+
+            // Contact
+            worksheet.mergeCells('A3:C3');
+            worksheet.getCell('A3').value = storeContact;
+            worksheet.getCell('A3').font = { color: { argb: '555555' }, size: 9, italic: true };
+            worksheet.getCell('A3').alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getRow(3).height = 16;
+
+            // Report Title
+            worksheet.mergeCells('A4:C4');
+            worksheet.getCell('A4').value = 'BUSINESS ANALYTICS REPORT';
+            worksheet.getCell('A4').font = { bold: true, color: { argb: '333333' }, size: 11 };
+            worksheet.getCell('A4').alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getRow(4).height = 20;
+
+            // Period and Generation Time
+            worksheet.mergeCells('A5:C5');
             const filterText = (filters.start_date || filters.end_date)
-                ? `${filters.start_date || 'Start'} to ${filters.end_date || 'Present'}`
-                : 'Current Month (Default)';
-            csvRows.push(`${escapeCSV("PERIOD RANGE")},${escapeCSV(filterText)}`);
-            
-            // Spacer row
-            csvRows.push("");
-            
-            // 1. KPI Section
-            csvRows.push("BUSINESS PERFORMANCE KEY METRICS");
-            const headers = ["Metric", "Value", "Growth (%) vs Last Period"];
-            csvRows.push(headers.map(escapeCSV).join(","));
+                ? `Period: ${filters.start_date || 'Start'} to ${filters.end_date || 'Present'}`
+                : 'Period: Current Month (Default)';
+            const generatedText = `Generated: ${new Date().toLocaleString()}`;
+            worksheet.getCell('A5').value = `${filterText}  |  ${generatedText}`;
+            worksheet.getCell('A5').font = { color: { argb: '777777' }, size: 9 };
+            worksheet.getCell('A5').alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getRow(5).height = 16;
+
+            // Spacer
+            worksheet.getRow(6).height = 12;
+
+            let currentRow = 7;
+
+            // Helper to style section headers
+            const addSectionHeader = (title, hexColor) => {
+                worksheet.mergeCells(`A${currentRow}:C${currentRow}`);
+                const cell = worksheet.getCell(`A${currentRow}`);
+                cell.value = title;
+                cell.font = { bold: true, color: { argb: 'FFFFFF' }, size: 11 };
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: hexColor }
+                };
+                cell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+                worksheet.getRow(currentRow).height = 24;
+                currentRow++;
+            };
+
+            // Helper to style table headers
+            const addTableHeaders = (headers, hexColor = '1B3A69') => {
+                headers.forEach((h, index) => {
+                    const cell = worksheet.getRow(currentRow).getCell(index + 1);
+                    cell.value = h;
+                    cell.font = { bold: true, color: { argb: 'FFFFFF' }, size: 10 };
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: hexColor }
+                    };
+                    cell.alignment = { vertical: 'middle', horizontal: index === 0 ? 'left' : 'right' };
+                });
+                worksheet.getRow(currentRow).height = 20;
+                currentRow++;
+            };
+
+            // Helper to add data row
+            const addDataRow = (data) => {
+                data.forEach((val, index) => {
+                    const cell = worksheet.getRow(currentRow).getCell(index + 1);
+                    cell.value = val;
+                    cell.font = { size: 10 };
+                    cell.border = {
+                        bottom: { style: 'thin', color: { argb: 'E5E7EB' } }
+                    };
+                    if (index === 0) {
+                        cell.alignment = { vertical: 'middle', horizontal: 'left' };
+                    } else {
+                        cell.alignment = { vertical: 'middle', horizontal: 'right' };
+                    }
+                });
+                worksheet.getRow(currentRow).height = 20;
+                currentRow++;
+            };
+
+            // 2. Section: KEY METRICS
+            addSectionHeader("BUSINESS PERFORMANCE KEY METRICS", "1B3A69");
+            addTableHeaders(["Metric", "Value", "Growth vs Last Period"], "2C5282");
             
             const marginPercentage = stats.total_sales > 0 ? (stats.total_profit / stats.total_sales) * 100 : 0;
-            const rows = [
-                ["Gross Revenue", `PHP ${stats.total_sales.toFixed(2)}`, stats.sales_growth !== null ? `${stats.sales_growth}%` : "N/A"],
-                ["Net Profit", `PHP ${stats.total_profit.toFixed(2)}`, stats.profit_growth !== null ? `${stats.profit_growth}%` : "N/A"],
+            const kpiRows = [
+                ["Gross Revenue", `PHP ${stats.total_sales.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, stats.sales_growth !== null ? `${stats.sales_growth}%` : "N/A"],
+                ["Net Profit", `PHP ${stats.total_profit.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, stats.profit_growth !== null ? `${stats.profit_growth}%` : "N/A"],
                 ["Profit Margin Ratio", `${marginPercentage.toFixed(1)}%`, "N/A"],
-                ["Total Transactions", stats.total_orders, stats.orders_growth !== null ? `${stats.orders_growth}%` : "N/A"],
-                ["Average Ticket Size", `PHP ${stats.average_order_value.toFixed(2)}`, stats.aov_growth !== null ? `${stats.aov_growth}%` : "N/A"],
+                ["Total Transactions", stats.total_orders.toLocaleString('en-US'), stats.orders_growth !== null ? `${stats.orders_growth}%` : "N/A"],
+                ["Average Ticket Size", `PHP ${stats.average_order_value.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, stats.aov_growth !== null ? `${stats.aov_growth}%` : "N/A"],
             ];
-            
-            rows.forEach(row => {
-                csvRows.push(row.map(escapeCSV).join(","));
-            });
-            
-            csvRows.push("");
-            
-            // 2. Best Sellers Section
-            csvRows.push("TOP 5 BEST SELLING PRODUCTS");
-            csvRows.push(["Product Name", "Quantity Sold"].map(escapeCSV).join(","));
+            kpiRows.forEach(row => addDataRow(row));
+
+            // Spacer
+            currentRow++;
+
+            // 3. Section: BEST SELLERS
+            addSectionHeader("TOP 5 BEST SELLING PRODUCTS", "10B981");
+            addTableHeaders(["Product Name", "Quantity Sold", ""], "059669");
             (stats.top_products || []).forEach(item => {
-                csvRows.push([item.name, item.sold].map(escapeCSV).join(","));
+                addDataRow([item.name, item.sold.toLocaleString('en-US'), ""]);
             });
 
-            csvRows.push("");
+            // Spacer
+            currentRow++;
 
-            // 3. Category Section
-            csvRows.push("SALES BY PRODUCT CATEGORY");
-            csvRows.push(["Category Name", "Quantity Sold"].map(escapeCSV).join(","));
+            // 4. Section: CATEGORIES
+            addSectionHeader("SALES BY PRODUCT CATEGORY", "8B5CF6");
+            addTableHeaders(["Category Name", "Quantity Sold", ""], "7C3AED");
             (stats.sales_by_category || []).forEach(item => {
-                csvRows.push([item.name || 'Uncategorized', item.value].map(escapeCSV).join(","));
+                addDataRow([item.name || 'Uncategorized', item.value.toLocaleString('en-US'), ""]);
             });
 
-            csvRows.push("");
+            // Spacer
+            currentRow++;
 
-            // 4. Payment Section
-            csvRows.push("PAYMENT METHOD DISTRIBUTION");
-            csvRows.push(["Payment Method", "Transactions Count"].map(escapeCSV).join(","));
+            // 5. Section: PAYMENTS
+            addSectionHeader("PAYMENT METHOD DISTRIBUTION", "F59E0B");
+            addTableHeaders(["Payment Method", "Transactions Count", ""], "D97706");
             (stats.payment_methods || []).forEach(item => {
-                csvRows.push([formatPaymentName(item.payment_method), item.count].map(escapeCSV).join(","));
+                addDataRow([formatPaymentName(item.payment_method), item.count.toLocaleString('en-US'), ""]);
             });
 
-            const csvString = csvRows.join("\n");
-            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            
+            // Generate and Save Excel File
+            const buffer = await workbook.xlsx.writeBuffer();
             const dateRangeStr = (filters.start_date && filters.end_date)
                 ? `${filters.start_date}_to_${filters.end_date}`
                 : `Month_Period`;
-                
-            link.setAttribute("download", `Analytics_Data_${dateRangeStr}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const fileBlob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            saveAs(fileBlob, `Analytics_Report_${dateRangeStr}.xlsx`);
 
-            Swal.fire({ icon: 'success', title: 'CSV Data Exported!', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+            Swal.fire({ icon: 'success', title: 'Excel Report Exported!', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
         } catch (error) {
-            console.error("CSV Export Error:", error);
-            Swal.fire('Error', 'Failed to generate the CSV report.', 'error');
+            console.error("Excel Export Error:", error);
+            Swal.fire('Error', 'Failed to generate the Excel report.', 'error');
         }
     };
 
@@ -486,13 +563,13 @@ export default function Reports({ auth }) {
 
                             <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto shrink-0">
                                 <button
-                                    onClick={exportCSV}
+                                    onClick={exportExcel}
                                     className="w-full sm:w-auto bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 sm:py-3 rounded-md text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.5l9 9 9-9M12 22.5V3" />
                                     </svg>
-                                    Export CSV Data
+                                    Export Excel Report
                                 </button>
 
                                 <button
