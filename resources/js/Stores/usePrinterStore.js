@@ -410,7 +410,7 @@ const usePrinterStore = create(
             printReceipt: async (trx, settings) => {
                 const { paperWidth, executePrint } = get();
                 const is80 = paperWidth === '80mm';
-                const lineCap = is80 ? 48 : 32;
+                const lineCap = is80 ? 64 : 42;
                 const separator = "-".repeat(lineCap) + "\n";
                 const fmt = (cents) => (cents / 100).toLocaleString('en-PH', { minimumFractionDigits: 2 });
 
@@ -418,7 +418,7 @@ const usePrinterStore = create(
                 const storeAddress = settings?.store_address || settings?.address || "";
                 const storePhone = settings?.store_phone || settings?.phone || "";
 
-                let finalCommands = [0x1B, 0x40];
+                let finalCommands = [0x1B, 0x40, 0x1B, 0x21, 0x01];
 
                 if (trx.payment_method === 'cash') {
                     finalCommands.push(0x1B, 0x70, 0x00, 0x19, 0xFA);
@@ -444,8 +444,8 @@ const usePrinterStore = create(
 
                 // Item columns header: QTY DESCRIPTION PRICE AMOUNT
                 const itemHeader = is80
-                    ? "QTY".padEnd(4) + " " + "DESCRIPTION".padEnd(21) + " " + "PRICE".padStart(10) + " " + "AMOUNT".padStart(10) + "\n"
-                    : "QTY".padEnd(3) + " " + "DESCRIPTION".padEnd(12) + " " + "PRICE".padStart(7) + " " + "AMOUNT".padStart(8) + "\n";
+                    ? "QTY".padEnd(5) + " " + "DESCRIPTION".padEnd(33) + " " + "PRICE".padStart(12) + " " + "AMOUNT".padStart(12) + "\n"
+                    : "QTY".padEnd(4) + " " + "DESCRIPTION".padEnd(18) + " " + "PRICE".padStart(9) + " " + "AMOUNT".padStart(9) + "\n";
                 
                 finalCommands.push(...encode(itemHeader));
                 finalCommands.push(...encode(separator));
@@ -463,16 +463,16 @@ const usePrinterStore = create(
                     const formattedAmount = fmt(amountVal);
 
                     if (is80) {
-                        const qtyStr = (quantity + "x").padEnd(4);
-                        const descStr = desc.substring(0, 21).padEnd(21);
-                        const priceStr = formattedPrice.padStart(10);
-                        const amountStr = formattedAmount.padStart(10);
+                        const qtyStr = (quantity + "x").padEnd(5);
+                        const descStr = desc.substring(0, 33).padEnd(33);
+                        const priceStr = formattedPrice.padStart(12);
+                        const amountStr = formattedAmount.padStart(12);
                         finalCommands.push(...encode(`${qtyStr} ${descStr} ${priceStr} ${amountStr}\n`));
                     } else {
-                        const qtyStr = (quantity + "x").padEnd(3);
-                        const descStr = desc.substring(0, 12).padEnd(12);
-                        const priceStr = formattedPrice.padStart(7);
-                        const amountStr = formattedAmount.padStart(8);
+                        const qtyStr = (quantity + "x").padEnd(4);
+                        const descStr = desc.substring(0, 18).padEnd(18);
+                        const priceStr = formattedPrice.padStart(9);
+                        const amountStr = formattedAmount.padStart(9);
                         finalCommands.push(...encode(`${qtyStr} ${descStr} ${priceStr} ${amountStr}\n`));
                     }
                 });
@@ -520,7 +520,7 @@ const usePrinterStore = create(
             printZRead: async (data, settings) => {
                 const { paperWidth, executePrint } = get();
                 const is80 = paperWidth === '80mm';
-                const lineCap = is80 ? 42 : 32;
+                const lineCap = is80 ? 56 : 42;
                 const separator = "-".repeat(lineCap) + "\n";
                 const fmt = (val) => formatCurrency(val);
 
@@ -539,7 +539,7 @@ const usePrinterStore = create(
                 const storeAddress = settings?.store_address || settings?.address || "";
                 const storePhone = settings?.store_phone || settings?.phone || "";
 
-                let finalCommands = [0x1B, 0x40];
+                let finalCommands = [0x1B, 0x40, 0x1B, 0x21, 0x01];
 
                 finalCommands.push(0x1B, 0x70, 0x00, 0x19, 0xFA);
 
