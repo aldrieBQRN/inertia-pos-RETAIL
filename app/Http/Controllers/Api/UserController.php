@@ -330,7 +330,8 @@ class UserController extends Controller
      */
     private function compressAndStoreImage($file)
     {
-        $imageInfo = getimagesize($file->getRealPath());
+        $tempPath = $file->getPathname();
+        $imageInfo = getimagesize($tempPath);
         if ($imageInfo === false) {
             return $file->store('avatars', 'public');
         }
@@ -341,16 +342,16 @@ class UserController extends Controller
         
         switch ($mime) {
             case 'image/jpeg':
-                $srcImage = imagecreatefromjpeg($file->getRealPath());
+                $srcImage = imagecreatefromjpeg($tempPath);
                 break;
             case 'image/png':
-                $srcImage = imagecreatefrompng($file->getRealPath());
+                $srcImage = imagecreatefrompng($tempPath);
                 break;
             case 'image/gif':
-                $srcImage = imagecreatefromgif($file->getRealPath());
+                $srcImage = imagecreatefromgif($tempPath);
                 break;
             case 'image/webp':
-                $srcImage = imagecreatefromwebp($file->getRealPath());
+                $srcImage = imagecreatefromwebp($tempPath);
                 break;
             default:
                 return $file->store('avatars', 'public');
