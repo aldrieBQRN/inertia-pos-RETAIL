@@ -22,6 +22,7 @@ const usePrinterStore = create(
             // --- PERSISTENT SETTINGS (Saved in LocalStorage) ---
             paperWidth: '80mm',
             isPrinterEnabled: false, // Tracks if the user INTENTIONALLY wants the printer active
+            printAsImage: false, // Enabled for rendering receipt as HTML to image for smaller fonts
 
             // --- VOLATILE STATE (In-Memory only) ---
             usbDevice: null,
@@ -29,6 +30,52 @@ const usePrinterStore = create(
             isMobile: /Android|iPhone|iPad/i.test(navigator.userAgent),
 
             setPaperWidth: (width) => set({ paperWidth: width }),
+            setPrintAsImage: (enabled) => set({ printAsImage: enabled }),
+
+            _convertCanvasToEscPos: (canvas) => {
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                const widthBytes = Math.ceil(width / 8);
+                const data = new Uint8Array(widthBytes * height);
+                
+                const imgData = ctx.getImageData(0, 0, width, height).data;
+                
+                for (let y = 0; y < height; y++) {
+                    for (let xBytes = 0; xBytes < widthBytes; xBytes++) {
+                        let byteVal = 0;
+                        for (let bit = 0; bit < 8; bit++) {
+                            const x = xBytes * 8 + bit;
+                            if (x < width) {
+                                const idx = (y * width + x) * 4;
+                                const r = imgData[idx];
+                                const g = imgData[idx + 1];
+                                const b = imgData[idx + 2];
+                                const a = imgData[idx + 3];
+                                
+                                // Threshold: alpha > 128 and average color < 180 is black (1), else white (0)
+                                const isBlack = a > 128 && (r + g + b) / 3 < 180;
+                                if (isBlack) {
+                                    byteVal |= (1 << (7 - bit));
+                                }
+                            }
+                        }
+                        data[y * widthBytes + xBytes] = byteVal;
+                    }
+                }
+                
+                const xL = widthBytes % 256;
+                const xH = Math.floor(widthBytes / 256);
+                const yL = height % 256;
+                const yH = Math.floor(height / 256);
+                
+                const header = new Uint8Array([0x1D, 0x76, 0x30, 0, xL, xH, yL, yH]);
+                const result = new Uint8Array(header.length + data.length);
+                result.set(header, 0);
+                result.set(data, header.length);
+                return result;
+            },
 
             _claimInterfaceForDevice: async (device) => {
                 if (!device.opened) {
@@ -408,7 +455,147 @@ const usePrinterStore = create(
             },
 
             printReceipt: async (trx, settings) => {
-                const { paperWidth, executePrint } = get();
+                const { paperWidth, executePrint, printAsImage, _convertCanvasToEscPos } = get();
+
+                // DYNAMIC HTML-TO-IMAGE receipt printing for custom small font sizes
+                if (printAsImage && typeof document !== 'undefined') {
+                    const container = document.createElement('div');
+                    container.style.position = 'absolute';
+                    container.style.left = '-9999px';
+                    container.style.top = '0';
+                    const is80 = paperWidth === '80mm';
+                    const widthPx = is80 ? 576 : 384;
+                    container.style.width = `${widthPx}px`;
+                    container.style.background = '#ffffff';
+                    container.style.color = '#000000';
+                    container.style.fontFamily = 'Arial, sans-serif';
+                    container.style.fontSize = '12px';
+                    container.style.lineHeight = '1.3';
+                    container.style.padding = '8px';
+                    container.style.boxSizing = 'border-box';
+
+                    const storeName = settings?.store_name || "Aivin Variety Store";
+                    const storeAddress = settings?.store_address || settings?.address || "";
+                    const storePhone = settings?.store_phone || settings?.phone || "";
+
+                    const itemsHtml = trx.items.map(item => {
+                        const desc = item.product?.name || item.custom_name || item.name || 'Item';
+                        const qty = item.quantity;
+                        const price = (item.unit_price || item.price || 0) / 100;
+                        const amount = price * qty;
+                        return `
+                            <div style="display: flex; font-size: 11px; margin-bottom: 3px;">
+                                <span style="width: 25px; flex-shrink: 0;">${qty}x</span>
+                                <span style="flex: 1; padding-left: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${desc}</span>
+                                <span style="width: 60px; text-align: right; flex-shrink: 0;">${price.toFixed(2)}</span>
+                                <span style="width: 70px; text-align: right; font-weight: bold; flex-shrink: 0;">${amount.toFixed(2)}</span>
+                            </div>
+                        `;
+                    }).join('');
+
+                    const totalAmount = trx.total_amount / 100;
+                    const cashGiven = (trx.cash_given || trx.total_amount) / 100;
+                    const change = (trx.change || 0) / 100;
+
+                    container.innerHTML = `
+                        <div style="text-align: center; margin-bottom: 8px;">
+                            <h1 style="font-size: 16px; font-weight: bold; margin: 0 0 2px 0; text-transform: uppercase;">${storeName}</h1>
+                            ${storeAddress ? `<div style="font-size: 10px; margin-bottom: 1px;">${storeAddress}</div>` : ''}
+                            ${storePhone ? `<div style="font-size: 10px; margin-bottom: 2px;">Tel: ${storePhone}</div>` : ''}
+                            <div style="border-top: 1px dashed #000; margin-top: 5px;"></div>
+                        </div>
+                        
+                        <div style="font-size: 10px; margin-bottom: 6px; line-height: 1.3;">
+                            <div>Invoice: <b>${trx.invoice_number || trx.transaction_code}</b></div>
+                            <div>Date: ${new Date(trx.created_at).toLocaleString()}</div>
+                            <div>Cashier: ${trx.cashier?.name || "Staff"}</div>
+                            <div style="border-top: 1px dashed #000; margin-top: 5px;"></div>
+                        </div>
+                        
+                        <div style="margin-bottom: 6px;">
+                            <div style="display: flex; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 3px;">
+                                <span style="width: 25px; flex-shrink: 0;">Qty</span>
+                                <span style="flex: 1; padding-left: 4px;">Description</span>
+                                <span style="width: 60px; text-align: right; flex-shrink: 0;">Price</span>
+                                <span style="width: 70px; text-align: right; flex-shrink: 0;">Amount</span>
+                            </div>
+                            <div style="border-top: 1px dashed #000; margin-bottom: 5px;"></div>
+                            ${itemsHtml}
+                            <div style="border-top: 1px dashed #000; margin-top: 5px;"></div>
+                        </div>
+                        
+                        <div style="font-size: 10px; line-height: 1.4; margin-bottom: 8px;">
+                            ${trx.is_senior ? `
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Subtotal:</span>
+                                <span>${(trx.subtotal / 100).toFixed(2)}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Discount:</span>
+                                <span>-${((trx.discount_amount || 0) / 100).toFixed(2)}</span>
+                            </div>
+                            ` : ''}
+                            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; border-bottom: 1px dashed #000; padding-bottom: 3px; margin-bottom: 3px;">
+                                <span>TOTAL:</span>
+                                <span>PHP ${totalAmount.toFixed(2)}</span>
+                            </div>
+                            ${trx.payment_method === 'cash' ? `
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Cash Given:</span>
+                                <span>${cashGiven.toFixed(2)}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-weight: bold;">
+                                <span>Change:</span>
+                                <span>${change.toFixed(2)}</span>
+                            </div>
+                            ` : `
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Payment Method:</span>
+                                <span style="text-transform: uppercase; font-weight: bold;">${trx.payment_method}</span>
+                            </div>
+                            `}
+                        </div>
+                        
+                        <div style="text-align: center; font-size: 9px; margin-top: 12px; border-top: 1px dashed #000; padding-top: 6px;">
+                            <div>No Return, No Exchange.</div>
+                            <div style="font-weight: bold; margin-top: 1px;">Thank you for shopping!</div>
+                        </div>
+                    `;
+
+                    document.body.appendChild(container);
+                    try {
+                        const html2canvas = (await import('html2canvas')).default;
+                        const canvas = await html2canvas(container, {
+                            scale: 1,
+                            useCORS: true,
+                            logging: false,
+                            backgroundColor: '#ffffff'
+                        });
+                        document.body.removeChild(container);
+
+                        const escposBytes = _convertCanvasToEscPos(canvas);
+
+                        const initCmds = new Uint8Array([0x1B, 0x40]);
+                        let drawerCmds = new Uint8Array([]);
+                        if (trx.payment_method === 'cash') {
+                            drawerCmds = new Uint8Array([0x1B, 0x70, 0x00, 0x19, 0xFA]);
+                        }
+                        const cutCmds = new Uint8Array([0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x41]);
+
+                        const finalCmds = new Uint8Array(initCmds.length + drawerCmds.length + escposBytes.length + cutCmds.length);
+                        let offset = 0;
+                        finalCmds.set(initCmds, offset); offset += initCmds.length;
+                        finalCmds.set(drawerCmds, offset); offset += drawerCmds.length;
+                        finalCmds.set(escposBytes, offset); offset += escposBytes.length;
+                        finalCmds.set(cutCmds, offset);
+
+                        return await executePrint(finalCmds);
+                    } catch (err) {
+                        console.error("Image printing failed, falling back to text:", err);
+                        if (container.parentNode) document.body.removeChild(container);
+                    }
+                }
+
                 const is80 = paperWidth === '80mm';
                 const lineCap = is80 ? 48 : 30;
                 const separator = "-".repeat(lineCap) + "\n";
@@ -516,7 +703,160 @@ const usePrinterStore = create(
             },
 
             printZRead: async (data, settings) => {
-                const { paperWidth, executePrint } = get();
+                const { paperWidth, executePrint, printAsImage, _convertCanvasToEscPos } = get();
+
+                // DYNAMIC HTML-TO-IMAGE report printing for custom small font sizes
+                if (printAsImage && typeof document !== 'undefined') {
+                    const container = document.createElement('div');
+                    container.style.position = 'absolute';
+                    container.style.left = '-9999px';
+                    container.style.top = '0';
+                    const is80 = paperWidth === '80mm';
+                    const widthPx = is80 ? 576 : 384;
+                    container.style.width = `${widthPx}px`;
+                    container.style.background = '#ffffff';
+                    container.style.color = '#000000';
+                    container.style.fontFamily = 'Arial, sans-serif';
+                    container.style.fontSize = '12px';
+                    container.style.lineHeight = '1.3';
+                    container.style.padding = '8px';
+                    container.style.boxSizing = 'border-box';
+
+                    const diff = Number(data.difference);
+                    const gcash = Number(data.gcash_sales || 0);
+                    const maya = Number(data.maya_sales || 0);
+                    const credit = Number(data.credit_card_sales || 0);
+                    const debit = Number(data.debit_card_sales || 0);
+                    const totalSales = Number(data.cash_sales) + gcash + maya + credit + debit;
+
+                    let diffLabel = 'BALANCED';
+                    if (diff > 0.01) diffLabel = 'OVERAGE (+)';
+                    if (diff < -0.01) diffLabel = 'SHORTAGE (-)';
+
+                    const storeName = settings?.store_name || "POS";
+                    const storeAddress = settings?.store_address || settings?.address || "";
+                    const storePhone = settings?.store_phone || settings?.phone || "";
+
+                    container.innerHTML = `
+                        <div style="text-align: center; margin-bottom: 8px;">
+                            <h1 style="font-size: 16px; font-weight: bold; margin: 0 0 2px 0; text-transform: uppercase;">${storeName}</h1>
+                            ${storeAddress ? `<div style="font-size: 10px; margin-bottom: 1px;">${storeAddress}</div>` : ''}
+                            ${storePhone ? `<div style="font-size: 10px; margin-bottom: 2px;">Tel: ${storePhone}</div>` : ''}
+                            <div style="font-size: 12px; font-weight: bold; margin-top: 4px; text-transform: uppercase;">Z-READ REPORT</div>
+                            <div style="border-top: 1px dashed #000; margin-top: 5px;"></div>
+                        </div>
+
+                        <div style="font-size: 10px; margin-bottom: 6px; line-height: 1.3;">
+                            <div>Cashier: ${data.user?.name || data.staff_name || "Staff"}</div>
+                            <div>Opened: ${new Date(data.start_time || data.start).toLocaleString()}</div>
+                            <div>Closed: ${new Date(data.end_time || data.end).toLocaleString()}</div>
+                            <div style="border-top: 1px dashed #000; margin-top: 5px;"></div>
+                        </div>
+
+                        <div style="font-size: 10px; line-height: 1.4; margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Starting Cash:</span>
+                                <span>${formatCurrency(data.starting_cash)}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>+ Cash Sales:</span>
+                                <span>${formatCurrency(data.cash_sales)}</span>
+                            </div>
+                            ${data.expenses > 0 ? `
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>- Expenses:</span>
+                                <span>${formatCurrency(data.expenses)}</span>
+                            </div>
+                            ` : ''}
+                            <div style="border-top: 1px dashed #000; margin: 4px 0;"></div>
+                            <div style="display: flex; justify-content: space-between; font-weight: bold;">
+                                <span>EXPECTED CASH:</span>
+                                <span>${formatCurrency(data.expected_cash)}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-weight: bold;">
+                                <span>ACTUAL COUNT:</span>
+                                <span>${formatCurrency(data.actual_cash || data.ending_cash || 0)}</span>
+                            </div>
+                            <div style="border-top: 1px dashed #000; margin: 4px 0;"></div>
+                            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 11px;">
+                                <span>DIFFERENCE:</span>
+                                <span>${(diff > 0 ? "+" : "") + formatCurrency(data.difference)}</span>
+                            </div>
+                            <div style="text-align: center; font-weight: bold; margin-top: 6px; font-size: 11px; text-transform: uppercase;">[ ${diffLabel} ]</div>
+                        </div>
+
+                        <div style="font-size: 10px; line-height: 1.4; margin-top: 10px; border-top: 1px dashed #000; padding-top: 6px;">
+                            <div style="font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">GROSS SALES BREAKDOWN</div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Cash Sales:</span>
+                                <span>${formatCurrency(data.cash_sales)}</span>
+                            </div>
+                            ${gcash > 0 ? `
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>GCash:</span>
+                                <span>${formatCurrency(gcash)}</span>
+                            </div>
+                            ` : ''}
+                            ${maya > 0 ? `
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Maya:</span>
+                                <span>${formatCurrency(maya)}</span>
+                            </div>
+                            ` : ''}
+                            ${credit > 0 ? `
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Credit Card:</span>
+                                <span>${formatCurrency(credit)}</span>
+                            </div>
+                            ` : ''}
+                            ${debit > 0 ? `
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Debit Card:</span>
+                                <span>${formatCurrency(debit)}</span>
+                            </div>
+                            ` : ''}
+                            <div style="border-top: 1px dashed #000; margin: 4px 0;"></div>
+                            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 11px;">
+                                <span>TOTAL GROSS SALES:</span>
+                                <span>${formatCurrency(totalSales)}</span>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center; font-size: 9px; margin-top: 20px; border-top: 1px dashed #000; padding-top: 10px;">
+                            <div>Printed: ${new Date().toLocaleString()}</div>
+                            <div style="margin-top: 25px; border-top: 1px solid #000; display: inline-block; width: 150px; padding-top: 2px;">Manager Signature</div>
+                        </div>
+                    `;
+
+                    document.body.appendChild(container);
+                    try {
+                        const html2canvas = (await import('html2canvas')).default;
+                        const canvas = await html2canvas(container, {
+                            scale: 1,
+                            useCORS: true,
+                            logging: false,
+                            backgroundColor: '#ffffff'
+                        });
+                        document.body.removeChild(container);
+
+                        const escposBytes = _convertCanvasToEscPos(canvas);
+
+                        const initCmds = new Uint8Array([0x1B, 0x40]);
+                        const cutCmds = new Uint8Array([0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x41]);
+
+                        const finalCmds = new Uint8Array(initCmds.length + escposBytes.length + cutCmds.length);
+                        let offset = 0;
+                        finalCmds.set(initCmds, offset); offset += initCmds.length;
+                        finalCmds.set(escposBytes, offset); offset += escposBytes.length;
+                        finalCmds.set(cutCmds, offset);
+
+                        return await executePrint(finalCmds);
+                    } catch (err) {
+                        console.error("Z-Read image printing failed, falling back to text:", err);
+                        if (container.parentNode) document.body.removeChild(container);
+                    }
+                }
+
                 const is80 = paperWidth === '80mm';
                 const lineCap = is80 ? 42 : 30;
                 const separator = "-".repeat(lineCap) + "\n";
@@ -603,7 +943,8 @@ const usePrinterStore = create(
             name: 'printer-settings-storage',
             partialize: (state) => ({
                 paperWidth: state.paperWidth,
-                isPrinterEnabled: state.isPrinterEnabled
+                isPrinterEnabled: state.isPrinterEnabled,
+                printAsImage: state.printAsImage
             }),
         }
     )
