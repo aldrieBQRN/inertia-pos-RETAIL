@@ -69,7 +69,7 @@ class DashboardController extends Controller
             } elseif ($previous < 0) {
                 return (($current - $previous) / abs($previous)) * 100;
             } else {
-                return null;
+                return $current > 0 ? 100.0 : ($current < 0 ? -100.0 : 0.0);
             }
         };
 
