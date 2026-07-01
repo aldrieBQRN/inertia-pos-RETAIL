@@ -427,9 +427,7 @@ const usePrinterStore = create(
                 const header = [
                     0x1B, 0x61, 0x01, // Center align
                     0x1B, 0x45, 0x01, // Bold ON
-                    0x1D, 0x21, 0x11, // Double Width & Double Height ON
                     ...encode(storeName.toUpperCase() + "\n"),
-                    0x1D, 0x21, 0x00, // Reset Size to Normal
                     0x1B, 0x45, 0x00, // Bold OFF
                     ...(storeAddress ? encode(storeAddress + "\n") : []),
                     ...(storePhone ? encode("Tel: " + storePhone + "\n") : []),
@@ -546,9 +544,7 @@ const usePrinterStore = create(
                 const report = [
                     0x1B, 0x61, 0x01, // Center align
                     0x1B, 0x45, 0x01, // Bold ON
-                    0x1D, 0x21, 0x11, // Double Width & Double Height ON
                     ...encode(storeName.toUpperCase() + "\n"),
-                    0x1D, 0x21, 0x00, // Reset Size to Normal
                     0x1B, 0x45, 0x00, // Bold OFF
                     ...(storeAddress ? encode(storeAddress + "\n") : []),
                     ...(storePhone ? encode("Tel: " + storePhone + "\n") : []),
