@@ -418,7 +418,7 @@ const usePrinterStore = create(
                 const storeAddress = settings?.store_address || settings?.address || "";
                 const storePhone = settings?.store_phone || settings?.phone || "";
 
-                let finalCommands = [0x1B, 0x40];
+                let finalCommands = [0x1B, 0x40, 0x1B, 0x33, 22];
 
                 if (trx.payment_method === 'cash') {
                     finalCommands.push(0x1B, 0x70, 0x00, 0x19, 0xFA);
@@ -446,7 +446,7 @@ const usePrinterStore = create(
                 // Item columns header: QTY DESCRIPTION PRICE AMOUNT
                 const itemHeader = is80
                     ? "QTY".padEnd(4) + " " + "DESCRIPTION".padEnd(21) + " " + "PRICE".padStart(10) + " " + "AMOUNT".padStart(10) + "\n"
-                    : "QTY".padEnd(3) + " " + "DESCRIPTION".padEnd(12) + " " + "PRICE".padStart(7) + " " + "AMOUNT".padStart(8) + "\n";
+                    : "QTY".padEnd(3) + " " + "DESCRIPTION".padEnd(11) + " " + "PRICE".padStart(7) + " " + "AMOUNT".padStart(8) + "\n";
                 
                 finalCommands.push(...encode(itemHeader));
                 finalCommands.push(...encode(separator));
@@ -471,7 +471,7 @@ const usePrinterStore = create(
                         finalCommands.push(...encode(`${qtyStr} ${descStr} ${priceStr} ${amountStr}\n`));
                     } else {
                         const qtyStr = (quantity + "x").padEnd(3);
-                        const descStr = desc.substring(0, 12).padEnd(12);
+                        const descStr = desc.substring(0, 11).padEnd(11);
                         const priceStr = formattedPrice.padStart(7);
                         const amountStr = formattedAmount.padStart(8);
                         finalCommands.push(...encode(`${qtyStr} ${descStr} ${priceStr} ${amountStr}\n`));
@@ -540,7 +540,7 @@ const usePrinterStore = create(
                 const storeAddress = settings?.store_address || settings?.address || "";
                 const storePhone = settings?.store_phone || settings?.phone || "";
 
-                let finalCommands = [0x1B, 0x40];
+                let finalCommands = [0x1B, 0x40, 0x1B, 0x33, 22];
 
                 finalCommands.push(0x1B, 0x70, 0x00, 0x19, 0xFA);
 
