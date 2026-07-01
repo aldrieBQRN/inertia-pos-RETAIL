@@ -418,7 +418,7 @@ const usePrinterStore = create(
                 const storeAddress = settings?.store_address || settings?.address || "";
                 const storePhone = settings?.store_phone || settings?.phone || "";
 
-                let finalCommands = [0x1B, 0x40, 0x1B, 0x21, 0x01, 0x1B, 0x33, 22];
+                let finalCommands = [0x1B, 0x40, 0x1B, 0x33, 22];
 
                 if (trx.payment_method === 'cash') {
                     finalCommands.push(0x1B, 0x70, 0x00, 0x19, 0xFA);
@@ -440,10 +440,10 @@ const usePrinterStore = create(
                 ];
                 finalCommands = [...finalCommands, ...header];
 
-                // Item columns header: QTY DESCRIPTION PRICE AMOUNT
+                // Item columns header: Row 1 description header, Row 2 subtotal header
                 const itemHeader = is80
-                    ? "QTY".padEnd(4) + " " + "DESCRIPTION".padEnd(21) + " " + "PRICE".padStart(10) + " " + "AMOUNT".padStart(10) + "\n"
-                    : "QTY".padEnd(3) + " " + "ITEM".padEnd(10) + " " + "PRICE".padStart(6) + " " + "AMOUNT".padStart(8) + "\n";
+                    ? "ITEM/DETAILS".padEnd(37) + " " + "PRICE".padStart(10) + "\n"
+                    : "ITEM/DETAILS".padEnd(21) + " " + "PRICE".padStart(8) + "\n";
                 
                 finalCommands.push(...encode(itemHeader));
                 finalCommands.push(...encode(separator));
@@ -460,19 +460,18 @@ const usePrinterStore = create(
                     const formattedPrice = fmt(priceVal);
                     const formattedAmount = fmt(amountVal);
 
-                    if (is80) {
-                        const qtyStr = (quantity + "x").padEnd(4);
-                        const descStr = desc.substring(0, 21).padEnd(21);
-                        const priceStr = formattedPrice.padStart(10);
-                        const amountStr = formattedAmount.padStart(10);
-                        finalCommands.push(...encode(`${qtyStr} ${descStr} ${priceStr} ${amountStr}\n`));
-                    } else {
-                        const qtyStr = (quantity + "x").padEnd(3);
-                        const descStr = desc.substring(0, 10).padEnd(10);
-                        const priceStr = formattedPrice.padStart(6);
-                        const amountStr = formattedAmount.padStart(8);
-                        finalCommands.push(...encode(`${qtyStr} ${descStr} ${priceStr} ${amountStr}\n`));
-                    }
+                    // Row 1: Item Name (left) and Unit Price (right)
+                    const row1 = is80
+                        ? desc.substring(0, 37).padEnd(37) + " " + formattedPrice.padStart(10) + "\n"
+                        : desc.substring(0, 21).padEnd(21) + " " + formattedPrice.padStart(8) + "\n";
+
+                    // Row 2: Quantity Details (left) and Subtotal Amount (right)
+                    const qtyDetail = `${quantity}x @ ${formattedPrice}`;
+                    const row2 = is80
+                        ? `  ${qtyDetail}`.padEnd(37) + " " + formattedAmount.padStart(10) + "\n"
+                        : `  ${qtyDetail}`.padEnd(21) + " " + formattedAmount.padStart(8) + "\n";
+
+                    finalCommands.push(...encode(row1 + row2));
                 });
 
                 if (trx.is_senior) {
@@ -537,7 +536,7 @@ const usePrinterStore = create(
                 const storeAddress = settings?.store_address || settings?.address || "";
                 const storePhone = settings?.store_phone || settings?.phone || "";
 
-                let finalCommands = [0x1B, 0x40, 0x1B, 0x21, 0x01, 0x1B, 0x33, 22];
+                let finalCommands = [0x1B, 0x40, 0x1B, 0x33, 22];
 
                 finalCommands.push(0x1B, 0x70, 0x00, 0x19, 0xFA);
 
