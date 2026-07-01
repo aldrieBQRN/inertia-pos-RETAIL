@@ -457,7 +457,7 @@ const usePrinterStore = create(
                     ...(storePhone ? encode("Tel: " + storePhone + "\n") : []),
                     ...encode(separator),
                     0x1B, 0x61, 0x00, // Align Left
-                    ...encode(`Receipt #: ${trx.invoice_number || trx.transaction_code}\n`),
+                    ...encode(`Receipt: ${trx.invoice_number || trx.transaction_code}\n`),
                     ...encode(`Date: ${new Date(trx.created_at).toLocaleString()}\n`),
                     ...encode(separator),
                 ];
@@ -490,9 +490,9 @@ const usePrinterStore = create(
                     // Row 1: First line of Name (left) and Unit Price (right)
                     let itemLines = nameLines[0].padEnd(descLimit) + " " + formattedPrice.padStart(priceLimit) + "\n";
 
-                    // Row 1 Cont: Print remaining name lines (indented)
+                    // Row 1 Cont: Print remaining name lines (without indentation)
                     for (let i = 1; i < nameLines.length; i++) {
-                        itemLines += `  ${nameLines[i]}\n`;
+                        itemLines += `${nameLines[i]}\n`;
                     }
 
                     // Row 2: Quantity (left) and Subtotal Amount (right)
@@ -544,9 +544,9 @@ const usePrinterStore = create(
 
             printZRead: async (data, settings) => {
                 const { paperWidth, executePrint } = get();
-                const is80 = paperWidth === '80mm';
-                const lineCap = is80 ? 42 : 30;
-                const separator = "-".repeat(lineCap) + "\n";
+                 const is80 = paperWidth === '80mm';
+                 const lineCap = is80 ? 48 : 30;
+                 const separator = "-".repeat(lineCap) + "\n";
                 const fmt = (val) => formatCurrency(val);
 
                 const diff = Number(data.difference);
