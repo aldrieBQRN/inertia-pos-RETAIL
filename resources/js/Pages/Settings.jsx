@@ -556,8 +556,8 @@ export default function Settings({ auth }) {
                                         {openSections.hardware && (
                                             <div className="p-4 sm:p-8 space-y-4 sm:space-y-6 animate-in fade-in duration-300">
 
-                                                {/* POS Keyboard Shortcuts Toggle */}
-                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-5 border border-gray-100 sm:border-gray-200 rounded-md sm:rounded-md bg-white sm:bg-gray-50/50">
+                                                {/* POS Keyboard Shortcuts Toggle — desktop only (F-keys not available on mobile/tablet) */}
+                                                <div className="hidden lg:flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 sm:p-5 border border-gray-100 sm:border-gray-200 rounded-md sm:rounded-md bg-white sm:bg-gray-50/50">
                                                     <div className="text-left">
                                                         <h4 className="font-bold text-gray-900 text-sm sm:text-base">POS Keyboard Shortcuts</h4>
                                                         <p className="text-xs sm:text-[13px] text-gray-500 mt-0.5">Enable or disable function keys (F1-F12) on this terminal.</p>

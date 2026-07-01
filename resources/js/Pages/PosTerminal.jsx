@@ -841,17 +841,17 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             <button
                                 onClick={handleOpenCustomItemModal}
                                 disabled={isAnyModalOpen}
-                                className="p-2 md:px-3 md:py-2 bg-gray-900 hover:bg-black text-white rounded-md text-xs font-black uppercase tracking-wider active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="p-2 lg:px-3 lg:py-2 bg-gray-900 hover:bg-black text-white rounded-md text-xs font-black uppercase tracking-wider active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Custom Item"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 md:w-3.5 md:h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                                <span className="hidden md:inline">{showFKeys ? "Custom Item (F4)" : "Custom Item"}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 lg:w-3.5 lg:h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                <span className="hidden lg:inline">{showFKeys ? "Custom Item (F4)" : "Custom Item"}</span>
                             </button>
                         </div>
                     </div>
 
-                    {/* PRODUCT LIST COLUMN HEADERS */}
-                    <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 md:border-b-2 md:border-gray-300 shrink-0 hidden md:block">
+                    {/* PRODUCT LIST COLUMN HEADERS — desktop only */}
+                    <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 lg:border-b-2 lg:border-gray-300 shrink-0 hidden lg:block">
                         <div className="grid grid-cols-[140px_1fr_100px_110px] gap-2 text-xs font-black uppercase tracking-wider text-gray-500 font-mono">
                             <div className="pl-2">SKU / Barcode</div>
                             <div className="pl-2">Product Name / Category</div>
@@ -898,10 +898,10 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                             key={p.id}
                                             onClick={() => !isSoldOut && triggerQtyModal(p)}
                                             data-catalog-item-index={index}
-                                            className={`px-3 py-3.5 grid grid-cols-[1fr_90px] md:grid-cols-[140px_1fr_100px_110px] gap-2 items-center cursor-pointer transition-colors hover:bg-gray-50 ${isHighlighted ? 'ring-2 ring-inset ring-indigo-500 bg-indigo-50/40' : ''} ${isSoldOut ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
+                                            className={`px-3 py-3.5 grid grid-cols-[1fr_90px] lg:grid-cols-[140px_1fr_100px_110px] gap-2 items-center cursor-pointer transition-colors hover:bg-gray-50 ${isHighlighted ? 'ring-2 ring-inset ring-indigo-500 bg-indigo-50/40' : ''} ${isSoldOut ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         >
                                             {/* Barcode Column */}
-                                            <div className="min-w-0 font-mono text-base font-black text-gray-900 select-all hidden md:block truncate pl-2">
+                                            <div className="min-w-0 font-mono text-base font-black text-gray-900 select-all hidden lg:block truncate pl-2">
                                                 {p.sku || '—'}
                                             </div>
 
@@ -910,7 +910,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                                 <div className="font-extrabold text-gray-800 text-base truncate">{p.name}</div>
                                                 <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                                                     {p.sku && (
-                                                        <span className="md:hidden font-mono text-sm font-black text-gray-500">{p.sku}</span>
+                                                        <span className="lg:hidden font-mono text-sm font-black text-gray-500">{p.sku}</span>
                                                     )}
                                                     {p.category && (
                                                         <span
@@ -924,7 +924,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                             </div>
 
                                             {/* Stock Column */}
-                                            <div className="text-right hidden md:block">
+                                            <div className="text-right hidden lg:block">
                                                 <span className={`text-sm font-bold ${isSoldOut ? 'text-red-500' : remainingStock < 10 ? 'text-orange-500' : 'text-green-600'}`}>
                                                     {isSoldOut ? 'Sold Out' : `${remainingStock}`}
                                                 </span>
@@ -935,7 +935,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                                 <div className="font-black text-gray-955 text-base">
                                                     {(appliedPrice / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </div>
-                                                <div className={`md:hidden text-xs font-bold mt-0.5 ${isSoldOut ? 'text-red-500' : remainingStock < 10 ? 'text-orange-500' : 'text-green-600'}`}>
+                                                <div className={`lg:hidden text-xs font-bold mt-0.5 ${isSoldOut ? 'text-red-500' : remainingStock < 10 ? 'text-orange-500' : 'text-green-600'}`}>
                                                     {isSoldOut ? 'Sold Out' : `${remainingStock} left`}
                                                 </div>
                                             </div>

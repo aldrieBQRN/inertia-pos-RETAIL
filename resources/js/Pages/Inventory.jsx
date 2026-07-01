@@ -1165,7 +1165,7 @@ export default function Inventory({ auth }) {
 
                                 <button
                                     onClick={() => setShowLowStock(!showLowStock)}
-                                    className={`col-span-1 lg:col-span-1 w-full py-2.5 sm:py-3 rounded-lg font-bold flex items-center justify-center gap-1.5 sm:gap-2 border transition-all text-xs sm:text-sm active:scale-95
+                                    className={`col-span-1 w-full py-2.5 sm:py-3 rounded-lg font-bold flex items-center justify-center gap-1.5 sm:gap-2 border transition-all text-xs sm:text-sm active:scale-95
                                         ${showLowStock ? 'bg-red-50 text-red-700 border-red-200' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 shadow-sm'}`}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 sm:w-4 sm:h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
@@ -1173,7 +1173,7 @@ export default function Inventory({ auth }) {
                                     <span className="sm:hidden text-[11px]">Low Stock</span>
                                 </button>
 
-                                <button onClick={() => setShowCategoryManager(true)} className={`${auth.user.is_admin ? 'col-span-1 lg:col-span-1' : 'col-span-2 lg:col-span-1'} w-full py-2.5 sm:py-3 flex items-center justify-center bg-white text-gray-700 rounded-lg font-bold border border-gray-200 shadow-sm hover:bg-gray-50 active:scale-95 transition-all text-xs sm:text-sm whitespace-nowrap`}>
+                                <button onClick={() => setShowCategoryManager(true)} className={`col-span-1 w-full py-2.5 sm:py-3 flex items-center justify-center bg-white text-gray-700 rounded-lg font-bold border border-gray-200 shadow-sm hover:bg-gray-50 active:scale-95 transition-all text-xs sm:text-sm whitespace-nowrap`}>
                                     {auth.user.is_admin ? 'Categories' : 'View Categories'}
                                 </button>
 
@@ -1181,7 +1181,7 @@ export default function Inventory({ auth }) {
                                     <button
                                         onClick={exportPDF}
                                         disabled={isExporting}
-                                        className={`col-span-1 lg:col-span-1 w-full py-2.5 sm:py-3 rounded-lg font-bold flex items-center justify-center gap-1 sm:gap-2 shadow-sm transition-all text-xs sm:text-sm active:scale-95
+                                        className={`col-span-1 w-full py-2.5 sm:py-3 rounded-lg font-bold flex items-center justify-center gap-1 sm:gap-2 shadow-sm transition-all text-xs sm:text-sm active:scale-95
                                             ${isExporting
                                                 ? 'opacity-50 cursor-not-allowed bg-green-600 text-white'
                                                 : 'bg-green-600 text-white hover:bg-green-700'
@@ -1204,7 +1204,7 @@ export default function Inventory({ auth }) {
                                 )}
 
                                 {auth.user.is_admin && (
-                                    <button onClick={openAddModal} className="col-span-2 lg:col-span-1 w-full py-2.5 sm:py-3 flex items-center justify-center bg-gray-900 text-white rounded-lg font-bold hover:bg-black shadow-sm active:scale-95 transition-all text-xs sm:text-sm gap-1.5 sm:gap-2">
+                                    <button onClick={openAddModal} className="col-span-1 w-full py-2.5 sm:py-3 flex items-center justify-center bg-gray-900 text-white rounded-lg font-bold hover:bg-black shadow-sm active:scale-95 transition-all text-xs sm:text-sm gap-1.5 sm:gap-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                         New Product
                                     </button>
@@ -1213,22 +1213,24 @@ export default function Inventory({ auth }) {
                             </div>
 
                             {auth.user.is_admin && (
-                                <div className="border-t border-gray-100 pt-3 flex flex-wrap gap-3 items-center justify-between">
+                                <div className="border-t border-gray-100 pt-3 flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3 sm:items-center sm:justify-between">
                                     <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">
                                         Inventory Data Operations
                                     </div>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+                                        {/* Row 1 on mobile: Download Template (full width) */}
                                         <button
                                             onClick={downloadTemplate}
-                                            className="px-4 py-2 text-xs font-bold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg shadow-sm transition-all active:scale-95 flex items-center gap-1.5"
+                                            className="col-span-2 sm:col-span-1 px-4 py-2 text-xs font-bold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1.5"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 text-gray-500"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
                                             Download Template
                                         </button>
 
+                                        {/* Row 2 on mobile: Import + Export Excel side by side */}
                                         <button
                                             onClick={() => document.getElementById('excel-import-input').click()}
-                                            className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-all active:scale-95 flex items-center gap-1.5"
+                                            className="col-span-1 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1.5"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
                                             Import Excel/CSV
@@ -1243,7 +1245,7 @@ export default function Inventory({ auth }) {
 
                                         <button
                                             onClick={exportExcel}
-                                            className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-all active:scale-95 flex items-center gap-1.5"
+                                            className="col-span-1 px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1.5"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
                                             Export Excel
