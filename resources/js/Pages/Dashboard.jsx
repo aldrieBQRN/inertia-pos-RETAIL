@@ -9,10 +9,13 @@ export default function Dashboard({ auth }) {
 
     const [stats, setStats] = useState({
         today_sales: 0,
-        sales_growth: 0,
+        sales_growth: null,
         today_profit: 0,
+        profit_growth: null,
         today_orders: 0,
+        orders_growth: null,
         average_order_value: 0,
+        aov_growth: null,
         low_stock: [],
         chart_data: [],
         recent_sales: [],
@@ -105,11 +108,11 @@ export default function Dashboard({ auth }) {
                             color="blue"
                             icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                         />
-                        <StatCard title="Net Profit" value={`₱${formatCurrencyDirect(stats.today_profit)}`} subtext="Today's Earnings" color="green"
+                        <StatCard title="Net Profit" value={`₱${formatCurrencyDirect(stats.today_profit)}`} trend={stats.profit_growth} color="green"
                             icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>} />
-                        <StatCard title="Transactions" value={formatNumber(stats.today_orders)} subtext="Today's Count" color="purple"
+                        <StatCard title="Transactions" value={formatNumber(stats.today_orders)} trend={stats.orders_growth} color="purple"
                             icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>} />
-                        <StatCard title="Avg Ticket" value={`₱${formatCurrencyDirect(stats.average_order_value)}`} subtext="Per customer today" color="orange"
+                        <StatCard title="Avg Ticket" value={`₱${formatCurrencyDirect(stats.average_order_value)}`} trend={stats.aov_growth} color="orange"
                             icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>} />
                     </div>
 
@@ -289,7 +292,7 @@ function StatCard({ title, value, icon, color, subtext, trend }) {
             <div className="flex-1 order-2 sm:order-1">
                 <div className="text-gray-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest">{title}</div>
                 <div className="text-xl sm:text-3xl font-black text-gray-900 mt-0.5 sm:mt-1 tracking-tight">{value}</div>
-                {trend !== undefined && (
+                {trend !== undefined && trend !== null && (
                     <div className={`text-[10px] sm:text-xs font-bold mt-1 flex items-center ${trend >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                         {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}% vs Yesterday
                     </div>

@@ -28,9 +28,6 @@ class DashboardController extends Controller
         // KPI Cards (Today)
         $todaySales = Sale::where('store_id', $storeId)->whereBetween('created_at', [$today, $endOfToday])->sum('total_amount');
         $todayOrders = Sale::where('store_id', $storeId)->whereBetween('created_at', [$today, $endOfToday])->count();
-        $yesterdaySales = Sale::where('store_id', $storeId)->whereDate('created_at', $yesterday)->sum('total_amount');
-
-        $salesGrowth = $yesterdaySales > 0 ? (($todaySales - $yesterdaySales) / $yesterdaySales) * 100 : 0;
         $averageOrderValue = $todayOrders > 0 ? $todaySales / $todayOrders : 0;
 
         // Today's Profit: actual sold price minus cost price, including custom items (cost_price = 0), minus discounts
@@ -47,8 +44,42 @@ class DashboardController extends Controller
 
         $todayProfit = $todayItemProfit - $todayDiscounts;
 
+        // Yesterday's stats for growth calculations
+        $yesterdaySales = Sale::where('store_id', $storeId)->whereDate('created_at', $yesterday)->sum('total_amount');
+        $yesterdayOrders = Sale::where('store_id', $storeId)->whereDate('created_at', $yesterday)->count();
+        $yesterdayAverageOrderValue = $yesterdayOrders > 0 ? $yesterdaySales / $yesterdayOrders : 0;
+
+        $yesterdayItemProfit = DB::table('sale_items')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
+            ->where('sales.store_id', $storeId)
+            ->whereDate('sales.created_at', $yesterday)
+            ->sum(DB::raw('(sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity'));
+
+        $yesterdayDiscounts = Sale::where('store_id', $storeId)
+            ->whereDate('created_at', $yesterday)
+            ->sum('discount_amount');
+
+        $yesterdayProfit = $yesterdayItemProfit - $yesterdayDiscounts;
+
+        // Growth Helpers
+        $calculateGrowth = function ($current, $previous) {
+            if ($previous > 0) {
+                return (($current - $previous) / $previous) * 100;
+            } elseif ($previous < 0) {
+                return (($current - $previous) / abs($previous)) * 100;
+            } else {
+                return null;
+            }
+        };
+
+        $salesGrowth = $calculateGrowth($todaySales, $yesterdaySales);
+        $profitGrowth = $calculateGrowth($todayProfit, $yesterdayProfit);
+        $ordersGrowth = $calculateGrowth($todayOrders, $yesterdayOrders);
+        $aovGrowth = $calculateGrowth($averageOrderValue, $yesterdayAverageOrderValue);
+
         // Low Stock
-        $lowStock = Product::where('store_id', $storeId)->where('stock_quantity', '<', 10)->limit(5)->get();
+        $lowStock = Product::where('store_id', $storeId)->where('is_active', true)->where('stock_quantity', '<', 10)->limit(5)->get();
 
         // 7-Day Trend Chart
         $trendStart = Carbon::now()->subDays(6)->startOfDay();
@@ -76,10 +107,13 @@ class DashboardController extends Controller
 
         return response()->json([
             'today_sales' => $todaySales / 100,
-            'sales_growth' => round($salesGrowth, 1),
+            'sales_growth' => $salesGrowth !== null ? round($salesGrowth, 1) : null,
             'today_profit' => $todayProfit / 100,
+            'profit_growth' => $profitGrowth !== null ? round($profitGrowth, 1) : null,
             'today_orders' => $todayOrders,
+            'orders_growth' => $ordersGrowth !== null ? round($ordersGrowth, 1) : null,
             'average_order_value' => $averageOrderValue / 100,
+            'aov_growth' => $aovGrowth !== null ? round($aovGrowth, 1) : null,
             'low_stock' => $lowStock,
             'chart_data' => $chartData,
             'recent_sales' => $recentSales,
