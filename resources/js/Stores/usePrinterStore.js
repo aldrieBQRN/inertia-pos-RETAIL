@@ -418,7 +418,7 @@ const usePrinterStore = create(
                 const storeAddress = settings?.store_address || settings?.address || "";
                 const storePhone = settings?.store_phone || settings?.phone || "";
 
-                let finalCommands = [0x1B, 0x40, 0x1B, 0x21, 0x01];
+                let finalCommands = [0x1B, 0x40];
 
                 if (trx.payment_method === 'cash') {
                     finalCommands.push(0x1B, 0x70, 0x00, 0x19, 0xFA);
@@ -431,6 +431,7 @@ const usePrinterStore = create(
                     ...encode(storeName.toUpperCase() + "\n"),
                     0x1D, 0x21, 0x00, // Reset Size to Normal
                     0x1B, 0x45, 0x00, // Bold OFF
+                    0x1B, 0x21, 0x01, // Select Font B (smaller size) for the rest of the receipt
                     ...(storeAddress ? encode(storeAddress + "\n") : []),
                     ...(storePhone ? encode("Tel: " + storePhone + "\n") : []),
                     ...encode(separator),
@@ -539,7 +540,7 @@ const usePrinterStore = create(
                 const storeAddress = settings?.store_address || settings?.address || "";
                 const storePhone = settings?.store_phone || settings?.phone || "";
 
-                let finalCommands = [0x1B, 0x40, 0x1B, 0x21, 0x01];
+                let finalCommands = [0x1B, 0x40];
 
                 finalCommands.push(0x1B, 0x70, 0x00, 0x19, 0xFA);
 
@@ -550,6 +551,7 @@ const usePrinterStore = create(
                     ...encode(storeName.toUpperCase() + "\n"),
                     0x1D, 0x21, 0x00, // Reset Size to Normal
                     0x1B, 0x45, 0x00, // Bold OFF
+                    0x1B, 0x21, 0x01, // Select Font B (smaller size) for the rest of the report
                     ...(storeAddress ? encode(storeAddress + "\n") : []),
                     ...(storePhone ? encode("Tel: " + storePhone + "\n") : []),
                     ...encode("Z-READ REPORT\n"),
