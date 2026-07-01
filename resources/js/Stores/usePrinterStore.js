@@ -410,7 +410,7 @@ const usePrinterStore = create(
             printReceipt: async (trx, settings) => {
                 const { paperWidth, executePrint } = get();
                 const is80 = paperWidth === '80mm';
-                const lineCap = is80 ? 48 : 32;
+                const lineCap = is80 ? 48 : 30;
                 const separator = "-".repeat(lineCap) + "\n";
                 const fmt = (cents) => (cents / 100).toLocaleString('en-PH', { minimumFractionDigits: 2 });
 
@@ -418,7 +418,7 @@ const usePrinterStore = create(
                 const storeAddress = settings?.store_address || settings?.address || "";
                 const storePhone = settings?.store_phone || settings?.phone || "";
 
-                let finalCommands = [0x1B, 0x40, 0x1C, 0x2E, 0x1B, 0x74, 0x00, 0x1B, 0x33, 22];
+                let finalCommands = [0x1B, 0x40, 0x1B, 0x33, 22];
 
                 if (trx.payment_method === 'cash') {
                     finalCommands.push(0x1B, 0x70, 0x00, 0x19, 0xFA);
@@ -431,8 +431,6 @@ const usePrinterStore = create(
                     ...encode(storeName.toUpperCase() + "\n"),
                     0x1D, 0x21, 0x00, // Reset Size to Normal
                     0x1B, 0x45, 0x00, // Bold OFF
-                    0x1B, 0x21, 0x01, // Select Font B (Print Mode)
-                    0x1B, 0x4D, 0x01, // Select Font B (ESC M)
                     ...(storeAddress ? encode(storeAddress + "\n") : []),
                     ...(storePhone ? encode("Tel: " + storePhone + "\n") : []),
                     ...encode(separator),
@@ -447,7 +445,7 @@ const usePrinterStore = create(
                 // Item columns header: QTY DESCRIPTION PRICE AMOUNT
                 const itemHeader = is80
                     ? "QTY".padEnd(4) + " " + "DESCRIPTION".padEnd(21) + " " + "PRICE".padStart(10) + " " + "AMOUNT".padStart(10) + "\n"
-                    : "QTY".padEnd(3) + " " + "DESCRIPTION".padEnd(11) + " " + "PRICE".padStart(7) + " " + "AMOUNT".padStart(8) + "\n";
+                    : "QTY".padEnd(3) + " " + "ITEM".padEnd(10) + " " + "PRICE".padStart(6) + " " + "AMOUNT".padStart(8) + "\n";
                 
                 finalCommands.push(...encode(itemHeader));
                 finalCommands.push(...encode(separator));
@@ -472,8 +470,8 @@ const usePrinterStore = create(
                         finalCommands.push(...encode(`${qtyStr} ${descStr} ${priceStr} ${amountStr}\n`));
                     } else {
                         const qtyStr = (quantity + "x").padEnd(3);
-                        const descStr = desc.substring(0, 11).padEnd(11);
-                        const priceStr = formattedPrice.padStart(7);
+                        const descStr = desc.substring(0, 10).padEnd(10);
+                        const priceStr = formattedPrice.padStart(6);
                         const amountStr = formattedAmount.padStart(8);
                         finalCommands.push(...encode(`${qtyStr} ${descStr} ${priceStr} ${amountStr}\n`));
                     }
@@ -522,7 +520,7 @@ const usePrinterStore = create(
             printZRead: async (data, settings) => {
                 const { paperWidth, executePrint } = get();
                 const is80 = paperWidth === '80mm';
-                const lineCap = is80 ? 42 : 32;
+                const lineCap = is80 ? 42 : 30;
                 const separator = "-".repeat(lineCap) + "\n";
                 const fmt = (val) => formatCurrency(val);
 
@@ -541,7 +539,7 @@ const usePrinterStore = create(
                 const storeAddress = settings?.store_address || settings?.address || "";
                 const storePhone = settings?.store_phone || settings?.phone || "";
 
-                let finalCommands = [0x1B, 0x40, 0x1C, 0x2E, 0x1B, 0x74, 0x00, 0x1B, 0x33, 22];
+                let finalCommands = [0x1B, 0x40, 0x1B, 0x33, 22];
 
                 finalCommands.push(0x1B, 0x70, 0x00, 0x19, 0xFA);
 
@@ -552,8 +550,6 @@ const usePrinterStore = create(
                     ...encode(storeName.toUpperCase() + "\n"),
                     0x1D, 0x21, 0x00, // Reset Size to Normal
                     0x1B, 0x45, 0x00, // Bold OFF
-                    0x1B, 0x21, 0x01, // Select Font B (Print Mode)
-                    0x1B, 0x4D, 0x01, // Select Font B (ESC M)
                     ...(storeAddress ? encode(storeAddress + "\n") : []),
                     ...(storePhone ? encode("Tel: " + storePhone + "\n") : []),
                     ...encode("Z-READ REPORT\n"),
