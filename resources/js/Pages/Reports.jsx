@@ -416,7 +416,8 @@ export default function Reports({ auth }) {
             };
 
             // Helper to add data row
-            const addDataRow = (data) => {
+            // Helper to add data row with formatting support
+            const addDataRow = (data, rowFormats = []) => {
                 data.forEach((val, index) => {
                     const cell = worksheet.getRow(currentRow).getCell(index + 1);
                     cell.value = val;
@@ -424,6 +425,11 @@ export default function Reports({ auth }) {
                     cell.border = {
                         bottom: { style: 'thin', color: { argb: 'E5E7EB' } }
                     };
+
+                    if (rowFormats[index]) {
+                        cell.numFormat = rowFormats[index];
+                    }
+
                     if (index === 0) {
                         cell.alignment = { vertical: 'middle', horizontal: 'left' };
                     } else {
@@ -434,19 +440,26 @@ export default function Reports({ auth }) {
                 currentRow++;
             };
 
+            // Formatting schemas
+            const currencyFormat = '"PHP " #,##0.00';
+            const percentFormat = '0.0%';
+            const growthFormat = '+0.0%;-0.0%;0.0%';
+            const intFormat = '#,##0';
+
+            const formatGrowthValue = (val) => {
+                if (val === null || val === undefined || isNaN(val)) return "N/A";
+                return val / 100;
+            };
+
             // 2. Section: KEY METRICS
             addSectionHeader("BUSINESS PERFORMANCE KEY METRICS", "1B3A69");
             addTableHeaders(["Metric", "Value", "Growth vs Last Period"], "2C5282");
             
-            const marginPercentage = stats.total_sales > 0 ? (stats.total_profit / stats.total_sales) * 100 : 0;
-            const kpiRows = [
-                ["Gross Revenue", `PHP ${stats.total_sales.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, stats.sales_growth !== null ? `${stats.sales_growth}%` : "N/A"],
-                ["Net Profit", `PHP ${stats.total_profit.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, stats.profit_growth !== null ? `${stats.profit_growth}%` : "N/A"],
-                ["Profit Margin Ratio", `${marginPercentage.toFixed(1)}%`, "N/A"],
-                ["Total Transactions", stats.total_orders.toLocaleString('en-US'), stats.orders_growth !== null ? `${stats.orders_growth}%` : "N/A"],
-                ["Average Ticket Size", `PHP ${stats.average_order_value.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, stats.aov_growth !== null ? `${stats.aov_growth}%` : "N/A"],
-            ];
-            kpiRows.forEach(row => addDataRow(row));
+            addDataRow(["Gross Revenue", stats.total_sales, formatGrowthValue(stats.sales_growth)], [null, currencyFormat, growthFormat]);
+            addDataRow(["Net Profit", stats.total_profit, formatGrowthValue(stats.profit_growth)], [null, currencyFormat, growthFormat]);
+            addDataRow(["Profit Margin Ratio", stats.total_sales > 0 ? (stats.total_profit / stats.total_sales) : 0, "N/A"], [null, percentFormat, null]);
+            addDataRow(["Total Transactions", stats.total_orders, formatGrowthValue(stats.orders_growth)], [null, intFormat, growthFormat]);
+            addDataRow(["Average Ticket Size", stats.average_order_value, formatGrowthValue(stats.aov_growth)], [null, currencyFormat, growthFormat]);
 
             // Spacer
             currentRow++;
@@ -455,7 +468,7 @@ export default function Reports({ auth }) {
             addSectionHeader("TOP 5 BEST SELLING PRODUCTS", "10B981");
             addTableHeaders(["Product Name", "Quantity Sold", ""], "059669");
             (stats.top_products || []).forEach(item => {
-                addDataRow([item.name, item.sold.toLocaleString('en-US'), ""]);
+                addDataRow([item.name, item.sold, ""], [null, intFormat, null]);
             });
 
             // Spacer
@@ -465,7 +478,7 @@ export default function Reports({ auth }) {
             addSectionHeader("SALES BY PRODUCT CATEGORY", "8B5CF6");
             addTableHeaders(["Category Name", "Quantity Sold", ""], "7C3AED");
             (stats.sales_by_category || []).forEach(item => {
-                addDataRow([item.name || 'Uncategorized', item.value.toLocaleString('en-US'), ""]);
+                addDataRow([item.name || 'Uncategorized', item.value, ""], [null, intFormat, null]);
             });
 
             // Spacer
@@ -475,7 +488,7 @@ export default function Reports({ auth }) {
             addSectionHeader("PAYMENT METHOD DISTRIBUTION", "F59E0B");
             addTableHeaders(["Payment Method", "Transactions Count", ""], "D97706");
             (stats.payment_methods || []).forEach(item => {
-                addDataRow([formatPaymentName(item.payment_method), item.count.toLocaleString('en-US'), ""]);
+                addDataRow([formatPaymentName(item.payment_method), item.count, ""], [null, intFormat, null]);
             });
 
             // Generate and Save Excel File
