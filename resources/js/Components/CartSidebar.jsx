@@ -44,11 +44,15 @@ export default function CartSidebar({
 
     const cartBottomRef = useRef(null);
     const sidebarRef = useRef(null);
+    const prevCartLengthRef = useRef(cart.length);
 
     useEffect(() => {
-        if (cartBottomRef.current) {
+        // Only scroll to bottom when a NEW item is added (length increases),
+        // not when quantity of an existing item changes.
+        if (cart.length > prevCartLengthRef.current && cartBottomRef.current) {
             cartBottomRef.current.scrollIntoView({ behavior: 'smooth' });
         }
+        prevCartLengthRef.current = cart.length;
     }, [cart]);
 
     useEffect(() => {
