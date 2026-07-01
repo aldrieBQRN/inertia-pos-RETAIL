@@ -381,10 +381,10 @@ const usePrinterStore = create(
                         }
 
                         // Force the printer to flush its internal buffer and execute the cut command
-                        // immediately. Without this extra transfer the printer holds the buffer until
-                        // the next job starts, making the cut appear to happen at the beginning of
-                        // the second print instead of at the end of the first one.
-                        const flush = new Uint8Array([0x0A, 0x0A, 0x1D, 0x56, 0x41]);
+                        // immediately. Without this extra transfer, the printer may hold the buffer until
+                        // the next job starts. We send a single NUL byte (0x00) which has no print output
+                        // but forces the USB controller to flush the transfer queue.
+                        const flush = new Uint8Array([0x00]);
                         await deviceToUse.transferOut(endpoint.endpointNumber, flush);
 
                         return true;
