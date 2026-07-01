@@ -24,7 +24,6 @@ export default function Reports({ auth }) {
         profit_growth: null,
         orders_growth: null,
         aov_growth: null,
-        margin_growth: null,
         chart_data: [],
         peak_hours: [],
         peak_days: [],
@@ -458,7 +457,6 @@ export default function Reports({ auth }) {
             
             addDataRow(["Gross Revenue", stats.total_sales, formatGrowthValue(stats.sales_growth)], [null, currencyFormat, growthFormat]);
             addDataRow(["Net Profit", stats.total_profit, formatGrowthValue(stats.profit_growth)], [null, currencyFormat, growthFormat]);
-            addDataRow(["Profit Margin Ratio", stats.total_sales > 0 ? (stats.total_profit / stats.total_sales) : 0, formatGrowthValue(stats.margin_growth)], [null, percentFormat, growthFormat]);
             addDataRow(["Total Transactions", stats.total_orders, formatGrowthValue(stats.orders_growth)], [null, intFormat, growthFormat]);
             addDataRow(["Average Ticket Size", stats.average_order_value, formatGrowthValue(stats.aov_growth)], [null, currencyFormat, growthFormat]);
 
@@ -610,9 +608,6 @@ export default function Reports({ auth }) {
                     </div>
 
                     {/* KPI SCORECARDS */}
-                    {(() => {
-                        const marginPercentage = stats.total_sales > 0 ? (stats.total_profit / stats.total_sales) * 100 : 0;
-                        return (
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 px-2 sm:px-0">
                                 <StatCard
                                     title="Period Revenue"
@@ -625,7 +620,6 @@ export default function Reports({ auth }) {
                                     title="Net Profit"
                                     value={`₱${formatCurrencyDirect(stats.total_profit)}`}
                                     trend={stats.profit_growth}
-                                    subtext={`Margin: ${marginPercentage.toFixed(1)}%`}
                                     color="green"
                                     icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>}
                                 />
@@ -644,8 +638,6 @@ export default function Reports({ auth }) {
                                     icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>}
                                 />
                             </div>
-                        );
-                    })()}
 
                     {/* MAIN TREND CHART (App-like on mobile) */}
                     <div className="px-0 sm:px-0">
