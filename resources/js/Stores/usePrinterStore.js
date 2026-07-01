@@ -455,11 +455,10 @@ const usePrinterStore = create(
                     0x1B, 0x21, 0x00, // Force standard mode (Bold OFF)
                     ...(storeAddress ? encode(storeAddress + "\n") : []),
                     ...(storePhone ? encode("Tel: " + storePhone + "\n") : []),
+                    0x1B, 0x61, 0x00, // Align Left (Moved before separator)
                     ...encode(separator),
-                    0x1B, 0x61, 0x00, // Align Left
                     ...encode(`Receipt: ${trx.invoice_number || trx.transaction_code}\n`),
                     ...encode(`Date: ${new Date(trx.created_at).toLocaleString()}\n`),
-                    0x0A, // Blank line before separator
                     ...encode(separator),
                 ];
                 finalCommands = [...finalCommands, ...header];
