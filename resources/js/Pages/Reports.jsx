@@ -12,6 +12,24 @@ import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
+const formatDate = (date) => {
+    const d = new Date(date);
+    const month = `${d.getMonth() + 1}`.padStart(2, '0');
+    const day = `${d.getDate()}`.padStart(2, '0');
+    const year = d.getFullYear();
+    return `${year}-${month}-${day}`;
+};
+
+const getInitialLast7DaysFilters = () => {
+    const today = new Date();
+    const last7 = new Date(today);
+    last7.setDate(last7.getDate() - 6);
+    return {
+        start_date: formatDate(last7),
+        end_date: formatDate(today)
+    };
+};
+
 export default function Reports({ auth }) {
     const user = auth?.user;
 
@@ -37,9 +55,9 @@ export default function Reports({ auth }) {
     const [hasLoaded, setHasLoaded] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
 
-    // Default to empty (Backend handles falling back to current month)
-    const [filters, setFilters] = useState({ start_date: '', end_date: '' });
-    const [activePreset, setActivePreset] = useState('this_month');
+    // Default to Last 7 Days
+    const [filters, setFilters] = useState(() => getInitialLast7DaysFilters());
+    const [activePreset, setActivePreset] = useState('last_7_days');
 
     const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6'];
 
@@ -66,13 +84,6 @@ export default function Reports({ auth }) {
     }, [filters.start_date, filters.end_date]);
 
     // --- QUICK DATE PRESETS LOGIC ---
-    const formatDate = (date) => {
-        const d = new Date(date);
-        const month = `${d.getMonth() + 1}`.padStart(2, '0');
-        const day = `${d.getDate()}`.padStart(2, '0');
-        const year = d.getFullYear();
-        return `${year}-${month}-${day}`;
-    };
 
     const formatNumber = (num) => {
         return num.toLocaleString('en-US');
