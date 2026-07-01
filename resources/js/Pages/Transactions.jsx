@@ -385,10 +385,10 @@ export default function Transactions({ auth }) {
                             </div>
 
                             {/* Filters & Export Container - Wraps automatically when window is minimized */}
-                            <div className="flex flex-col lg:flex-row lg:flex-wrap xl:flex-nowrap gap-3 w-full xl:flex-1">
+                            <div className="flex flex-col xl:flex-row gap-3 w-full xl:flex-1">
 
                                 {/* Date Filters Container */}
-                                <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto shrink-0">
+                                <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto shrink-0">
                                 <div className="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2.5 sm:py-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:bg-white transition-colors">
                                     <span className="text-gray-400 text-[11px] font-bold uppercase tracking-wider w-8">From</span>
                                     <input
@@ -410,7 +410,7 @@ export default function Transactions({ auth }) {
                                 </div>
 
                                 {/* Row for Payment Filter & Export */}
-                                <div className="flex gap-3 w-full lg:flex-1 min-w-[260px]">
+                                <div className="flex gap-3 w-full xl:flex-1 min-w-[260px]">
                                     {/* Payment Method Filter */}
                                     <select
                                         value={paymentFilter}
