@@ -41,38 +41,20 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
 
     // Helper component for Desktop Nav items
     const NavItem = ({ href, active, icon, label }) => {
-        const [mounted, setMounted] = useState(false);
-        useEffect(() => {
-            const timer = setTimeout(() => setMounted(true), 250);
-            return () => clearTimeout(timer);
-        }, []);
-
         return (
             <Link
                 href={href}
-                className={`group relative flex items-center justify-center h-10 px-3 sm:px-3.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all duration-300 ease-in-out select-none
+                className={`group relative flex items-center justify-center h-10 px-3 sm:px-3.5 rounded-lg transition-all duration-300 ease-in-out select-none
                     ${active 
                         ? 'bg-indigo-50 text-indigo-600' 
                         : 'text-gray-555 hover:bg-gray-50 hover:text-gray-900'
                     }`}
             >
-                <div className="flex items-center">
-                    <div className={`shrink-0 transition-colors duration-300 ${active ? 'text-indigo-600' : 'text-gray-550 group-hover:text-gray-900'}`}>
-                        {icon}
-                    </div>
-                    <div className={`overflow-hidden
-                        ${active 
-                            ? 'hidden lg:block lg:max-w-[160px] lg:opacity-100 lg:ml-2' 
-                            : `max-w-0 opacity-0 lg:group-hover:max-w-[160px] lg:group-hover:opacity-100 lg:group-hover:ml-2 ${mounted ? 'transition-all duration-300 ease-in-out' : ''}`
-                        }`}
-                    >
-                        <span className="whitespace-nowrap font-bold text-xs uppercase tracking-wider">
-                            {label}
-                        </span>
-                    </div>
+                <div className={`shrink-0 transition-colors duration-300 ${active ? 'text-indigo-600' : 'text-gray-550 group-hover:text-gray-900'}`}>
+                    {icon}
                 </div>
-                {/* TOOLTIP: Tablet only (hidden on desktop because desktop expands inline) */}
-                <div className="absolute top-[50px] left-1/2 -translate-x-1/2 hidden sm:group-hover:flex lg:group-hover:hidden flex-col items-center z-50 pointer-events-none">
+                {/* TOOLTIP: Tablet & Desktop (hidden on mobile) */}
+                <div className="absolute top-[50px] left-1/2 -translate-x-1/2 hidden sm:group-hover:flex flex-col items-center z-50 pointer-events-none">
                     <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[5px] border-b-gray-800"></div>
                     <span className="bg-gray-800 text-white text-[10px] font-black rounded py-1 px-2 shadow-lg whitespace-nowrap uppercase tracking-wider">
                         {label}
