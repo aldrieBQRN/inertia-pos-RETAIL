@@ -536,7 +536,7 @@ const usePrinterStore = create(
                  finalCommands.push(
                      0x0A, 0x1B, 0x61, 0x01, // Center align for footer
                      ...encode(separator),
-                     ...encode("-Thank you for shopping with us!-\n\n"),
+                     ...encode("Thank you for shopping with us!\n\n"),
                      ...encode("THIS IS NOT A VALID INVOICE\n"),
                      ...encode("PLEASE ASK FOR VALID INVOICE\n"),
                      0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x41 // Cut paper
