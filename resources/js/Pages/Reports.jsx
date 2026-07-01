@@ -309,77 +309,111 @@ export default function Reports({ auth }) {
         }
     };
 
-    const exportCSV = () => {
+    const exportCSV = async () => {
         if (stats.total_orders === 0) {
             Swal.fire({ icon: 'info', title: 'No Data', text: 'No records found for this period to export.', confirmButtonColor: '#111827' });
             return;
         }
 
-        const escapeCSV = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
-        const headers = ["Metric", "Value", "Growth (%) vs Last Period"];
-        
-        const marginPercentage = stats.total_sales > 0 ? (stats.total_profit / stats.total_sales) * 100 : 0;
-        
-        const rows = [
-            ["Gross Revenue", `PHP ${stats.total_sales.toFixed(2)}`, stats.sales_growth !== null ? `${stats.sales_growth}%` : "N/A"],
-            ["Net Profit", `PHP ${stats.total_profit.toFixed(2)}`, stats.profit_growth !== null ? `${stats.profit_growth}%` : "N/A"],
-            ["Profit Margin Ratio", `${marginPercentage.toFixed(1)}%`, "N/A"],
-            ["Total Transactions", stats.total_orders, stats.orders_growth !== null ? `${stats.orders_growth}%` : "N/A"],
-            ["Average Ticket Size", `PHP ${stats.average_order_value.toFixed(2)}`, stats.aov_growth !== null ? `${stats.aov_growth}%` : "N/A"],
-        ];
-
-        let csvRows = [];
-        
-        // 1. KPI Section
-        csvRows.push("BUSINESS PERFORMANCE KEY METRICS");
-        csvRows.push(headers.map(escapeCSV).join(","));
-        rows.forEach(row => {
-            csvRows.push(row.map(escapeCSV).join(","));
-        });
-        
-        csvRows.push("");
-        
-        // 2. Best Sellers Section
-        csvRows.push("TOP 5 BEST SELLING PRODUCTS");
-        csvRows.push(["Product Name", "Quantity Sold"].map(escapeCSV).join(","));
-        (stats.top_products || []).forEach(item => {
-            csvRows.push([item.name, item.sold].map(escapeCSV).join(","));
-        });
-
-        csvRows.push("");
-
-        // 3. Category Section
-        csvRows.push("SALES BY PRODUCT CATEGORY");
-        csvRows.push(["Category Name", "Quantity Sold"].map(escapeCSV).join(","));
-        (stats.sales_by_category || []).forEach(item => {
-            csvRows.push([item.name || 'Uncategorized', item.value].map(escapeCSV).join(","));
-        });
-
-        csvRows.push("");
-
-        // 4. Payment Section
-        csvRows.push("PAYMENT METHOD DISTRIBUTION");
-        csvRows.push(["Payment Method", "Transactions Count"].map(escapeCSV).join(","));
-        (stats.payment_methods || []).forEach(item => {
-            csvRows.push([formatPaymentName(item.payment_method), item.count].map(escapeCSV).join(","));
-        });
-
-        const csvString = csvRows.join("\n");
-        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        
-        const dateRangeStr = (filters.start_date && filters.end_date)
-            ? `${filters.start_date}_to_${filters.end_date}`
-            : `Month_Period`;
+        try {
+            // Get store settings for the header, just like in exportPDF
+            const [settingsRes] = await Promise.allSettled([
+                axios.get('/api/settings')
+            ]);
+            const settings = settingsRes.status === 'fulfilled' ? settingsRes.value.data : null;
             
-        link.setAttribute("download", `Analytics_Data_${dateRangeStr}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            const storeName = settings?.store_name || 'POS Store System';
+            const storeAddress = settings?.address || '';
+            const storeContact = settings?.phone || '';
 
-        Swal.fire({ icon: 'success', title: 'CSV Data Exported!', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+            const escapeCSV = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
+            
+            let csvRows = [];
+            
+            // Add Store Header metadata, similar to the Excel export
+            csvRows.push(`${escapeCSV("STORE NAME")},${escapeCSV(storeName)}`);
+            if (storeAddress) {
+                csvRows.push(`${escapeCSV("ADDRESS")},${escapeCSV(storeAddress)}`);
+            }
+            if (storeContact) {
+                csvRows.push(`${escapeCSV("CONTACT")},${escapeCSV(storeContact)}`);
+            }
+            csvRows.push(`${escapeCSV("REPORT TITLE")},${escapeCSV("BUSINESS ANALYTICS REPORT")}`);
+            csvRows.push(`${escapeCSV("DATE GENERATED")},${escapeCSV(new Date().toLocaleString())}`);
+            
+            const filterText = (filters.start_date || filters.end_date)
+                ? `${filters.start_date || 'Start'} to ${filters.end_date || 'Present'}`
+                : 'Current Month (Default)';
+            csvRows.push(`${escapeCSV("PERIOD RANGE")},${escapeCSV(filterText)}`);
+            
+            // Spacer row
+            csvRows.push("");
+            
+            // 1. KPI Section
+            csvRows.push("BUSINESS PERFORMANCE KEY METRICS");
+            const headers = ["Metric", "Value", "Growth (%) vs Last Period"];
+            csvRows.push(headers.map(escapeCSV).join(","));
+            
+            const marginPercentage = stats.total_sales > 0 ? (stats.total_profit / stats.total_sales) * 100 : 0;
+            const rows = [
+                ["Gross Revenue", `PHP ${stats.total_sales.toFixed(2)}`, stats.sales_growth !== null ? `${stats.sales_growth}%` : "N/A"],
+                ["Net Profit", `PHP ${stats.total_profit.toFixed(2)}`, stats.profit_growth !== null ? `${stats.profit_growth}%` : "N/A"],
+                ["Profit Margin Ratio", `${marginPercentage.toFixed(1)}%`, "N/A"],
+                ["Total Transactions", stats.total_orders, stats.orders_growth !== null ? `${stats.orders_growth}%` : "N/A"],
+                ["Average Ticket Size", `PHP ${stats.average_order_value.toFixed(2)}`, stats.aov_growth !== null ? `${stats.aov_growth}%` : "N/A"],
+            ];
+            
+            rows.forEach(row => {
+                csvRows.push(row.map(escapeCSV).join(","));
+            });
+            
+            csvRows.push("");
+            
+            // 2. Best Sellers Section
+            csvRows.push("TOP 5 BEST SELLING PRODUCTS");
+            csvRows.push(["Product Name", "Quantity Sold"].map(escapeCSV).join(","));
+            (stats.top_products || []).forEach(item => {
+                csvRows.push([item.name, item.sold].map(escapeCSV).join(","));
+            });
+
+            csvRows.push("");
+
+            // 3. Category Section
+            csvRows.push("SALES BY PRODUCT CATEGORY");
+            csvRows.push(["Category Name", "Quantity Sold"].map(escapeCSV).join(","));
+            (stats.sales_by_category || []).forEach(item => {
+                csvRows.push([item.name || 'Uncategorized', item.value].map(escapeCSV).join(","));
+            });
+
+            csvRows.push("");
+
+            // 4. Payment Section
+            csvRows.push("PAYMENT METHOD DISTRIBUTION");
+            csvRows.push(["Payment Method", "Transactions Count"].map(escapeCSV).join(","));
+            (stats.payment_methods || []).forEach(item => {
+                csvRows.push([formatPaymentName(item.payment_method), item.count].map(escapeCSV).join(","));
+            });
+
+            const csvString = csvRows.join("\n");
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            
+            const dateRangeStr = (filters.start_date && filters.end_date)
+                ? `${filters.start_date}_to_${filters.end_date}`
+                : `Month_Period`;
+                
+            link.setAttribute("download", `Analytics_Data_${dateRangeStr}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            Swal.fire({ icon: 'success', title: 'CSV Data Exported!', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+        } catch (error) {
+            console.error("CSV Export Error:", error);
+            Swal.fire('Error', 'Failed to generate the CSV report.', 'error');
+        }
     };
 
     if (loading && !hasLoaded) return (
