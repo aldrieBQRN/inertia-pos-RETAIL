@@ -96,8 +96,6 @@ export default function Settings({ auth }) {
     const isMobile = usePrinterStore((state) => state.isMobile);
     const paperWidth = usePrinterStore((state) => state.paperWidth);
     const setPaperWidth = usePrinterStore((state) => state.setPaperWidth);
-    const printAsImage = usePrinterStore((state) => state.printAsImage);
-    const setPrintAsImage = usePrinterStore((state) => state.setPrintAsImage);
     const connectUsb = usePrinterStore((state) => state.connectUsb);
     const connectBluetooth = usePrinterStore((state) => state.connectBluetooth);
     const disconnect = usePrinterStore((state) => state.disconnect);
@@ -659,25 +657,6 @@ export default function Settings({ auth }) {
                                                                 className={`flex-1 sm:flex-none px-4 py-1.5 rounded-md text-xs font-bold transition-all duration-200 ${paperWidth === '80mm' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                                                             >
                                                                 80mm
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Print as Image Toggle */}
-                                                    <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                                        <div className="text-left">
-                                                            <h5 className="font-bold text-gray-900 text-xs sm:text-sm">Print Receipt as Image</h5>
-                                                            <p className="text-[11px] text-gray-400 mt-0.5">Enables smaller font sizes (fixes default printer size).</p>
-                                                        </div>
-                                                        <div className="flex items-center">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setPrintAsImage(!printAsImage)}
-                                                                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${printAsImage ? 'bg-emerald-500' : 'bg-gray-200'}`}
-                                                            >
-                                                                <span
-                                                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${printAsImage ? 'translate-x-5' : 'translate-x-0'}`}
-                                                                />
                                                             </button>
                                                         </div>
                                                     </div>
