@@ -85,9 +85,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     const catalogContainerRef = useRef(null);
 
     useEffect(() => {
-        // Automatically focus search input on component mount
+        // Automatically focus search input on component mount — desktop only
         const timer = setTimeout(() => {
-            if (searchInputRef.current && window.innerWidth >= 768) {
+            if (searchInputRef.current && window.innerWidth >= 1024) {
                 searchInputRef.current.focus();
             }
         }, 150);
@@ -507,7 +507,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         setQtyModalProduct(null);
         setIsQtyEditMode(false);
         setTimeout(() => {
-            if (searchInputRef.current && !isMobile) {
+            if (searchInputRef.current && window.innerWidth >= 1024) {
                 searchInputRef.current.focus();
                 searchInputRef.current.select();
             }
@@ -553,7 +553,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         
         setTimeout(() => {
             const searchInput = document.querySelector('input[placeholder*="Search"]');
-            if (searchInput && !isMobile) searchInput.focus();
+            if (searchInput && window.innerWidth >= 1024) searchInput.focus();
         }, 100);
     };
 
