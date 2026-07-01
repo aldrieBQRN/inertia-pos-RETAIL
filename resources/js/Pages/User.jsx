@@ -811,8 +811,8 @@ export default function User({ auth, users }) {
                                                         file:mr-4 file:py-2 file:px-4
                                                         file:rounded-md file:border-0
                                                         file:text-xs file:font-semibold
-                                                        file:bg-gray-900 file:text-white
-                                                        hover:file:bg-black
+                                                        file:bg-gray-100 file:text-gray-700
+                                                        hover:file:bg-gray-200
                                                         file:cursor-pointer cursor-pointer"
                                                 />
                                                 {errors.avatar && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.avatar}</p>}
