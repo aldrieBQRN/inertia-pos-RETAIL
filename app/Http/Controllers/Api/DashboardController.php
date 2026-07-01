@@ -121,6 +121,33 @@ class DashboardController extends Controller
 
         $totalProfit = $totalItemProfit - $totalDiscounts;
 
+        // Period-over-Period Growth Calculations
+        $daysDiff = $startDate->diffInDays($endDate) + 1;
+        $prevStartDate = $startDate->copy()->subDays($daysDiff);
+        $prevEndDate = $endDate->copy()->subDays($daysDiff);
+
+        $prevSales = Sale::where('store_id', $storeId)->whereBetween('created_at', [$prevStartDate, $prevEndDate])->sum('total_amount');
+        $prevOrders = Sale::where('store_id', $storeId)->whereBetween('created_at', [$prevStartDate, $prevEndDate])->count();
+        $prevAverageOrderValue = $prevOrders > 0 ? $prevSales / $prevOrders : 0;
+
+        $prevItemProfit = DB::table('sale_items')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
+            ->where('sales.store_id', $storeId)
+            ->whereBetween('sales.created_at', [$prevStartDate, $prevEndDate])
+            ->sum(DB::raw('(sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity'));
+
+        $prevDiscounts = Sale::where('store_id', $storeId)
+            ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
+            ->sum('discount_amount');
+
+        $prevProfit = $prevItemProfit - $prevDiscounts;
+
+        $salesGrowth = $prevSales > 0 ? (($totalSales - $prevSales) / $prevSales) * 100 : null;
+        $profitGrowth = $prevProfit > 0 ? (($totalProfit - $prevProfit) / $prevProfit) * 100 : null;
+        $ordersGrowth = $prevOrders > 0 ? (($totalOrders - $prevOrders) / $prevOrders) * 100 : null;
+        $aovGrowth = $prevAverageOrderValue > 0 ? (($averageOrderValue - $prevAverageOrderValue) / $prevAverageOrderValue) * 100 : null;
+
         // Chart Trend
         $rawChartData = Sale::select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(total_amount) as total'))
             ->where('store_id', $storeId)
@@ -209,6 +236,10 @@ class DashboardController extends Controller
             'total_profit' => $totalProfit / 100,
             'total_orders' => $totalOrders,
             'average_order_value' => $averageOrderValue / 100,
+            'sales_growth' => $salesGrowth !== null ? round($salesGrowth, 1) : null,
+            'profit_growth' => $profitGrowth !== null ? round($profitGrowth, 1) : null,
+            'orders_growth' => $ordersGrowth !== null ? round($ordersGrowth, 1) : null,
+            'aov_growth' => $aovGrowth !== null ? round($aovGrowth, 1) : null,
             'chart_data' => $chartData,
             'peak_hours' => $peakHoursData,
             'peak_days' => $peakDaysData,

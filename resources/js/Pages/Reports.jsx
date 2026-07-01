@@ -18,6 +18,10 @@ export default function Reports({ auth }) {
         total_profit: 0,
         total_orders: 0,
         average_order_value: 0,
+        sales_growth: null,
+        profit_growth: null,
+        orders_growth: null,
+        aov_growth: null,
         chart_data: [],
         peak_hours: [],
         peak_days: [],
@@ -305,6 +309,79 @@ export default function Reports({ auth }) {
         }
     };
 
+    const exportCSV = () => {
+        if (stats.total_orders === 0) {
+            Swal.fire({ icon: 'info', title: 'No Data', text: 'No records found for this period to export.', confirmButtonColor: '#111827' });
+            return;
+        }
+
+        const escapeCSV = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
+        const headers = ["Metric", "Value", "Growth (%) vs Last Period"];
+        
+        const marginPercentage = stats.total_sales > 0 ? (stats.total_profit / stats.total_sales) * 100 : 0;
+        
+        const rows = [
+            ["Gross Revenue", `PHP ${stats.total_sales.toFixed(2)}`, stats.sales_growth !== null ? `${stats.sales_growth}%` : "N/A"],
+            ["Net Profit", `PHP ${stats.total_profit.toFixed(2)}`, stats.profit_growth !== null ? `${stats.profit_growth}%` : "N/A"],
+            ["Profit Margin Ratio", `${marginPercentage.toFixed(1)}%`, "N/A"],
+            ["Total Transactions", stats.total_orders, stats.orders_growth !== null ? `${stats.orders_growth}%` : "N/A"],
+            ["Average Ticket Size", `PHP ${stats.average_order_value.toFixed(2)}`, stats.aov_growth !== null ? `${stats.aov_growth}%` : "N/A"],
+        ];
+
+        let csvRows = [];
+        
+        // 1. KPI Section
+        csvRows.push("BUSINESS PERFORMANCE KEY METRICS");
+        csvRows.push(headers.map(escapeCSV).join(","));
+        rows.forEach(row => {
+            csvRows.push(row.map(escapeCSV).join(","));
+        });
+        
+        csvRows.push("");
+        
+        // 2. Best Sellers Section
+        csvRows.push("TOP 5 BEST SELLING PRODUCTS");
+        csvRows.push(["Product Name", "Quantity Sold"].map(escapeCSV).join(","));
+        (stats.top_products || []).forEach(item => {
+            csvRows.push([item.name, item.sold].map(escapeCSV).join(","));
+        });
+
+        csvRows.push("");
+
+        // 3. Category Section
+        csvRows.push("SALES BY PRODUCT CATEGORY");
+        csvRows.push(["Category Name", "Quantity Sold"].map(escapeCSV).join(","));
+        (stats.sales_by_category || []).forEach(item => {
+            csvRows.push([item.name || 'Uncategorized', item.value].map(escapeCSV).join(","));
+        });
+
+        csvRows.push("");
+
+        // 4. Payment Section
+        csvRows.push("PAYMENT METHOD DISTRIBUTION");
+        csvRows.push(["Payment Method", "Transactions Count"].map(escapeCSV).join(","));
+        (stats.payment_methods || []).forEach(item => {
+            csvRows.push([formatPaymentName(item.payment_method), item.count].map(escapeCSV).join(","));
+        });
+
+        const csvString = csvRows.join("\n");
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        
+        const dateRangeStr = (filters.start_date && filters.end_date)
+            ? `${filters.start_date}_to_${filters.end_date}`
+            : `Month_Period`;
+            
+        link.setAttribute("download", `Analytics_Data_${dateRangeStr}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        Swal.fire({ icon: 'success', title: 'CSV Data Exported!', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+    };
+
     if (loading && !hasLoaded) return (
         <AuthenticatedLayout user={user} header={<h2 className="font-semibold text-xl text-gray-800 tracking-tight truncate">Analytics & Reports</h2>}>
             <ReportsSkeleton />
@@ -373,55 +450,77 @@ export default function Reports({ auth }) {
                                 </div>
                             </div>
 
-                            <button
-                                onClick={exportPDF}
-                                disabled={isExporting}
-                                className={`w-full xl:w-auto bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 sm:py-3 rounded-md text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0 ${isExporting ? 'opacity-70 cursor-not-allowed' : ''}`}
-                            >
-                                {isExporting ? (
-                                    <>
-                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                        Exporting...
-                                    </>
-                                ) : (
-                                    <>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                                        </svg>
-                                        Export PDF Report
-                                    </>
-                                )}
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto shrink-0">
+                                <button
+                                    onClick={exportCSV}
+                                    className="w-full sm:w-auto bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 sm:py-3 rounded-md text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                    </svg>
+                                    Export CSV Data
+                                </button>
+
+                                <button
+                                    onClick={exportPDF}
+                                    disabled={isExporting}
+                                    className={`w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 sm:py-3 rounded-md text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0 ${isExporting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                >
+                                    {isExporting ? (
+                                        <>
+                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                            Exporting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                            </svg>
+                                            Export PDF Report
+                                        </>
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
                     {/* KPI SCORECARDS */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 px-2 sm:px-0">
-                        <StatCard
-                            title="Period Revenue"
-                            value={`₱${formatCurrencyDirect(stats.total_sales)}`}
-                            color="blue"
-                            icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                        />
-                        <StatCard
-                            title="Net Profit"
-                            value={`₱${formatCurrencyDirect(stats.total_profit)}`}
-                            color="green"
-                            icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>}
-                        />
-                        <StatCard
-                            title="Transactions"
-                            value={formatNumber(stats.total_orders)}
-                            color="purple"
-                            icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
-                        />
-                        <StatCard
-                            title="Average Ticket"
-                            value={`₱${formatCurrencyDirect(stats.average_order_value)}`}
-                            color="orange"
-                            icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>}
-                        />
-                    </div>
+                    {(() => {
+                        const marginPercentage = stats.total_sales > 0 ? (stats.total_profit / stats.total_sales) * 100 : 0;
+                        return (
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 px-2 sm:px-0">
+                                <StatCard
+                                    title="Period Revenue"
+                                    value={`₱${formatCurrencyDirect(stats.total_sales)}`}
+                                    trend={stats.sales_growth}
+                                    color="blue"
+                                    icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                                />
+                                <StatCard
+                                    title="Net Profit"
+                                    value={`₱${formatCurrencyDirect(stats.total_profit)}`}
+                                    trend={stats.profit_growth}
+                                    subtext={`Margin: ${marginPercentage.toFixed(1)}%`}
+                                    color="green"
+                                    icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>}
+                                />
+                                <StatCard
+                                    title="Transactions"
+                                    value={formatNumber(stats.total_orders)}
+                                    trend={stats.orders_growth}
+                                    color="purple"
+                                    icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
+                                />
+                                <StatCard
+                                    title="Average Ticket"
+                                    value={`₱${formatCurrencyDirect(stats.average_order_value)}`}
+                                    trend={stats.aov_growth}
+                                    color="orange"
+                                    icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>}
+                                />
+                            </div>
+                        );
+                    })()}
 
                     {/* MAIN TREND CHART (App-like on mobile) */}
                     <div className="px-0 sm:px-0">
@@ -576,7 +675,7 @@ export default function Reports({ auth }) {
     );
 }
 
-function StatCard({ title, value, icon, color }) {
+function StatCard({ title, value, icon, color, subtext, trend }) {
     const bgColors = {
         blue: 'bg-blue-50 text-blue-600 ring-1 ring-blue-100',
         green: 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100',
@@ -588,6 +687,12 @@ function StatCard({ title, value, icon, color }) {
             <div className="flex-1 order-2 sm:order-1">
                 <div className="text-gray-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest">{title}</div>
                 <div className="text-xl sm:text-3xl font-black text-gray-900 mt-0.5 sm:mt-1 tracking-tight">{value}</div>
+                {trend !== undefined && trend !== null && (
+                    <div className={`text-[10px] sm:text-xs font-bold mt-1 flex items-center ${trend >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                        {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}% vs last period
+                    </div>
+                )}
+                {subtext && <div className="text-[9px] sm:text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider">{subtext}</div>}
             </div>
             <div className={`p-2.5 sm:p-3 rounded-lg sm:rounded-xl shrink-0 order-1 sm:order-2 ${bgColors[color]}`}>
                 {icon}
