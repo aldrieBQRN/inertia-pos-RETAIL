@@ -143,10 +143,20 @@ class DashboardController extends Controller
 
         $prevProfit = $prevItemProfit - $prevDiscounts;
 
-        $salesGrowth = $prevSales > 0 ? (($totalSales - $prevSales) / $prevSales) * 100 : null;
-        $profitGrowth = $prevProfit > 0 ? (($totalProfit - $prevProfit) / $prevProfit) * 100 : null;
-        $ordersGrowth = $prevOrders > 0 ? (($totalOrders - $prevOrders) / $prevOrders) * 100 : null;
-        $aovGrowth = $prevAverageOrderValue > 0 ? (($averageOrderValue - $prevAverageOrderValue) / $prevAverageOrderValue) * 100 : null;
+        $calculateGrowth = function ($current, $previous) {
+            if ($previous > 0) {
+                return (($current - $previous) / $previous) * 100;
+            } elseif ($previous < 0) {
+                return (($current - $previous) / abs($previous)) * 100;
+            } else {
+                return $current > 0 ? 100.0 : ($current < 0 ? -100.0 : 0.0);
+            }
+        };
+
+        $salesGrowth = $calculateGrowth($totalSales, $prevSales);
+        $profitGrowth = $calculateGrowth($totalProfit, $prevProfit);
+        $ordersGrowth = $calculateGrowth($totalOrders, $prevOrders);
+        $aovGrowth = $calculateGrowth($averageOrderValue, $prevAverageOrderValue);
 
         // Chart Trend
         $rawChartData = Sale::select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(total_amount) as total'))
