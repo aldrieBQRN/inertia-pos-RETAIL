@@ -203,7 +203,7 @@ export default function Settings({ auth }) {
          const separator = "-".repeat(lineCap) + "\n";
  
          const commands = new Uint8Array([
-             0x1B, 0x40, 0x1B, 0x61, 0x01, 0x1B, 0x45, 0x01,
+             0x00, 0x00, 0x1B, 0x40, 0x1B, 0x61, 0x01, 0x1B, 0x45, 0x01,
              ...encode("PRINTER TEST\n"), 0x1B, 0x45, 0x00,
              ...encode(separator),
              ...encode(`Paper Width: ${paperWidth}\n`),
