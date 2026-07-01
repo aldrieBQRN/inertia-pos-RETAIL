@@ -60,7 +60,12 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
                     <div className={`shrink-0 transition-colors duration-300 ${active ? 'text-indigo-600' : 'text-gray-550 group-hover:text-gray-900'}`}>
                         {icon}
                     </div>
-                    <div className={`overflow-hidden max-w-0 opacity-0 group-hover:max-w-[160px] group-hover:opacity-100 group-hover:ml-2 ${mounted ? 'transition-all duration-300 ease-in-out' : ''}`}>
+                    <div className={`overflow-hidden
+                        ${active 
+                            ? 'max-w-[160px] opacity-100 ml-2' 
+                            : `max-w-0 opacity-0 group-hover:max-w-[160px] group-hover:opacity-100 group-hover:ml-2 ${mounted ? 'transition-all duration-300 ease-in-out' : ''}`
+                        }`}
+                    >
                         <span className="whitespace-nowrap font-bold text-xs uppercase tracking-wider">
                             {label}
                         </span>
