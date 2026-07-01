@@ -646,17 +646,28 @@ export default function Reports({ auth }) {
                     {/* MAIN TREND CHART (App-like on mobile) */}
                     <div className="px-0 sm:px-0">
                         <div className="bg-white p-5 sm:p-6 sm:rounded-xl shadow-sm border-y sm:border border-gray-200/60 flex flex-col h-[350px] sm:h-[400px]">
-                            <h3 className="text-[15px] sm:text-lg font-bold text-gray-800 mb-4 tracking-tight">Revenue Trend</h3>
+                            <h3 className="text-[15px] sm:text-lg font-bold text-gray-800 mb-4 tracking-tight">Revenue & Net Profit Trend</h3>
                             <div className="flex-1 w-full -ml-4 sm:ml-0">
                                 {!hasTrendData ? <NoData /> : (
                                     <ResponsiveContainer width="100%" height="100%">
                                         <AreaChart data={stats.chart_data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                            <defs><linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3B82F6" stopOpacity={0.15}/><stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/></linearGradient></defs>
+                                            <defs>
+                                                <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.15}/>
+                                                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                                                </linearGradient>
+                                                <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.15}/>
+                                                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                                                </linearGradient>
+                                            </defs>
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                                             <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9CA3AF' }} dy={10} />
                                             <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₱${val}`} tick={{ fontSize: 11, fill: '#9CA3AF' }} width={50} />
-                                            <Tooltip formatter={(val) => `₱${val}`} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                            <Area type="monotone" dataKey="sales" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
+                                            <Tooltip formatter={(value, name) => [`₱${parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, name]} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                                            <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px', paddingBottom: '10px' }} />
+                                            <Area type="monotone" name="Revenue" dataKey="sales" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
+                                            <Area type="monotone" name="Net Profit" dataKey="profit" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorProfit)" />
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 )}

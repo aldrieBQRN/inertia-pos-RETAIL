@@ -88,13 +88,33 @@ class DashboardController extends Controller
             ->whereBetween('created_at', [$trendStart, $endOfToday])
             ->groupBy('date')->orderBy('date', 'ASC')->get()->keyBy('date');
 
+        $rawProfitData = DB::table('sale_items')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
+            ->where('sales.store_id', $storeId)
+            ->whereBetween('sales.created_at', [$trendStart, $endOfToday])
+            ->select(DB::raw('DATE(sales.created_at) as date'), DB::raw('SUM((sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity) as item_profit'))
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
+        $rawDiscountData = Sale::select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(discount_amount) as discount'))
+            ->where('store_id', $storeId)
+            ->whereBetween('created_at', [$trendStart, $endOfToday])
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
         $chartData = [];
         $period = \Carbon\CarbonPeriod::create($trendStart, $endOfToday);
         foreach ($period as $date) {
             $dateKey = $date->format('Y-m-d');
+            $itemProfit = isset($rawProfitData[$dateKey]) ? $rawProfitData[$dateKey]->item_profit : 0;
+            $discount = isset($rawDiscountData[$dateKey]) ? $rawDiscountData[$dateKey]->discount : 0;
             $chartData[] = [
                 'date' => $date->format('M d'),
-                'sales' => isset($rawChartData[$dateKey]) ? $rawChartData[$dateKey]->total / 100 : 0
+                'sales' => isset($rawChartData[$dateKey]) ? $rawChartData[$dateKey]->total / 100 : 0,
+                'profit' => ($itemProfit - $discount) / 100
             ];
         }
 
@@ -200,13 +220,33 @@ class DashboardController extends Controller
             ->whereBetween('created_at', [$startDate, $endDate])
             ->groupBy('date')->orderBy('date', 'ASC')->get()->keyBy('date');
 
+        $rawProfitData = DB::table('sale_items')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
+            ->where('sales.store_id', $storeId)
+            ->whereBetween('sales.created_at', [$startDate, $endDate])
+            ->select(DB::raw('DATE(sales.created_at) as date'), DB::raw('SUM((sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity) as item_profit'))
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
+        $rawDiscountData = Sale::select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(discount_amount) as discount'))
+            ->where('store_id', $storeId)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
         $chartData = [];
         $period = \Carbon\CarbonPeriod::create($startDate, $endDate);
         foreach ($period as $date) {
             $dateKey = $date->format('Y-m-d');
+            $itemProfit = isset($rawProfitData[$dateKey]) ? $rawProfitData[$dateKey]->item_profit : 0;
+            $discount = isset($rawDiscountData[$dateKey]) ? $rawDiscountData[$dateKey]->discount : 0;
             $chartData[] = [
                 'date' => $date->format('M d'),
-                'sales' => isset($rawChartData[$dateKey]) ? $rawChartData[$dateKey]->total / 100 : 0
+                'sales' => isset($rawChartData[$dateKey]) ? $rawChartData[$dateKey]->total / 100 : 0,
+                'profit' => ($itemProfit - $discount) / 100
             ];
         }
 
