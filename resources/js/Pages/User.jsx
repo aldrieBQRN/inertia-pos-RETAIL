@@ -14,6 +14,7 @@ export default function User({ auth, users }) {
 
     // NEW: State to hold the user being viewed in the read-only modal
     const [viewUser, setViewUser] = useState(null);
+    const [currentAvatarPath, setCurrentAvatarPath] = useState('');
 
     const [searchQuery, setSearchQuery] = useState('');
     const [roleFilter, setRoleFilter] = useState('');
@@ -30,6 +31,7 @@ export default function User({ auth, users }) {
         city: '',
         province: '',
         password: '',
+        avatar: null,
     });
 
     const handlePhoneChange = (e) => {
@@ -84,6 +86,7 @@ export default function User({ auth, users }) {
         const accNums = userArray.map(u => parseInt(u.account_number, 10)).filter(n => !isNaN(n));
         const nextAccNum = accNums.length > 0 ? (Math.max(...accNums) + 1).toString() : '10000001';
 
+        setCurrentAvatarPath('');
         setData({
             name: '',
             account_number: nextAccNum,
@@ -94,6 +97,7 @@ export default function User({ auth, users }) {
             city: '',
             province: '',
             password: '',
+            avatar: null,
         });
 
         setShowModal(true);
@@ -105,6 +109,7 @@ export default function User({ auth, users }) {
         setOriginalEmail(user.email);
         clearErrors();
 
+        setCurrentAvatarPath(user.avatar_path || '');
         setData({
             name: user.name || '',
             account_number: user.account_number || '',
@@ -115,6 +120,7 @@ export default function User({ auth, users }) {
             city: user.city || '',
             province: user.province || '',
             password: '',
+            avatar: null,
         });
         setShowModal(true);
     };
@@ -198,7 +204,10 @@ export default function User({ auth, users }) {
         };
 
         if (editMode) {
-            put(route('users.update', editingId), options);
+            router.post(route('users.update', editingId), {
+                _method: 'PUT',
+                ...data
+            }, options);
         } else {
             post(route('users.store'), options);
         }
@@ -765,6 +774,45 @@ export default function User({ auth, users }) {
                                         <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                                         System Identity
                                     </h3>
+
+                                    {editMode && (
+                                        <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                            {data.avatar ? (
+                                                <img 
+                                                    src={URL.createObjectURL(data.avatar)} 
+                                                    alt="Avatar Preview" 
+                                                    className="w-16 h-16 rounded-full object-cover border border-gray-200 shadow-sm"
+                                                />
+                                            ) : currentAvatarPath ? (
+                                                <img 
+                                                    src={getAvatarUrl(currentAvatarPath)} 
+                                                    alt="Current Avatar" 
+                                                    className="w-16 h-16 rounded-full object-cover border border-gray-200 shadow-sm"
+                                                />
+                                            ) : (
+                                                <div className="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-black text-xl border border-blue-200 shrink-0 uppercase">
+                                                    {data.name ? data.name.charAt(0) : 'S'}
+                                                </div>
+                                            )}
+                                            
+                                            <div className="flex-1">
+                                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 ml-0.5">Profile Picture</label>
+                                                <input 
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={e => setData('avatar', e.target.files[0])}
+                                                    className="block w-full text-xs text-gray-500
+                                                        file:mr-4 file:py-2 file:px-4
+                                                        file:rounded-md file:border-0
+                                                        file:text-xs file:font-semibold
+                                                        file:bg-gray-900 file:text-white
+                                                        hover:file:bg-black
+                                                        file:cursor-pointer cursor-pointer"
+                                                />
+                                                {errors.avatar && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.avatar}</p>}
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <div>
                                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Full Name</label>

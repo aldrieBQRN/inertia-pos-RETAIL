@@ -99,6 +99,7 @@ class UserController extends Controller
             'city'           => 'nullable|string|max:255',
             'province'       => 'nullable|string|max:255',
             'password'       => 'nullable|string|min:8', // Optional during edit
+            'avatar'         => 'nullable|image|max:5120', // max 5MB
         ]);
 
         // Store old values for audit trail
@@ -124,6 +125,19 @@ class UserController extends Controller
             'city'           => $request->city,
             'province'       => $request->province,
         ]);
+
+        if ($request->hasFile('avatar')) {
+            // Delete old avatar if it exists
+            if ($user->avatar_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar_path);
+            }
+
+            // Compress and store the new image
+            $avatarPath = $this->compressAndStoreImage($request->file('avatar'));
+            $user->update([
+                'avatar_path' => $avatarPath
+            ]);
+        }
 
         // If the admin typed a new password, hash it and save it
         if ($request->filled('password')) {
@@ -309,5 +323,79 @@ class UserController extends Controller
         Cache::forget('staff_email_otp_' . $request->staff_id);
 
         return response()->json(['message' => 'Email verified successfully.']);
+    }
+
+    /**
+     * Compress and store staff avatar image using GD.
+     */
+    private function compressAndStoreImage($file)
+    {
+        $imageInfo = getimagesize($file->getRealPath());
+        if ($imageInfo === false) {
+            return $file->store('avatars', 'public');
+        }
+
+        $mime = $imageInfo['mime'];
+        $width = $imageInfo[0];
+        $height = $imageInfo[1];
+        
+        switch ($mime) {
+            case 'image/jpeg':
+                $srcImage = imagecreatefromjpeg($file->getRealPath());
+                break;
+            case 'image/png':
+                $srcImage = imagecreatefrompng($file->getRealPath());
+                break;
+            case 'image/gif':
+                $srcImage = imagecreatefromgif($file->getRealPath());
+                break;
+            case 'image/webp':
+                $srcImage = imagecreatefromwebp($file->getRealPath());
+                break;
+            default:
+                return $file->store('avatars', 'public');
+        }
+
+        if (!$srcImage) {
+            return $file->store('avatars', 'public');
+        }
+
+        // Resize image to max 400x400 while maintaining aspect ratio
+        $maxDim = 400;
+        if ($width > $maxDim || $height > $maxDim) {
+            $ratio = $width / $height;
+            if ($ratio > 1) {
+                $newWidth = $maxDim;
+                $newHeight = (int)($maxDim / $ratio);
+            } else {
+                $newHeight = $maxDim;
+                $newWidth = (int)($maxDim * $ratio);
+            }
+        } else {
+            $newWidth = $width;
+            $newHeight = $height;
+        }
+
+        $dstImage = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Fill background with white to preserve transparent background parts as white in JPEG
+        $white = imagecolorallocate($dstImage, 255, 255, 255);
+        imagefill($dstImage, 0, 0, $white);
+
+        imagecopyresampled($dstImage, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        $filename = 'avatars/' . Str::random(40) . '.jpg';
+        $path = storage_path('app/public/' . $filename);
+
+        if (!file_exists(dirname($path))) {
+            mkdir(dirname($path), 0755, true);
+        }
+
+        imagejpeg($dstImage, $path, 75); // 75% quality compression
+
+        imagedestroy($srcImage);
+        imagedestroy($dstImage);
+
+        return $filename;
     }
 }
