@@ -465,8 +465,8 @@ const usePrinterStore = create(
                         ? desc.substring(0, 37).padEnd(37) + " " + formattedPrice.padStart(10) + "\n"
                         : desc.substring(0, 21).padEnd(21) + " " + formattedPrice.padStart(8) + "\n";
 
-                    // Row 2: Quantity Details (left) and Subtotal Amount (right)
-                    const qtyDetail = `${quantity}x @ ${formattedPrice}`;
+                    // Row 2: Quantity (left) and Subtotal Amount (right)
+                    const qtyDetail = `${quantity}x`;
                     const row2 = is80
                         ? `  ${qtyDetail}`.padEnd(37) + " " + formattedAmount.padStart(10) + "\n"
                         : `  ${qtyDetail}`.padEnd(21) + " " + formattedAmount.padStart(8) + "\n";
