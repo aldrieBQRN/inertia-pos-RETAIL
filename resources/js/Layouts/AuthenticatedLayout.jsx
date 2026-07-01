@@ -40,27 +40,35 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
     }, [logoUrl]);
 
     // Helper component for Desktop Nav items
-    const NavItem = ({ href, active, icon, label }) => (
-        <Link
-            href={href}
-            className={`group flex items-center justify-center h-10 px-3 sm:px-3.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all duration-300 ease-in-out select-none
-                ${active 
-                    ? 'bg-indigo-50 text-indigo-600' 
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-        >
-            <div className="flex items-center">
-                <div className={`shrink-0 transition-colors duration-300 ${active ? 'text-indigo-600' : 'text-gray-550 group-hover:text-gray-900'}`}>
-                    {icon}
+    const NavItem = ({ href, active, icon, label }) => {
+        const [mounted, setMounted] = useState(false);
+        useEffect(() => {
+            const timer = setTimeout(() => setMounted(true), 250);
+            return () => clearTimeout(timer);
+        }, []);
+
+        return (
+            <Link
+                href={href}
+                className={`group flex items-center justify-center h-10 px-3 sm:px-3.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all duration-300 ease-in-out select-none
+                    ${active 
+                        ? 'bg-indigo-50 text-indigo-600' 
+                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+            >
+                <div className="flex items-center">
+                    <div className={`shrink-0 transition-colors duration-300 ${active ? 'text-indigo-600' : 'text-gray-550 group-hover:text-gray-900'}`}>
+                        {icon}
+                    </div>
+                    <div className={`overflow-hidden max-w-0 opacity-0 group-hover:max-w-[160px] group-hover:opacity-100 group-hover:ml-2 ${mounted ? 'transition-all duration-300 ease-in-out' : ''}`}>
+                        <span className="whitespace-nowrap font-bold text-xs uppercase tracking-wider">
+                            {label}
+                        </span>
+                    </div>
                 </div>
-                <div className="max-w-0 opacity-0 overflow-hidden group-hover:max-w-[160px] group-hover:opacity-100 group-hover:ml-2 transition-all duration-300 ease-in-out">
-                    <span className="whitespace-nowrap font-bold text-xs uppercase tracking-wider">
-                        {label}
-                    </span>
-                </div>
-            </div>
-        </Link>
-    );
+            </Link>
+        );
+    };
 
     const isPosTerminal = url === '/pos';
 
