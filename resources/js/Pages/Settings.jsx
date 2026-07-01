@@ -197,27 +197,27 @@ export default function Settings({ auth }) {
         }
     };
 
-    const handleTestPrint = async () => {
-        const encode = (text) => new TextEncoder().encode(text);
-        const lineCap = paperWidth === '80mm' ? 42 : 32;
-        const separator = "-".repeat(lineCap) + "\n";
-
-        const commands = new Uint8Array([
-            0x1B, 0x40, 0x1B, 0x61, 0x01, 0x1B, 0x45, 0x01,
-            ...encode("PRINTER TEST\n"), 0x1B, 0x45, 0x00,
-            ...encode(separator),
-            ...encode(`Paper Width: ${paperWidth}\n`),
-            ...encode("Connection: SUCCESSFUL\n"),
-            0x1B, 0x61, 0x00,
-            0x1B, 0x61, 0x01, 0x1B, 0x45, 0x01, 0x1D, 0x21, 0x11,
-            ...encode(`${settings.store_name || "Smart POS"}\n`),
-            0x1D, 0x21, 0x00, 0x1B, 0x45, 0x00, 0x1B, 0x61, 0x00,
-            ...encode(`Date: ${new Date().toLocaleString()}\n`),
-            ...encode(separator),
-            0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x41
-        ]);
-        await executePrint(commands);
-    };
+     const handleTestPrint = async () => {
+         const encode = (text) => new TextEncoder().encode(text);
+         const lineCap = paperWidth === '80mm' ? 48 : 30;
+         const separator = "-".repeat(lineCap) + "\n";
+ 
+         const commands = new Uint8Array([
+             0x1B, 0x40, 0x1B, 0x61, 0x01, 0x1B, 0x45, 0x01,
+             ...encode("PRINTER TEST\n"), 0x1B, 0x45, 0x00,
+             ...encode(separator),
+             ...encode(`Paper Width: ${paperWidth}\n`),
+             ...encode("Connection: SUCCESSFUL\n"),
+             0x1B, 0x61, 0x00,
+             0x1B, 0x61, 0x01, 0x1B, 0x45, 0x01, // Bold ON, Center align
+             ...encode(`${settings.store_name || "Smart POS"}\n`),
+             0x1B, 0x45, 0x00, 0x1B, 0x21, 0x00, 0x1B, 0x61, 0x00, // Reset bold/modes & Align Left
+             ...encode(`Date: ${new Date().toLocaleString()}\n`),
+             ...encode(separator),
+             0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x41
+         ]);
+         await executePrint(commands);
+     };
 
     // Helper math for the live shift summary
     const activeShift = settings?.active_shift || {};
