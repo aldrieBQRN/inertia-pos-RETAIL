@@ -459,6 +459,7 @@ const usePrinterStore = create(
                     0x1B, 0x61, 0x00, // Align Left
                     ...encode(`Receipt: ${trx.invoice_number || trx.transaction_code}\n`),
                     ...encode(`Date: ${new Date(trx.created_at).toLocaleString()}\n`),
+                    0x0A, // Blank line before separator
                     ...encode(separator),
                 ];
                 finalCommands = [...finalCommands, ...header];
@@ -530,14 +531,14 @@ const usePrinterStore = create(
                     );
                 }
 
-                 finalCommands.push(
-                     0x0A, 0x1B, 0x61, 0x01, // Center align for footer
-                     ...encode(separator),
-                     ...encode("Thank you for shopping with us!\n\n"),
-                     ...encode("THIS IS NOT A VALID INVOICE\n"),
-                     ...encode("PLEASE ASK FOR VALID INVOICE\n"),
-                     0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x41 // Cut paper
-                 );
+                finalCommands.push(
+                    0x1B, 0x61, 0x01, // Center align for footer
+                    ...encode(separator),
+                    ...encode("Thank you for shopping with us!\n"),
+                    ...encode("THIS IS NOT A VALID INVOICE\n"),
+                    ...encode("PLEASE ASK FOR VALID INVOICE\n"),
+                    0x0A, 0x0A, 0x0A, 0x1D, 0x56, 0x41 // Cut paper
+                );
 
                 await executePrint(new Uint8Array(finalCommands));
             },
