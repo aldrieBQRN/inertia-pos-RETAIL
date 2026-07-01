@@ -33,12 +33,19 @@ class DashboardController extends Controller
         $salesGrowth = $yesterdaySales > 0 ? (($todaySales - $yesterdaySales) / $yesterdaySales) * 100 : 0;
         $averageOrderValue = $todayOrders > 0 ? $todaySales / $todayOrders : 0;
 
-        $todayProfit = DB::table('sale_items')
+        // Today's Profit: actual sold price minus cost price, including custom items (cost_price = 0), minus discounts
+        $todayItemProfit = DB::table('sale_items')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.store_id', $storeId)
             ->whereBetween('sales.created_at', [$today, $endOfToday])
-            ->sum(DB::raw('(products.price - products.cost_price) * sale_items.quantity'));
+            ->sum(DB::raw('(sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity'));
+
+        $todayDiscounts = Sale::where('store_id', $storeId)
+            ->whereBetween('created_at', [$today, $endOfToday])
+            ->sum('discount_amount');
+
+        $todayProfit = $todayItemProfit - $todayDiscounts;
 
         // Low Stock
         $lowStock = Product::where('store_id', $storeId)->where('stock_quantity', '<', 10)->limit(5)->get();
@@ -100,12 +107,19 @@ class DashboardController extends Controller
         $totalOrders = Sale::where('store_id', $storeId)->whereBetween('created_at', [$startDate, $endDate])->count();
         $averageOrderValue = $totalOrders > 0 ? $totalSales / $totalOrders : 0;
 
-        $totalProfit = DB::table('sale_items')
+        // Period Profit: actual sold price minus cost price, including custom items (cost_price = 0), minus discounts
+        $totalItemProfit = DB::table('sale_items')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.store_id', $storeId)
             ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->sum(DB::raw('(products.price - products.cost_price) * sale_items.quantity'));
+            ->sum(DB::raw('(sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity'));
+
+        $totalDiscounts = Sale::where('store_id', $storeId)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('discount_amount');
+
+        $totalProfit = $totalItemProfit - $totalDiscounts;
 
         // Chart Trend
         $rawChartData = Sale::select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(total_amount) as total'))
