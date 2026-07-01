@@ -427,7 +427,7 @@ export default function Reports({ auth }) {
                     };
 
                     if (rowFormats[index]) {
-                        cell.numFormat = rowFormats[index];
+                        cell.numFmt = rowFormats[index];
                     }
 
                     if (index === 0) {
