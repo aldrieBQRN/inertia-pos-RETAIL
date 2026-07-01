@@ -248,24 +248,34 @@ export default function User({ auth, users }) {
                     onSuccess: () => Swal.fire('Removed!', 'The staff member has been deleted.', 'success'),
                     onError: (errors) => {
                         if (errors.delete === 'linked_to_sales') {
-                            Swal.fire({
-                                title: 'Cannot Delete Staff',
-                                text: 'This staff member has processed sales records and cannot be permanently deleted. Would you like to revoke their access instead?',
-                                icon: 'warning',
-                                showCancelButton: true,
-                                confirmButtonColor: '#1B3A69',
-                                cancelButtonColor: '#d33',
-                                confirmButtonText: 'Yes, Revoke Access',
-                                cancelButtonText: 'No'
-                            }).then((archiveResult) => {
-                                if (archiveResult.isConfirmed) {
-                                    router.patch(route('users.toggle-active', user.id), {}, {
-                                        preserveScroll: true,
-                                        preserveState: true,
-                                        onSuccess: () => Swal.fire('Revoked!', 'User access has been revoked successfully.', 'success')
-                                    });
-                                }
-                            });
+                            if (user.is_active === false) {
+                                Swal.fire({
+                                    title: 'Cannot Delete Staff',
+                                    text: 'This staff member has processed sales records and cannot be permanently deleted. Their system access is already revoked.',
+                                    icon: 'error',
+                                    confirmButtonColor: '#1B3A69',
+                                    confirmButtonText: 'OK'
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Cannot Delete Staff',
+                                    text: 'This staff member has processed sales records and cannot be permanently deleted. Would you like to revoke their access instead?',
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#1B3A69',
+                                    cancelButtonColor: '#d33',
+                                    confirmButtonText: 'Yes, Revoke Access',
+                                    cancelButtonText: 'No'
+                                }).then((archiveResult) => {
+                                    if (archiveResult.isConfirmed) {
+                                        router.patch(route('users.toggle-active', user.id), {}, {
+                                            preserveScroll: true,
+                                            preserveState: true,
+                                            onSuccess: () => Swal.fire('Revoked!', 'User access has been revoked successfully.', 'success')
+                                        });
+                                    }
+                                });
+                            }
                         } else {
                             Swal.fire('Error', errors.message || 'You cannot delete this user.', 'error');
                         }
