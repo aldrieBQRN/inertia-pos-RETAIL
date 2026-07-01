@@ -450,18 +450,15 @@ const usePrinterStore = create(
                 const header = [
                     0x1B, 0x61, 0x01, // Center align
                     0x1B, 0x45, 0x01, // Bold ON
-                    0x1D, 0x21, 0x11, // Double Width & Double Height ON for store name
                     ...encode(storeName.toUpperCase() + "\n"),
-                    0x1D, 0x21, 0x00, // Reset Size to Normal
                     0x1B, 0x45, 0x00, // Bold OFF
                     0x1B, 0x21, 0x00, // Force standard mode (Bold OFF)
                     ...(storeAddress ? encode(storeAddress + "\n") : []),
                     ...(storePhone ? encode("Tel: " + storePhone + "\n") : []),
                     ...encode(separator),
                     0x1B, 0x61, 0x00, // Align Left
-                    ...encode(`Invoice: ${trx.invoice_number || trx.transaction_code}\n`),
+                    ...encode(`Receipt #: ${trx.invoice_number || trx.transaction_code}\n`),
                     ...encode(`Date: ${new Date(trx.created_at).toLocaleString()}\n`),
-                    ...encode(`Cashier: ${trx.cashier?.name || "Staff"}\n`),
                     ...encode(separator),
                 ];
                 finalCommands = [...finalCommands, ...header];
@@ -574,9 +571,7 @@ const usePrinterStore = create(
                 const report = [
                     0x1B, 0x61, 0x01, // Center align
                     0x1B, 0x45, 0x01, // Bold ON
-                    0x1D, 0x21, 0x11, // Double Width & Double Height ON for store name
                     ...encode(storeName.toUpperCase() + "\n"),
-                    0x1D, 0x21, 0x00, // Reset Size to Normal
                     0x1B, 0x45, 0x00, // Bold OFF
                     0x1B, 0x21, 0x00, // Force standard mode (Bold OFF)
                     ...(storeAddress ? encode(storeAddress + "\n") : []),
