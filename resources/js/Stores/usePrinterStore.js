@@ -465,7 +465,7 @@ const usePrinterStore = create(
 
                 // Item columns header: Row 1 description header, Row 2 subtotal header
                 const itemHeader = is80
-                    ? "DESCRIPTION".padEnd(37) + " " + "PRICE".padStart(10) + "\n"
+                    ? "QTY  " + "DESCRIPTION".padEnd(22) + "PRICE".padStart(10) + "AMOUNT".padStart(11) + "\n"
                     : "DESCRIPTION".padEnd(21) + " " + "PRICE".padStart(8) + "\n";
                 
                 finalCommands.push(...encode(itemHeader));
@@ -483,23 +483,38 @@ const usePrinterStore = create(
                     const formattedPrice = fmt(priceVal);
                     const formattedAmount = fmt(amountVal);
 
-                    const descLimit = is80 ? 37 : 21;
-                    const priceLimit = is80 ? 10 : 8;
-                    const nameLines = wrapText(desc, descLimit);
+                    if (is80) {
+                        const nameLines = wrapText(desc, 22);
+                        // Line 0: Qty (5) + Desc Line 0 (22) + Price (10) + Amount (11)
+                        let itemLines = quantity.toString().padEnd(5) + 
+                                        nameLines[0].padEnd(22) + 
+                                        formattedPrice.padStart(10) + 
+                                        formattedAmount.padStart(11) + "\n";
+                        
+                        // Remaining Desc Lines: indented by 5 spaces (under DESCRIPTION column)
+                        for (let i = 1; i < nameLines.length; i++) {
+                            itemLines += " ".repeat(5) + nameLines[i] + "\n";
+                        }
+                        finalCommands.push(...encode(itemLines));
+                    } else {
+                        const descLimit = 21;
+                        const priceLimit = 8;
+                        const nameLines = wrapText(desc, descLimit);
 
-                    // Row 1: First line of Name (left) and Unit Price (right)
-                    let itemLines = nameLines[0].padEnd(descLimit) + " " + formattedPrice.padStart(priceLimit) + "\n";
+                        // Row 1: First line of Name (left) and Unit Price (right)
+                        let itemLines = nameLines[0].padEnd(descLimit) + " " + formattedPrice.padStart(priceLimit) + "\n";
 
-                    // Row 1 Cont: Print remaining name lines (without indentation)
-                    for (let i = 1; i < nameLines.length; i++) {
-                        itemLines += `${nameLines[i]}\n`;
+                        // Row 1 Cont: Print remaining name lines (without indentation)
+                        for (let i = 1; i < nameLines.length; i++) {
+                            itemLines += `${nameLines[i]}\n`;
+                        }
+
+                        // Row 2: Quantity (left) and Subtotal Amount (right)
+                        const qtyDetail = `${quantity}x`;
+                        itemLines += `  ${qtyDetail}`.padEnd(descLimit) + " " + formattedAmount.padStart(priceLimit) + "\n";
+
+                        finalCommands.push(...encode(itemLines));
                     }
-
-                    // Row 2: Quantity (left) and Subtotal Amount (right)
-                    const qtyDetail = `${quantity}x`;
-                    itemLines += `  ${qtyDetail}`.padEnd(descLimit) + " " + formattedAmount.padStart(priceLimit) + "\n";
-
-                    finalCommands.push(...encode(itemLines));
                 });
 
                 if (trx.is_senior) {
