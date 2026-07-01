@@ -24,6 +24,7 @@ export default function Reports({ auth }) {
         profit_growth: null,
         orders_growth: null,
         aov_growth: null,
+        margin_growth: null,
         chart_data: [],
         peak_hours: [],
         peak_days: [],
@@ -457,7 +458,7 @@ export default function Reports({ auth }) {
             
             addDataRow(["Gross Revenue", stats.total_sales, formatGrowthValue(stats.sales_growth)], [null, currencyFormat, growthFormat]);
             addDataRow(["Net Profit", stats.total_profit, formatGrowthValue(stats.profit_growth)], [null, currencyFormat, growthFormat]);
-            addDataRow(["Profit Margin Ratio", stats.total_sales > 0 ? (stats.total_profit / stats.total_sales) : 0, "N/A"], [null, percentFormat, null]);
+            addDataRow(["Profit Margin Ratio", stats.total_sales > 0 ? (stats.total_profit / stats.total_sales) : 0, formatGrowthValue(stats.margin_growth)], [null, percentFormat, growthFormat]);
             addDataRow(["Total Transactions", stats.total_orders, formatGrowthValue(stats.orders_growth)], [null, intFormat, growthFormat]);
             addDataRow(["Average Ticket Size", stats.average_order_value, formatGrowthValue(stats.aov_growth)], [null, currencyFormat, growthFormat]);
 

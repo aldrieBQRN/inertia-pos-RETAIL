@@ -158,6 +158,10 @@ class DashboardController extends Controller
         $ordersGrowth = $calculateGrowth($totalOrders, $prevOrders);
         $aovGrowth = $calculateGrowth($averageOrderValue, $prevAverageOrderValue);
 
+        $currentMargin = $totalSales > 0 ? $totalProfit / $totalSales : 0;
+        $prevMargin = $prevSales > 0 ? $prevProfit / $prevSales : 0;
+        $marginGrowth = $prevSales > 0 ? ($currentMargin - $prevMargin) * 100 : null;
+
         // Chart Trend
         $rawChartData = Sale::select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(total_amount) as total'))
             ->where('store_id', $storeId)
@@ -250,6 +254,7 @@ class DashboardController extends Controller
             'profit_growth' => $profitGrowth !== null ? round($profitGrowth, 1) : null,
             'orders_growth' => $ordersGrowth !== null ? round($ordersGrowth, 1) : null,
             'aov_growth' => $aovGrowth !== null ? round($aovGrowth, 1) : null,
+            'margin_growth' => $marginGrowth !== null ? round($marginGrowth, 1) : null,
             'chart_data' => $chartData,
             'peak_hours' => $peakHoursData,
             'peak_days' => $peakDaysData,
