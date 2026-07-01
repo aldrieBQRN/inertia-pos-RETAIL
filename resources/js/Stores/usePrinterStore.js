@@ -418,7 +418,7 @@ const usePrinterStore = create(
                 const storeAddress = settings?.store_address || settings?.address || "";
                 const storePhone = settings?.store_phone || settings?.phone || "";
 
-                let finalCommands = [0x1B, 0x40, 0x1B, 0x33, 22];
+                let finalCommands = [0x1B, 0x40, 0x1B, 0x21, 0x01, 0x1B, 0x33, 22];
 
                 if (trx.payment_method === 'cash') {
                     finalCommands.push(0x1B, 0x70, 0x00, 0x19, 0xFA);
@@ -537,7 +537,7 @@ const usePrinterStore = create(
                 const storeAddress = settings?.store_address || settings?.address || "";
                 const storePhone = settings?.store_phone || settings?.phone || "";
 
-                let finalCommands = [0x1B, 0x40, 0x1B, 0x33, 22];
+                let finalCommands = [0x1B, 0x40, 0x1B, 0x21, 0x01, 0x1B, 0x33, 22];
 
                 finalCommands.push(0x1B, 0x70, 0x00, 0x19, 0xFA);
 
