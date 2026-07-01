@@ -7,30 +7,6 @@ import usePrinterStore from '@/Stores/usePrinterStore';
 import CartSidebar from '@/Components/CartSidebar';
 import Swal from 'sweetalert2';
 
-const playBeep = () => {
-    try {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) return;
-        const audioCtx = new AudioContextClass();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // 800Hz beep frequency
-        
-        gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
-
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.12);
-    } catch (err) {
-        console.warn("Audio Context beep failed:", err);
-    }
-};
-
 /**
  * PosTerminal Component
  */
@@ -481,7 +457,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 const inCart = cart.find(item => item.id === selectedProd.id);
                 const remainingStock = selectedProd.stock_quantity - (inCart ? inCart.quantity : 0);
                 if (remainingStock > 0) {
-                    playBeep();
+                    new Audio('/beep.mp3').play().catch(() => {});
                     triggerQtyModal(selectedProd);
                     setProductNavIndex(-1);
                 } else {
@@ -501,7 +477,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 p = filteredProducts[0];
             }
             if (p) {
-                playBeep();
+                new Audio('/beep.mp3').play().catch(() => {});
                 triggerQtyModal(p);
             }
         } else {

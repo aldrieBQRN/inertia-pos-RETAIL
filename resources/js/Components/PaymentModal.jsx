@@ -299,7 +299,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                             className={`w-full py-4 text-white font-black text-sm uppercase tracking-widest rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]
                                 ${isProcessing ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none' : 'bg-gray-900 hover:bg-black hover:shadow-xl'}`}
                         >
-                            {isProcessing ? <>Processing...</> : <>Confirm Payment (Enter)</>}
+                            {isProcessing ? <>Processing...</> : <>Confirm Payment<span className="hidden md:inline"> (Enter)</span></>}
                         </button>
                         <button
                             type="button"
@@ -307,7 +307,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                             disabled={isProcessing}
                             className="w-full py-3 bg-white text-gray-750 border border-gray-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                         >
-                            Cancel (Esc)
+                            Cancel<span className="hidden md:inline"> (Esc)</span>
                         </button>
                     </div>
 

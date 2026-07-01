@@ -414,26 +414,26 @@ export default function CartSidebar({
 
                     <div className="flex gap-1.5">
                         {/* Recall Button */}
-                        <button onClick={onRecallClick} disabled={disabled} className="px-3 h-[46px] bg-white text-blue-600 hover:bg-blue-50 rounded-md transition-all border border-blue-200 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed" title={showFKeys ? "Recall (F7)" : "Recall"}>
+                        <button onClick={onRecallClick} disabled={disabled} className="p-3 md:px-3 h-[46px] bg-white text-blue-600 hover:bg-blue-50 rounded-md transition-all border border-blue-200 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed" title={showFKeys ? "Recall (F7)" : "Recall"}>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <span>{showFKeys ? "Recall (F7)" : "Recall"}</span>
+                            <span className="hidden md:inline">{showFKeys ? "Recall (F7)" : "Recall"}</span>
                         </button>
 
                         {/* Clear Cart Button */}
-                        <button onClick={handleClearCart} disabled={disabled} className="px-3 h-[46px] bg-white text-red-600 hover:bg-red-50 rounded-md transition-all border border-red-200 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed" title={showFKeys ? "Clear Cart (F10)" : "Clear Cart"}>
+                        <button onClick={handleClearCart} disabled={disabled} className="p-3 md:px-3 h-[46px] bg-white text-red-600 hover:bg-red-50 rounded-md transition-all border border-red-200 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed" title={showFKeys ? "Clear Cart (F10)" : "Clear Cart"}>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-                            <span>{showFKeys ? "Clear (F10)" : "Clear"}</span>
+                            <span className="hidden md:inline">{showFKeys ? "Clear (F10)" : "Clear"}</span>
                         </button>
 
                         {/* Senior Discount Button */}
-                        <button onClick={toggleSenior} disabled={disabled} className={`px-3 h-[46px] rounded-md transition-all border flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed ${isSenior ? 'bg-yellow-100 text-yellow-700 border-yellow-300' : 'bg-white text-yellow-600 border-yellow-200 hover:bg-yellow-50'}`} title={showFKeys ? "Discount (F9)" : "Discount"}>
+                        <button onClick={toggleSenior} disabled={disabled} className={`p-3 md:px-3 h-[46px] rounded-md transition-all border flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed ${isSenior ? 'bg-yellow-100 text-yellow-700 border-yellow-300' : 'bg-white text-yellow-600 border-yellow-200 hover:bg-yellow-50'}`} title={showFKeys ? "Discount (F9)" : "Discount"}>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
-                            <span>{showFKeys ? "Discount (F9)" : "Discount"}</span>
+                            <span className="hidden md:inline">{showFKeys ? "Discount (F9)" : "Discount"}</span>
                         </button>
                     </div>
                 </div>
                 {/* SUB-HEADER: COLUMN HEADERS ONLY */}
-                <div className="px-3 py-2.5 bg-gray-50 border-b border-gray-200 shrink-0">
+                <div className="px-3 py-2.5 bg-gray-50 border-t border-b border-gray-200 md:border-t-2 md:border-b-2 md:border-gray-300 shrink-0 hidden md:block">
                     {/* COLUMNS HEADERS */}
                     <div className="grid grid-cols-[90px_1fr_100px_110px] gap-2 text-xs font-black uppercase tracking-wider text-gray-500 font-mono">
                         <div className="text-center">Qty</div>
@@ -451,77 +451,151 @@ export default function CartSidebar({
                             <p className="text-xs md:text-sm font-medium text-gray-400">Cart is empty</p>
                         </div>
                     ) : (
-                        <div className="flex flex-col">
+                        <div className="flex flex-col p-2 md:p-0 gap-2 md:gap-0">
                             {cart.map((item, index) => (
-                                <div 
-                                    key={item.id} 
-                                    onMouseEnter={() => setHoveredItemId(item.id)}
-                                    onMouseLeave={() => setHoveredItemId(prev => prev === item.id ? null : prev)}
-                                    onClick={() => {
-                                        if (disabled) return;
-                                        window.dispatchEvent(new CustomEvent('close-category-dropdown'));
-                                        window.dispatchEvent(new CustomEvent('reset-catalog-nav'));
-                                        setFocusedIndex(index);
-                                    }}
-                                    className={`cart-item-row grid grid-cols-[90px_1fr_100px_110px] gap-2 px-3 py-3 items-center border-b border-gray-100 hover:bg-gray-50 transition-colors text-base font-bold group cursor-pointer ${focusedIndex === index ? 'ring-2 ring-inset ring-indigo-500 bg-indigo-50/40' : ''}`}
-                                >
-                                    {/* QTY Column with Hover Controls */}
-                                    <div className="flex items-center justify-between h-6 select-none relative w-full">
-                                         <button
-                                             onClick={(e) => {
-                                                 e.stopPropagation();
-                                                 removeFromCart(item.id);
-                                             }}
-                                             disabled={disabled}
-                                             className={`w-6 h-6 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-855 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
-                                             title="Decrease"
-                                         >
-                                            -
-                                        </button>
-                                        <span className="flex-1 text-center font-extrabold text-gray-800 font-mono text-base">
-                                            {item.quantity}
-                                        </span>
-                                        <button
-                                             onClick={(e) => {
-                                                 e.stopPropagation();
-                                                 handleIncreaseQty(item);
-                                             }}
-                                             disabled={disabled}
-                                             className={`w-6 h-6 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-855 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
-                                             title="Increase"
-                                         >
-                                            +
-                                        </button>
+                                <React.Fragment key={item.id}>
+                                    {/* Desktop Row */}
+                                    <div 
+                                        key={item.id} 
+                                        onMouseEnter={() => setHoveredItemId(item.id)}
+                                        onMouseLeave={() => setHoveredItemId(prev => prev === item.id ? null : prev)}
+                                        onClick={() => {
+                                            if (disabled) return;
+                                            window.dispatchEvent(new CustomEvent('close-category-dropdown'));
+                                            window.dispatchEvent(new CustomEvent('reset-catalog-nav'));
+                                            setFocusedIndex(index);
+                                        }}
+                                        className={`cart-item-row hidden md:grid grid-cols-[90px_1fr_100px_110px] gap-2 px-3 py-3 items-center border-b border-gray-100 hover:bg-gray-50 transition-colors text-base font-bold group cursor-pointer ${focusedIndex === index ? 'ring-2 ring-inset ring-indigo-500 bg-indigo-50/40' : ''}`}
+                                    >
+                                        {/* QTY Column with Hover Controls */}
+                                        <div className="flex items-center justify-between h-6 select-none relative w-full">
+                                             <button
+                                                 onClick={(e) => {
+                                                     e.stopPropagation();
+                                                     removeFromCart(item.id);
+                                                 }}
+                                                 disabled={disabled}
+                                                 className={`w-6 h-6 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-855 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
+                                                 title="Decrease"
+                                             >
+                                                -
+                                            </button>
+                                            <span className="flex-1 text-center font-extrabold text-gray-800 font-mono text-base">
+                                                {item.quantity}
+                                            </span>
+                                            <button
+                                                 onClick={(e) => {
+                                                     e.stopPropagation();
+                                                     handleIncreaseQty(item);
+                                                 }}
+                                                 disabled={disabled}
+                                                 className={`w-6 h-6 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-855 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
+                                                 title="Increase"
+                                             >
+                                                +
+                                            </button>
+                                        </div>
+
+                                        {/* DESCRIPTION Column */}
+                                        <div className="min-w-0 pl-4 pr-1 flex items-center justify-between">
+                                            <span className="font-extrabold text-gray-800 truncate leading-tight block select-none" title={item.name}>
+                                                {item.name}
+                                            </span>
+                                             <button 
+                                                 onClick={(e) => {
+                                                     e.stopPropagation();
+                                                     handleRemoveEntireItem(item);
+                                                 }}
+                                                 disabled={disabled}
+                                                 className={`text-gray-405 hover:text-red-500 p-0.5 rounded transition-all shrink-0 ml-1 disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'md:opacity-100' : 'md:opacity-0 md:group-hover:opacity-100')}`}
+                                                 title="Delete"
+                                             >
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
+                                        </div>
+
+                                        {/* PRICE Column */}
+                                        <div className="text-right text-gray-655 font-mono font-semibold text-base">
+                                            {formatPrice(item.price)}
+                                        </div>
+
+                                        {/* AMOUNT Column */}
+                                        <div className="text-right text-gray-900 font-mono font-extrabold text-base">
+                                            {formatPrice(item.price * item.quantity)}
+                                        </div>
                                     </div>
 
-                                    {/* DESCRIPTION Column */}
-                                    <div className="min-w-0 pl-4 pr-1 flex items-center justify-between">
-                                        <span className="font-extrabold text-gray-800 truncate leading-tight block select-none" title={item.name}>
-                                            {item.name}
-                                        </span>
-                                         <button 
-                                             onClick={(e) => {
-                                                 e.stopPropagation();
-                                                 handleRemoveEntireItem(item);
-                                             }}
-                                             disabled={disabled}
-                                             className={`text-gray-405 hover:text-red-500 p-0.5 rounded transition-all shrink-0 ml-1 disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'md:opacity-100' : 'md:opacity-0 md:group-hover:opacity-100')}`}
-                                             title="Delete"
-                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                                        </button>
-                                    </div>
+                                    {/* Mobile Card */}
+                                    <div
+                                        onClick={() => {
+                                            if (disabled) return;
+                                            window.dispatchEvent(new CustomEvent('close-category-dropdown'));
+                                            window.dispatchEvent(new CustomEvent('reset-catalog-nav'));
+                                            setFocusedIndex(index);
+                                        }}
+                                        className={`cart-item-row flex md:hidden flex-col p-3.5 border rounded-lg bg-white transition-all relative cursor-pointer ${focusedIndex === index ? 'ring-2 ring-indigo-500 bg-indigo-50/20' : 'border-gray-200'}`}
+                                    >
+                                        {/* Top section: Name and Delete button */}
+                                        <div className="flex justify-between items-start gap-2">
+                                            <span className="font-extrabold text-gray-800 text-sm line-clamp-2 select-none" title={item.name}>
+                                                {item.name}
+                                            </span>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRemoveEntireItem(item);
+                                                }}
+                                                disabled={disabled}
+                                                className="text-gray-400 hover:text-red-500 p-1 rounded transition-all shrink-0 -mt-1"
+                                                title="Delete"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
+                                        </div>
 
-                                    {/* PRICE Column */}
-                                    <div className="text-right text-gray-655 font-mono font-semibold text-base">
-                                        {formatPrice(item.price)}
-                                    </div>
+                                        {/* Price & Stock info: price and amount */}
+                                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                                            {/* Left: Qty Selector */}
+                                            <div className="flex items-center h-7 select-none relative bg-gray-50 border border-gray-200 rounded-full px-1 py-0.5">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        removeFromCart(item.id);
+                                                    }}
+                                                    disabled={disabled}
+                                                    className="w-5 h-5 bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-sm disabled:cursor-not-allowed"
+                                                    title="Decrease"
+                                                >
+                                                    -
+                                                </button>
+                                                <span className="w-8 text-center font-extrabold text-gray-800 font-mono text-xs">
+                                                    {item.quantity}
+                                                </span>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleIncreaseQty(item);
+                                                    }}
+                                                    disabled={disabled}
+                                                    className="w-5 h-5 bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-sm disabled:cursor-not-allowed"
+                                                    title="Increase"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
 
-                                    {/* AMOUNT Column */}
-                                    <div className="text-right text-gray-900 font-mono font-extrabold text-base">
-                                        {formatPrice(item.price * item.quantity)}
+                                            {/* Right: Price details */}
+                                            <div className="text-right">
+                                                <div className="text-[10px] font-bold text-gray-400 font-mono">
+                                                    {formatPrice(item.price)} x {item.quantity}
+                                                </div>
+                                                <div className="text-sm font-extrabold text-gray-900 font-mono mt-0.5">
+                                                    ₱{formatPrice(item.price * item.quantity)}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                </React.Fragment>
                             ))}
                             {/* Auto-scroll anchor */}
                             <div ref={cartBottomRef} />
@@ -554,21 +628,21 @@ export default function CartSidebar({
                         <button
                             onClick={() => handleSaveOrder()}
                             disabled={disabled || cart.length === 0}
-                            className="w-full py-2.5 md:py-3.5 rounded-lg bg-orange-100 text-orange-600 font-extrabold text-[11px] sm:text-xs md:text-sm lg:text-base hover:bg-orange-200 active:bg-orange-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors active:scale-95"
+                            className="w-full py-4 md:py-3.5 rounded-lg bg-orange-100 text-orange-600 font-extrabold text-sm sm:text-xs md:text-sm lg:text-base hover:bg-orange-200 active:bg-orange-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors active:scale-95"
                         >
                             {showFKeys ? "Save (F8)" : "Save"}
                         </button>
                         <button
                             onClick={openCashDrawer}
                             disabled={disabled}
-                            className="w-full py-2.5 md:py-3.5 rounded-lg bg-zinc-100 text-zinc-700 font-extrabold text-[11px] sm:text-xs md:text-sm lg:text-base hover:bg-zinc-200 border border-zinc-300 hover:border-zinc-400 active:bg-zinc-300 transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full py-4 md:py-3.5 rounded-lg bg-zinc-100 text-zinc-700 font-extrabold text-sm sm:text-xs md:text-sm lg:text-base hover:bg-zinc-200 border border-zinc-300 hover:border-zinc-400 active:bg-zinc-300 transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {showFKeys ? "Drawer (F11)" : "Drawer"}
                         </button>
                         <button
                             onClick={() => setShowPaymentModal(true)}
                             disabled={disabled || cart.length === 0}
-                            className="w-full py-2.5 md:py-3.5 rounded-lg bg-green-600 text-white font-extrabold text-[11px] sm:text-xs md:text-sm lg:text-base shadow-lg hover:bg-green-700 active:bg-green-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all active:scale-95"
+                            className="w-full py-4 md:py-3.5 rounded-lg bg-green-600 text-white font-extrabold text-sm sm:text-xs md:text-sm lg:text-base shadow-lg hover:bg-green-700 active:bg-green-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all active:scale-95"
                         >
                             {showFKeys ? "Checkout (F12)" : "Checkout"}
                         </button>
@@ -605,14 +679,14 @@ export default function CartSidebar({
                                 className="w-full py-2.5 md:py-3.5 bg-blue-600 text-white font-bold rounded-md md:rounded-lg shadow-lg hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-2 text-sm md:text-base"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 md:w-5 md:h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
-                                {showFKeys ? "Print Receipt (Enter)" : "Print Receipt"}
+                                {showFKeys ? <>Print Receipt<span className="hidden md:inline"> (Enter)</span></> : "Print Receipt"}
                             </button>
 
                             <button
                                 onClick={handleNewOrder}
                                 className="w-full py-2.5 md:py-3.5 border border-gray-300 text-gray-700 font-bold rounded-md md:rounded-lg hover:bg-gray-50 active:scale-95 transition-all text-sm md:text-base"
                             >
-                                {showFKeys ? "New Order (Esc)" : "New Order"}
+                                {showFKeys ? <>New Order<span className="hidden md:inline"> (Esc)</span></> : "New Order"}
                             </button>
                         </div>
                     </div>
