@@ -41,26 +41,25 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
 
     // Helper component for Desktop Nav items
     const NavItem = ({ href, active, icon, label }) => (
-        <NavLink
+        <Link
             href={href}
-            active={active}
-            className="group relative flex items-center justify-center px-3 h-full"
+            className={`group flex items-center justify-center h-10 px-3 sm:px-3.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all duration-300 ease-in-out select-none
+                ${active 
+                    ? 'bg-indigo-50 text-indigo-600' 
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                }`}
         >
             <div className="flex items-center">
-                <div className="shrink-0 text-gray-500 group-hover:text-gray-700 transition-colors">
+                <div className={`shrink-0 transition-colors duration-300 ${active ? 'text-indigo-600' : 'text-gray-550 group-hover:text-gray-900'}`}>
                     {icon}
                 </div>
-                <span className="hidden lg:block ml-2 font-medium whitespace-nowrap">
-                    {label}
-                </span>
+                <div className="max-w-0 opacity-0 overflow-hidden group-hover:max-w-[160px] group-hover:opacity-100 group-hover:ml-2 transition-all duration-300 ease-in-out">
+                    <span className="whitespace-nowrap font-bold text-xs uppercase tracking-wider">
+                        {label}
+                    </span>
+                </div>
             </div>
-            <div className="absolute top-[55px] left-1/2 -translate-x-1/2 hidden sm:group-hover:flex lg:hidden flex-col items-center z-50">
-                <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[5px] border-b-gray-800"></div>
-                <span className="bg-gray-800 text-white text-xs rounded py-1 px-2 shadow-lg whitespace-nowrap">
-                    {label}
-                </span>
-            </div>
-        </NavLink>
+        </Link>
     );
 
     const isPosTerminal = url === '/pos';
