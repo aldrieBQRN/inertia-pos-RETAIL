@@ -429,6 +429,7 @@ const usePrinterStore = create(
                     0x1B, 0x45, 0x01, // Bold ON
                     ...encode(storeName.toUpperCase() + "\n"),
                     0x1B, 0x45, 0x00, // Bold OFF
+                    0x1B, 0x21, 0x00, // Force standard mode (Bold OFF)
                     ...(storeAddress ? encode(storeAddress + "\n") : []),
                     ...(storePhone ? encode("Tel: " + storePhone + "\n") : []),
                     ...encode(separator),
@@ -483,7 +484,7 @@ const usePrinterStore = create(
                 }
 
                 finalCommands.push(...encode(separator));
-                finalCommands.push(0x1B, 0x45, 0x01, ...encode("TOTAL".padEnd(10) + fmt(trx.total_amount).padStart(lineCap - 10) + "\n"), 0x1B, 0x45, 0x00);
+                finalCommands.push(0x1B, 0x45, 0x01, ...encode("TOTAL".padEnd(10) + fmt(trx.total_amount).padStart(lineCap - 10) + "\n"), 0x1B, 0x45, 0x00, 0x1B, 0x21, 0x00);
 
                 if (trx.payment_method === 'cash') {
                     const finalCashGiven = (trx.cash_given > 0 ? trx.cash_given : trx.total_amount);
@@ -545,6 +546,7 @@ const usePrinterStore = create(
                     0x1B, 0x45, 0x01, // Bold ON
                     ...encode(storeName.toUpperCase() + "\n"),
                     0x1B, 0x45, 0x00, // Bold OFF
+                    0x1B, 0x21, 0x00, // Force standard mode (Bold OFF)
                     ...(storeAddress ? encode(storeAddress + "\n") : []),
                     ...(storePhone ? encode("Tel: " + storePhone + "\n") : []),
                     ...encode("Z-READ REPORT\n"),
