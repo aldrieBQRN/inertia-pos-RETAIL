@@ -326,21 +326,36 @@ export default function Inventory({ auth }) {
             doc.text(generatedText, pageWidth - 14 - textWidth, currentY);
 
             const tableStartY = currentY + 8;
-            const tableColumns = ["SKU / Barcode", "Product Name", "Category", "Retail Price", "Stock", "Status"];
+            const tableColumns = ["SKU / Barcode", "Product Name", "Category", "Cost Price", "Wholesale Price", "Retail Price", "Stock", "Status"];
             const tableRows = [];
-            let totalInventoryValue = 0;
+            let totalRetailValue = 0;
+            let totalWholesaleValue = 0;
+            let totalCostValue = 0;
+            let totalItemsCount = 0;
+            let lowStockCount = 0;
 
             exportData.forEach(p => {
                 const status = p.stock_quantity <= 10 ? 'Low Stock' : 'In Stock';
-                const price = (p.price || 0) / 100;
-                totalInventoryValue += (price * p.stock_quantity);
+                if (p.stock_quantity <= 10) lowStockCount++;
+
+                const cost = (p.cost_price || 0) / 100;
+                const wholesale = (p.wholesale_price || 0) / 100;
+                const retail = (p.price || 0) / 100;
+                const qty = p.stock_quantity || 0;
+
+                totalCostValue += (cost * qty);
+                totalWholesaleValue += (wholesale * qty);
+                totalRetailValue += (retail * qty);
+                totalItemsCount += qty;
 
                 tableRows.push([
                     p.sku || 'N/A',
                     p.name || 'Unknown Product',
                     p.category?.name || 'Uncategorized',
-                    `PHP ${price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-                    p.stock_quantity.toString(),
+                    `PHP ${cost.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                    `PHP ${wholesale.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                    `PHP ${retail.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+                    qty.toString(),
                     status
                 ]);
             });
@@ -353,7 +368,7 @@ export default function Inventory({ auth }) {
                 headStyles: { fillColor: '#1A3A69', textColor: 255, fontStyle: 'bold' },
                 styles: { fontSize: 9, cellPadding: 4, valign: 'middle' },
                 didParseCell: function(data) {
-                    if (data.section === 'body' && data.column.index === 5) {
+                    if (data.section === 'body' && data.column.index === 7) {
                         if (data.cell.raw === 'Low Stock') {
                             data.cell.styles.textColor = [220, 38, 38];
                             data.cell.styles.fontStyle = 'bold';
@@ -365,14 +380,44 @@ export default function Inventory({ auth }) {
                 }
             });
 
-            const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : tableStartY + 20;
+            let finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 15 : tableStartY + 20;
+
+            // If the table went too far down, add a new page for the summary so it doesn't cut off
+            if (finalY > 160) {
+                doc.addPage();
+                finalY = 20;
+            }
+
+            // Draw Summary Box Background
+            doc.setFillColor(249, 250, 251); // bg-gray-50
+            doc.setDrawColor(229, 231, 235); // border-gray-200
+            doc.rect(14, finalY, pageWidth - 28, 42, 'FD');
+
+            // Summary Box Title
             doc.setFontSize(12);
             doc.setTextColor(31, 41, 55);
-            doc.text(
-                `Total Distinct Items: ${exportData.length}   |   Est. Total Inventory Value (Retail): PHP ${totalInventoryValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
-                14,
-                finalY + 12
-            );
+            doc.setFont(undefined, 'bold');
+            doc.text('Inventory Valuation & Summary Report', 20, finalY + 8);
+
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(75, 85, 99);
+
+            // Left Column: Items Stats
+            doc.text(`Total Unique Items: ${exportData.length}`, 20, finalY + 18);
+            doc.text(`Total Stock Quantity: ${totalItemsCount}`, 20, finalY + 25);
+            doc.text(`Low Stock Alerts: ${lowStockCount}`, 20, finalY + 32);
+
+            // Middle Column: Valuation (Cost & Wholesale)
+            doc.text(`Total Cost Value: PHP ${totalCostValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, pageWidth / 2 - 40, finalY + 18);
+            doc.text(`Total Wholesale Value: PHP ${totalWholesaleValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, pageWidth / 2 - 40, finalY + 25);
+            doc.text(`Total Retail Value: PHP ${totalRetailValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, pageWidth / 2 - 40, finalY + 32);
+
+            // Right Column: Margins
+            const estGrossProfit = totalRetailValue - totalCostValue;
+            const avgMargin = totalRetailValue > 0 ? (estGrossProfit / totalRetailValue) * 100 : 0;
+            doc.text(`Est. Gross Profit: PHP ${estGrossProfit.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, pageWidth - 90, finalY + 18);
+            doc.text(`Avg. Expected Margin: ${avgMargin.toFixed(1)}%`, pageWidth - 90, finalY + 25);
 
             const dateStr = new Date().toISOString().split('T')[0];
             doc.save(`Inventory_Report_${dateStr}.pdf`);
