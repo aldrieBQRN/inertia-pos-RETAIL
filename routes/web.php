@@ -161,6 +161,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class])->grou
     Route::get('/api/categories', [CategoryController::class, 'index']);
     Route::get('/api/transactions', [TransactionController::class, 'index']);
     Route::get('/api/transactions/{id}', [TransactionController::class, 'show']);
+    Route::post('/api/products/{id}/stock', [ProductController::class, 'adjustStock']);
 
     // API: Operational & Config - Admin Restricted
     Route::middleware('admin')->group(function () {
@@ -173,7 +174,6 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class])->grou
         Route::put('/api/products/{id}', [ProductController::class, 'update']);
         Route::delete('/api/products/{id}', [ProductController::class, 'destroy']);
         Route::patch('/api/products/{id}/toggle-active', [ProductController::class, 'toggleActive']);
-        Route::post('/api/products/{id}/stock', [ProductController::class, 'adjustStock']);
 
         Route::post('/api/categories', [CategoryController::class, 'store']);
         Route::put('/api/categories/{id}', [CategoryController::class, 'update']);
