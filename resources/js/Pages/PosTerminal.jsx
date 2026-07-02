@@ -287,6 +287,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 if (e.key === 'Escape') {
                     e.preventDefault();
                     setShowCustomItemModal(false);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('custom-item-form-submit-btn')?.click();
                 } else if (e.key === 'F1') {
                     e.preventDefault();
                     document.getElementById('custom-sku-input')?.focus();
@@ -1204,6 +1207,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
                                                 e.preventDefault();
+                                                e.stopPropagation();
                                                 document.getElementById('custom-name-input')?.focus();
                                             }
                                         }}
@@ -1238,6 +1242,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                             e.preventDefault();
+                                            e.stopPropagation();
                                             setShowCustomCategoryDropdown(true);
                                             const currentIdx = categories.findIndex(c => c.id === customItemForm.category_id);
                                             setCustomCategoryNavIndex(currentIdx !== -1 ? currentIdx : 0);
@@ -1328,6 +1333,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
                                                 e.preventDefault();
+                                                e.stopPropagation();
                                                 document.getElementById('custom-cost-input')?.focus();
                                             }
                                         }}
@@ -1351,6 +1357,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                             e.preventDefault();
+                                            e.stopPropagation();
                                             document.getElementById('custom-retail-input')?.focus();
                                         }
                                     }}
@@ -1374,6 +1381,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
                                                 e.preventDefault();
+                                                e.stopPropagation();
                                                 document.getElementById('custom-wholesale-input')?.focus();
                                             }
                                         }}
@@ -1394,6 +1402,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
                                                 e.preventDefault();
+                                                e.stopPropagation();
                                                 document.getElementById('custom-item-form-submit-btn')?.click();
                                             }
                                         }}
