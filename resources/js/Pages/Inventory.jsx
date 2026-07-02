@@ -350,7 +350,7 @@ export default function Inventory({ auth }) {
                 body: tableRows,
                 startY: tableStartY,
                 theme: 'striped',
-                headStyles: { fillColor: '#9b5a33', textColor: 255, fontStyle: 'bold' },
+                headStyles: { fillColor: '#1A3A69', textColor: 255, fontStyle: 'bold' },
                 styles: { fontSize: 9, cellPadding: 4, valign: 'middle' },
                 didParseCell: function(data) {
                     if (data.section === 'body' && data.column.index === 5) {
