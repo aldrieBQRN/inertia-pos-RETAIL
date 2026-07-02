@@ -33,6 +33,8 @@ export default function Settings({ auth }) {
 
     const [showShiftModal, setShowShiftModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false); // Edit Store Modal State
+    const [formSettings, setFormSettings] = useState({ store_name: '', address: '', phone: '' });
+    const [originalPreview, setOriginalPreview] = useState('/logo.png');
     const [isFullScreen, setIsFullScreen] = useState(false);
 
     const [localShortcutsEnabled, setLocalShortcutsEnabled] = useState(() => {
@@ -154,14 +156,24 @@ export default function Settings({ auth }) {
         }
     };
 
+    const handleFormChange = (e) => {
+        setFormSettings({ ...formSettings, [e.target.name]: e.target.value });
+    };
+
+    const closeEditModal = () => {
+        setPreview(originalPreview);
+        setLogoFile(null);
+        setShowEditModal(false);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
 
         const formData = new FormData();
-        formData.append('store_name', settings.store_name);
-        formData.append('address', settings.address || '');
-        formData.append('phone', settings.phone || '');
+        formData.append('store_name', formSettings.store_name);
+        formData.append('address', formSettings.address || '');
+        formData.append('phone', formSettings.phone || '');
         if (logoFile) formData.append('logo', logoFile);
 
         try {
@@ -383,7 +395,15 @@ export default function Settings({ auth }) {
                                     <div className="w-full mt-4 pt-4 border-t border-gray-100 relative z-10">
                                         <button
                                             type="button"
-                                            onClick={() => setShowEditModal(true)}
+                                            onClick={() => {
+                                                setFormSettings({
+                                                    store_name: settings.store_name || '',
+                                                    address: settings.address || '',
+                                                    phone: settings.phone || ''
+                                                });
+                                                setOriginalPreview(preview);
+                                                setShowEditModal(true);
+                                            }}
                                             className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-gray-900 text-white font-semibold text-xs uppercase tracking-wider hover:bg-black transition-all active:scale-[0.98] shadow-sm"
                                         >
                                             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
@@ -849,7 +869,7 @@ export default function Settings({ auth }) {
                                 <p className="text-[11px] sm:text-xs font-medium text-gray-500 mt-0.5 sm:mt-1">Update the store identity and contact info.</p>
                             </div>
                             <button
-                                onClick={() => setShowEditModal(false)}
+                                onClick={closeEditModal}
                                 className="bg-gray-50 hover:bg-gray-100 p-2 sm:p-2.5 rounded-full text-gray-500 hover:text-gray-900 transition-colors active:scale-95"
                             >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -889,8 +909,8 @@ export default function Settings({ auth }) {
                                         <label className={labelClasses}>Store Name</label>
                                         <input
                                             name="store_name"
-                                            value={settings.store_name || ''}
-                                            onChange={handleChange}
+                                            value={formSettings.store_name || ''}
+                                            onChange={handleFormChange}
                                             className={inputClasses}
                                             required
                                         />
@@ -900,8 +920,8 @@ export default function Settings({ auth }) {
                                         <label className={labelClasses}>Address</label>
                                         <input
                                             name="address"
-                                            value={settings.address || ''}
-                                            onChange={handleChange}
+                                            value={formSettings.address || ''}
+                                            onChange={handleFormChange}
                                             className={inputClasses}
                                             required
                                         />
@@ -911,8 +931,8 @@ export default function Settings({ auth }) {
                                         <label className={labelClasses}>Phone Number</label>
                                         <input
                                             name="phone"
-                                            value={settings.phone || ''}
-                                            onChange={handleChange}
+                                            value={formSettings.phone || ''}
+                                            onChange={handleFormChange}
                                             className={inputClasses}
                                         />
                                     </div>
@@ -924,7 +944,7 @@ export default function Settings({ auth }) {
                         <div className="bg-white sm:bg-gray-50/80 px-6 sm:px-10 py-5 border-t border-gray-100 flex flex-col sm:flex-row justify-end gap-3 shrink-0">
                             <button
                                 type="button"
-                                onClick={() => setShowEditModal(false)}
+                                onClick={closeEditModal}
                                 className="order-2 sm:order-1 w-full sm:w-auto px-6 py-3.5 sm:py-3 text-gray-600 font-semibold bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-sm transition-all active:scale-[0.98]"
                             >
                                 Cancel
