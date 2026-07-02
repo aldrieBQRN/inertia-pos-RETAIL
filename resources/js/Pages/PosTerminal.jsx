@@ -1310,6 +1310,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     id="custom-cost-input"
                                     type="number"
                                     step="0.01"
+                                    required
                                     min="0"
                                     value={customItemForm.cost_price}
                                     onChange={(e) => setCustomItemForm({ ...customItemForm, cost_price: e.target.value })}
@@ -1352,6 +1353,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         id="custom-wholesale-input"
                                         type="number"
                                         step="0.01"
+                                        required
                                         min="0"
                                         value={customItemForm.wholesale_price}
                                         onChange={(e) => setCustomItemForm({ ...customItemForm, wholesale_price: e.target.value })}
