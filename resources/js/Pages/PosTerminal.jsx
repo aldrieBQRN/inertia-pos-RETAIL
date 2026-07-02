@@ -163,9 +163,11 @@ export default function PosTerminal({ auth, store_settings, settings }) {
             }
 
             const isControlKey = e.key === 'Escape' || e.key === 'Enter';
+            const isNavKey = (e.key === 'ArrowDown' || e.key === 'ArrowUp') && 
+                (showCategoryDropdown || showCustomCategoryDropdown || showHeldOrdersModal);
 
-            // Ignore if standard typing in input/textarea (unless it's an F-key or control key)
-            if (!isFKey && !isControlKey && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+            // Ignore if standard typing in input/textarea (unless it's an F-key, control key, or active nav key)
+            if (!isFKey && !isControlKey && !isNavKey && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
                 return;
             }
 
@@ -301,6 +303,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                         if (next) {
                             const currentIdx = categories.findIndex(c => c.id === customItemForm.category_id);
                             setCustomCategoryNavIndex(currentIdx !== -1 ? currentIdx : 0);
+                            setTimeout(() => {
+                                document.getElementById('custom-category-input')?.focus();
+                            }, 50);
                         } else {
                             setCustomCategoryNavIndex(-1);
                         }
@@ -598,6 +603,35 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     const handleAddCustomItem = async (e) => {
         if (e) e.preventDefault();
         const { sku, name, category_id, stock_quantity, cost_price, price, wholesale_price } = customItemForm;
+
+        if (!sku.trim()) {
+            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'SKU / Barcode is required.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+            return;
+        }
+        if (!name.trim()) {
+            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Product Name is required.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+            return;
+        }
+        if (!category_id) {
+            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Please select a Category.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+            return;
+        }
+        if (stock_quantity === '' || isNaN(parseInt(stock_quantity, 10)) || parseInt(stock_quantity, 10) < 0) {
+            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Valid Initial Stock is required.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+            return;
+        }
+        if (cost_price === '' || isNaN(parseFloat(cost_price)) || parseFloat(cost_price) < 0) {
+            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Valid Cost Price is required.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+            return;
+        }
+        if (price === '' || isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
+            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Valid Retail Price is required.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+            return;
+        }
+        if (wholesale_price === '' || isNaN(parseFloat(wholesale_price)) || parseFloat(wholesale_price) < 0) {
+            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Valid Wholesale Price is required.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+            return;
+        }
 
         const skuExists = products.some(p => p.sku === sku.trim());
         if (skuExists) {
