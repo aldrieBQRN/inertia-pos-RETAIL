@@ -43,20 +43,21 @@ class SettingController extends Controller
         $activeShiftData = null;
 
         if (!$user->is_admin) {
-            // Find the cashier's most recent closed shift
-            $lastShift = Shift::where('user_id', $user->id)
-                ->latest('created_at')
+            // Find the store's most recent closed shift
+            $lastShift = Shift::where('status', 'closed')
+                ->latest('end_time')
                 ->first();
 
-            // The starting cash is the actual_cash left in the drawer from the previous shift
+            // The starting cash is the actual_cash left in the drawer from the store's previous shift
             $startingCash = $lastShift ? (float) $lastShift->actual_cash : 0.00;
 
-            // The current shift period starts exactly when the last shift was created/closed
-            $startTime = $lastShift && $lastShift->created_at ? $lastShift->created_at : Carbon::today();
+            // The current shift period starts exactly when the last shift was ended/closed
+            $startTime = $lastShift && $lastShift->end_time 
+                ? $lastShift->end_time 
+                : Carbon::parse('2000-01-01 00:00:00');
 
-            // Fetch all completed sales for this cashier SINCE the last shift was recorded
-            $sales = Sale::where('cashier_id', $user->id)
-                ->where('created_at', '>', $startTime)
+            // Fetch all completed sales for this store SINCE the last shift was recorded
+            $sales = Sale::where('created_at', '>=', $startTime)
                 ->where('status', 'completed')
                 ->get();
 
