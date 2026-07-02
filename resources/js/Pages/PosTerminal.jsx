@@ -299,6 +299,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 } else if (e.key === 'F3') {
                     e.preventDefault();
                     document.getElementById('custom-name-input')?.focus();
+                } else if (e.key === 'F4') {
+                    e.preventDefault();
+                    setShowCustomItemModal(false);
                 } else if (e.key === 'F5') {
                     e.preventDefault();
                     setShowCustomCategoryDropdown(prev => {
