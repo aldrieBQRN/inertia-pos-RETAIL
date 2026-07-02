@@ -250,6 +250,12 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
             // Intercept shortcuts specifically for the Add Custom Item modal if open
             if (showCustomItemModal) {
+                // Close custom category dropdown when switching to another F-key
+                if (e.key.match(/^F[1-9]$|^F1[0-2]$/) && e.key !== 'F5') {
+                    setShowCustomCategoryDropdown(false);
+                    setCustomCategoryNavIndex(-1);
+                }
+
                 if (showCustomCategoryDropdown) {
                     if (e.key === 'Escape') {
                         e.preventDefault();
@@ -299,9 +305,6 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 } else if (e.key === 'F3') {
                     e.preventDefault();
                     document.getElementById('custom-name-input')?.focus();
-                } else if (e.key === 'F4') {
-                    e.preventDefault();
-                    setShowCustomItemModal(false);
                 } else if (e.key === 'F5') {
                     e.preventDefault();
                     setShowCustomCategoryDropdown(prev => {
