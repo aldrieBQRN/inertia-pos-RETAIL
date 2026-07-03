@@ -3,6 +3,25 @@ import BillingLayout from '@/Layouts/BillingLayout';
 import { Head, useForm } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
+const renderPaymentIcon = (type, fallbackIcon) => {
+    const t = type?.toLowerCase();
+    if (t === 'gcash') {
+        return (
+            <span className="inline-flex items-center justify-center bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded tracking-tighter uppercase leading-none select-none shrink-0">
+                GCash
+            </span>
+        );
+    }
+    if (t === 'maya') {
+        return (
+            <span className="inline-flex items-center justify-center bg-emerald-500 text-white text-[9px] font-black px-2 py-1 rounded tracking-tighter uppercase leading-none select-none shrink-0">
+                Maya
+            </span>
+        );
+    }
+    return <span className="text-xl shrink-0">{fallbackIcon || '📱'}</span>;
+};
+
 export default function BillingPortal({ auth, store, plans, pendingPayment, history, paymentMethods }) {
     const [imagePreview, setImagePreview] = useState(null);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(paymentMethods?.[0] || null);
@@ -205,13 +224,14 @@ export default function BillingPortal({ auth, store, plans, pendingPayment, hist
                                                         key={method.type}
                                                         type="button"
                                                         onClick={() => setSelectedPaymentMethod(method)}
-                                                        className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-tight transition-all ${
+                                                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-tight transition-all ${
                                                             selectedPaymentMethod?.type === method.type
                                                                 ? 'bg-blue-600 text-white'
                                                                 : 'bg-white/10 hover:bg-white/20 text-white'
                                                         }`}
                                                     >
-                                                        {method.icon} {method.label}
+                                                        <span>{method.label}</span>
+                                                        {renderPaymentIcon(method.type, method.icon)}
                                                     </button>
                                                 ))}
                                             </div>

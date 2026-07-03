@@ -3,6 +3,25 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
+const renderPaymentIcon = (type, fallbackIcon) => {
+    const t = type?.toLowerCase();
+    if (t === 'gcash') {
+        return (
+            <span className="inline-flex items-center justify-center bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded tracking-tighter uppercase leading-none select-none shrink-0">
+                GCash
+            </span>
+        );
+    }
+    if (t === 'maya') {
+        return (
+            <span className="inline-flex items-center justify-center bg-emerald-500 text-white text-[9px] font-black px-2 py-1 rounded tracking-tighter uppercase leading-none select-none shrink-0">
+                Maya
+            </span>
+        );
+    }
+    return <span className="text-xl shrink-0">{fallbackIcon || '📱'}</span>;
+};
+
 export default function SystemInfo({ auth, settings }) {
     const fileInput = useRef();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -10,7 +29,7 @@ export default function SystemInfo({ auth, settings }) {
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [paymentMethods, setPaymentMethods] = useState(Array.isArray(settings?.payment_methods) ? settings.payment_methods : []);
     const [editingMethod, setEditingMethod] = useState(null);
-    const [newMethod, setNewMethod] = useState({ type: '', label: '', number: '', name: '', icon: '' });
+    const [newMethod, setNewMethod] = useState({ type: 'gcash', label: 'GCash', number: '', name: '', icon: 'gcash' });
 
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         app_name: settings?.app_name || '',
@@ -250,7 +269,7 @@ export default function SystemInfo({ auth, settings }) {
                             <button
                                 onClick={() => {
                                     setEditingMethod(null);
-                                    setNewMethod({ type: '', label: '', number: '', name: '', icon: '📱' });
+                                    setNewMethod({ type: 'gcash', label: 'GCash', number: '', name: '', icon: 'gcash' });
                                     setIsPaymentModalOpen(true);
                                 }}
                                 className="flex items-center justify-center gap-2 px-4 py-2 rounded-none sm:rounded-lg bg-green-600 text-white font-semibold text-xs sm:text-sm hover:bg-green-700 transition-all active:scale-[0.98] shadow-md shrink-0"
@@ -267,7 +286,7 @@ export default function SystemInfo({ auth, settings }) {
                                     {paymentMethods.map((method, idx) => (
                                         <div key={idx} className="p-4 bg-gray-50/50 border border-gray-150 rounded-lg flex items-center justify-between hover:bg-gray-50 transition-colors">
                                             <div className="flex items-center gap-4 flex-1">
-                                                <span className="text-2xl">{method.icon || '📱'}</span>
+                                                {renderPaymentIcon(method.type, method.icon)}
                                                 <div>
                                                     <p className="font-semibold text-gray-900 text-sm">{method.label}</p>
                                                     <p className="text-xs text-gray-500">{method.number} • {method.name}</p>
@@ -317,29 +336,41 @@ export default function SystemInfo({ auth, settings }) {
                         </div>
 
                         {/* Modal Body */}
-                        <div className="p-6 sm:p-8 space-y-5">
+                        <div className="p-6 sm:p-8 space-y-6">
                             <div>
-                                <label className={labelClasses}>Payment Type</label>
-                                <input
-                                    type="text"
-                                    value={newMethod.type}
-                                    onChange={(e) => setNewMethod({ ...newMethod, type: e.target.value })}
-                                    placeholder="e.g., gcash, paymaya, bdo"
-                                    className={inputClasses}
-                                    required
-                                />
+                                <label className={labelClasses}>Select Provider</label>
+                                <div className="grid grid-cols-2 gap-4 mt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setNewMethod({ ...newMethod, type: 'gcash', label: 'GCash', icon: 'gcash' })}
+                                        className={`p-5 rounded-2xl border-2 text-center transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group ${
+                                            newMethod.type === 'gcash'
+                                                ? 'border-blue-600 bg-blue-50/50 ring-4 ring-blue-100/50 shadow-md'
+                                                : 'border-gray-200 bg-white hover:border-gray-300'
+                                        }`}
+                                    >
+                                        <span className="bg-blue-600 text-white text-[10px] font-black px-3 py-1.5 rounded-lg tracking-wider uppercase select-none shadow-sm">
+                                            GCash
+                                        </span>
+                                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Mobile Wallet</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setNewMethod({ ...newMethod, type: 'maya', label: 'Maya', icon: 'maya' })}
+                                        className={`p-5 rounded-2xl border-2 text-center transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group ${
+                                            newMethod.type === 'maya'
+                                                ? 'border-emerald-600 bg-emerald-50/50 ring-4 ring-emerald-100/50 shadow-md'
+                                                : 'border-gray-200 bg-white hover:border-gray-300'
+                                        }`}
+                                    >
+                                        <span className="bg-emerald-500 text-white text-[10px] font-black px-3 py-1.5 rounded-lg tracking-wider uppercase select-none shadow-sm">
+                                            Maya
+                                        </span>
+                                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wide">Digital Bank</span>
+                                    </button>
+                                </div>
                             </div>
-                            <div>
-                                <label className={labelClasses}>Label/Display Name</label>
-                                <input
-                                    type="text"
-                                    value={newMethod.label}
-                                    onChange={(e) => setNewMethod({ ...newMethod, label: e.target.value })}
-                                    placeholder="e.g., GCash, PayMaya, BDO Bank"
-                                    className={inputClasses}
-                                    required
-                                />
-                            </div>
+
                             <div>
                                 <label className={labelClasses}>Account/Reference Number</label>
                                 <input
@@ -351,6 +382,7 @@ export default function SystemInfo({ auth, settings }) {
                                     required
                                 />
                             </div>
+
                             <div>
                                 <label className={labelClasses}>Account/Business Name</label>
                                 <input
@@ -360,17 +392,6 @@ export default function SystemInfo({ auth, settings }) {
                                     placeholder="e.g., Juan Dela Cruz"
                                     className={inputClasses}
                                     required
-                                />
-                            </div>
-                            <div>
-                                <label className={labelClasses}>Icon/Emoji (Optional)</label>
-                                <input
-                                    type="text"
-                                    value={newMethod.icon}
-                                    onChange={(e) => setNewMethod({ ...newMethod, icon: e.target.value })}
-                                    maxLength="2"
-                                    placeholder="e.g., 📱 💳 🏦"
-                                    className={inputClasses}
                                 />
                             </div>
                         </div>
