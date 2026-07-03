@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             SecurityHeaders::class,
+            \App\Http\Middleware\IpBlacklistMiddleware::class,
         ]);
 
         // 2. Your existing Admin alias

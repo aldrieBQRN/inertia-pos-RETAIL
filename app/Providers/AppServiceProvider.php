@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL; // <-- ADDED THIS IMPORT
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Http\Request;
 
 /**
  * Global Application Service Provider
@@ -45,5 +48,20 @@ class AppServiceProvider extends ServiceProvider
         // Skip symlink creation on InfinityFree (shared hosting doesn't support exec)
         // Symlink creation is not supported on ephemeral/shared hosting like InfinityFree
         // Users will need to upload files to storage/app/public/ manually
+
+        // 1. Guest API Throttling: Strict rate limit to prevent brute force & signature scanning (10 per minute per IP)
+        RateLimiter::for('guest_api', function (Request $request) {
+            return Limit::perMinute(10)->by($request->ip());
+        });
+
+        // 2. Auth API Throttling: High limit per User ID to avoid interrupting busy cashiers/admins
+        RateLimiter::for('auth_api', function (Request $request) {
+            return Limit::perMinute(300)->by($request->user()?->id ?: $request->ip());
+        });
+
+        // 3. Checkout API Throttling: High limit to support rapid scanning & checkouts, but prevents double clicks
+        RateLimiter::for('checkout_api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
     }
 }

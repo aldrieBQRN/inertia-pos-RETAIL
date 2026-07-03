@@ -31,21 +31,21 @@ use Inertia\Inertia;
 // 1. Tenant/Store Owner Setup (Initial Store Creation)
 Route::get('/setup/{user}', [TenantSetupController::class, 'show'])
     ->name('tenant.setup')
-    ->middleware('signed');
+    ->middleware(['signed', 'throttle:guest_api']);
 
 Route::post('/setup/{user}', [TenantSetupController::class, 'submit'])
     ->name('tenant.setup.submit')
-    ->middleware('signed');
+    ->middleware(['signed', 'throttle:guest_api']);
 
 // 2. Staff Setup (Onboarding via Admin Invitation)
 // These routes handle the "Ultimate Tech Solution" onboarding flow
 Route::get('/setup-account/{user}', [SetupController::class, 'show'])
     ->name('staff.setup')
-    ->middleware('signed'); // Prevents link tampering
+    ->middleware(['signed', 'throttle:guest_api']); // Prevents link tampering
 
 Route::post('/setup-account/{user}', [SetupController::class, 'store'])
     ->name('staff.setup.store')
-    ->middleware('signed');
+    ->middleware(['signed', 'throttle:guest_api']);
 
 
 /**
@@ -135,7 +135,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
 /**
  * INTERNAL API ENDPOINTS
  */
-Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class])->group(function () {
+Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class, 'throttle:auth_api'])->group(function () {
 
     // Profile Management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -155,7 +155,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class])->grou
     Route::get('/api/settings', [SettingController::class, 'index']);
 
     // API: Operational - Shared (Accessible by everyone authenticated)
-    Route::post('/api/checkout', [PosController::class, 'checkout']);
+    Route::post('/api/checkout', [PosController::class, 'checkout'])->middleware('throttle:checkout_api');
     Route::get('/api/products', [ProductController::class, 'index']);
     Route::post('/api/products', [ProductController::class, 'store']);
     Route::get('/api/products/next-sku', [ProductController::class, 'getNextSku']);
