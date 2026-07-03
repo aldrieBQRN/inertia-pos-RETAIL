@@ -20,6 +20,22 @@ use Inertia\Inertia;
 class UserController extends Controller
 {
     /**
+     * Get the next globally unique numeric account number.
+     */
+    public function getNextAccountNumber()
+    {
+        $maxAccount = User::whereRaw("account_number REGEXP '^[0-9]+$'")
+            ->selectRaw("MAX(CAST(account_number AS UNSIGNED)) as max_acc")
+            ->first();
+
+        $nextAcc = $maxAccount && $maxAccount->max_acc ? $maxAccount->max_acc + 1 : 10000001;
+
+        return response()->json([
+            'next_account_number' => (string) $nextAcc
+        ]);
+    }
+
+    /**
      * Display a listing of the users for the current store.
      */
     public function index()
@@ -45,14 +61,7 @@ class UserController extends Controller
         $request->validate([
             'name'           => 'required|string|max:255',
             'email'          => 'required|string|email|max:255|unique:users',
-            'account_number' => [
-                'nullable',
-                'string',
-                'max:255',
-                Rule::unique('users')->where(function ($query) {
-                    return $query->where('store_id', Auth::user()->store_id);
-                }),
-            ],
+            'account_number' => 'nullable|string|max:255|unique:users',
             'role'           => 'required|in:admin,cashier',
         ]);
 

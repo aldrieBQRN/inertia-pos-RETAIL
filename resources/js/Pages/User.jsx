@@ -79,18 +79,16 @@ export default function User({ auth, users }) {
         setViewUser(user);
     };
 
-    const openAddModal = () => {
+    const openAddModal = async () => {
         setEditMode(false);
         setEditingId(null);
         clearErrors();
-
-        const accNums = userArray.map(u => parseInt(u.account_number, 10)).filter(n => !isNaN(n));
-        const nextAccNum = accNums.length > 0 ? (Math.max(...accNums) + 1).toString() : '10000001';
-
         setCurrentAvatarPath('');
+
+        // Set generating loading state first
         setData({
             name: '',
-            account_number: nextAccNum,
+            account_number: 'Generating...',
             email: '',
             role: 'cashier',
             phone_number: '',
@@ -102,6 +100,24 @@ export default function User({ auth, users }) {
         });
 
         setShowModal(true);
+
+        try {
+            const response = await axios.get('/api/users/next-account-number');
+            const nextAccNum = response.data.next_account_number;
+            setData(prev => ({
+                ...prev,
+                account_number: nextAccNum
+            }));
+        } catch (error) {
+            console.error('Failed to generate next account number:', error);
+            // Fallback to local estimation if the API call fails
+            const accNums = userArray.map(u => parseInt(u.account_number, 10)).filter(n => !isNaN(n));
+            const localNextAccNum = accNums.length > 0 ? (Math.max(...accNums) + 1).toString() : '10000001';
+            setData(prev => ({
+                ...prev,
+                account_number: localNextAccNum
+            }));
+        }
     };
 
     const openEditModal = (user) => {
