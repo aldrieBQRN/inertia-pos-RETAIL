@@ -153,6 +153,50 @@ class ActivityService
     }
 
     /**
+     * Check if a log entry qualifies for real-time security alerts.
+     */
+    private static function checkAndTriggerAlert(array $logData): void
+    {
+        $action = $logData['action'] ?? '';
+        $description = $logData['description'] ?? 'Security Alert';
+
+        // Action keys to notify (security events and administrative changes)
+        $alertableActions = [
+            'login_failed',
+            'ip_blocked',
+            'password_reset',
+            'user.update.role',
+            'store.suspend',
+            'payment.reject'
+        ];
+
+        // Match either raw action or full dot action
+        if (in_array($action, $alertableActions, true) || str_starts_with($action, 'security.')) {
+            $details = [];
+
+            if (isset($logData['ip_address'])) {
+                $details['ip_address'] = $logData['ip_address'];
+            }
+
+            $newValues = $logData['new_values'] ?? [];
+            if (is_array($newValues)) {
+                if (isset($newValues['email'])) {
+                    $details['email'] = $newValues['email'];
+                }
+                if (isset($newValues['probed_path'])) {
+                    $details['probed_path'] = $newValues['probed_path'];
+                }
+                if (isset($newValues['role'])) {
+                    $details['role'] = $newValues['role'];
+                }
+            }
+
+            // Dispatch alert using the SecurityAlertService
+            SecurityAlertService::sendAlert($action, $description, $details);
+        }
+    }
+
+    /**
      * Write activity log (queued or synchronous based on config).
      */
     private static function writeLog(string $operationKey, array $logData): ?ActivityLog
@@ -163,7 +207,12 @@ class ActivityService
 
         // Critical operations: write synchronously (guaranteed)
         if (self::isCritical($operationKey)) {
-            return ActivityLog::create($logData);
+            $log = ActivityLog::create($logData);
+
+            // Trigger Real-Time security alerts if it is a security or sensitive event
+            self::checkAndTriggerAlert($logData);
+
+            return $log;
         }
 
         // Optional operations: queue if enabled, otherwise skip
