@@ -92,12 +92,12 @@ export default function BillingPortal({ auth, store, plans, pendingPayment, hist
                         )}
                     </div>
 
-                    {/* STEP 1: PLAN SELECTOR */}
+                    {/* STEP 1: CURRENT SUBSCRIPTION PLAN */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-black">1</span>
-                                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Select Renewal Plan</h3>
+                                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Subscription Plan</h3>
                             </div>
                             {selectedPlan && (
                                 <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-lg">
@@ -106,35 +106,17 @@ export default function BillingPortal({ auth, store, plans, pendingPayment, hist
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {plans.map((plan) => (
-                                <button
-                                    key={plan.id}
-                                    type="button"
-                                    disabled={!!pendingPayment}
-                                    onClick={() => handlePlanSelect(plan)}
-                                    className={`relative p-6 rounded-2xl border-2 text-left transition-all group ${
-                                        selectedPlan?.id === plan.id
-                                        ? 'border-blue-600 bg-blue-50 ring-4 ring-blue-100 shadow-lg'
-                                        : 'border-gray-100 bg-white hover:border-gray-200 shadow-sm'
-                                    } ${!!pendingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                >
-                                    <div className="flex justify-between items-center mb-4">
-                                        <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter ${
-                                            selectedPlan?.id === plan.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'
-                                        }`}>
-                                            {plan.duration_months} Month(s)
-                                        </span>
-                                        {store.plan_id === plan.id && (
-                                            <span className="text-[10px] font-bold text-blue-600 italic">Current</span>
-                                        )}
-                                    </div>
-                                    <h4 className="text-xl font-black text-gray-900 leading-tight">{plan.name}</h4>
-                                    <div className="text-2xl font-black text-blue-600 mt-1 tracking-tight">
-                                        ₱{parseFloat(plan.price).toLocaleString()}
-                                    </div>
-                                </button>
-                            ))}
+                        <div className="p-6 rounded-2xl border-2 border-blue-600 bg-blue-50/50 ring-4 ring-blue-100/50 shadow-md">
+                            <div className="flex justify-between items-center mb-4">
+                                <span className="px-3 py-1 rounded-lg text-[9px] font-black bg-blue-600 text-white uppercase tracking-tighter">
+                                    {selectedPlan?.duration_months} Month(s)
+                                </span>
+                                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-100 px-3 py-1 rounded-lg">Active Plan</span>
+                            </div>
+                            <h4 className="text-xl font-black text-gray-900 leading-tight">{selectedPlan?.name}</h4>
+                            <div className="text-2xl font-black text-blue-600 mt-1 tracking-tight">
+                                ₱{parseFloat(selectedPlan?.price || 0).toLocaleString()}
+                            </div>
                         </div>
                     </div>
 
