@@ -3,6 +3,25 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, Link } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
+const renderPaymentMethodBadge = (method) => {
+    const m = method?.toLowerCase();
+    if (m === 'gcash') {
+        return (
+            <span className="inline-flex items-center justify-center bg-blue-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter select-none leading-none shrink-0 font-mono ml-2">
+                GCash
+            </span>
+        );
+    }
+    if (m === 'maya') {
+        return (
+            <span className="inline-flex items-center justify-center bg-emerald-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter select-none leading-none shrink-0 font-mono ml-2">
+                Maya
+            </span>
+        );
+    }
+    return null;
+};
+
 export default function History({ auth, history, filters = {} }) {
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || '');
@@ -228,11 +247,14 @@ export default function History({ auth, history, filters = {} }) {
                                                 <td className="px-6 py-4 text-right font-black text-gray-900 tracking-tighter text-sm">
                                                     ₱{parseFloat(p.amount).toLocaleString()}
                                                 </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <div className="font-mono text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-none sm:rounded-lg inline-block border border-blue-100">
-                                                        {p.reference_number}
-                                                    </div>
-                                                </td>
+                                                 <td className="px-6 py-4 text-center">
+                                                     <div className="flex flex-col items-center gap-1">
+                                                         <div className="font-mono text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-none sm:rounded-lg inline-block border border-blue-100">
+                                                             {p.reference_number}
+                                                         </div>
+                                                         {renderPaymentMethodBadge(p.payment_method)}
+                                                     </div>
+                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     <div className="text-xs text-gray-900 font-bold">
                                                         {new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -280,10 +302,13 @@ export default function History({ auth, history, filters = {} }) {
                                                 <span className="text-gray-400 uppercase tracking-widest">Admin:</span>
                                                 <span className="text-gray-900 truncate ml-2">{p.store.users?.[0]?.name || p.full_name}</span>
                                             </div>
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-gray-400 uppercase tracking-widest">Reference:</span>
-                                                <span className="font-mono text-blue-600 px-2 py-0.5 bg-blue-50/50 rounded-none sm:rounded-lg">{p.reference_number}</span>
-                                            </div>
+                                             <div className="flex justify-between items-center">
+                                                 <span className="text-gray-400 uppercase tracking-widest">Reference:</span>
+                                                 <span className="flex items-center gap-1.5">
+                                                     <span className="font-mono text-blue-600 px-2 py-0.5 bg-blue-50/50 rounded-none sm:rounded-lg">{p.reference_number}</span>
+                                                     {renderPaymentMethodBadge(p.payment_method)}
+                                                 </span>
+                                             </div>
                                             <div className="flex justify-between items-center border-t border-gray-200 pt-2 mt-2">
                                                 <span className="text-gray-400 uppercase tracking-widest">Processed On:</span>
                                                 <span className="text-gray-900 text-right">

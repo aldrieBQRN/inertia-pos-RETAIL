@@ -73,6 +73,7 @@ class BillingController extends Controller
         $request->validate([
             'plan_id' => 'required|exists:plans,id',
             'amount' => 'required|numeric|min:1',
+            'payment_method' => 'nullable|string|max:255',
             'reference_number' => 'required|string|max:255',
             'receipt' => 'required|image|mimes:jpeg,png,jpg|max:5120',
             'terms' => 'accepted',
@@ -87,6 +88,7 @@ class BillingController extends Controller
             SubscriptionPayment::create([
                 'store_id' => $store->id,
                 'plan_id' => $request->plan_id, // CRITICAL: Save their choice here
+                'payment_method' => $request->payment_method,
                 'full_name' => $request->user()->name,
                 'amount' => $request->amount,
                 'reference_number' => $request->reference_number,

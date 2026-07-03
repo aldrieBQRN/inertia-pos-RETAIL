@@ -3,6 +3,25 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, Link } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
+const renderPaymentMethodBadge = (method) => {
+    const m = method?.toLowerCase();
+    if (m === 'gcash') {
+        return (
+            <span className="inline-flex items-center justify-center bg-blue-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter select-none leading-none shrink-0 font-mono ml-2">
+                GCash
+            </span>
+        );
+    }
+    if (m === 'maya') {
+        return (
+            <span className="inline-flex items-center justify-center bg-emerald-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter select-none leading-none shrink-0 font-mono ml-2">
+                Maya
+            </span>
+        );
+    }
+    return null;
+};
+
 export default function Pending({ auth, payments }) {
     const [selectedReceipt, setSelectedReceipt] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -207,11 +226,14 @@ export default function Pending({ auth, payments }) {
                                                             className="h-14 w-14 object-cover rounded-none sm:rounded-lg cursor-zoom-in border-2 border-white shadow-sm hover:scale-105 transition-transform mx-auto"
                                                         />
                                                     </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="font-black text-gray-900 text-sm leading-tight">{p.store.name}</div>
-                                                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">{p.full_name}</div>
-                                                        <div className="text-[9px] font-mono text-blue-600">Ref: {p.reference_number}</div>
-                                                    </td>
+                                                     <td className="px-6 py-4">
+                                                         <div className="font-black text-gray-900 text-sm leading-tight">{p.store.name}</div>
+                                                         <div className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">{p.full_name}</div>
+                                                         <div className="flex items-center gap-1.5 mt-0.5">
+                                                             <span className="text-[9px] font-mono text-blue-600">Ref: {p.reference_number}</span>
+                                                             {renderPaymentMethodBadge(p.payment_method)}
+                                                         </div>
+                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-2 text-[10px]">
                                                             <span className="font-bold text-gray-400 italic line-through">{p.store.plan?.name}</span>
@@ -264,7 +286,13 @@ export default function Pending({ auth, payments }) {
                                             {/* Responsive Info Block */}
                                             <div className="bg-gray-50 p-4 rounded-none sm:rounded-lg space-y-2 text-[10px] font-bold">
                                                 <div className="flex justify-between items-center"><span className="text-gray-400 uppercase tracking-widest">Admin:</span> <span className="text-gray-900">{p.full_name}</span></div>
-                                                <div className="flex justify-between items-center"><span className="text-gray-400 uppercase tracking-widest">Reference:</span> <span className="font-mono text-blue-600 px-2 py-0.5 bg-blue-50/50 rounded">{p.reference_number}</span></div>
+                                                 <div className="flex justify-between items-center">
+                                                     <span className="text-gray-400 uppercase tracking-widest">Reference:</span>
+                                                     <span className="flex items-center gap-1.5">
+                                                         <span className="font-mono text-blue-600 px-2 py-0.5 bg-blue-50/50 rounded">{p.reference_number}</span>
+                                                         {renderPaymentMethodBadge(p.payment_method)}
+                                                     </span>
+                                                 </div>
                                                 <div className="pt-2 border-t border-gray-200">
                                                     <span className="text-gray-400 uppercase tracking-widest block mb-1">Targeting Plan:</span>
                                                     <div className="flex items-center gap-2">
