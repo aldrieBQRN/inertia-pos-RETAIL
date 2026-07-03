@@ -19,6 +19,24 @@ export const printLabels = (product, storeName = 'POS STORE', quantity = 1, mode
         timer: 1500
     });
 
+    // Generate barcode image using the locally imported JsBarcode
+    let barcodeDataUrl = '';
+    try {
+        const barcodeCanvas = document.createElement('canvas');
+        JsBarcode(barcodeCanvas, barcodeData, {
+            format: "CODE128",
+            width: 1,
+            height: 25,
+            displayValue: true,
+            fontSize: 9,
+            margin: 0,
+            textMargin: 1
+        });
+        barcodeDataUrl = barcodeCanvas.toDataURL('image/png');
+    } catch (e) {
+        console.error("Barcode generation failed", e);
+    }
+
     const iframe = document.createElement('iframe');
     iframe.style.position = 'absolute';
     iframe.style.width = '0px';
@@ -33,7 +51,7 @@ export const printLabels = (product, storeName = 'POS STORE', quantity = 1, mode
                 <div class="store-name">${storeName}</div>
                 <div class="product-name">${safeName}</div>
                 <div class="price">PHP ${priceVal}</div>
-                <svg class="barcode"></svg>
+                <img class="barcode" src="${barcodeDataUrl}" />
             </div>
         `;
     }
@@ -88,7 +106,6 @@ export const printLabels = (product, storeName = 'POS STORE', quantity = 1, mode
                 .price { font-size: 8pt; font-weight: 900; text-align: center; margin-bottom: 1px; }
                 .barcode { max-width: 100%; max-height: 8mm; }
             </style>
-            <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
         </head>
         <body>
             <div class="page-container">
@@ -96,15 +113,6 @@ export const printLabels = (product, storeName = 'POS STORE', quantity = 1, mode
             </div>
             <script>
                 window.onload = function() {
-                    JsBarcode(".barcode", "${barcodeData}", {
-                        format: "CODE128",
-                        width: 1,
-                        height: 25,
-                        displayValue: true,
-                        fontSize: 9,
-                        margin: 0,
-                        textMargin: 1
-                    });
                     setTimeout(() => { window.print(); }, 500);
                 };
             </script>
