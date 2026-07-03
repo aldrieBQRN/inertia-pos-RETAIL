@@ -55,6 +55,7 @@ Route::post('/setup-account/{user}', [SetupController::class, 'store'])
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/portal/billing', [BillingController::class, 'portal'])->name('tenant.billing.portal');
     Route::post('/portal/billing', [BillingController::class, 'store'])->name('tenant.billing.submit');
+    Route::get('/api/portal/billing/history', [BillingController::class, 'getHistory'])->name('tenant.billing.history');
 });
 
 

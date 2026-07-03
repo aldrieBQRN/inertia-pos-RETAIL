@@ -125,4 +125,24 @@ class BillingController extends Controller
 
         return json_decode($paymentMethodsJson, true) ?: [];
     }
+
+    /**
+     * Get full transaction history for the store
+     */
+    public function getHistory(Request $request)
+    {
+        $user = $request->user();
+        $store = $user->store;
+
+        if (!$store) {
+            return response()->json([], 404);
+        }
+
+        $history = SubscriptionPayment::with('plan')
+            ->where('store_id', $store->id)
+            ->latest()
+            ->get();
+
+        return response()->json($history);
+    }
 }
