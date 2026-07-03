@@ -4,11 +4,13 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SecurityAlertMail;
 
 class SecurityAlertService
 {
     /**
-     * Send a real-time security alert to Slack or Discord webhook.
+     * Send a real-time security alert via configured channel (email and/or webhook).
      */
     public static function sendAlert(string $action, string $description, ?array $details = null): void
     {
@@ -17,85 +19,104 @@ class SecurityAlertService
             return;
         }
 
-        // 2. Fetch and validate webhook URL
-        $webhookUrl = env('SECURITY_ALERTS_WEBHOOK_URL');
-        if (empty($webhookUrl)) {
-            Log::warning('Security alerts are enabled, but SECURITY_ALERTS_WEBHOOK_URL is not configured.');
-            return;
+        $channel = env('SECURITY_ALERTS_CHANNEL', 'email');
+
+        // 2. Handle Email alerts
+        if ($channel === 'email' || $channel === 'both') {
+            $recipient = env('SECURITY_ALERTS_EMAIL_RECIPIENT');
+            if (!empty($recipient)) {
+                try {
+                    // Send queued email (non-blocking)
+                    Mail::to($recipient)->send(new SecurityAlertMail($action, $description, $details));
+                } catch (\Exception $e) {
+                    Log::error("Failed to queue security alert email: " . $e->getMessage());
+                }
+            } else {
+                Log::warning('Security alerts are configured via email, but SECURITY_ALERTS_EMAIL_RECIPIENT is not configured.');
+            }
         }
 
-        try {
-            // 3. Resolve alert color based on action type
-            $color = self::resolveColor($action);
-
-            // 4. Resolve clean title and emoji
-            $titleEmoji = self::resolveEmojiAndTitle($action);
-
-            // 5. Structure payload fields based on transaction/event details
-            $fields = [];
-            $fields[] = [
-                'title' => 'Event Action',
-                'value' => "`{$action}`",
-                'short' => true,
-            ];
-
-            if (!empty($details)) {
-                if (isset($details['ip_address'])) {
-                    $fields[] = [
-                        'title' => 'IP Address',
-                        'value' => "`{$details['ip_address']}`",
-                        'short' => true,
-                    ];
-                }
-
-                if (isset($details['email'])) {
-                    $fields[] = [
-                        'title' => 'Target Account',
-                        'value' => $details['email'],
-                        'short' => true,
-                    ];
-                }
-
-                if (isset($details['probed_path'])) {
-                    $fields[] = [
-                        'title' => 'Probed Path',
-                        'value' => "`/{$details['probed_path']}`",
-                        'short' => false,
-                    ];
-                }
-
-                if (isset($details['role'])) {
-                    $fields[] = [
-                        'title' => 'Role Context',
-                        'value' => $details['role'],
-                        'short' => true,
-                    ];
-                }
+        // 3. Handle Webhook alerts
+        if ($channel === 'webhook' || $channel === 'both') {
+            $webhookUrl = env('SECURITY_ALERTS_WEBHOOK_URL');
+            if (empty($webhookUrl)) {
+                Log::warning('Security alerts are configured via webhook, but SECURITY_ALERTS_WEBHOOK_URL is not configured.');
+                return;
             }
 
-            // 6. Build final Slack/Discord payload
-            $payload = [
-                'attachments' => [
-                    [
-                        'fallback' => "[Security Alert] {$description}",
-                        'color' => $color,
-                        'pretext' => "{$titleEmoji} *Security Event Alert*",
-                        'title' => $description,
-                        'fields' => $fields,
-                        'footer' => env('APP_NAME', 'Inertia POS'),
-                        'ts' => time(),
+            try {
+                // Resolve alert color based on action type
+                $color = self::resolveColor($action);
+
+                // Resolve clean title and emoji
+                $titleEmoji = self::resolveEmojiAndTitle($action);
+
+                // Structure payload fields based on transaction/event details
+                $fields = [];
+                $fields[] = [
+                    'title' => 'Event Action',
+                    'value' => "`{$action}`",
+                    'short' => true,
+                ];
+
+                if (!empty($details)) {
+                    if (isset($details['ip_address'])) {
+                        $fields[] = [
+                            'title' => 'IP Address',
+                            'value' => "`{$details['ip_address']}`",
+                            'short' => true,
+                        ];
+                    }
+
+                    if (isset($details['email'])) {
+                        $fields[] = [
+                            'title' => 'Target Account',
+                            'value' => $details['email'],
+                            'short' => true,
+                        ];
+                    }
+
+                    if (isset($details['probed_path'])) {
+                        $fields[] = [
+                            'title' => 'Probed Path',
+                            'value' => "`/{$details['probed_path']}`",
+                            'short' => false,
+                        ];
+                    }
+
+                    if (isset($details['role'])) {
+                        $fields[] = [
+                            'title' => 'Role Context',
+                            'value' => $details['role'],
+                            'short' => true,
+                        ];
+                    }
+                }
+
+                // Build final Slack/Discord payload
+                $payload = [
+                    'attachments' => [
+                        [
+                            'fallback' => "[Security Alert] {$description}",
+                            'color' => $color,
+                            'pretext' => "{$titleEmoji} *Security Event Alert*",
+                            'title' => $description,
+                            'fields' => $fields,
+                            'footer' => env('APP_NAME', 'Inertia POS'),
+                            'ts' => time(),
+                        ]
                     ]
-                ]
-            ];
+                ];
 
-            // 7. Dispatch HTTP Post asynchronously or with a short timeout to prevent thread blocking
-            Http::timeout(3)
-                ->withoutVerifying() // Avoid TLS cert negotiation blocks in local environments
-                ->post($webhookUrl, $payload);
+                // Dispatch HTTP Post asynchronously or with a short timeout to prevent thread blocking
+                Http::timeout(3)
+                    ->withoutVerifying() // Avoid TLS cert negotiation blocks in local environments
+                    ->post($webhookUrl, $payload);
 
-        } catch (\Exception $e) {
-            // Fail-safe: Never crash main application thread if logging/webhook network fails
-            Log::error("Failed to send real-time security alert: " . $e->getMessage());
+            } catch (\Exception $e) {
+                // Fail-safe: Never crash main application thread if logging/webhook network fails
+                Log::error("Failed to send real-time security alert webhook: " . $e->getMessage());
+            }
         }
     }
 
