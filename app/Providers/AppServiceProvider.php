@@ -40,8 +40,8 @@ class AppServiceProvider extends ServiceProvider
             Log::warning('Production debug mode is enabled. Set APP_DEBUG=false before deploying.');
         }
 
-        // Force HTTPS if running through a secure proxy like Ngrok
-        if (request()->header('x-forwarded-proto') === 'https') {
+        // Force HTTPS scheme for assets, redirects, and forms when in production or behind secure proxies
+        if (app()->environment('production') || request()->header('x-forwarded-proto') === 'https') {
             URL::forceScheme('https');
         }
 
