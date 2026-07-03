@@ -14,27 +14,10 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    /**
-     * Get the next globally unique numeric account number.
-     */
-    public function getNextAccountNumber()
-    {
-        $maxAccount = User::whereRaw("account_number REGEXP '^[0-9]+$'")
-            ->selectRaw("MAX(CAST(account_number AS UNSIGNED)) as max_acc")
-            ->first();
-
-        $nextAcc = $maxAccount && $maxAccount->max_acc ? $maxAccount->max_acc + 1 : 10000001;
-
-        return response()->json([
-            'next_account_number' => (string) $nextAcc
-        ]);
-    }
-
     /**
      * Display a listing of the users for the current store.
      */

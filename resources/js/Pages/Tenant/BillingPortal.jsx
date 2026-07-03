@@ -1,26 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import BillingLayout from '@/Layouts/BillingLayout';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import Swal from 'sweetalert2';
-
-const renderPaymentIcon = (type, fallbackIcon) => {
-    const t = type?.toLowerCase();
-    if (t === 'gcash') {
-        return (
-            <span className="inline-flex items-center justify-center bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded tracking-tighter uppercase leading-none select-none shrink-0">
-                GCash
-            </span>
-        );
-    }
-    if (t === 'maya') {
-        return (
-            <span className="inline-flex items-center justify-center bg-emerald-500 text-white text-[9px] font-black px-2 py-1 rounded tracking-tighter uppercase leading-none select-none shrink-0">
-                Maya
-            </span>
-        );
-    }
-    return <span className="text-xl shrink-0">{fallbackIcon || '📱'}</span>;
-};
 
 export default function BillingPortal({ auth, store, plans, pendingPayment, history, paymentMethods }) {
     const [imagePreview, setImagePreview] = useState(null);
@@ -30,21 +11,6 @@ export default function BillingPortal({ auth, store, plans, pendingPayment, hist
     const [selectedPlan, setSelectedPlan] = useState(
         plans.find(p => p.id === store.plan_id) || plans[0]
     );
-
-    // --- REAL-TIME STATUS POLLING (5 SECONDS) ---
-    useEffect(() => {
-        if (!pendingPayment) return;
-
-        const interval = setInterval(() => {
-            router.reload({
-                only: ['pendingPayment', 'history', 'store'],
-                preserveScroll: true,
-                preserveState: true
-            });
-        }, 5000);
-
-        return () => clearInterval(interval);
-    }, [pendingPayment]);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         plan_id: selectedPlan?.id || '',
@@ -126,7 +92,7 @@ export default function BillingPortal({ auth, store, plans, pendingPayment, hist
                         )}
                     </div>
 
-                    {/* STEP 1: SELECT RENEWAL PLAN */}
+                    {/* STEP 1: PLAN SELECTOR */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -147,16 +113,14 @@ export default function BillingPortal({ auth, store, plans, pendingPayment, hist
                                     type="button"
                                     disabled={!!pendingPayment}
                                     onClick={() => handlePlanSelect(plan)}
-                                    className={`relative p-6 rounded-2xl border-2 text-left transition-all group ${
-                                        selectedPlan?.id === plan.id
-                                        ? 'border-blue-600 bg-blue-50 ring-4 ring-blue-100 shadow-lg'
-                                        : 'border-gray-100 bg-white hover:border-gray-200 shadow-sm'
-                                    } ${!!pendingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    className={`relative p-6 rounded-2xl border-2 text-left transition-all group ${selectedPlan?.id === plan.id
+                                            ? 'border-blue-600 bg-blue-50 ring-4 ring-blue-100 shadow-lg'
+                                            : 'border-gray-100 bg-white hover:border-gray-200 shadow-sm'
+                                        } ${!!pendingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     <div className="flex justify-between items-center mb-4">
-                                        <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter ${
-                                            selectedPlan?.id === plan.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'
-                                        }`}>
+                                        <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter ${selectedPlan?.id === plan.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'
+                                            }`}>
                                             {plan.duration_months} Month(s)
                                         </span>
                                         {store.plan_id === plan.id && (
@@ -257,14 +221,12 @@ export default function BillingPortal({ auth, store, plans, pendingPayment, hist
                                                         key={method.type}
                                                         type="button"
                                                         onClick={() => setSelectedPaymentMethod(method)}
-                                                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-tight transition-all ${
-                                                            selectedPaymentMethod?.type === method.type
+                                                        className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-tight transition-all ${selectedPaymentMethod?.type === method.type
                                                                 ? 'bg-blue-600 text-white'
                                                                 : 'bg-white/10 hover:bg-white/20 text-white'
-                                                        }`}
+                                                            }`}
                                                     >
-                                                        <span>{method.label}</span>
-                                                        {renderPaymentIcon(method.type, method.icon)}
+                                                        {method.icon} {method.label}
                                                     </button>
                                                 ))}
                                             </div>
@@ -309,5 +271,38 @@ export default function BillingPortal({ auth, store, plans, pendingPayment, hist
                 </div>
             </div>
         </BillingLayout>
+    );
+}                                </div >
+
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Upload Receipt Image</label>
+                                    <input type="file" accept="image/*" onChange={handleFileChange} required className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 cursor-pointer" />
+
+                                    {imagePreview && (
+                                        <div className="mt-4 p-2 bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl relative overflow-hidden">
+                                            <img src={imagePreview} alt="Receipt" className="max-h-56 w-full object-contain rounded-2xl" />
+                                            <button type="button" onClick={() => { setImagePreview(null); setData('receipt', null); }} className="absolute top-4 right-4 bg-gray-900/80 text-white p-2 rounded-full shadow-lg hover:bg-red-600">
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex items-start gap-4 p-5 bg-blue-50/30 rounded-2xl border border-blue-50 mt-4">
+                                    <input type="checkbox" checked={data.terms} onChange={e => setData('terms', e.target.checked)} required className="mt-1 w-5 h-5 text-blue-600 rounded-lg border-gray-300 focus:ring-blue-500 cursor-pointer" />
+                                    <label className="text-[10px] font-bold text-gray-500 leading-relaxed uppercase tracking-tight cursor-pointer">
+                                        I certify that I am renewing the {selectedPlan?.name} and that the information provided is accurate.
+                                    </label>
+                                </div>
+
+                                <button type="submit" disabled={processing || !data.terms} className="w-full py-5 rounded-2xl shadow-xl shadow-blue-100 text-xs font-black uppercase tracking-[0.2em] text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-all transform active:scale-[0.98]">
+                                    {processing ? 'Processing...' : `Submit Payment for ${selectedPlan?.name}`}
+                                </button>
+                            </form >
+                        </div >
+                    )}
+                </div >
+            </div >
+        </BillingLayout >
     );
 }

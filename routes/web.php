@@ -196,7 +196,6 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class])->grou
 
     // API: User Management (Admin Actions)
     Route::middleware('admin')->group(function () {
-        Route::get('/api/users/next-account-number', [UserController::class, 'getNextAccountNumber'])->name('users.next-account-number');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
         Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');

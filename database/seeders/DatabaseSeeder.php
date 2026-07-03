@@ -51,9 +51,6 @@ class DatabaseSeeder extends Seeder
         // Call the system settings seeder
         $this->call(SystemSettingsSeeder::class);
 
-        // Call the legal policies / terms seeder
-        $this->call(LegalSettingsSeeder::class);
-
         // Call the comprehensive demo seeder
         $this->call(DemoSeeder::class);
 

@@ -62,8 +62,8 @@ export default function User({ auth, users }) {
         return userArray.filter(user => {
             const searchLower = searchQuery.toLowerCase();
             const matchesSearch = user.name.toLowerCase().includes(searchLower) ||
-                                  user.email.toLowerCase().includes(searchLower) ||
-                                  (user.account_number && user.account_number.toLowerCase().includes(searchLower));
+                user.email.toLowerCase().includes(searchLower) ||
+                (user.account_number && user.account_number.toLowerCase().includes(searchLower));
             const matchesRole = roleFilter ? user.role === roleFilter : true;
             return matchesSearch && matchesRole;
         });
@@ -79,16 +79,18 @@ export default function User({ auth, users }) {
         setViewUser(user);
     };
 
-    const openAddModal = async () => {
+    const openAddModal = () => {
         setEditMode(false);
         setEditingId(null);
         clearErrors();
-        setCurrentAvatarPath('');
 
-        // Set generating loading state first
+        const accNums = userArray.map(u => parseInt(u.account_number, 10)).filter(n => !isNaN(n));
+        const nextAccNum = accNums.length > 0 ? (Math.max(...accNums) + 1).toString() : '10000001';
+
+        setCurrentAvatarPath('');
         setData({
             name: '',
-            account_number: 'Generating...',
+            account_number: nextAccNum,
             email: '',
             role: 'cashier',
             phone_number: '',
@@ -100,24 +102,6 @@ export default function User({ auth, users }) {
         });
 
         setShowModal(true);
-
-        try {
-            const response = await axios.get('/api/users/next-account-number');
-            const nextAccNum = response.data.next_account_number;
-            setData(prev => ({
-                ...prev,
-                account_number: nextAccNum
-            }));
-        } catch (error) {
-            console.error('Failed to generate next account number:', error);
-            // Fallback to local estimation if the API call fails
-            const accNums = userArray.map(u => parseInt(u.account_number, 10)).filter(n => !isNaN(n));
-            const localNextAccNum = accNums.length > 0 ? (Math.max(...accNums) + 1).toString() : '10000001';
-            setData(prev => ({
-                ...prev,
-                account_number: localNextAccNum
-            }));
-        }
     };
 
     const openEditModal = (user) => {
@@ -239,7 +223,7 @@ export default function User({ auth, users }) {
         const isRevoking = user.is_active !== false;
         Swal.fire({
             title: isRevoking ? 'Revoke Access?' : 'Restore Access?',
-            text: isRevoking 
+            text: isRevoking
                 ? `Are you sure you want to revoke system access for "${user.name}"?`
                 : `Restore system access for "${user.name}"?`,
             icon: isRevoking ? 'warning' : 'question',
@@ -472,18 +456,17 @@ export default function User({ auth, users }) {
                                                     <button onClick={() => openEditModal(u)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-100 rounded-lg transition-colors" title="Edit">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
                                                     </button>
-                                                    <button 
-                                                        onClick={() => handleToggleActive(u)} 
-                                                        disabled={auth.user.id === u.id} 
-                                                        className={`p-2 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent ${
-                                                            u.is_active === false 
-                                                                ? 'text-green-600 hover:text-green-800 hover:bg-green-100' 
+                                                    <button
+                                                        onClick={() => handleToggleActive(u)}
+                                                        disabled={auth.user.id === u.id}
+                                                        className={`p-2 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent ${u.is_active === false
+                                                                ? 'text-green-600 hover:text-green-800 hover:bg-green-100'
                                                                 : 'text-amber-600 hover:text-amber-800 hover:bg-amber-100'
-                                                        }`} 
-                                                        title={auth.user.id === u.id 
-                                                            ? "Cannot modify own status" 
-                                                            : u.is_active === false 
-                                                                ? "Restore Access" 
+                                                            }`}
+                                                        title={auth.user.id === u.id
+                                                            ? "Cannot modify own status"
+                                                            : u.is_active === false
+                                                                ? "Restore Access"
                                                                 : "Revoke Access"
                                                         }
                                                     >
@@ -497,9 +480,9 @@ export default function User({ auth, users }) {
                                                             </svg>
                                                         )}
                                                     </button>
-                                                    <button 
-                                                        onClick={() => handleDelete(u)} 
-                                                        disabled={auth.user.id === u.id} 
+                                                    <button
+                                                        onClick={() => handleDelete(u)}
+                                                        disabled={auth.user.id === u.id}
                                                         className="p-2 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-100 transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
                                                         title={auth.user.id === u.id ? "Cannot delete self" : "Delete Staff"}
                                                     >
@@ -537,55 +520,55 @@ export default function User({ auth, users }) {
                         ) : (
                             paginatedUsers.map((u) => {
                                 return (
-                                <div key={u.id} className="p-4 flex flex-col gap-3 active:bg-gray-50 transition-colors">
-                                    <div className="flex items-start gap-4 border-b border-gray-100 pb-3">
-                                        {u.avatar_path ? (
-                                            <img src={getAvatarUrl(u.avatar_path)} alt={u.name} className="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm shrink-0" />
-                                        ) : (
-                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 flex items-center justify-center font-black text-xl border border-blue-100 shrink-0 uppercase shadow-sm">
-                                                {u.name.charAt(0)}
-                                            </div>
-                                        )}
+                                    <div key={u.id} className="p-4 flex flex-col gap-3 active:bg-gray-50 transition-colors">
+                                        <div className="flex items-start gap-4 border-b border-gray-100 pb-3">
+                                            {u.avatar_path ? (
+                                                <img src={getAvatarUrl(u.avatar_path)} alt={u.name} className="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm shrink-0" />
+                                            ) : (
+                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 flex items-center justify-center font-black text-xl border border-blue-100 shrink-0 uppercase shadow-sm">
+                                                    {u.name.charAt(0)}
+                                                </div>
+                                            )}
 
-                                        <div className="flex-1 flex flex-col justify-center">
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex flex-col">
-                                                    <h3 className="font-bold text-gray-900 text-lg leading-tight tracking-tight">{u.name}</h3>
-                                                    {u.account_number && <span className="text-[10px] text-gray-400 font-mono mt-0.5">Acc: {u.account_number}</span>}
+                                            <div className="flex-1 flex flex-col justify-center">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex flex-col">
+                                                        <h3 className="font-bold text-gray-900 text-lg leading-tight tracking-tight">{u.name}</h3>
+                                                        {u.account_number && <span className="text-[10px] text-gray-400 font-mono mt-0.5">Acc: {u.account_number}</span>}
+                                                    </div>
+                                                    <div className="flex flex-col items-end gap-1.5">
+                                                        <RoleBadge role={u.role} />
+                                                        <StatusBadge termsAcceptedAt={u.terms_accepted_at} isActive={u.is_active} />
+                                                    </div>
                                                 </div>
-                                                <div className="flex flex-col items-end gap-1.5">
-                                                     <RoleBadge role={u.role} />
-                                                     <StatusBadge termsAcceptedAt={u.terms_accepted_at} isActive={u.is_active} />
-                                                </div>
+                                                <p className="text-xs font-medium text-gray-500 mt-2">{u.email}</p>
                                             </div>
-                                            <p className="text-xs font-medium text-gray-500 mt-2">{u.email}</p>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2 pt-1">
+                                            <button onClick={() => openViewModal(u)} className="py-2 text-xs font-bold text-gray-700 bg-gray-50 rounded-lg border border-gray-200 shadow-sm active:scale-95 transition-transform">View Profile</button>
+                                            <button onClick={() => openEditModal(u)} className="py-2 text-xs font-bold text-blue-700 bg-blue-50 rounded-lg border border-blue-200 shadow-sm active:scale-95 transition-transform">Edit</button>
+                                            <button
+                                                onClick={() => handleToggleActive(u)}
+                                                disabled={auth.user.id === u.id}
+                                                className={`py-2 text-xs font-bold rounded-lg border shadow-sm active:scale-95 transition-transform disabled:opacity-40 disabled:scale-100 ${u.is_active === false
+                                                        ? 'text-green-700 bg-green-50 border-green-200'
+                                                        : 'text-amber-700 bg-amber-50 border-amber-200'
+                                                    }`}
+                                            >
+                                                {u.is_active === false ? 'Restore Access' : 'Revoke Access'}
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(u)}
+                                                disabled={auth.user.id === u.id}
+                                                className="py-2 text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded-lg shadow-sm active:scale-95 transition-transform disabled:opacity-40 disabled:scale-100"
+                                            >
+                                                Delete Staff
+                                            </button>
                                         </div>
                                     </div>
-
-                                    <div className="grid grid-cols-2 gap-2 pt-1">
-                                        <button onClick={() => openViewModal(u)} className="py-2 text-xs font-bold text-gray-700 bg-gray-50 rounded-lg border border-gray-200 shadow-sm active:scale-95 transition-transform">View Profile</button>
-                                        <button onClick={() => openEditModal(u)} className="py-2 text-xs font-bold text-blue-700 bg-blue-50 rounded-lg border border-blue-200 shadow-sm active:scale-95 transition-transform">Edit</button>
-                                        <button 
-                                            onClick={() => handleToggleActive(u)} 
-                                            disabled={auth.user.id === u.id} 
-                                            className={`py-2 text-xs font-bold rounded-lg border shadow-sm active:scale-95 transition-transform disabled:opacity-40 disabled:scale-100 ${
-                                                u.is_active === false 
-                                                    ? 'text-green-700 bg-green-50 border-green-200' 
-                                                    : 'text-amber-700 bg-amber-50 border-amber-200'
-                                            }`}
-                                        >
-                                            {u.is_active === false ? 'Restore Access' : 'Revoke Access'}
-                                        </button>
-                                        <button 
-                                            onClick={() => handleDelete(u)} 
-                                            disabled={auth.user.id === u.id} 
-                                            className="py-2 text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded-lg shadow-sm active:scale-95 transition-transform disabled:opacity-40 disabled:scale-100"
-                                        >
-                                            Delete Staff
-                                        </button>
-                                    </div>
-                                </div>
-                            )})
+                                )
+                            })
                         )}
                     </div>
 
@@ -625,14 +608,14 @@ export default function User({ auth, users }) {
 
                                 <div className="w-full sm:w-auto overflow-x-auto hide-scrollbar pb-2 sm:pb-0">
                                     <div className="flex gap-1.5 flex-nowrap w-max mx-auto sm:mx-0 px-1">
-                                        <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({top: 0, behavior: 'smooth'}); }} className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center">&laquo; Prev</button>
+                                        <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center">&laquo; Prev</button>
                                         {getPageNumbers().map((num, idx) => (
                                             num === '...' ? (
                                                 <span key={`ellipsis-${idx}`} className="px-2 py-2 min-h-9 text-gray-400 font-bold flex items-center">...</span>
                                             ) : (
                                                 <button
                                                     key={num}
-                                                    onClick={() => { setCurrentPage(num); window.scrollTo({top: 0, behavior: 'smooth'}); }}
+                                                    onClick={() => { setCurrentPage(num); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                                                     className={`shrink-0 px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all flex items-center justify-center
                                                         ${currentPage === num ? 'bg-gray-900 text-white border-gray-900 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                                                 >
@@ -640,7 +623,7 @@ export default function User({ auth, users }) {
                                                 </button>
                                             )
                                         ))}
-                                        <button disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({top: 0, behavior: 'smooth'}); }} className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center">Next &raquo;</button>
+                                        <button disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center">Next &raquo;</button>
                                     </div>
                                 </div>
                             </div>
@@ -797,28 +780,18 @@ export default function User({ auth, users }) {
                                         System Identity
                                     </h3>
 
-                                    {errors.account_number && (
-                                        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-start gap-2.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                                            <svg className="w-5 h-5 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                                            <div className="flex-1">
-                                                <span className="block font-black uppercase tracking-wider text-[10px] text-red-600 mb-0.5">Configuration Error</span>
-                                                {errors.account_number}
-                                            </div>
-                                        </div>
-                                    )}
-
                                     {editMode && (
                                         <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
                                             {data.avatar ? (
-                                                <img 
-                                                    src={URL.createObjectURL(data.avatar)} 
-                                                    alt="Avatar Preview" 
+                                                <img
+                                                    src={URL.createObjectURL(data.avatar)}
+                                                    alt="Avatar Preview"
                                                     className="w-16 h-16 rounded-full object-cover border border-gray-200 shadow-sm"
                                                 />
                                             ) : currentAvatarPath ? (
-                                                <img 
-                                                    src={getAvatarUrl(currentAvatarPath)} 
-                                                    alt="Current Avatar" 
+                                                <img
+                                                    src={getAvatarUrl(currentAvatarPath)}
+                                                    alt="Current Avatar"
                                                     className="w-16 h-16 rounded-full object-cover border border-gray-200 shadow-sm"
                                                 />
                                             ) : (
@@ -826,10 +799,10 @@ export default function User({ auth, users }) {
                                                     {data.name ? data.name.charAt(0) : 'S'}
                                                 </div>
                                             )}
-                                            
+
                                             <div className="flex-1">
                                                 <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 ml-0.5">Profile Picture</label>
-                                                <input 
+                                                <input
                                                     type="file"
                                                     accept="image/*"
                                                     onChange={e => setData('avatar', e.target.files[0])}
@@ -1005,5 +978,21 @@ export default function User({ auth, users }) {
                 </div>
             )}
         </AuthenticatedLayout>
+    );
+} className = "order-1 sm:order-2 w-full sm:w-auto px-8 py-3.5 sm:py-3 bg-gray-900 hover:bg-black text-white font-semibold rounded-lg shadow-md text-sm transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+    >
+    { processing || isSendingOtp || isSaving ? (
+    <>
+        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        {isSaving ? 'Saving Changes...' : 'Processing...'}
+    </>
+) : (editMode ? 'Save Changes' : 'Send Invite Link')}
+                            </button >
+                        </div >
+
+                    </div >
+                </div >
+            )}
+        </AuthenticatedLayout >
     );
 }
