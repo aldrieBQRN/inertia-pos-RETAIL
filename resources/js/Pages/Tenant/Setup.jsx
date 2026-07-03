@@ -40,38 +40,22 @@ export default function Setup({ user, submitUrl, settings = {} }) {
         if (currentStep === 2 && (!data.user_phone || !data.user_address || !data.user_city || !data.user_province || !data.user_country)) {
             return Swal.fire({ icon: 'warning', title: 'Missing Fields', text: 'Please complete all Personal details.', confirmButtonColor: '#0f172a', customClass: { popup: 'rounded-3xl' } });
         }
-        setCurrentStep((prev) => prev + 1);
+        if (currentStep === 3 && (!data.password || !data.password_confirmation || !isPasswordStrong)) {
+            return Swal.fire({ icon: 'warning', title: 'Security Required', text: 'Please enter a strong password and confirm it.', confirmButtonColor: '#0f172a', customClass: { popup: 'rounded-3xl' } });
+        }
+        if (currentStep === 3 && data.password !== data.password_confirmation) {
+            return Swal.fire({ icon: 'error', title: 'Passwords Do Not Match', text: 'Your new password and confirmation password must be exactly the same.', confirmButtonColor: '#0f172a', customClass: { popup: 'rounded-3xl' } });
+        }
+        setCurrentStep((prev) => Math.min(prev + 1, 4));
     };
 
-    const handleBack = () => setCurrentStep((prev) => prev - 1);
+    const handleBack = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
     const submit = (e) => {
         e.preventDefault();
 
         // GUARD: Prevent accidental submission if not on the final step
-        if (currentStep !== 3) return;
-
-        // STRICT GUARD: Enforce Strong Password
-        if (!isPasswordStrong) {
-            return Swal.fire({
-                icon: 'error',
-                title: 'Weak Password',
-                text: 'Please make sure your password meets all the security requirements (green checkmarks) before continuing.',
-                confirmButtonColor: '#0f172a',
-                customClass: { popup: 'rounded-3xl' }
-            });
-        }
-
-        // STRICT GUARD: Password Mismatch
-        if (data.password !== data.password_confirmation) {
-            return Swal.fire({
-                icon: 'error',
-                title: 'Passwords Do Not Match',
-                text: 'Your new password and confirmation password must be exactly the same.',
-                confirmButtonColor: '#0f172a',
-                customClass: { popup: 'rounded-3xl' }
-            });
-        }
+        if (currentStep !== 4) return;
 
         // STRICT GUARD: Terms and Conditions
         if (!data.terms) {
@@ -131,7 +115,7 @@ export default function Setup({ user, submitUrl, settings = {} }) {
                     We're excited to have you. Let's get your workspace and profile configured so you can start managing your store.
                 </p>
                 <p className="mt-4 text-[10px] font-black text-white/70 uppercase tracking-[0.3em] drop-shadow-md">
-                    Progress: Step {currentStep} of 3
+                    Progress: Step {currentStep} of 4
                 </p>
             </div>
 
@@ -141,60 +125,61 @@ export default function Setup({ user, submitUrl, settings = {} }) {
 
                     {/* Progress Bar */}
                     <div className="flex items-center justify-between mb-10 gap-3">
-                        {[1, 2, 3].map((step) => (
+                        {[1, 2, 3, 4].map((step) => (
                             <div key={step} className={`h-1.5 flex-1 rounded-full transition-colors duration-500 shadow-sm ${step <= currentStep ? 'bg-gray-900' : 'bg-gray-200'}`} />
                         ))}
                     </div>
 
                     <form onSubmit={submit}>
-                        {/* STEP 1: WORKSPACE DETAILS */}
+
+                        {/* STEP 1: Workspace Details */}
                         {currentStep === 1 && (
                             <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-6">
                                 <div className="border-b border-gray-100 pb-4">
-                                    <h3 className="text-lg font-black text-gray-900 flex items-center gap-2 uppercase tracking-widest">Workspace Details</h3>
-                                    <p className="text-xs font-medium text-gray-500 mt-1 italic">Identify your business for receipts and invoices.</p>
+                                    <h3 className="text-lg font-black text-gray-900 flex items-center gap-2 uppercase tracking-widest">Workspace</h3>
+                                    <p className="text-xs font-medium text-gray-500 mt-1 italic">Setup your business name and primary contact details.</p>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                    <div className="sm:col-span-2">
-                                        <label className={labelClasses}>Official Store Name</label>
-                                        <input type="text" value={data.store_name} onChange={e => setData('store_name', e.target.value)} className={inputClasses} placeholder="e.g. NextGen Retail" />
+                                <div className="space-y-5">
+                                    <div>
+                                        <label className={labelClasses}>Store / Business Name</label>
+                                        <input type="text" required value={data.store_name} onChange={e => setData('store_name', e.target.value)} className={inputClasses} placeholder="e.g. Alwin's Apparel Outlet" />
                                         {errors.store_name && <p className={errorClasses}>{errors.store_name}</p>}
                                     </div>
                                     <div>
-                                        <label className={labelClasses}>Store Phone</label>
-                                        <input type="tel" value={data.store_phone} onChange={e => setData('store_phone', e.target.value)} className={inputClasses} placeholder="e.g. +63 912 345 6789" />
+                                        <label className={labelClasses}>Business Phone Number</label>
+                                        <input type="tel" required value={data.store_phone} onChange={e => setData('store_phone', e.target.value)} className={inputClasses} placeholder="e.g. (043) 740 1234 or +63..." />
+                                        {errors.store_phone && <p className={errorClasses}>{errors.store_phone}</p>}
                                     </div>
                                     <div>
-                                        <label className={labelClasses}>Store Address</label>
-                                        <input type="text" value={data.store_address} onChange={e => setData('store_address', e.target.value)} className={inputClasses} placeholder="e.g. 123 Business Blvd, Suite 4A" />
+                                        <label className={labelClasses}>Physical Address / Location</label>
+                                        <textarea required rows="3" value={data.store_address} onChange={e => setData('store_address', e.target.value)} className="appearance-none block w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 sm:text-sm font-bold text-gray-900 bg-gray-50/50 transition-all resize-none" placeholder="Provide full store branch address..."></textarea>
+                                        {errors.store_address && <p className={errorClasses}>{errors.store_address}</p>}
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* STEP 2: PERSONAL INFORMATION */}
+                        {/* STEP 2: Personal Profile */}
                         {currentStep === 2 && (
                             <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-6">
                                 <div className="border-b border-gray-100 pb-4">
-                                    <h3 className="text-lg font-black text-gray-900 flex items-center gap-2 uppercase tracking-widest">Personal Info</h3>
-                                    <p className="text-xs font-medium text-gray-500 mt-1 italic">Your administrative contact and location details.</p>
+                                    <h3 className="text-lg font-black text-gray-900 flex items-center gap-2 uppercase tracking-widest">Administrator Profile</h3>
+                                    <p className="text-xs font-medium text-gray-500 mt-1 italic">Provide your personal location and contact details.</p>
                                 </div>
                                 <div className="space-y-5">
+                                    <div>
+                                        <label className={labelClasses}>Street / Barangay</label>
+                                        <input type="text" value={data.user_address} onChange={e => setData('user_address', e.target.value)} className={inputClasses} placeholder="House No. & Street Name" />
+                                    </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                        <div className="sm:col-span-2">
-                                            <label className={labelClasses}>Home Street Address</label>
-                                            <input type="text" value={data.user_address} onChange={e => setData('user_address', e.target.value)} className={inputClasses} placeholder="e.g. 456 Main St, Apt 2B" />
-                                        </div>
                                         <div>
-                                            <label className={labelClasses}>City</label>
+                                            <label className={labelClasses}>City / Municipality</label>
                                             <input type="text" value={data.user_city} onChange={e => setData('user_city', e.target.value)} className={inputClasses} placeholder="e.g. Nasugbu" />
                                         </div>
                                         <div>
                                             <label className={labelClasses}>Province</label>
                                             <input type="text" value={data.user_province} onChange={e => setData('user_province', e.target.value)} className={inputClasses} placeholder="e.g. Batangas" />
                                         </div>
-                                    </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                         <div>
                                             <label className={labelClasses}>Country</label>
                                             <input type="text" value={data.user_country} onChange={e => setData('user_country', e.target.value)} className={inputClasses} placeholder="e.g. Philippines" />
@@ -254,29 +239,43 @@ export default function Setup({ user, submitUrl, settings = {} }) {
                                                 Number & Symbol
                                             </div>
                                         </div>
-
-                                        {/* TERMS AND CONDITIONS CHECKBOX WITH BUTTONS */}
-                                        <div className="sm:col-span-2 mt-2">
-                                            <label className="flex items-start gap-3 group">
-                                                <div className="relative flex items-center justify-center mt-0.5 shrink-0">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-md checked:bg-blue-600 checked:border-blue-600 transition-all cursor-pointer focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                                                        checked={data.terms}
-                                                        onChange={e => setData('terms', e.target.checked)}
-                                                    />
-                                                    <svg className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                </div>
-                                                <span className="text-xs font-medium text-gray-600 leading-relaxed select-none">
-                                                    I agree to the <button type="button" onClick={(e) => { e.preventDefault(); setShowTerms(true); }} className="text-blue-600 font-bold hover:underline bg-transparent border-none p-0 cursor-pointer">Terms of Service</button> and <button type="button" onClick={(e) => { e.preventDefault(); setShowPrivacy(true); }} className="text-blue-600 font-bold hover:underline bg-transparent border-none p-0 cursor-pointer">Privacy Policy</button>, and I confirm that all the information provided is accurate.
-                                                </span>
-                                            </label>
-                                        </div>
-
                                     </div>
                                     {errors.password && <p className={errorClasses}>{errors.password}</p>}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* STEP 4: Legal Agreements & Finish */}
+                        {currentStep === 4 && (
+                            <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-6">
+                                <div className="border-b border-gray-100 pb-4">
+                                    <h3 className="text-lg font-black text-gray-900 flex items-center gap-2 uppercase tracking-widest">Final Step</h3>
+                                    <p className="text-xs font-medium text-gray-500 mt-1 italic">Review and accept the legal agreements.</p>
+                                </div>
+                                <div className="space-y-6">
+                                    <div className="bg-blue-50 text-blue-800 p-5 rounded-lg border border-blue-100 text-sm font-medium leading-relaxed shadow-inner">
+                                        Before we activate your workspace, please review and agree to our Terms of Service and Privacy Policy.
+                                    </div>
+
+                                    {/* TERMS AND CONDITIONS CHECKBOX WITH BUTTONS */}
+                                    <div>
+                                        <label className="flex items-start gap-3 group">
+                                            <div className="relative flex items-center justify-center mt-0.5 shrink-0">
+                                                <input
+                                                    type="checkbox"
+                                                    className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-md checked:bg-blue-600 checked:border-blue-600 transition-all cursor-pointer focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                                    checked={data.terms}
+                                                    onChange={e => setData('terms', e.target.checked)}
+                                                />
+                                                <svg className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            </div>
+                                            <span className="text-xs font-medium text-gray-600 leading-relaxed select-none">
+                                                I agree to the <button type="button" onClick={(e) => { e.preventDefault(); setShowTerms(true); }} className="text-blue-600 font-bold hover:underline bg-transparent border-none p-0 cursor-pointer">Terms of Service</button> and <button type="button" onClick={(e) => { e.preventDefault(); setShowPrivacy(true); }} className="text-blue-600 font-bold hover:underline bg-transparent border-none p-0 cursor-pointer">Privacy Policy</button>, and I confirm that all the information provided is accurate.
+                                            </span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -296,7 +295,7 @@ export default function Setup({ user, submitUrl, settings = {} }) {
                                 <div className="w-20"></div>
                             )}
 
-                            {currentStep < 3 ? (
+                            {currentStep < 4 ? (
                                 <button
                                     key="continue-btn"
                                     type="button"
