@@ -186,15 +186,56 @@ export default function BillingPortal({ auth, store, plans, pendingPayment, hist
                         ) : (
                             <div className="space-y-3">
                                 {history.map(item => (
-                                    <div key={item.id} className="flex justify-between items-center p-4 bg-gray-50/50 rounded-2xl border border-gray-50">
-                                        <div>
-                                            <p className="text-sm font-black text-gray-900 italic">{new Date(item.created_at).toLocaleDateString()}</p>
-                                            <p className="text-[9px] text-gray-400 font-mono uppercase">Ref: {item.reference_number}</p>
+                                    <div key={item.id} className="p-5 bg-gray-50/50 border border-gray-150 rounded-2xl flex flex-col gap-3.5 hover:bg-gray-50 transition-colors">
+                                        <div className="flex justify-between items-start gap-4">
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-black text-gray-900 text-sm italic">
+                                                    {item.plan ? `${item.plan.name} (${item.plan.duration_months} Months)` : 'N/A'}
+                                                </h4>
+                                                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-semibold text-gray-400 mt-1 uppercase tracking-tight">
+                                                    <span>Ref: <span className="font-mono text-gray-600">{item.reference_number}</span></span>
+                                                    <span>•</span>
+                                                    <span>Submitted: {new Date(item.created_at).toLocaleDateString()}</span>
+                                                </div>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <div className="font-black text-gray-900 text-sm">
+                                                    ₱{parseFloat(item.amount).toLocaleString()}
+                                                </div>
+                                                <span className={`inline-block text-[8px] font-black uppercase tracking-widest mt-1.5 px-2 py-0.5 rounded border ${
+                                                    item.status === 'approved' 
+                                                        ? 'bg-green-50 text-green-600 border-green-150' 
+                                                        : item.status === 'rejected'
+                                                        ? 'bg-red-50 text-red-600 border-red-150'
+                                                        : 'bg-orange-50 text-orange-600 border-orange-150'
+                                                }`}>
+                                                    {item.status}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-sm font-black text-gray-900">₱{parseFloat(item.amount).toLocaleString()}</p>
-                                            <p className={`text-[8px] font-black uppercase tracking-widest ${item.status === 'approved' ? 'text-green-600' : 'text-orange-500'}`}>{item.status}</p>
-                                        </div>
+
+                                        {/* Status Meta Info: Approval/Rejection Details */}
+                                        {(item.status === 'approved' || item.status === 'rejected') && (
+                                            <div className="flex items-center justify-between border-t border-gray-100/80 pt-2.5 text-[9px] font-bold text-gray-500 uppercase tracking-wider">
+                                                <span>
+                                                    {item.status === 'approved' ? 'Approved On' : 'Rejected On'}
+                                                </span>
+                                                <span className="text-gray-900">
+                                                    {new Date(item.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(item.updated_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        {/* Rejection Alert Banner */}
+                                        {item.status === 'rejected' && item.rejection_reason && (
+                                            <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-red-700 text-[10px] font-bold flex gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                                                <svg className="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                                <div className="flex-1 leading-normal">
+                                                    <span className="block font-black uppercase tracking-wider text-[8px] text-red-600 mb-0.5">Rejection Reason</span>
+                                                    {item.rejection_reason}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
