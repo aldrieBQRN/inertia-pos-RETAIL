@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BillingLayout from '@/Layouts/BillingLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
 const renderPaymentIcon = (type, fallbackIcon) => {
@@ -30,6 +30,21 @@ export default function BillingPortal({ auth, store, plans, pendingPayment, hist
     const [selectedPlan, setSelectedPlan] = useState(
         plans.find(p => p.id === store.plan_id) || plans[0]
     );
+
+    // --- REAL-TIME STATUS POLLING (5 SECONDS) ---
+    useEffect(() => {
+        if (!pendingPayment) return;
+
+        const interval = setInterval(() => {
+            router.reload({
+                only: ['pendingPayment', 'history', 'store'],
+                preserveScroll: true,
+                preserveState: true
+            });
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [pendingPayment]);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         plan_id: selectedPlan?.id || '',
