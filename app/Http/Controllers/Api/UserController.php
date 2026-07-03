@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class UserController extends Controller
@@ -44,7 +45,14 @@ class UserController extends Controller
         $request->validate([
             'name'           => 'required|string|max:255',
             'email'          => 'required|string|email|max:255|unique:users',
-            'account_number' => 'nullable|string|max:255|unique:users',
+            'account_number' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('users')->where(function ($query) {
+                    return $query->where('store_id', Auth::user()->store_id);
+                }),
+            ],
             'role'           => 'required|in:admin,cashier',
         ]);
 
