@@ -470,7 +470,10 @@ class DeveloperController extends Controller
     {
         $request->validate(['reason' => 'required|string|max:500']);
         $oldStatus = $payment->status;
-        $payment->update(['status' => 'rejected']);
+        $payment->update([
+            'status' => 'rejected',
+            'rejection_reason' => $request->reason,
+        ]);
 
         $paymentUrl = route('tenant.billing.portal');
 

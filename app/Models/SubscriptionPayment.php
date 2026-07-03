@@ -16,6 +16,7 @@ class SubscriptionPayment extends Model
         'reference_number',
         'receipt_path',
         'status',
+        'rejection_reason',
     ];
 
     /**
