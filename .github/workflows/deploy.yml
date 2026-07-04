@@ -38,9 +38,16 @@ jobs:
           zip -r release.zip . -x ".git*" ".github*" "node_modules/*" "tests/*" "e2e/*" "storage/*" ".env*" "playwright-report/*" "test-results/*" "playwright.config.js" "postcss.config.js" "tailwind.config.js" "vite.config.js"
 
       - name: Upload Zip to Hostinger via FTP
+        env:
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+          FTP_URL: ${{ secrets.FTP_UPLOAD_URL }}
         run: |
-          curl --ftp-create-dirs -T release.zip -u "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" "${{ secrets.FTP_UPLOAD_URL }}"
+          curl --ftp-create-dirs -T release.zip -u "$FTP_USER:$FTP_PASS" "$FTP_URL"
 
       - name: Trigger Server-side Deployment Script
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+          DEPLOY_URL: ${{ secrets.DEPLOY_TRIGGER_URL }}
         run: |
-          curl -f -G --data-urlencode "token=${{ secrets.DEPLOY_TOKEN }}" "${{ secrets.DEPLOY_TRIGGER_URL }}"
+          curl -f -G --data-urlencode "token=$DEPLOY_TOKEN" "$DEPLOY_URL"
