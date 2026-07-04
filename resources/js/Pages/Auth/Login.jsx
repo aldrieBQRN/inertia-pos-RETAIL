@@ -96,7 +96,7 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                 <div className="w-12 h-1.5 bg-gray-300/80 rounded-full mx-auto mb-6 sm:hidden"></div>
 
                 {/* Welcome Header — inside the card, no logo here */}
-                <div className="mb-7">
+                <div className="mb-7 text-center">
                     <h2 className="text-2xl font-black text-gray-900 tracking-tight">
                         Welcome Back
                     </h2>
