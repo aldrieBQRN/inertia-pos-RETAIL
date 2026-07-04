@@ -122,7 +122,14 @@ class ProfileController extends Controller
         ], now()->addMinutes(10));
 
         // 4. Send HTML formatted email
-        Mail::to($request->email)->send(new EmailVerificationOtp($otp, $request->email, false));
+        try {
+            Mail::to($request->email)->send(new EmailVerificationOtp($otp, $request->email, false));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("SMTP Mail Error: " . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to send verification email. Please check your SMTP settings in the .env file.'
+            ], 422);
+        }
 
         return response()->json(['message' => 'OTP sent successfully.']);
     }

@@ -269,7 +269,14 @@ class UserController extends Controller
         ], now()->addMinutes(10));
 
         // 3. Send HTML formatted email
-        Mail::to($request->email)->send(new EmailVerificationOtp($otp, $request->email, true));
+        try {
+            Mail::to($request->email)->send(new EmailVerificationOtp($otp, $request->email, true));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("SMTP Mail Error: " . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to send verification email. Please check your SMTP settings in the .env file.'
+            ], 422);
+        }
 
         // 4. Log OTP generation (critical security event)
         ActivityService::logSecurityAction('otp_generated', "Generated OTP for staff email verification", [
