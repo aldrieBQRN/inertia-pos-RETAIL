@@ -60,13 +60,13 @@ class CleanDatabaseSeeder extends Seeder
             [
                 'name' => 'Quarterly Pro',
                 'duration_months' => 3,
-                'price' => 3999.00,
+                'price' => 1399.00,
                 'is_active' => true,
             ],
             [
                 'name' => 'Annual Premium',
                 'duration_months' => 12,
-                'price' => 14999.00,
+                'price' => 4999.00,
                 'is_active' => true,
             ],
             [
