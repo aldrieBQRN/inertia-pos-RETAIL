@@ -37,6 +37,40 @@ jobs:
         run: |
           zip -r release.zip . -x ".git*" ".github*" "node_modules/*" "tests/*" "e2e/*" "storage/*" ".env*" "playwright-report/*" "test-results/*" "playwright.config.js" "postcss.config.js" "tailwind.config.js" "vite.config.js"
 
+      - name: Validate Secrets (Diagnostics)
+        env:
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+          FTP_URL: ${{ secrets.FTP_UPLOAD_URL }}
+        run: |
+          echo "=== RUNNING SECRET DIAGNOSTICS ==="
+          
+          # Check if empty
+          if [ -z "$FTP_USER" ]; then
+            echo "❌ ERROR: FTP_USERNAME secret is empty or missing!"
+            exit 1
+          fi
+          if [ -z "$FTP_PASS" ]; then
+            echo "❌ ERROR: FTP_PASSWORD secret is empty or missing!"
+            exit 1
+          fi
+          if [ -z "$FTP_URL" ]; then
+            echo "❌ ERROR: FTP_UPLOAD_URL secret is empty or missing!"
+            exit 1
+          fi
+          
+          # Check for literal quotation marks in the secret
+          if [[ "$FTP_URL" == \"* ]] || [[ "$FTP_URL" == \'* ]]; then
+            echo "❌ ERROR: FTP_UPLOAD_URL starts with quotation marks (quotes). Please remove quotes from your GitHub Secrets!"
+            exit 1
+          fi
+          if [[ "$FTP_USER" == \"* ]] || [[ "$FTP_USER" == \'* ]]; then
+            echo "❌ ERROR: FTP_USERNAME starts with quotation marks (quotes). Please remove quotes from your GitHub Secrets!"
+            exit 1
+          fi
+
+          echo "✅ Secrets successfully loaded and validated."
+
       - name: Upload Zip to Hostinger via FTP
         env:
           FTP_USER: ${{ secrets.FTP_USERNAME }}
