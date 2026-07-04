@@ -42,6 +42,19 @@ class Kernel extends ConsoleKernel
                 Log::error('Subscription due warning email failed');
             });
 
+        // Automatically suspend stores past their grace period (5 days after expiration)
+        // Runs daily at 10:00 AM
+        $schedule->command('subscription:suspend')
+            ->dailyAt('10:00')
+            ->timezone('UTC')
+            ->withoutOverlapping()
+            ->onSuccess(function () {
+                Log::info('Store auto-suspensions processed successfully');
+            })
+            ->onFailure(function () {
+                Log::error('Store auto-suspensions processing failed');
+            });
+
         // Process default queued jobs (emails, notifications, etc.)
         // Runs every minute to check for pending jobs
         $schedule->command('queue:work', ['--max-jobs' => 1, '--max-time' => 60])

@@ -8,6 +8,7 @@ use App\Models\Store;
 use App\Mail\TenantInviteMail;
 use App\Mail\SubscriptionReminderMail;
 use App\Mail\SubscriptionDueMail;
+use App\Mail\StoreSuspendedMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Carbon\Carbon;
@@ -18,7 +19,7 @@ class TestTenantEmail extends Command
      * The name and signature of the console command.
      * Run via: php artisan email:test or php artisan email:test renewal
      */
-    protected $signature = 'email:test {type=all : Type of email to test (tenant, renewal, due, all)}';
+    protected $signature = 'email:test {type=all : Type of email to test (tenant, renewal, due, suspended, all)}';
 
     /**
      * The console command description.
@@ -41,6 +42,9 @@ class TestTenantEmail extends Command
             }
             if ($type === 'due' || $type === 'all') {
                 $this->testDueDateWarning();
+            }
+            if ($type === 'suspended' || $type === 'all') {
+                $this->testSuspensionNotice();
             }
         } catch (\Exception $e) {
             $this->error('✗ Error sending email: ' . $e->getMessage());
@@ -147,6 +151,41 @@ class TestTenantEmail extends Command
                 $this->line("  Admin: {$admin->email}");
                 $this->line("  Expiry date: {$store->subscription_ends_at}");
             }
+        }
+    }
+
+    /**
+     * Test Store Suspension Notice
+     */
+    private function testSuspensionNotice()
+    {
+        // Find any suspended store
+        $store = Store::with(['users' => function ($query) {
+            $query->where('role', 'admin');
+        }])
+            ->where('status', false)
+            ->first();
+
+        if (!$store) {
+            // Fallback: search for any store
+            $store = Store::with(['users' => function ($query) {
+                $query->where('role', 'admin');
+            }])->first();
+        }
+
+        if (!$store) {
+            $this->warn("⚠ No stores found in database to test suspension email.");
+            return;
+        }
+
+        $admin = $store->users->first();
+        if ($admin && $admin->email) {
+            Mail::to($admin->email)->send(new StoreSuspendedMail($store));
+            $this->info("✓ Store Suspension Email");
+            $this->line("  Store: {$store->name}");
+            $this->line("  Admin: {$admin->email}");
+        } else {
+            $this->warn("⚠ Store '{$store->name}' has no registered admin user.");
         }
     }
 }
