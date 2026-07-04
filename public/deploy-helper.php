@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Web-Triggered Deployment Helper for Hostinger (Zero-Downtime Releases)
+ * Web-Triggered Deployment Helper for Hostinger (No Symlinks / Overwrite Method)
  * 
- * Secure endpoint to extract build payload, update symlinks, and run database migrations.
+ * Secure endpoint to extract build payload, copy public assets, rewrite paths, and run database migrations.
  */
 
 // 1. Setup error reporting for deployment debugging
@@ -11,33 +11,25 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 header('Content-Type: text/plain; charset=utf-8');
 
-// 2. Identify the base directory structure (works during bootstrap and normal releases)
-$base_dir = null;
-if (strpos(__DIR__, 'releases') !== false) {
-    // Inside releases/release_xxx/public
-    $base_dir = realpath(__DIR__ . '/../../..');
-} else {
-    // Inside public_html bootstrap folder
-    $base_dir = realpath(__DIR__ . '/../WEB-inertia-pos');
+// 2. Identify directories (Works from public_html/)
+$domain_dir = '/home/u259109413/domains/violet-raven-871650.hostingersite.com';
+$base_dir = $domain_dir . '/WEB-inertia-pos';
+$public_html_dir = $domain_dir . '/public_html';
+
+if (!is_dir($base_dir)) {
+    mkdir($base_dir, 0755, true);
 }
 
-if (!$base_dir || !is_dir($base_dir)) {
-    http_response_code(500);
-    die("Error: Base WEB-inertia-pos directory not found.\n");
-}
-
-$shared_env_path = $base_dir . '/shared/.env';
+$env_path = $base_dir . '/.env';
 $temp_zip_path = $base_dir . '/temp/release.zip';
-$releases_dir = $base_dir . '/releases';
-$shared_dir = $base_dir . '/shared';
 
 // 3. Security Verification: Validate Deploy Token
-$expected_token = get_deploy_token($shared_env_path);
+$expected_token = get_deploy_token($env_path);
 $incoming_token = isset($_GET['token']) ? $_GET['token'] : '';
 
 if (!$expected_token) {
     http_response_code(500);
-    die("Error: DEPLOY_TOKEN not configured in shared/.env.\n");
+    die("Error: DEPLOY_TOKEN not configured in WEB-inertia-pos/.env.\n");
 }
 
 if (empty($incoming_token) || $incoming_token !== $expected_token) {
@@ -45,86 +37,79 @@ if (empty($incoming_token) || $incoming_token !== $expected_token) {
     die("Error: Unauthorized. Invalid or missing token.\n");
 }
 
-echo "--- DEPLOYMENT INITIATED ---\n";
+echo "--- DEPLOYMENT INITIATED (OVERWRITE METHOD) ---\n";
 
 // 4. Verify release.zip exists
 if (!file_exists($temp_zip_path)) {
     http_response_code(400);
-    die("Error: release.zip file not found in temp/.\n");
+    die("Error: release.zip file not found in WEB-inertia-pos/temp/.\n");
 }
 
-// 5. Create new release folder
-$release_name = 'release_' . date('Ymd_His');
-$new_release_path = $releases_dir . '/' . $release_name;
-echo "Creating new release folder: {$release_name}...\n";
-
-if (!mkdir($new_release_path, 0755, true)) {
-    http_response_code(500);
-    die("Error: Failed to create release directory.\n");
-}
-
-// 6. Extract Zip
-echo "Extracting release.zip...\n";
+// 5. Extract Zip directly into WEB-inertia-pos
+echo "Extracting release.zip directly into WEB-inertia-pos...\n";
 $zip = new ZipArchive();
 if ($zip->open($temp_zip_path) === TRUE) {
-    $zip->extractTo($new_release_path);
+    $zip->extractTo($base_dir);
     $zip->close();
     echo "Extraction completed successfully.\n";
 } else {
     http_response_code(500);
-    delete_directory($new_release_path);
     die("Error: Failed to extract release.zip.\n");
 }
 
-// 7. Ensure shared folders exist and copy structure if needed
-echo "Configuring persistent storage...\n";
-$shared_storage_path = $shared_dir . '/storage';
-if (!is_dir($shared_storage_path)) {
-    mkdir($shared_storage_path, 0755, true);
-}
-
-// Ensure necessary Laravel storage subdirectories exist in shared/storage
-$storage_subdirs = [
-    'app/public',
-    'framework/cache/data',
-    'framework/sessions',
-    'framework/testing',
-    'framework/views',
-    'logs'
-];
-foreach ($storage_subdirs as $subdir) {
-    $path = $shared_storage_path . '/' . $subdir;
-    if (!is_dir($path)) {
-        mkdir($path, 0755, true);
-    }
-}
-
-// 8. Link shared resources to the new release
-if (is_dir($new_release_path . '/storage')) {
-    delete_directory($new_release_path . '/storage');
-}
-
-// Create symlink for storage and .env
-if (!symlink('../../shared/storage', $new_release_path . '/storage')) {
+// 6. Copy public directory contents to public_html recursively
+echo "Copying public assets to public_html...\n";
+$public_src = $base_dir . '/public';
+if (is_dir($public_src)) {
+    copy_directory($public_src, $public_html_dir);
+    echo "Public assets copied successfully.\n";
+} else {
     http_response_code(500);
-    die("Error: Failed to symlink storage.\n");
+    die("Error: Public source folder not found in extracted release.\n");
 }
 
-if (!symlink('../../shared/.env', $new_release_path . '/.env')) {
+// 7. Rewrite paths in public_html/index.php to point to WEB-inertia-pos
+echo "Adjusting autoload paths in public_html/index.php...\n";
+$index_file = $public_html_dir . '/index.php';
+if (file_exists($index_file)) {
+    $index_content = file_get_contents($index_file);
+    
+    // Replace vendor autoload path
+    $index_content = str_replace(
+        "__DIR__.'/../vendor/autoload.php'",
+        "__DIR__.'/../WEB-inertia-pos/vendor/autoload.php'",
+        $index_content
+    );
+    
+    // Replace bootstrap app path
+    $index_content = str_replace(
+        "__DIR__.'/../bootstrap/app.php'",
+        "__DIR__.'/../WEB-inertia-pos/bootstrap/app.php'",
+        $index_content
+    );
+    
+    // Replace maintenance path if it exists
+    $index_content = str_replace(
+        "__DIR__.'/../storage/framework/maintenance.php'",
+        "__DIR__.'/../WEB-inertia-pos/storage/framework/maintenance.php'",
+        $index_content
+    );
+    
+    file_put_contents($index_file, $index_content);
+    echo "Path redirection configured successfully.\n";
+} else {
     http_response_code(500);
-    die("Error: Failed to symlink .env.\n");
+    die("Error: index.php not found in public_html.\n");
 }
 
-echo "Symlinks for storage and .env successfully created.\n";
-
-// 9. Run Laravel Migrations and Cache Cleaning programmatically
-echo "Bootstrapping Laravel for migrations and caching...\n";
+// 8. Bootstrap Laravel and run database migrations & caching
+echo "Bootstrapping Laravel from WEB-inertia-pos...\n";
 $old_cwd = getcwd();
-chdir($new_release_path);
+chdir($base_dir);
 
 try {
-    require $new_release_path . '/vendor/autoload.php';
-    $app = require_once $new_release_path . '/bootstrap/app.php';
+    require $base_dir . '/vendor/autoload.php';
+    $app = require_once $base_dir . '/bootstrap/app.php';
     
     // Resolve Console Kernel
     $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
@@ -134,13 +119,8 @@ try {
     $status = $kernel->call('migrate', ['--force' => true]);
     echo "Migration output:\n" . Artisan::output() . "\n";
     
-    // Build link to public storage
-    echo "Generating public storage link...\n";
-    $kernel->call('storage:link');
-    echo "Storage link output:\n" . Artisan::output() . "\n";
-    
-    // Cache clear and caching
-    echo "Caching configurations and routes...\n";
+    // Cache clearing and optimization
+    echo "Optimizing configurations and routes...\n";
     $kernel->call('config:cache');
     $kernel->call('route:cache');
     $kernel->call('view:cache');
@@ -149,57 +129,22 @@ try {
 } catch (Exception $e) {
     http_response_code(500);
     chdir($old_cwd);
-    delete_directory($new_release_path);
     die("Laravel Boot/Command Error: " . $e->getMessage() . "\n" . $e->getTraceAsString() . "\n");
 }
 
 chdir($old_cwd);
 
-// 10. Atomic Symlink Switch
-echo "Swapping active release symlink...\n";
-$current_symlink = $base_dir . '/current';
-$temp_symlink = $base_dir . '/current_temp';
-
-if (file_exists($temp_symlink)) {
-    unlink($temp_symlink);
-}
-
-// Create new symlink pointing to the new release
-if (!symlink('releases/' . $release_name, $temp_symlink)) {
-    http_response_code(500);
-    die("Error: Failed to create temp symlink.\n");
-}
-
-// Rename temp symlink to current (Atomic switch)
-if (!rename($temp_symlink, $current_symlink)) {
-    http_response_code(500);
-    die("Error: Failed to switch symlink to current.\n");
-}
-
-echo "Active symlink updated successfully to {$release_name}.\n";
-
-// 11. Cleanup release.zip
+// 9. Clean up temporary files and extracted public folder to save space
 unlink($temp_zip_path);
-echo "Cleaned up temporary release.zip payload.\n";
-
-// 12. Cleanup old releases (Keep last 3)
-echo "Cleaning up old releases...\n";
-$releases = glob($releases_dir . '/release_*', GLOB_ONLYDIR);
-if (count($releases) > 3) {
-    sort($releases);
-    $to_delete = array_slice($releases, 0, count($releases) - 3);
-    foreach ($to_delete as $dir) {
-        echo "Deleting old release: " . basename($dir) . "\n";
-        delete_directory($dir);
-    }
-}
+delete_directory($public_src);
+echo "Cleanup completed.\n";
 
 echo "--- DEPLOYMENT SUCCESSFUL ---\n";
 
 // --- Helper Functions ---
 
 /**
- * Parses the DEPLOY_TOKEN from the live shared .env file
+ * Parses the DEPLOY_TOKEN from the WEB-inertia-pos/.env file
  */
 function get_deploy_token($env_file) {
     if (!file_exists($env_file)) {
@@ -219,6 +164,24 @@ function get_deploy_token($env_file) {
         }
     }
     return null;
+}
+
+/**
+ * Recursively copies a directory
+ */
+function copy_directory($src, $dst) {
+    $dir = opendir($src);
+    @mkdir($dst, 0755, true);
+    while (false !== ($file = readdir($dir))) {
+        if (($file != '.') && ($file != '..')) {
+            if (is_dir($src . '/' . $file)) {
+                copy_directory($src . '/' . $file, $dst . '/' . $file);
+            } else {
+                copy($src . '/' . $file, $dst . '/' . $file);
+            }
+        }
+    }
+    closedir($dir);
 }
 
 /**
