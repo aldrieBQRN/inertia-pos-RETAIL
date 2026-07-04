@@ -290,20 +290,22 @@ class ProductController extends Controller
             'products.*.wholesale_price' => 'nullable|numeric|min:0',
             'products.*.stock_quantity' => 'required|integer|min:0',
             'products.*.category_name' => 'nullable|string|max:255',
+            'overwrite' => 'nullable|boolean'
         ]);
 
         \Illuminate\Support\Facades\DB::beginTransaction();
 
         try {
             $storeId = Auth::user()->store_id;
+            $overwrite = (bool) $request->input('overwrite', false);
             $importedCount = 0;
+            $updatedCount = 0;
             $skippedCount = 0;
             $skippedSkus = [];
             $errors = [];
-            $rowNumber = 1; // Header is at row 1 in Excel template, data starts at row 2
 
             foreach ($request->products as $item) {
-                $displayRow = $item['rowNum'] ?? ($importedCount + 2);
+                $displayRow = $item['rowNum'] ?? ($importedCount + $updatedCount + 2);
                 
                 // Track missing/invalid fields for this specific row
                 $rowErrors = [];
@@ -337,15 +339,6 @@ class ProductController extends Controller
 
                 $sku = trim($item['sku']);
 
-                // Find existing product by SKU under this store
-                $productExists = Product::where('sku', $sku)->where('store_id', $storeId)->exists();
-
-                if ($productExists) {
-                    $skippedCount++;
-                    $skippedSkus[] = $sku . ' - ' . trim($item['name']);
-                    continue;
-                }
-
                 // Find or create category
                 $categoryId = null;
                 $categoryName = trim($item['category_name']);
@@ -357,6 +350,28 @@ class ProductController extends Controller
                     ]);
                 }
                 $categoryId = $category->id;
+
+                // Find existing product by SKU under this store
+                $existingProduct = Product::where('sku', $sku)->where('store_id', $storeId)->first();
+
+                if ($existingProduct) {
+                    if ($overwrite) {
+                        $existingProduct->update([
+                            'name' => trim($item['name']),
+                            'category_id' => $categoryId,
+                            'price' => (int) round($item['price'] * 100),
+                            'cost_price' => (int) round($item['cost_price'] * 100),
+                            'wholesale_price' => (int) round($item['wholesale_price'] * 100),
+                            'stock_quantity' => (int) $item['stock_quantity'],
+                            'is_active' => true,
+                        ]);
+                        $updatedCount++;
+                    } else {
+                        $skippedCount++;
+                        $skippedSkus[] = $sku . ' - ' . trim($item['name']);
+                    }
+                    continue;
+                }
 
                 $productData = [
                     'name' => trim($item['name']),
@@ -387,8 +402,9 @@ class ProductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Successfully imported {$importedCount} products.",
+                'message' => "Successfully processed import.",
                 'imported_count' => $importedCount,
+                'updated_count' => $updatedCount,
                 'skipped_count' => $skippedCount,
                 'skipped_skus' => $skippedSkus,
             ]);

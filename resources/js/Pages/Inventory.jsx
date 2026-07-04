@@ -17,6 +17,7 @@ export default function Inventory({ auth }) {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [settings, setSettings] = useState(null);
+    const [overwriteOnImport, setOverwriteOnImport] = useState(false);
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
@@ -895,32 +896,36 @@ export default function Inventory({ auth }) {
                         return;
                     }
 
-                    const response = await axios.post('/api/products/import', { products: importedProducts });
+                    const response = await axios.post('/api/products/import', { 
+                        products: importedProducts, 
+                        overwrite: overwriteOnImport 
+                    });
                     if (response.data.success) {
-                        const { imported_count, skipped_count, skipped_skus } = response.data;
-                        if (skipped_count > 0) {
-                            Swal.fire({
-                                icon: 'info',
-                                title: 'Import Completed with Skips',
-                                html: `
-                                    <div class="text-left font-sans text-sm p-1">
-                                        <p class="font-bold text-gray-800">Successfully imported <span class="text-green-600 font-semibold">${imported_count}</span> new products.</p>
-                                        <p class="mt-3 text-amber-700 font-semibold">Skipped <span class="font-bold">${skipped_count}</span> duplicate products (Barcode/SKU already exists in database):</p>
-                                        <div class="mt-2 max-h-32 overflow-y-auto bg-amber-50 p-2 rounded border border-amber-200 font-mono text-xs text-amber-800 select-all">
-                                            ${skipped_skus.join('<br>')}
-                                        </div>
-                                    </div>
-                                `,
-                                confirmButtonColor: '#1B3A69'
-                            });
-                        } else {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Import Successful!',
-                                text: `Successfully imported all ${imported_count} products.`,
-                                confirmButtonColor: '#1B3A69'
-                            });
+                        const { imported_count, skipped_count, skipped_skus, updated_count = 0 } = response.data;
+                        
+                        let htmlContent = `<div class="text-left font-sans text-sm p-1">`;
+                        if (imported_count > 0) {
+                            htmlContent += `<p class="font-bold text-gray-800">Successfully imported <span class="text-green-600 font-semibold">${imported_count}</span> new products.</p>`;
                         }
+                        if (updated_count > 0) {
+                            htmlContent += `<p class="font-bold text-gray-800 ${imported_count > 0 ? 'mt-2' : ''}">Successfully updated/overwritten <span class="text-blue-600 font-semibold">${updated_count}</span> existing products.</p>`;
+                        }
+                        if (skipped_count > 0) {
+                            htmlContent += `
+                                <p class="mt-3 text-amber-700 font-semibold">Skipped <span class="font-bold">${skipped_count}</span> duplicate products (Barcode/SKU already exists in database):</p>
+                                <div class="mt-2 max-h-32 overflow-y-auto bg-amber-50 p-2 rounded border border-amber-200 font-mono text-xs text-amber-800 select-all">
+                                    ${skipped_skus.join('<br>')}
+                                </div>
+                            `;
+                        }
+                        htmlContent += `</div>`;
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Import Processed!',
+                            html: htmlContent,
+                            confirmButtonColor: '#1B3A69'
+                        });
                         loadAllProducts(false);
                     } else {
                         throw new Error(response.data.message);
@@ -1287,6 +1292,17 @@ export default function Inventory({ auth }) {
                                             className="hidden"
                                             onChange={handleImport}
                                         />
+
+                                        {/* Overwrite duplicate products checkbox */}
+                                        <label className="col-span-2 sm:col-span-auto flex items-center gap-2 text-xs font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-3 py-2 rounded-lg shadow-sm cursor-pointer select-none hover:bg-gray-100 transition-all">
+                                            <input
+                                                type="checkbox"
+                                                checked={overwriteOnImport}
+                                                onChange={(e) => setOverwriteOnImport(e.target.checked)}
+                                                className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                            />
+                                            Overwrite duplicates
+                                        </label>
 
                                         <button
                                             onClick={exportExcel}
