@@ -1,4 +1,4 @@
-name: Auto-Deploy to InfinityFree (Alwin Branch)
+name: Deploy Inertia POS to Hostinger (Alwin Branch)
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, xml, ctype, mysql, gd
+          extensions: mbstring, xml, ctype, mysql, gd, zip
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -25,28 +25,22 @@ jobs:
           cache: 'npm'
 
       - name: Install PHP Dependencies
-        run: composer install --no-ansi --no-interaction --no-dev --prefer-dist --optimize-autoloader
+        run: |
+          composer install --no-ansi --no-interaction --no-dev --prefer-dist --optimize-autoloader
 
       - name: Install & Build Frontend Assets
         run: |
           npm ci
           npm run build
 
-      - name: Deploy via FTP to InfinityFree
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          local-dir: ./
-          server-dir: /htdocs/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/tests/**
-            **/e2e/**
-            **/.env
-            **/test-results/**
-            **/playwright-report/**
+      - name: Create Release Zip Archive
+        run: |
+          zip -r release.zip . -x ".git*" ".github*" "node_modules/*" "tests/*" "e2e/*" "storage/*" ".env*" "playwright-report/*" "test-results/*" "playwright.config.js" "postcss.config.js" "tailwind.config.js" "vite.config.js"
+
+      - name: Upload Zip to Hostinger via FTP
+        run: |
+          curl --ftp-create-dirs -T release.zip -u "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}" "${{ secrets.FTP_UPLOAD_URL }}"
+
+      - name: Trigger Server-side Deployment Script
+        run: |
+          curl -f -G --data-urlencode "token=${{ secrets.DEPLOY_TOKEN }}" "${{ secrets.DEPLOY_TRIGGER_URL }}"
