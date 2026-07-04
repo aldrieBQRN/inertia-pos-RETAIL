@@ -215,14 +215,25 @@ export default function Dashboard({ auth }) {
                                     ) : (
                                         stats.recent_sales.map((sale) => (
                                             <tr key={sale.id} className="hover:bg-gray-50 transition-colors cursor-default">
-                                                <td className="px-6 py-3.5 font-bold text-gray-900 font-mono">{sale.invoice_number}</td>
+                                                <td className="px-6 py-3.5 font-bold text-gray-900 font-mono">
+                                                    <span className={sale.status === 'void' ? 'line-through text-gray-400' : ''}>
+                                                        {sale.invoice_number}
+                                                    </span>
+                                                    {sale.status === 'void' && (
+                                                        <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-200">
+                                                            Void
+                                                        </span>
+                                                    )}
+                                                </td>
                                                 <td className="px-6 py-3.5 text-xs font-medium text-gray-500">{new Date(sale.created_at).toLocaleString()}</td>
                                                 <td className="px-6 py-3.5">
                                                     <span className={`px-2 py-1 rounded-sm text-[10px] font-bold uppercase tracking-widest ${getPaymentBadgeStyle(sale.payment_method)}`}>
                                                         {formatPaymentName(sale.payment_method)}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-3.5 font-black text-emerald-600 text-right">₱{formatCurrency(sale.total_amount)}</td>
+                                                <td className={`px-6 py-3.5 font-black text-right ${sale.status === 'void' ? 'text-gray-400 line-through' : 'text-emerald-600'}`}>
+                                                    ₱{formatCurrency(sale.total_amount)}
+                                                </td>
                                             </tr>
                                         ))
                                     )}
@@ -235,11 +246,22 @@ export default function Dashboard({ auth }) {
                             {stats.recent_sales.length === 0 ? <div className="py-8"><NoData /></div> : stats.recent_sales.map((sale) => (
                                 <div key={sale.id} className="px-5 py-3.5 flex justify-between items-center bg-white">
                                     <div>
-                                        <div className="font-bold text-gray-900 font-mono text-sm">{sale.invoice_number}</div>
+                                        <div className="font-bold text-gray-900 font-mono text-sm">
+                                            <span className={sale.status === 'void' ? 'line-through text-gray-400' : ''}>
+                                                {sale.invoice_number}
+                                            </span>
+                                            {sale.status === 'void' && (
+                                                <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-200">
+                                                    Void
+                                                </span>
+                                            )}
+                                        </div>
                                         <div className="text-[10px] font-semibold text-gray-400 mt-0.5 tracking-wide">{new Date(sale.created_at).toLocaleString()}</div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="font-black text-emerald-600 text-base">₱{formatCurrency(sale.total_amount)}</div>
+                                        <div className={`font-black text-base ${sale.status === 'void' ? 'text-gray-400 line-through' : 'text-emerald-600'}`}>
+                                            ₱{formatCurrency(sale.total_amount)}
+                                        </div>
                                         <div className="mt-1 flex justify-end">
                                             <span className={`px-2 py-0.5 rounded-sm text-[9px] font-bold uppercase tracking-widest ${getPaymentBadgeStyle(sale.payment_method)}`}>
                                                 {formatPaymentName(sale.payment_method)}
