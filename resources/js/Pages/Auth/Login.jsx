@@ -44,13 +44,6 @@ export default function Login({ status, canResetPassword, settings = {} }) {
         post(route('login'));
     };
 
-    const fillDemo = (role) => {
-        if (role === 'admin') {
-            setData({ ...data, email: 'admin@email.com', password: 'password' });
-        } else {
-            setData({ ...data, email: 'cashier@email.com', password: 'password' });
-        }
-    };
 
     // Shared Styling Constants
     const inputClasses = "appearance-none block w-full px-4 py-3.5 border border-gray-200 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm font-bold text-gray-900 bg-gray-50/50 transition-all";
@@ -101,30 +94,6 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                 {/* Native App Drag Handle Indicator (Visible only on mobile) */}
                 <div className="w-12 h-1.5 bg-gray-300/80 rounded-full mx-auto mb-6 sm:hidden"></div>
 
-                {/* Development / Demo Quick Access Panel */}
-                <div className="mb-8 p-4 sm:p-5 bg-gray-50 rounded-lg border border-gray-100">
-                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 text-center">
-                        Quick Demo Access
-                    </p>
-                    <div className="grid grid-cols-2 gap-3">
-                        <button
-                            type="button"
-                            onClick={() => fillDemo('admin')}
-                            className="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all group active:scale-95"
-                        >
-                            <span className="font-bold text-gray-700 group-hover:text-blue-600 text-sm">Admin</span>
-                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Full Access</span>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => fillDemo('cashier')}
-                            className="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all group active:scale-95"
-                        >
-                            <span className="font-bold text-gray-700 group-hover:text-blue-600 text-sm">Cashier</span>
-                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Point of Sale</span>
-                        </button>
-                    </div>
-                </div>
 
                 {status && <div className="mb-6 font-bold text-sm text-emerald-600 text-center bg-emerald-50 p-3 rounded-lg border border-emerald-100">{status}</div>}
 
