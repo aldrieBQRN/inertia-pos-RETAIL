@@ -1,6 +1,6 @@
 import React from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
 export default function Billing({ auth, plans }) {
@@ -31,6 +31,39 @@ export default function Billing({ auth, plans }) {
                 });
             },
             onError: () => Swal.close()
+        });
+    };
+
+    const toggleStatus = (id, currentStatus) => {
+        const actionText = currentStatus ? 'Disable' : 'Enable';
+        Swal.fire({
+            title: `${actionText} Plan?`,
+            text: `Are you sure you want to ${actionText.toLowerCase()} this pricing plan?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: currentStatus ? '#dc2626' : '#2563eb',
+            cancelButtonColor: '#4b5563',
+            confirmButtonText: `Yes, ${actionText} it!`
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Updating Plan...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                router.post(route('developer.plans.toggle-status', id), {}, {
+                    onSuccess: () => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Updated!',
+                            text: `The plan has been ${currentStatus ? 'disabled' : 'enabled'}.`,
+                            confirmButtonColor: '#2563eb'
+                        });
+                    },
+                    onError: () => Swal.close()
+                });
+            }
         });
     };
 
@@ -75,7 +108,13 @@ export default function Billing({ auth, plans }) {
                                             <div className="relative z-10">
                                                 <div className="flex justify-between items-start mb-4 sm:mb-5">
                                                     <h3 className="font-black text-lg sm:text-xl text-gray-900 truncate pr-2">{p.name}</h3>
-                                                    <span className="bg-green-50 border border-green-100 text-green-600 text-[8px] sm:text-[9px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest shrink-0 shadow-sm">Active</span>
+                                                    <span className={`border text-[8px] sm:text-[9px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest shrink-0 shadow-sm ${
+                                                        p.is_active 
+                                                            ? 'bg-green-50 border-green-150 text-green-600' 
+                                                            : 'bg-red-50 border-red-150 text-red-600'
+                                                    }`}>
+                                                        {p.is_active ? 'Active' : 'Disabled'}
+                                                    </span>
                                                 </div>
 
                                                 <div className="flex items-baseline gap-1 text-blue-600 mb-1.5 sm:mb-2">
@@ -89,7 +128,27 @@ export default function Billing({ auth, plans }) {
 
                                                 <div className="border-t border-gray-100 pt-4 sm:pt-5 flex items-center justify-between text-xs sm:text-sm">
                                                     <span className="text-gray-500 font-bold uppercase tracking-tight text-[10px] sm:text-xs">System Access</span>
-                                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                                                    <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${p.is_active ? 'text-green-500' : 'text-red-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        {p.is_active ? (
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                                                        ) : (
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12" />
+                                                        )}
+                                                    </svg>
+                                                </div>
+
+                                                <div className="mt-6 pt-4 border-t border-gray-100 flex justify-end">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => toggleStatus(p.id, p.is_active)}
+                                                        className={`text-[9px] sm:text-[10px] font-black px-3.5 py-1.5 rounded-lg uppercase tracking-widest border transition-all active:scale-[0.98] ${
+                                                            p.is_active
+                                                                ? 'border-red-200 text-red-600 bg-red-50/50 hover:bg-red-50'
+                                                                : 'border-blue-200 text-blue-600 bg-blue-50/50 hover:bg-blue-50'
+                                                        }`}
+                                                    >
+                                                        {p.is_active ? 'Disable Plan' : 'Enable Plan'}
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>

@@ -28,7 +28,7 @@ export default function BillingPortal({ auth, store, plans, pendingPayment, hist
 
     // Default selection to current plan or the first available plan
     const [selectedPlan, setSelectedPlan] = useState(
-        plans.find(p => p.id === store.plan_id) || plans[0]
+        plans.find(p => p.id === store.plan_id) || plans[0] || null
     );
 
     const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -165,34 +165,46 @@ export default function BillingPortal({ auth, store, plans, pendingPayment, hist
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {plans.map((plan) => (
-                                <button
-                                    key={plan.id}
-                                    type="button"
-                                    disabled={!!pendingPayment}
-                                    onClick={() => handlePlanSelect(plan)}
-                                    className={`relative p-6 rounded-2xl border-2 text-left transition-all group ${
-                                        selectedPlan?.id === plan.id
-                                        ? 'border-blue-600 bg-blue-50 ring-4 ring-blue-100 shadow-lg'
-                                        : 'border-gray-100 bg-white hover:border-gray-200 shadow-sm'
-                                    } ${!!pendingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                >
-                                    <div className="flex justify-between items-center mb-4">
-                                        <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter ${
-                                            selectedPlan?.id === plan.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'
-                                        }`}>
-                                            {plan.duration_months} Month(s)
-                                        </span>
-                                        {store.plan_id === plan.id && (
-                                            <span className="text-[10px] font-bold text-blue-600 italic">Current</span>
-                                        )}
+                            {plans.length === 0 ? (
+                                <div className="col-span-2 text-center py-10 bg-white rounded-2xl border border-gray-150 p-6">
+                                    <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                        <svg className="w-6 h-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
                                     </div>
-                                    <h4 className="text-xl font-black text-gray-900 leading-tight">{plan.name}</h4>
-                                    <div className="text-2xl font-black text-blue-600 mt-1 tracking-tight">
-                                        ₱{parseFloat(plan.price).toLocaleString()}
-                                    </div>
-                                </button>
-                            ))}
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">No Active Plans Available</span>
+                                    <p className="text-gray-400 text-[10px] font-bold uppercase tracking-tight">Please contact support to renew your subscription.</p>
+                                </div>
+                            ) : (
+                                plans.map((plan) => (
+                                    <button
+                                        key={plan.id}
+                                        type="button"
+                                        disabled={!!pendingPayment}
+                                        onClick={() => handlePlanSelect(plan)}
+                                        className={`relative p-6 rounded-2xl border-2 text-left transition-all group ${
+                                            selectedPlan?.id === plan.id
+                                            ? 'border-blue-600 bg-blue-50 ring-4 ring-blue-100 shadow-lg'
+                                            : 'border-gray-100 bg-white hover:border-gray-200 shadow-sm'
+                                        } ${!!pendingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        <div className="flex justify-between items-center mb-4">
+                                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter ${
+                                                selectedPlan?.id === plan.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'
+                                            }`}>
+                                                {plan.duration_months} Month(s)
+                                            </span>
+                                            {store.plan_id === plan.id && (
+                                                <span className="text-[10px] font-bold text-blue-600 italic">Current</span>
+                                            )}
+                                        </div>
+                                        <h4 className="text-xl font-black text-gray-900 leading-tight">{plan.name}</h4>
+                                        <div className="text-2xl font-black text-blue-600 mt-1 tracking-tight">
+                                            ₱{parseFloat(plan.price).toLocaleString()}
+                                        </div>
+                                    </button>
+                                ))
+                            )}
                         </div>
                     </div>
 
@@ -274,7 +286,25 @@ export default function BillingPortal({ auth, store, plans, pendingPayment, hist
 
                 {/* --- RIGHT COLUMN: PAYMENT ENGINE --- */}
                 <div className="flex-1">
-                    {pendingPayment ? (
+                    {plans.length === 0 ? (
+                        /* STATE: NO ACTIVE PLANS */
+                        <div className="bg-white p-12 rounded-2xl shadow-xl border border-red-100 text-center flex flex-col justify-center items-center h-full min-h-[350px]">
+                            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6 border-4 border-white shadow-sm">
+                                <svg className="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight mb-2 text-red-600 italic">
+                                Billing Suspended
+                            </h2>
+                            <p className="text-gray-500 text-xs leading-relaxed px-6 mb-6">
+                                Subscription renewals are currently offline as there are no active plans configured. Please get in touch with system support for assistance.
+                            </p>
+                            <div className="w-full bg-gray-50 p-4 rounded-2xl border border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest italic">
+                                Support Channel: Support Ticket / Dev Team
+                            </div>
+                        </div>
+                    ) : pendingPayment ? (
                         /* STATE: UNDER REVIEW (With Dynamic Status Check) */
                         <div className="bg-white p-12 rounded-2xl shadow-xl border border-orange-100 text-center flex flex-col justify-center items-center h-full">
                             <div className="w-24 h-24 bg-orange-50 rounded-full flex items-center justify-center mb-6 border-4 border-white shadow-sm">

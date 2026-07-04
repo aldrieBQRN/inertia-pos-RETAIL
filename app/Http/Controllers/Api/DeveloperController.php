@@ -310,6 +310,27 @@ class DeveloperController extends Controller
     }
 
     /**
+     * Toggle Plan Status (Active/Inactive)
+     */
+    public function togglePlanStatus(Plan $plan)
+    {
+        if (Auth::user()->role !== 'super_admin') abort(403);
+
+        $oldStatus = $plan->is_active;
+        $plan->update([
+            'is_active' => !$oldStatus
+        ]);
+
+        ActivityService::logUpdate('Plan', $plan->id, "Toggled plan status for: {$plan->name} to " . ($plan->is_active ? 'active' : 'inactive'), [
+            'is_active' => $oldStatus
+        ], [
+            'is_active' => $plan->is_active
+        ]);
+
+        return redirect()->back()->with('success', 'Pricing plan status updated successfully!');
+    }
+
+    /**
      * Provision Store (Invite Flow)
      */
     public function storeStore(Request $request)

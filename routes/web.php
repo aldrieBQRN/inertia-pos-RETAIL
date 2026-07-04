@@ -143,11 +143,15 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class, 'throt
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // OTP Verification Routes
-    Route::post('/profile/send-otp', [ProfileController::class, 'sendOtp'])->name('profile.sendOtp');
+    Route::post('/profile/send-otp', [ProfileController::class, 'sendOtp'])
+        ->middleware('throttle.mail')
+        ->name('profile.sendOtp');
     Route::post('/profile/verify-otp', [ProfileController::class, 'verifyOtp'])->name('profile.verifyOtp');
 
     // Staff OTP Verification Routes
-    Route::post('/staff/send-otp', [UserController::class, 'sendOtp'])->name('staff.sendOtp');
+    Route::post('/staff/send-otp', [UserController::class, 'sendOtp'])
+        ->middleware('throttle.mail')
+        ->name('staff.sendOtp');
     Route::post('/staff/verify-otp', [UserController::class, 'verifyOtp'])->name('staff.verifyOtp');
 
     // API: System Data (Accessible by everyone authenticated)
@@ -234,6 +238,7 @@ Route::middleware(['auth', 'super_admin'])->prefix('developer')->group(function 
     // 3. Provisioning & Actions
     Route::post('/stores', [DeveloperController::class, 'storeStore'])->name('developer.stores.store');
     Route::post('/plans', [DeveloperController::class, 'storePlan'])->name('developer.plans.store');
+    Route::post('/plans/{plan}/toggle-status', [DeveloperController::class, 'togglePlanStatus'])->name('developer.plans.toggle-status');
     Route::post('/stores/{store}/toggle-status', [DeveloperController::class, 'toggleStatus'])->name('developer.stores.toggle-status');
     Route::post('/stores/{store}/suspend', [DeveloperController::class, 'suspendStore'])->name('developer.stores.suspend');
     Route::post('/stores/{store}/remind', [DeveloperController::class, 'sendReminder'])->name('developer.stores.remind');
