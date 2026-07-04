@@ -3,7 +3,8 @@
 /**
  * Web-Triggered Deployment Helper for Hostinger (No Symlinks / Overwrite Method)
  * 
- * Secure endpoint to extract build payload, copy public assets, rewrite paths, and run database migrations.
+ * Secure endpoint to extract build payload, copy public assets, rewrite paths, run database migrations,
+ * and execute Artisan commands (like database seeders) securely without SSH.
  */
 
 // 1. Setup error reporting for deployment debugging
@@ -37,69 +38,72 @@ if (empty($incoming_token) || $incoming_token !== $expected_token) {
     die("Error: Unauthorized. Invalid or missing token.\n");
 }
 
-echo "--- DEPLOYMENT INITIATED (OVERWRITE METHOD) ---\n";
+echo "--- DEPLOYMENT ENGINE ACTIVE ---\n";
 
-// 4. Verify release.zip exists
-if (!file_exists($temp_zip_path)) {
-    http_response_code(400);
-    die("Error: release.zip file not found in WEB-inertia-pos/temp/.\n");
-}
+// 4. Check if release.zip exists
+$zip_exists = file_exists($temp_zip_path);
 
-// 5. Extract Zip directly into WEB-inertia-pos
-echo "Extracting release.zip directly into WEB-inertia-pos...\n";
-$zip = new ZipArchive();
-if ($zip->open($temp_zip_path) === TRUE) {
-    $zip->extractTo($base_dir);
-    $zip->close();
-    echo "Extraction completed successfully.\n";
+if ($zip_exists) {
+    echo "New payload detected. Initiating extraction (Overwrite Method)...\n";
+    
+    // 5. Extract Zip directly into WEB-inertia-pos
+    echo "Extracting release.zip directly into WEB-inertia-pos...\n";
+    $zip = new ZipArchive();
+    if ($zip->open($temp_zip_path) === TRUE) {
+        $zip->extractTo($base_dir);
+        $zip->close();
+        echo "Extraction completed successfully.\n";
+    } else {
+        http_response_code(500);
+        die("Error: Failed to extract release.zip.\n");
+    }
+
+    // 6. Copy public directory contents to public_html recursively
+    echo "Copying public assets to public_html...\n";
+    $public_src = $base_dir . '/public';
+    if (is_dir($public_src)) {
+        copy_directory($public_src, $public_html_dir);
+        echo "Public assets copied successfully.\n";
+    } else {
+        http_response_code(500);
+        die("Error: Public source folder not found in extracted release.\n");
+    }
+
+    // 7. Rewrite paths in public_html/index.php to point to WEB-inertia-pos
+    echo "Adjusting autoload paths in public_html/index.php...\n";
+    $index_file = $public_html_dir . '/index.php';
+    if (file_exists($index_file)) {
+        $index_content = file_get_contents($index_file);
+        
+        // Replace vendor autoload path
+        $index_content = str_replace(
+            "__DIR__.'/../vendor/autoload.php'",
+            "__DIR__.'/../WEB-inertia-pos/vendor/autoload.php'",
+            $index_content
+        );
+        
+        // Replace bootstrap app path
+        $index_content = str_replace(
+            "__DIR__.'/../bootstrap/app.php'",
+            "__DIR__.'/../WEB-inertia-pos/bootstrap/app.php'",
+            $index_content
+        );
+        
+        // Replace maintenance path if it exists
+        $index_content = str_replace(
+            "__DIR__.'/../storage/framework/maintenance.php'",
+            "__DIR__.'/../WEB-inertia-pos/storage/framework/maintenance.php'",
+            $index_content
+        );
+        
+        file_put_contents($index_file, $index_content);
+        echo "Path redirection configured successfully.\n";
+    } else {
+        http_response_code(500);
+        die("Error: index.php not found in public_html.\n");
+    }
 } else {
-    http_response_code(500);
-    die("Error: Failed to extract release.zip.\n");
-}
-
-// 6. Copy public directory contents to public_html recursively
-echo "Copying public assets to public_html...\n";
-$public_src = $base_dir . '/public';
-if (is_dir($public_src)) {
-    copy_directory($public_src, $public_html_dir);
-    echo "Public assets copied successfully.\n";
-} else {
-    http_response_code(500);
-    die("Error: Public source folder not found in extracted release.\n");
-}
-
-// 7. Rewrite paths in public_html/index.php to point to WEB-inertia-pos
-echo "Adjusting autoload paths in public_html/index.php...\n";
-$index_file = $public_html_dir . '/index.php';
-if (file_exists($index_file)) {
-    $index_content = file_get_contents($index_file);
-    
-    // Replace vendor autoload path
-    $index_content = str_replace(
-        "__DIR__.'/../vendor/autoload.php'",
-        "__DIR__.'/../WEB-inertia-pos/vendor/autoload.php'",
-        $index_content
-    );
-    
-    // Replace bootstrap app path
-    $index_content = str_replace(
-        "__DIR__.'/../bootstrap/app.php'",
-        "__DIR__.'/../WEB-inertia-pos/bootstrap/app.php'",
-        $index_content
-    );
-    
-    // Replace maintenance path if it exists
-    $index_content = str_replace(
-        "__DIR__.'/../storage/framework/maintenance.php'",
-        "__DIR__.'/../WEB-inertia-pos/storage/framework/maintenance.php'",
-        $index_content
-    );
-    
-    file_put_contents($index_file, $index_content);
-    echo "Path redirection configured successfully.\n";
-} else {
-    http_response_code(500);
-    die("Error: index.php not found in public_html.\n");
+    echo "No new release.zip found. Skipping code extraction and asset copy.\n";
 }
 
 // 8. Bootstrap Laravel and run database migrations & caching
@@ -114,17 +118,45 @@ try {
     // Resolve Console Kernel
     $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
     
-    // Run Migrations
-    echo "Running database migrations...\n";
-    $status = $kernel->call('migrate', ['--force' => true]);
-    echo "Migration output:\n" . Artisan::output() . "\n";
-    
-    // Cache clearing and optimization
-    echo "Optimizing configurations and routes...\n";
-    $kernel->call('config:cache');
-    $kernel->call('route:cache');
-    $kernel->call('view:cache');
-    echo "Optimization completed.\n";
+    // If a new zip was uploaded, run standard deployment tasks
+    if ($zip_exists) {
+        // Run Migrations
+        echo "Running database migrations...\n";
+        $kernel->call('migrate', ['--force' => true]);
+        echo "Migration output:\n" . Artisan::output() . "\n";
+        
+        // Cache clearing and optimization
+        echo "Optimizing configurations and routes...\n";
+        $kernel->call('config:cache');
+        $kernel->call('route:cache');
+        $kernel->call('view:cache');
+        echo "Optimization completed.\n";
+    }
+
+    // Run database seeder if requested via GET parameter: ?seed=SeederClassName
+    if (!empty($_GET['seed'])) {
+        $seeder = trim($_GET['seed']);
+        // Sanitize class name to prevent execution of other strings
+        if (preg_match('/^[a-zA-Z0-9_\\\\]+$/', $seeder)) {
+            echo "Running database seeder: {$seeder}...\n";
+            $status = $kernel->call('db:seed', ['--class' => $seeder, '--force' => true]);
+            echo "Seeder output:\n" . Artisan::output() . "\n";
+        } else {
+            echo "Error: Invalid seeder class name format.\n";
+        }
+    }
+
+    // Allow general commands if requested: ?command=command:name
+    if (!empty($_GET['command'])) {
+        $command = trim($_GET['command']);
+        if (preg_match('/^[a-zA-Z0-9_:-]+$/', $command)) {
+            echo "Running command: php artisan {$command}...\n";
+            $status = $kernel->call($command);
+            echo "Command output:\n" . Artisan::output() . "\n";
+        } else {
+            echo "Error: Invalid command format.\n";
+        }
+    }
     
 } catch (Exception $e) {
     http_response_code(500);
@@ -135,11 +167,13 @@ try {
 chdir($old_cwd);
 
 // 9. Clean up temporary files and extracted public folder to save space
-unlink($temp_zip_path);
-delete_directory($public_src);
-echo "Cleanup completed.\n";
+if ($zip_exists) {
+    unlink($temp_zip_path);
+    delete_directory($public_src);
+    echo "Cleanup completed.\n";
+}
 
-echo "--- DEPLOYMENT SUCCESSFUL ---\n";
+echo "--- PROCESS SUCCESSFUL ---\n";
 
 // --- Helper Functions ---
 
