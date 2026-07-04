@@ -23,7 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Bind the correct public path in production where core code sits parallel to public_html
+        if (file_exists(base_path('../public_html'))) {
+            $this->app->usePublicPath(realpath(base_path('../public_html')));
+        }
     }
 
     /**
