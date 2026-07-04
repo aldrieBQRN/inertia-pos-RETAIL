@@ -416,7 +416,13 @@ export default function SystemInfo({ auth, settings }) {
                             <button
                                 onClick={() => {
                                     if (!newMethod.type || !newMethod.label || !newMethod.number || !newMethod.name) {
-                                        alert('Please fill in all required fields');
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'Missing Fields',
+                                            text: 'Please fill in all required fields.',
+                                            confirmButtonColor: '#16a34a',
+                                            customClass: { popup: 'rounded-2xl' }
+                                        });
                                         return;
                                     }
                                     if (editingMethod !== null) {
