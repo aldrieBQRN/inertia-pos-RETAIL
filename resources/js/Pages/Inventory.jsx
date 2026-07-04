@@ -17,7 +17,6 @@ export default function Inventory({ auth }) {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [settings, setSettings] = useState(null);
-    const [overwriteOnImport, setOverwriteOnImport] = useState(false);
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
@@ -896,9 +895,56 @@ export default function Inventory({ auth }) {
                         return;
                     }
 
+                    // Close parsing loader to show option dialog
+                    Swal.close();
+
+                    const choice = await Swal.fire({
+                        title: 'Select Import Method',
+                        html: `
+                            <div class="text-left font-sans text-sm p-1">
+                                <p class="text-gray-600 mb-4">We found <strong>${importedProducts.length}</strong> products in your file. How would you like to handle duplicates?</p>
+                                
+                                <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg mb-3">
+                                    <h4 class="font-bold text-blue-900 text-xs uppercase tracking-wide">Option A: Overwrite Duplicates</h4>
+                                    <p class="text-[11px] text-blue-700 mt-1 leading-relaxed">Updates existing product details (Name, Price, Cost, Category, Stock Level) with the new values from your file.</p>
+                                </div>
+                                
+                                <div class="p-3 bg-amber-50 border border-amber-100 rounded-lg">
+                                    <h4 class="font-bold text-amber-900 text-xs uppercase tracking-wide">Option B: Skip Duplicates</h4>
+                                    <p class="text-[11px] text-amber-700 mt-1 leading-relaxed">Only imports brand new products. Leaves all existing products in your inventory untouched.</p>
+                                </div>
+                            </div>
+                        `,
+                        showDenyButton: true,
+                        showCancelButton: true,
+                        confirmButtonText: 'Overwrite Duplicates',
+                        denyButtonText: 'Skip Duplicates',
+                        cancelButtonText: 'Cancel',
+                        confirmButtonColor: '#2563eb', // blue
+                        denyButtonColor: '#d97706',    // amber
+                        cancelButtonColor: '#6b7280',  // gray
+                        customClass: {
+                            popup: 'rounded-2xl'
+                        }
+                    });
+
+                    if (choice.isDismissed) {
+                        return; // Stop if they clicked cancel
+                    }
+
+                    const overwrite = choice.isConfirmed; // true if Overwrite, false if Skip (isDenied)
+
+                    // Re-open loader for the backend processing
+                    Swal.fire({
+                        title: 'Processing File...',
+                        text: 'Please wait while we validate and import your product list.',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
                     const response = await axios.post('/api/products/import', { 
                         products: importedProducts, 
-                        overwrite: overwriteOnImport 
+                        overwrite: overwrite 
                     });
                     if (response.data.success) {
                         const { imported_count, skipped_count, skipped_skus, updated_count = 0 } = response.data;
@@ -1292,17 +1338,6 @@ export default function Inventory({ auth }) {
                                             className="hidden"
                                             onChange={handleImport}
                                         />
-
-                                        {/* Overwrite duplicate products checkbox */}
-                                        <label className="col-span-2 sm:col-span-auto flex items-center gap-2 text-xs font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-3 py-2 rounded-lg shadow-sm cursor-pointer select-none hover:bg-gray-100 transition-all">
-                                            <input
-                                                type="checkbox"
-                                                checked={overwriteOnImport}
-                                                onChange={(e) => setOverwriteOnImport(e.target.checked)}
-                                                className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                            />
-                                            Overwrite duplicates
-                                        </label>
 
                                         <button
                                             onClick={exportExcel}
