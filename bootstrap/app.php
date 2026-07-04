@@ -30,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => AdminMiddleware::class,
             'super_admin' => SuperAdminMiddleware::class,
+            'throttle.mail' => \App\Http\Middleware\ThrottleMailRecipient::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
