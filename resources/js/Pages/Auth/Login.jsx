@@ -67,9 +67,25 @@ export default function Login({ status, canResetPassword, settings = {} }) {
             <Head title="Log in" />
 
             {/* Background branding text (app name only — above card on desktop) */}
-            <div className="flex-1 sm:flex-none flex flex-col justify-end items-center relative z-10 px-4 pb-4 sm:pb-6 sm:pt-12 animate-in fade-in slide-in-from-top-4 duration-700 text-center">
-                <p className="text-xs font-bold text-white/50 uppercase tracking-[0.25em]">
+            <div className="flex-1 sm:flex-none flex flex-col justify-end items-center relative z-10 px-4 pb-6 sm:pb-8 sm:pt-12 animate-in fade-in slide-in-from-top-4 duration-700 text-center">
+
+                {/* DYNAMIC SYSTEM LOGO */}
+                <div className="w-24 h-24 mb-5 bg-white rounded-2xl border border-white/20 shadow-2xl flex items-center justify-center overflow-hidden">
+                    {settings?.logo_path ? (
+                        <img src={`/storage/${settings.logo_path}`} alt="Logo" className="w-full h-full object-cover" />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-900 text-white font-black text-3xl">
+                            {settings?.app_name?.charAt(0) || 'S'}
+                        </div>
+                    )}
+                </div>
+
+                {/* App name and tagline below logo */}
+                <h1 className="text-lg font-black text-white tracking-widest uppercase drop-shadow-lg">
                     {settings?.app_name || 'InertiaPos'}
+                </h1>
+                <p className="mt-1 text-xs font-medium text-white/50 tracking-widest uppercase">
+                    Point of Sale System
                 </p>
             </div>
 
@@ -79,17 +95,8 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                 {/* Native App Drag Handle Indicator (mobile only) */}
                 <div className="w-12 h-1.5 bg-gray-300/80 rounded-full mx-auto mb-6 sm:hidden"></div>
 
-                {/* Logo + Welcome Header — now INSIDE the card */}
-                <div className="flex flex-col items-center text-center mb-8">
-                    <div className="w-16 h-16 mb-4 bg-white rounded-xl border border-gray-100 shadow-lg flex items-center justify-center overflow-hidden">
-                        {settings?.logo_path ? (
-                            <img src={`/storage/${settings.logo_path}`} alt="Logo" className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-900 text-white font-black text-2xl">
-                                {settings?.app_name?.charAt(0) || 'S'}
-                            </div>
-                        )}
-                    </div>
+                {/* Welcome Header — inside the card, no logo here */}
+                <div className="mb-7">
                     <h2 className="text-2xl font-black text-gray-900 tracking-tight">
                         Welcome Back
                     </h2>
