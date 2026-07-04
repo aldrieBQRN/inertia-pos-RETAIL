@@ -70,9 +70,9 @@ class CleanDatabaseSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'name' => 'One-Time License + Monthly Maintenance',
-                'duration_months' => 1,
-                'price' => 499.00,
+                'name' => 'One-Time License + Free 1 Year Maintenance',
+                'duration_months' => 12,
+                'price' => 0.00,
                 'is_active' => true,
             ],
         ];
