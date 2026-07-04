@@ -54,7 +54,7 @@ class CleanDatabaseSeeder extends Seeder
             [
                 'name' => 'Monthly Starter',
                 'duration_months' => 1,
-                'price' => 1499.00,
+                'price' => 499.00,
                 'is_active' => true,
             ],
             [
