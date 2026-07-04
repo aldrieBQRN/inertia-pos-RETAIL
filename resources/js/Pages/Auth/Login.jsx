@@ -66,34 +66,37 @@ export default function Login({ status, canResetPassword, settings = {} }) {
 
             <Head title="Log in" />
 
-            {/* Header & Logo Section - Added sm:mb-8 for desktop spacing! */}
-            <div className="flex-1 sm:flex-none flex flex-col justify-center items-center relative z-10 px-4 py-8 sm:py-0 sm:mb-8 animate-in fade-in slide-in-from-top-4 duration-700 text-center">
-
-                {/* DYNAMIC SYSTEM LOGO */}
-                <div className="w-24 h-24 mb-6 bg-white rounded-lg border border-gray-100 shadow-2xl flex items-center justify-center overflow-hidden">
-                    {settings?.logo_path ? (
-                        <img src={`/storage/${settings.logo_path}`} alt="Logo" className="w-full h-full object-cover" />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-900 text-white font-black text-3xl">
-                            {settings?.app_name?.charAt(0) || 'S'}
-                        </div>
-                    )}
-                </div>
-
-                <h2 className="text-3xl font-black text-white tracking-tight drop-shadow-lg">
-                    Welcome Back
-                </h2>
-                <p className="mt-2 text-sm font-medium text-gray-200 max-w-xs mx-auto leading-relaxed drop-shadow-md">
-                    Sign in to manage your store
+            {/* Background branding text (app name only — above card on desktop) */}
+            <div className="flex-1 sm:flex-none flex flex-col justify-end items-center relative z-10 px-4 pb-4 sm:pb-6 sm:pt-12 animate-in fade-in slide-in-from-top-4 duration-700 text-center">
+                <p className="text-xs font-bold text-white/50 uppercase tracking-[0.25em]">
+                    {settings?.app_name || 'InertiaPos'}
                 </p>
             </div>
 
-            {/* Form Container - Snaps to bottom on mobile, floats on desktop */}
-            <div className="w-full sm:max-w-md relative z-10 sm:mx-auto bg-white/95 backdrop-blur-xl p-6 pb-10 sm:p-10 rounded-t-lg sm:rounded-lg shadow-[0_-10px_40px_rgba(0,0,0,0.2)] sm:shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-in fade-in slide-in-from-bottom-8 duration-700">
+            {/* Form Card — snaps to bottom on mobile, floats on desktop */}
+            <div className="w-full sm:max-w-md relative z-10 sm:mx-auto bg-white/95 backdrop-blur-xl p-6 pb-10 sm:p-10 rounded-t-2xl sm:rounded-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] sm:shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-in fade-in slide-in-from-bottom-8 duration-700">
 
-                {/* Native App Drag Handle Indicator (Visible only on mobile) */}
+                {/* Native App Drag Handle Indicator (mobile only) */}
                 <div className="w-12 h-1.5 bg-gray-300/80 rounded-full mx-auto mb-6 sm:hidden"></div>
 
+                {/* Logo + Welcome Header — now INSIDE the card */}
+                <div className="flex flex-col items-center text-center mb-8">
+                    <div className="w-16 h-16 mb-4 bg-white rounded-xl border border-gray-100 shadow-lg flex items-center justify-center overflow-hidden">
+                        {settings?.logo_path ? (
+                            <img src={`/storage/${settings.logo_path}`} alt="Logo" className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-900 text-white font-black text-2xl">
+                                {settings?.app_name?.charAt(0) || 'S'}
+                            </div>
+                        )}
+                    </div>
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+                        Welcome Back
+                    </h2>
+                    <p className="mt-1 text-sm font-medium text-gray-500">
+                        Sign in to manage your store
+                    </p>
+                </div>
 
                 {status && <div className="mb-6 font-bold text-sm text-emerald-600 text-center bg-emerald-50 p-3 rounded-lg border border-emerald-100">{status}</div>}
 
