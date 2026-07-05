@@ -78,8 +78,8 @@ export default function CartSidebar({
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            const isFKey = e.key.match(/^F[1-9]$|^F1[0-2]$/);
-            
+            const isFKey = e.key?.match(/^F[1-9]$|^F1[0-2]$/);
+
             // If F-keys shortcuts are disabled, do not intercept or execute them
             const shortcutsEnabled = enableShortcuts && localStorage.getItem('pos_enable_shortcuts') !== 'false';
             if (isFKey && !shortcutsEnabled) {
@@ -383,7 +383,7 @@ export default function CartSidebar({
                     const isCustom = typeof item.id === 'string' && item.id.startsWith('custom-');
                     return {
                         id: isCustom ? null : item.id,
-                        quantity: item.quantity,
+                        quantity: Number(item.quantity),
                         name: isCustom ? item.name : undefined,
                         price: item.price / 100
                     };
@@ -480,8 +480,8 @@ export default function CartSidebar({
                             {cart.map((item, index) => (
                                 <React.Fragment key={item.id}>
                                     {/* Desktop Row */}
-                                    <div 
-                                        key={item.id} 
+                                    <div
+                                        key={item.id}
                                         onMouseEnter={() => setHoveredItemId(item.id)}
                                         onMouseLeave={() => setHoveredItemId(prev => prev === item.id ? null : prev)}
                                         onClick={() => {
@@ -534,7 +534,7 @@ export default function CartSidebar({
                                             <span className="font-extrabold text-gray-800 truncate leading-tight block select-none" title={item.name}>
                                                 {item.name}
                                             </span>
-                                             <button 
+                                             <button
                                                  onClick={(e) => {
                                                      e.stopPropagation();
                                                      handleRemoveEntireItem(item);

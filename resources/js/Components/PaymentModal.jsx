@@ -39,7 +39,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
     // Global KeyDown listener active only when PaymentModal is mounted (open)
     useEffect(() => {
         const handleModalKeyDown = (e) => {
-            const isFKey = e.key.match(/^F[1-9]$|^F1[0-2]$/);
+            const isFKey = e.key?.match(/^F[1-9]$|^F1[0-2]$/);
 
             // If F-keys shortcuts are disabled, do not intercept or execute them
             const shortcutsEnabled = enableShortcuts && localStorage.getItem('pos_enable_shortcuts') !== 'false';
@@ -91,7 +91,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
         if (parts.length > 2) {
             cleanVal = parts[0] + '.' + parts.slice(1).join('');
         }
-        
+
         let formattedVal = '';
         if (cleanVal !== '') {
             const integerPart = parts[0];
@@ -99,7 +99,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
             const formattedInteger = integerPart ? Number(integerPart).toLocaleString('en-US') : '0';
             formattedVal = formattedInteger + (cleanVal.includes('.') ? '.' + (decimalPart || '') : '');
         }
-        
+
         setCashGiven(formattedVal);
     };
 

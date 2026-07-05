@@ -145,8 +145,8 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 return;
             }
 
-            const isFKey = e.key.match(/^F[1-9]$|^F1[0-2]$/);
-            
+            const isFKey = e.key?.match(/^F[1-9]$|^F1[0-2]$/);
+
             // If F-keys shortcuts are disabled, do not intercept or execute them
             if (isFKey && !shortcutsEnabled) {
                 return;
@@ -158,7 +158,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
             }
 
             const isControlKey = e.key === 'Escape' || e.key === 'Enter';
-            const isNavKey = (e.key === 'ArrowDown' || e.key === 'ArrowUp') && 
+            const isNavKey = (e.key === 'ArrowDown' || e.key === 'ArrowUp') &&
                 (showCategoryDropdown || showCustomCategoryDropdown || showHeldOrdersModal);
 
             // Ignore if standard typing in input/textarea (unless it's an F-key, control key, or active nav key)
@@ -394,7 +394,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         if (e.key === 'Enter') {
             e.preventDefault();
             e.stopPropagation();
-            
+
             // If an item in the search results is highlighted via arrow keys, select it
             if (productNavIndex !== -1 && productNavIndex < filteredProducts.length) {
                 const selectedProd = filteredProducts[productNavIndex];
@@ -479,8 +479,8 @@ export default function PosTerminal({ auth, store_settings, settings }) {
             return;
         }
 
-        const appliedPrice = (isWholesaleActive && qtyModalProduct.wholesale_price !== null && qtyModalProduct.wholesale_price !== undefined) 
-            ? qtyModalProduct.wholesale_price 
+        const appliedPrice = (isWholesaleActive && qtyModalProduct.wholesale_price !== null && qtyModalProduct.wholesale_price !== undefined)
+            ? qtyModalProduct.wholesale_price
             : qtyModalProduct.price;
 
         if (isQtyEditMode) {
@@ -494,7 +494,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         setQtyModalProduct(null);
         setIsQtyEditMode(false);
         setSearchQuery('');
-        
+
         setTimeout(() => {
             const searchInput = document.querySelector('input[placeholder*="Search"]');
             if (searchInput && window.innerWidth >= 1024) searchInput.focus();
@@ -518,9 +518,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         if (e) e.preventDefault();
         const { qty, name, price } = customItemForm;
 
-        const parsedQty = parseFloat(qty);
+        const parsedQty = Number(qty);
         if (!qty || isNaN(parsedQty) || parsedQty <= 0) {
-            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Please enter a valid quantity (e.g. 0.8, 1, 2.5).', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Please enter a valid quantity (e.g. 0.5, 1, 2.75).', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
             return;
         }
         if (!name.trim()) {
@@ -662,8 +662,8 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     <>
                                         <div className="fixed inset-0 z-40" onClick={() => { setShowCategoryDropdown(false); setCategoryNavIndex(-1); }}></div>
                                         <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-2xl border border-gray-100 z-50 py-1 animate-fade-in-up max-h-[60vh] overflow-y-auto custom-scrollbar">
-                                            <button 
-                                                onClick={() => {setSelectedCategory('all'); setShowCategoryDropdown(false); setCategoryNavIndex(-1); window.dispatchEvent(new CustomEvent('reset-cart-nav'));}} 
+                                            <button
+                                                onClick={() => {setSelectedCategory('all'); setShowCategoryDropdown(false); setCategoryNavIndex(-1); window.dispatchEvent(new CustomEvent('reset-cart-nav'));}}
                                                 className={`w-full text-left px-4 py-2.5 text-base font-bold transition-colors ${categoryNavIndex === 0 ? 'bg-indigo-600 text-white' : selectedCategory === 'all' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
                                             >
                                                 {showFKeys ? "All Categories (F5)" : "All Categories"}
@@ -672,13 +672,13 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                                 const isHighlighted = categoryNavIndex === (idx + 1);
                                                 const isSelected = selectedCategory === c.id;
                                                 return (
-                                                    <button 
-                                                        key={c.id} 
-                                                        onClick={() => {setSelectedCategory(c.id); setShowCategoryDropdown(false); setCategoryNavIndex(-1); window.dispatchEvent(new CustomEvent('reset-cart-nav'));}} 
+                                                    <button
+                                                        key={c.id}
+                                                        onClick={() => {setSelectedCategory(c.id); setShowCategoryDropdown(false); setCategoryNavIndex(-1); window.dispatchEvent(new CustomEvent('reset-cart-nav'));}}
                                                         className={`w-full text-left px-4 py-2.5 text-base font-bold flex items-center gap-3 transition-colors ${isHighlighted ? 'bg-indigo-600 text-white' : 'hover:bg-gray-50'}`}
                                                         style={(!isHighlighted && isSelected) ? {color: c.color} : {}}
                                                     >
-                                                        <span className={`w-2.5 h-2.5 rounded-full ${isHighlighted ? 'bg-white' : ''}`} style={!isHighlighted ? {backgroundColor: c.color} : {}}></span> 
+                                                        <span className={`w-2.5 h-2.5 rounded-full ${isHighlighted ? 'bg-white' : ''}`} style={!isHighlighted ? {backgroundColor: c.color} : {}}></span>
                                                         <span style={isHighlighted ? {color: '#fff'} : isSelected ? {color: c.color} : {}}>{c.name}</span>
                                                     </button>
                                                 );
@@ -1058,7 +1058,8 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                 <input
                                     id="quick-add-qty-input"
                                     type="number"
-                                    step="any"
+                                    step="1"
+                                    min="1"
                                     required
                                     value={customItemForm.qty}
                                     onChange={(e) => setCustomItemForm({ ...customItemForm, qty: e.target.value })}
@@ -1070,7 +1071,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         }
                                     }}
                                     className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
-                                    placeholder="e.g. 0.8 or 1"
+                                    step="any"
+                                    min="0.01"
+                                    placeholder="e.g. 0.5 or 1"
                                 />
                             </div>
 

@@ -27,7 +27,7 @@ class PosController extends Controller
         $request->validate([
             'cart' => 'required|array|min:1',
             'cart.*.id' => 'nullable|exists:products,id',
-            'cart.*.quantity' => 'required|integer|min:1',
+            'cart.*.quantity' => 'required|numeric|min:0.01',
             'cart.*.name' => 'nullable|string',
             'cart.*.price' => 'required|numeric',
             // ADDED CREDIT AND DEBIT CARDS
@@ -85,40 +85,46 @@ class PosController extends Controller
             // 3. Process each item in the cart
             foreach ($request->cart as $item) {
                 $unitPrice = (int) round($item['price'] * 100);
+                $quantity = (float) $item['quantity'];
 
                 if (isset($item['id']) && $item['id'] !== null) {
+                    if ((int) $quantity != $quantity) {
+                        throw new \Exception('Product quantities must be whole numbers.');
+                    }
+
+                    $quantity = (int) $quantity;
                     $product = Product::lockForUpdate()->find($item['id']);
 
                     if (!$product) {
                         throw new \Exception("Item no longer available in catalog.");
                     }
 
-                    if ($product->stock_quantity < $item['quantity']) {
+                    if ($product->stock_quantity < $quantity) {
                         throw new \Exception("Insufficient stock for {$product->name}. Only {$product->stock_quantity} remaining.");
                     }
 
                     // Update inventory level
-                    $product->decrement('stock_quantity', $item['quantity']);
+                    $product->decrement('stock_quantity', $quantity);
 
-                    $subtotal = $unitPrice * $item['quantity'];
+                    $subtotal = $unitPrice * $quantity;
 
                     // Record the sale item detail
                     SaleItem::create([
                         'sale_id' => $sale->id,
                         'product_id' => $product->id,
-                        'quantity' => $item['quantity'],
+                        'quantity' => $quantity,
                         'unit_price' => $unitPrice,
                         'subtotal' => $subtotal,
                     ]);
                 } else {
                     // Custom item
-                    $subtotal = $unitPrice * $item['quantity'];
+                    $subtotal = $unitPrice * $quantity;
 
                     SaleItem::create([
                         'sale_id' => $sale->id,
                         'product_id' => null,
                         'custom_name' => $item['name'] ?? 'Custom Item',
-                        'quantity' => $item['quantity'],
+                        'quantity' => $quantity,
                         'unit_price' => $unitPrice,
                         'subtotal' => $subtotal,
                     ]);
