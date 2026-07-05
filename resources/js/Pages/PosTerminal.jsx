@@ -49,16 +49,10 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     const [isQtyEditMode, setIsQtyEditMode] = useState(false);
     const [showCustomItemModal, setShowCustomItemModal] = useState(false);
     const [customItemForm, setCustomItemForm] = useState({
-        sku: '',
+        qty: '',
         name: '',
-        category_id: '',
-        stock_quantity: '',
-        cost_price: '',
-        price: '',
-        wholesale_price: ''
+        price: ''
     });
-    const [isCheckingSku, setIsCheckingSku] = useState(false);
-    const [isSavingCustom, setIsSavingCustom] = useState(false);
     const [showCustomCategoryDropdown, setShowCustomCategoryDropdown] = useState(false);
     const [customCategoryNavIndex, setCustomCategoryNavIndex] = useState(-1);
     const [productNavIndex, setProductNavIndex] = useState(-1);
@@ -251,45 +245,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
             // Intercept shortcuts specifically for the Add Custom Item modal if open
             if (showCustomItemModal) {
-                // Close custom category dropdown when switching to another F-key
-                if (e.key.match(/^F[1-9]$|^F1[0-2]$/) && e.key !== 'F5') {
-                    setShowCustomCategoryDropdown(false);
-                    setCustomCategoryNavIndex(-1);
-                }
 
-                if (showCustomCategoryDropdown) {
-                    if (e.key === 'Escape') {
-                        e.preventDefault();
-                        setShowCustomCategoryDropdown(false);
-                        setCustomCategoryNavIndex(-1);
-                        return;
-                    }
-                    if (e.key === 'ArrowDown') {
-                        e.preventDefault();
-                        if (categories.length > 0) {
-                            setCustomCategoryNavIndex(prev => Math.min(prev + 1, categories.length - 1));
-                        }
-                        return;
-                    }
-                    if (e.key === 'ArrowUp') {
-                        e.preventDefault();
-                        if (categories.length > 0) {
-                            setCustomCategoryNavIndex(prev => Math.max(prev - 1, 0));
-                        }
-                        return;
-                    }
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        if (customCategoryNavIndex !== -1 && customCategoryNavIndex < categories.length) {
-                            const selectedCat = categories[customCategoryNavIndex];
-                            setCustomItemForm(prev => ({ ...prev, category_id: selectedCat.id }));
-                            setShowCustomCategoryDropdown(false);
-                            setCustomCategoryNavIndex(-1);
-                            document.getElementById('custom-stock-input')?.focus();
-                        }
-                        return;
-                    }
-                }
 
                 if (e.key === 'Escape') {
                     e.preventDefault();
@@ -299,40 +255,13 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                     document.getElementById('custom-item-form-submit-btn')?.click();
                 } else if (e.key === 'F1') {
                     e.preventDefault();
-                    document.getElementById('custom-sku-input')?.focus();
+                    document.getElementById('quick-add-qty-input')?.focus();
                 } else if (e.key === 'F2') {
                     e.preventDefault();
-                    generateCustomItemSKU();
+                    document.getElementById('quick-add-name-input')?.focus();
                 } else if (e.key === 'F3') {
                     e.preventDefault();
-                    document.getElementById('custom-name-input')?.focus();
-                } else if (e.key === 'F5') {
-                    e.preventDefault();
-                    setShowCustomCategoryDropdown(prev => {
-                        const next = !prev;
-                        if (next) {
-                            const currentIdx = categories.findIndex(c => c.id === customItemForm.category_id);
-                            setCustomCategoryNavIndex(currentIdx !== -1 ? currentIdx : 0);
-                            setTimeout(() => {
-                                document.getElementById('custom-category-input')?.focus();
-                            }, 50);
-                        } else {
-                            setCustomCategoryNavIndex(-1);
-                        }
-                        return next;
-                    });
-                } else if (e.key === 'F6') {
-                    e.preventDefault();
-                    document.getElementById('custom-stock-input')?.focus();
-                } else if (e.key === 'F7') {
-                    e.preventDefault();
-                    document.getElementById('custom-cost-input')?.focus();
-                } else if (e.key === 'F8') {
-                    e.preventDefault();
-                    document.getElementById('custom-retail-input')?.focus();
-                } else if (e.key === 'F9') {
-                    e.preventDefault();
-                    document.getElementById('custom-wholesale-input')?.focus();
+                    document.getElementById('quick-add-price-input')?.focus();
                 }
                 return;
             }
@@ -572,129 +501,55 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         }, 100);
     };
 
-    const generateCustomItemSKU = async () => {
-        setIsCheckingSku(true);
-        try {
-            const response = await axios.get('/api/products/next-sku');
-            if (response.data.success && response.data.next_sku) {
-                setCustomItemForm(prev => ({ ...prev, sku: response.data.next_sku }));
-            } else {
-                throw new Error("Invalid next SKU response");
-            }
-        } catch (error) {
-            console.error("SKU generation failed:", error);
-            Swal.fire('Error', 'Could not generate next sequential SKU.', 'error');
-        } finally {
-            setIsCheckingSku(false);
-        }
-    };
+
 
     const handleOpenCustomItemModal = () => {
         window.dispatchEvent(new CustomEvent('reset-cart-nav'));
-        setCustomItemForm({
-            sku: '',
-            name: '',
-            category_id: '',
-            stock_quantity: '',
-            cost_price: '',
-            price: '',
-            wholesale_price: ''
-        });
-        setShowCustomCategoryDropdown(false);
-        setCustomCategoryNavIndex(-1);
+        setCustomItemForm({ qty: '', name: '', price: '' });
         setShowCustomItemModal(true);
         if (searchInputRef.current) searchInputRef.current.blur();
 
         setTimeout(() => {
-            document.getElementById('custom-sku-input')?.focus();
+            document.getElementById('quick-add-qty-input')?.focus();
         }, 150);
     };
 
-    const handleAddCustomItem = async (e) => {
+    const handleAddCustomItem = (e) => {
         if (e) e.preventDefault();
-        const { sku, name, category_id, stock_quantity, cost_price, price, wholesale_price } = customItemForm;
+        const { qty, name, price } = customItemForm;
 
-        if (!sku.trim()) {
-            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'SKU / Barcode is required.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+        const parsedQty = parseFloat(qty);
+        if (!qty || isNaN(parsedQty) || parsedQty <= 0) {
+            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Please enter a valid quantity (e.g. 0.8, 1, 2.5).', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
             return;
         }
         if (!name.trim()) {
-            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Product Name is required.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Description is required.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
             return;
         }
-        if (!category_id) {
-            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Please select a Category.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
-            return;
-        }
-        if (stock_quantity === '' || isNaN(parseInt(stock_quantity, 10)) || parseInt(stock_quantity, 10) < 0) {
-            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Valid Initial Stock is required.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
-            return;
-        }
-        if (cost_price === '' || isNaN(parseFloat(cost_price)) || parseFloat(cost_price) < 0) {
-            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Valid Cost Price is required.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
-            return;
-        }
-        if (price === '' || isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
-            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Valid Retail Price is required.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
-            return;
-        }
-        if (wholesale_price === '' || isNaN(parseFloat(wholesale_price)) || parseFloat(wholesale_price) < 0) {
-            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Valid Wholesale Price is required.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+        const parsedPrice = parseFloat(price);
+        if (!price || isNaN(parsedPrice) || parsedPrice <= 0) {
+            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Please enter a valid price greater than zero.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
             return;
         }
 
-        const skuExists = products.some(p => p.sku === sku.trim());
-        if (skuExists) {
-            Swal.fire({ icon: 'error', title: 'Duplicate SKU', text: 'A product with this SKU already exists.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
-            return;
-        }
+        // Build a synthetic cart item — stored in-memory only, never written to the products table.
+        // price is stored in cents to match the cart store convention.
+        const customCartItem = {
+            id: null,
+            is_custom: true,
+            custom_key: `custom_${Date.now()}`,
+            name: name.trim(),
+            price: Math.round(parsedPrice * 100),
+            stock_quantity: Infinity,
+        };
 
-        const numericPrice = parseFloat(price);
+        addToCart(customCartItem, parsedQty, Math.round(parsedPrice * 100));
 
-        setIsSavingCustom(true);
-        try {
-            const postData = {
-                sku: sku.trim(),
-                name: name.trim(),
-                category_id: category_id,
-                stock_quantity: parseInt(stock_quantity, 10),
-                price: numericPrice,
-                cost_price: cost_price ? parseFloat(cost_price) : null,
-                wholesale_price: wholesale_price ? parseFloat(wholesale_price) : null
-            };
+        setShowCustomItemModal(false);
+        setCustomItemForm({ qty: '', name: '', price: '' });
 
-            const res = await axios.post('/api/products', postData);
-            
-            const newProduct = res.data;
-            const appliedPrice = (isWholesaleActive && newProduct.wholesale_price !== null && newProduct.wholesale_price !== undefined) 
-                ? newProduct.wholesale_price 
-                : newProduct.price;
-
-            addToCart(newProduct, 1, appliedPrice);
-
-            setShowCustomItemModal(false);
-            setShowCustomCategoryDropdown(false);
-            setCustomCategoryNavIndex(-1);
-            setCustomItemForm({
-                sku: '',
-                name: '',
-                category_id: '',
-                stock_quantity: '',
-                cost_price: '',
-                price: '',
-                wholesale_price: ''
-            });
-
-            await loadProductsAndCategories(false);
-
-            Swal.fire({ icon: 'success', title: 'Product Added!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
-        } catch (error) {
-            console.error("Failed to add product:", error);
-            const errorMsg = error.response?.data?.error || 'An error occurred while saving the product.';
-            Swal.fire({ icon: 'error', title: 'Save Failed', text: errorMsg });
-        } finally {
-            setIsSavingCustom(false);
-        }
+        Swal.fire({ icon: 'success', title: 'Item Added!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1200 });
     };
 
     const handlePrintReceipt = async (trxId) => {
@@ -1181,14 +1036,13 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                     </div>
                 </div>
             )}
-
-            {/* CUSTOM ITEM MODAL */}
+            {/* CUSTOM ITEM MODAL (QUICK ADD) */}
             {showCustomItemModal && (
                 <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[110] p-0 sm:p-4 backdrop-blur-sm transition-opacity">
                     <div className="bg-white w-full max-w-md h-auto max-h-[85vh] sm:max-h-[90vh] rounded-t-lg sm:rounded-lg shadow-2xl flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in">
                         {/* Header */}
-                        <div className="bg-gray-50 px-4 py-4 border-b flex justify-between items-center shrink-0">
-                            <h2 className="text-lg md:text-xl font-black text-gray-800 tracking-tight">Add Custom Item</h2>
+                        <div className="bg-gray-55 px-4 py-4 border-b border-gray-200 flex justify-between items-center shrink-0">
+                            <h2 className="text-lg md:text-xl font-black text-gray-800 tracking-tight">Quick Add Custom Item</h2>
                             <button
                                 onClick={() => setShowCustomItemModal(false)}
                                 className="p-1.5 bg-gray-200 rounded-full text-gray-500 hover:bg-red-100 hover:text-red-500 transition-colors shadow-sm"
@@ -1196,52 +1050,35 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
-                        {/* Scrollable Form body */}
-                        <form onSubmit={handleAddCustomItem} className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar flex flex-col gap-4 bg-white">
-                            {/* SKU / Barcode */}
+                        {/* Form body */}
+                        <form onSubmit={handleAddCustomItem} className="flex-1 p-4 md:p-5 flex flex-col gap-4 bg-white">
+                            {/* Quantity */}
                             <div>
-                                <div className="flex justify-between items-center mb-1.5 ml-0.5">
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider">{showFKeys ? "SKU / Barcode (F1)" : "SKU / Barcode"}</label>
-                                    {showFKeys && <span className="text-[10px] text-indigo-600 font-black font-mono uppercase tracking-wider mr-1">Generate SKU (F2)</span>}
-                                </div>
-                                <div className="flex gap-2">
-                                    <input
-                                        id="custom-sku-input"
-                                        type="text"
-                                        required
-                                        value={customItemForm.sku}
-                                        onChange={(e) => setCustomItemForm({ ...customItemForm, sku: e.target.value })}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                document.getElementById('custom-name-input')?.focus();
-                                            }
-                                        }}
-                                        className="flex-1 border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm font-mono"
-                                        placeholder="Scan or type barcode..."
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={generateCustomItemSKU}
-                                        disabled={isCheckingSku}
-                                        className="bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 px-3.5 py-2.5 rounded-lg transition-colors active:scale-95 disabled:opacity-50"
-                                        title={showFKeys ? "Generate SKU (F2)" : "Generate SKU"}
-                                    >
-                                        {isCheckingSku ? (
-                                            <svg className="animate-spin h-4 w-4 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                        ) : (
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
-                                        )}
-                                    </button>
-                                </div>
+                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Qty (F1)" : "Qty"}</label>
+                                <input
+                                    id="quick-add-qty-input"
+                                    type="number"
+                                    step="any"
+                                    required
+                                    value={customItemForm.qty}
+                                    onChange={(e) => setCustomItemForm({ ...customItemForm, qty: e.target.value })}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            document.getElementById('quick-add-name-input')?.focus();
+                                        }
+                                    }}
+                                    className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
+                                    placeholder="e.g. 0.8 or 1"
+                                />
                             </div>
 
-                            {/* Product Name */}
+                            {/* Description / Name */}
                             <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Product Name (F3)" : "Product Name"}</label>
+                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Description (F2)" : "Description"}</label>
                                 <input
-                                    id="custom-name-input"
+                                    id="quick-add-name-input"
                                     type="text"
                                     required
                                     value={customItemForm.name}
@@ -1250,198 +1087,57 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         if (e.key === 'Enter') {
                                             e.preventDefault();
                                             e.stopPropagation();
-                                            setShowCustomCategoryDropdown(true);
-                                            const currentIdx = categories.findIndex(c => c.id === customItemForm.category_id);
-                                            setCustomCategoryNavIndex(currentIdx !== -1 ? currentIdx : 0);
-                                            document.getElementById('custom-category-input')?.focus();
+                                            document.getElementById('quick-add-price-input')?.focus();
                                         }
                                     }}
                                     className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
-                                    placeholder="e.g. Classic Cappuccino"
+                                    placeholder="e.g. Pork"
                                 />
                             </div>
 
-                            {/* Category & Initial Stock */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {/* Unit Price & Total Amount Preview */}
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Category (F5)" : "Category"}</label>
-                                    <div className="relative">
-                                        <button
-                                            id="custom-category-input"
-                                            type="button"
-                                            onClick={() => {
-                                                setShowCustomCategoryDropdown(!showCustomCategoryDropdown);
-                                                if (!showCustomCategoryDropdown) {
-                                                    const currentIdx = categories.findIndex(c => c.id === customItemForm.category_id);
-                                                    setCustomCategoryNavIndex(currentIdx !== -1 ? currentIdx : 0);
-                                                } else {
-                                                    setCustomCategoryNavIndex(-1);
-                                                }
-                                            }}
-                                            className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-955 shadow-sm text-left flex justify-between items-center outline-none"
-                                        >
-                                            <span className="truncate">
-                                                {categories.find(c => c.id === customItemForm.category_id)?.name || 'Select Category...'}
-                                            </span>
-                                            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                                        </button>
-                                        {/* Invisible select for native HTML5 browser validation bubbles */}
-                                        <select
-                                            required
-                                            value={customItemForm.category_id}
-                                            onChange={(e) => setCustomItemForm({ ...customItemForm, category_id: e.target.value })}
-                                            className="absolute opacity-0 pointer-events-none"
-                                            style={{ width: '100%', height: '100%', top: 0, left: 0, zIndex: -1 }}
-                                            tabIndex="-1"
-                                        >
-                                            <option value="">Select Category...</option>
-                                            {categories.map(cat => (
-                                                <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                            ))}
-                                        </select>
-
-                                        {showCustomCategoryDropdown && (
-                                            <>
-                                                <div className="fixed inset-0 z-40" onClick={() => { setShowCustomCategoryDropdown(false); setCustomCategoryNavIndex(-1); }}></div>
-                                                <div className="absolute left-0 right-0 mt-1 bg-white rounded-lg shadow-2xl border border-gray-100 z-50 py-1 max-h-48 overflow-y-auto custom-scrollbar">
-                                                    {categories.map((cat, idx) => {
-                                                        const isHighlighted = customCategoryNavIndex === idx;
-                                                        const isSelected = customItemForm.category_id === cat.id;
-                                                        return (
-                                                            <button
-                                                                key={cat.id}
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setCustomItemForm({ ...customItemForm, category_id: cat.id });
-                                                                    setShowCustomCategoryDropdown(false);
-                                                                    setCustomCategoryNavIndex(-1);
-                                                                }}
-                                                                className={`w-full text-left px-4 py-2 text-sm font-bold flex items-center gap-2 transition-colors ${isHighlighted ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-50'}`}
-                                                            >
-                                                                <span className={`w-2.5 h-2.5 rounded-full ${isHighlighted ? 'bg-white' : ''}`} style={!isHighlighted ? { backgroundColor: cat.color } : {}}></span>
-                                                                <span className={isHighlighted ? 'text-white' : isSelected ? 'text-indigo-600' : ''}>{cat.name}</span>
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Initial Stock (F6)" : "Initial Stock"}</label>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Price (₱) (F3)" : "Price (₱)"}</label>
                                     <input
-                                        id="custom-stock-input"
-                                        type="number"
-                                        required
-                                        min="0"
-                                        value={customItemForm.stock_quantity}
-                                        onChange={(e) => setCustomItemForm({ ...customItemForm, stock_quantity: e.target.value })}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                document.getElementById('custom-cost-input')?.focus();
-                                            }
-                                        }}
-                                        className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
-                                        placeholder="0"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Cost Price */}
-                            <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Cost Price (₱) (F7)" : "Cost Price (₱)"}</label>
-                                <input
-                                    id="custom-cost-input"
-                                    type="number"
-                                    step="0.01"
-                                    required
-                                    min="0"
-                                    value={customItemForm.cost_price}
-                                    onChange={(e) => setCustomItemForm({ ...customItemForm, cost_price: e.target.value })}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            document.getElementById('custom-retail-input')?.focus();
-                                        }
-                                    }}
-                                    className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
-                                    placeholder="0.00"
-                                />
-                            </div>
-
-                            {/* Retail Price & Wholesale Price */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Retail Price (₱) (F8)" : "Retail Price (₱)"}</label>
-                                    <input
-                                        id="custom-retail-input"
+                                        id="quick-add-price-input"
                                         type="number"
                                         step="0.01"
                                         required
-                                        min="0.01"
                                         value={customItemForm.price}
                                         onChange={(e) => setCustomItemForm({ ...customItemForm, price: e.target.value })}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                document.getElementById('custom-wholesale-input')?.focus();
-                                            }
-                                        }}
                                         className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
                                         placeholder="0.00"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Wholesale Price (₱) (F9)" : "Wholesale Price (₱)"}</label>
+                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Amount (₱)</label>
                                     <input
-                                        id="custom-wholesale-input"
-                                        type="number"
-                                        step="0.01"
-                                        required
-                                        min="0"
-                                        value={customItemForm.wholesale_price}
-                                        onChange={(e) => setCustomItemForm({ ...customItemForm, wholesale_price: e.target.value })}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                document.getElementById('custom-item-form-submit-btn')?.click();
-                                            }
-                                        }}
-                                        className="w-full border border-gray-300 bg-gray-55/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-gray-900 shadow-sm"
-                                        placeholder="0.00"
+                                        type="text"
+                                        disabled
+                                        value={
+                                            (!isNaN(parseFloat(customItemForm.qty)) && !isNaN(parseFloat(customItemForm.price)))
+                                                ? (parseFloat(customItemForm.qty) * parseFloat(customItemForm.price)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                                : "0.00"
+                                        }
+                                        className="w-full border border-gray-200 bg-gray-100 rounded-lg py-2.5 px-3 text-sm font-black text-gray-600 font-mono shadow-sm cursor-not-allowed text-right"
                                     />
                                 </div>
                             </div>
 
                             {/* Actions Group */}
-                             <div className="flex flex-col gap-2 mt-4 pt-4 border-t shrink-0">
+                            <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-gray-200 shrink-0">
                                 <button
                                     id="custom-item-form-submit-btn"
                                     type="submit"
-                                    disabled={isSavingCustom}
-                                    className="w-full py-3.5 bg-gray-900 hover:bg-black text-white font-black text-sm uppercase tracking-widest rounded-lg shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                                    className="w-full py-3.5 bg-gray-900 hover:bg-black text-white font-black text-sm uppercase tracking-widest rounded-lg shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                                 >
-                                    {isSavingCustom ? (
-                                        <>
-                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                            Adding Item...
-                                        </>
-                                    ) : (
-                                        <>
-                                            Add Custom<span className="hidden md:inline"> (Enter)</span>
-                                        </>
-                                    )}
+                                    Add Item<span className="hidden md:inline"> (Enter)</span>
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setShowCustomItemModal(false)}
-                                    className="w-full py-3 bg-white text-gray-755 border border-gray-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-[0.98]"
+                                    className="w-full py-3 bg-white text-gray-700 border border-gray-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-gray-55 hover:text-gray-950 transition-all active:scale-[0.98]"
                                 >
                                     Cancel<span className="hidden md:inline"> (Esc)</span>
                                 </button>

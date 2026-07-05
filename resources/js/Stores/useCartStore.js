@@ -9,10 +9,14 @@ const useCartStore = create(
 
             addToCart: (product, quantity = 1, priceOverride = null) => {
                 const { cart } = get();
-                const existingItem = cart.find(item => item.id === product.id);
+                const isCustom = product.id === null || product.is_custom === true;
+                // Custom items use a unique key (custom_key) so each entry is independent
+                const existingItem = isCustom
+                    ? null
+                    : cart.find(item => item.id === product.id);
                 const appliedPrice = priceOverride !== null ? priceOverride : product.price;
 
-                if (existingItem) {
+                if (!isCustom && existingItem) {
                     const newQty = existingItem.quantity + quantity;
                     if (newQty > product.stock_quantity) {
                         const allowedQty = product.stock_quantity - existingItem.quantity;
@@ -29,16 +33,20 @@ const useCartStore = create(
                             ? { ...item, price: appliedPrice, quantity: newQty }
                             : item)
                     });
-                } else {
+                } else if (!isCustom) {
                     const finalQty = Math.min(quantity, product.stock_quantity);
                     if (finalQty < 1) return;
                     set({ cart: [...cart, { ...product, price: appliedPrice, quantity: finalQty }] });
+                } else {
+                    // Custom (by-weight) item: always push as a new independent line
+                    set({ cart: [...cart, { ...product, price: appliedPrice, quantity }] });
                 }
             },
 
             removeFromCart: (productId) => {
                 const { cart } = get();
                 const existingItem = cart.find(item => item.id === productId);
+                if (!existingItem) return;
                 if (existingItem.quantity > 1) {
                     set({ cart: cart.map(item => item.id === productId ? { ...item, quantity: item.quantity - 1 } : item) });
                 } else {

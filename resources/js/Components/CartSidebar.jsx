@@ -251,12 +251,15 @@ export default function CartSidebar({
         addToCart(item);
     };
 
-    /**
-     * Removes a specific item entirely from the cart, regardless of its quantity.
-     */
     const handleRemoveEntireItem = (itemToRemove) => {
-        const indexToRemove = cart.findIndex(item => item.id === itemToRemove.id);
-        const updatedCart = cart.filter(item => item.id !== itemToRemove.id);
+        const isMatch = (item) => {
+            if (item.is_custom && itemToRemove.is_custom) {
+                return item.custom_key === itemToRemove.custom_key;
+            }
+            return item.id === itemToRemove.id;
+        };
+        const indexToRemove = cart.findIndex(isMatch);
+        const updatedCart = cart.filter(item => !isMatch(item));
         setCart(updatedCart);
 
         // Keep highlight active if navigation mode is active
@@ -473,31 +476,39 @@ export default function CartSidebar({
                                     >
                                         {/* QTY Column with Hover Controls */}
                                         <div className="flex items-center justify-between h-6 select-none relative w-full">
-                                             <button
-                                                 onClick={(e) => {
-                                                     e.stopPropagation();
-                                                     removeFromCart(item.id);
-                                                 }}
-                                                 disabled={disabled}
-                                                 className={`w-6 h-6 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-855 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
-                                                 title="Decrease"
-                                             >
-                                                -
-                                            </button>
-                                            <span className="flex-1 text-center font-extrabold text-gray-800 font-mono text-base">
-                                                {item.quantity}
-                                            </span>
-                                            <button
-                                                 onClick={(e) => {
-                                                     e.stopPropagation();
-                                                     handleIncreaseQty(item);
-                                                 }}
-                                                 disabled={disabled}
-                                                 className={`w-6 h-6 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-855 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
-                                                 title="Increase"
-                                             >
-                                                +
-                                            </button>
+                                            {!item.is_custom ? (
+                                                <>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            removeFromCart(item.id);
+                                                        }}
+                                                        disabled={disabled}
+                                                        className={`w-6 h-6 bg-gray-55 border border-gray-200 hover:bg-gray-100 text-gray-855 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
+                                                        title="Decrease"
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <span className="flex-1 text-center font-extrabold text-gray-800 font-mono text-base">
+                                                        {item.quantity}
+                                                    </span>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleIncreaseQty(item);
+                                                        }}
+                                                        disabled={disabled}
+                                                        className={`w-6 h-6 bg-gray-55 border border-gray-200 hover:bg-gray-100 text-gray-855 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
+                                                        title="Increase"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <span className="flex-1 text-center font-extrabold text-gray-800 font-mono text-base">
+                                                    {item.quantity}
+                                                </span>
+                                            )}
                                         </div>
 
                                         {/* DESCRIPTION Column */}
@@ -560,33 +571,39 @@ export default function CartSidebar({
                                         {/* Price & Stock info: price and amount */}
                                         <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
                                             {/* Left: Qty Selector */}
-                                            <div className="flex items-center h-7 select-none relative bg-gray-50 border border-gray-200 rounded-full px-1 py-0.5">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        removeFromCart(item.id);
-                                                    }}
-                                                    disabled={disabled}
-                                                    className="w-5 h-5 bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-sm disabled:cursor-not-allowed"
-                                                    title="Decrease"
-                                                >
-                                                    -
-                                                </button>
-                                                <span className="w-8 text-center font-extrabold text-gray-800 font-mono text-xs">
-                                                    {item.quantity}
-                                                </span>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleIncreaseQty(item);
-                                                    }}
-                                                    disabled={disabled}
-                                                    className="w-5 h-5 bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-sm disabled:cursor-not-allowed"
-                                                    title="Increase"
-                                                >
-                                                    +
-                                                </button>
-                                            </div>
+                                            {!item.is_custom ? (
+                                                <div className="flex items-center h-7 select-none relative bg-gray-55 border border-gray-200 rounded-full px-1 py-0.5">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            removeFromCart(item.id);
+                                                        }}
+                                                        disabled={disabled}
+                                                        className="w-5 h-5 bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-sm disabled:cursor-not-allowed"
+                                                        title="Decrease"
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <span className="w-8 text-center font-extrabold text-gray-800 font-mono text-xs">
+                                                        {item.quantity}
+                                                    </span>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleIncreaseQty(item);
+                                                        }}
+                                                        disabled={disabled}
+                                                        className="w-5 h-5 bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-sm disabled:cursor-not-allowed"
+                                                        title="Increase"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center h-7 select-none relative px-2 text-xs font-black text-gray-500 bg-gray-100 border border-gray-200 rounded-lg font-mono">
+                                                    QTY: <span className="text-gray-800 ml-1">{item.quantity}</span>
+                                                </div>
+                                            )}
 
                                             {/* Right: Price details */}
                                             <div className="text-right">
