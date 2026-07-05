@@ -157,11 +157,17 @@ export default function CartSidebar({
                     }
                     if (e.key === '+' || e.key === 'Add' || e.key === '=' || e.code === 'NumpadAdd' || e.code === 'Equal') {
                         e.preventDefault();
+                        if (isCustomItem(selectedItem)) {
+                            return;
+                        }
                         handleIncreaseQty(selectedItem);
                         return;
                     }
                     if (e.key === '-' || e.key === 'Subtract' || e.code === 'NumpadSubtract' || e.code === 'Minus') {
                         e.preventDefault();
+                        if (isCustomItem(selectedItem)) {
+                            return;
+                        }
                         removeFromCart(selectedItem.id);
                         if (selectedItem.quantity === 1) {
                             if (cart.length <= 1) {
@@ -187,9 +193,15 @@ export default function CartSidebar({
 
                 if (e.key === '+' || e.key === 'Add' || e.key === '=' || e.code === 'NumpadAdd' || e.code === 'Equal') {
                     e.preventDefault();
+                    if (isCustomItem(hoveredItem)) {
+                        return;
+                    }
                     handleIncreaseQty(hoveredItem);
                 } else if (e.key === '-' || e.key === 'Subtract' || e.code === 'NumpadSubtract' || e.code === 'Minus') {
                     e.preventDefault();
+                    if (isCustomItem(hoveredItem)) {
+                        return;
+                    }
                     removeFromCart(hoveredItem.id);
                 } else if (e.key === 'Backspace' || e.key === 'Delete' || e.code === 'Backspace' || e.code === 'Delete') {
                     e.preventDefault();
@@ -230,10 +242,16 @@ export default function CartSidebar({
     // Calculate TOTAL quantity of all items in the cart
     const totalItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
 
+    const isCustomItem = (item) => item?.is_custom === true;
+
     /**
      * Increments item quantity after validating against available stock.
      */
     const handleIncreaseQty = (item) => {
+        if (isCustomItem(item)) {
+            return;
+        }
+
         if (item.quantity >= item.stock_quantity) {
             Swal.fire({
                 icon: 'error',
