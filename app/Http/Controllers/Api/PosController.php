@@ -112,6 +112,7 @@ class PosController extends Controller
                     SaleItem::create([
                         'sale_id' => $sale->id,
                         'product_id' => $product->id,
+                        'custom_name' => $product->name,
                         'quantity' => $quantity,
                         'unit_price' => $unitPrice,
                         'subtotal' => $subtotal,
@@ -120,10 +121,12 @@ class PosController extends Controller
                     // Custom item
                     $subtotal = $unitPrice * $quantity;
 
+                    $customName = trim((string) ($item['name'] ?? ''));
+
                     SaleItem::create([
                         'sale_id' => $sale->id,
                         'product_id' => null,
-                        'custom_name' => $item['name'] ?? 'Custom Item',
+                        'custom_name' => $customName !== '' ? $customName : 'Custom Item',
                         'quantity' => $quantity,
                         'unit_price' => $unitPrice,
                         'subtotal' => $subtotal,

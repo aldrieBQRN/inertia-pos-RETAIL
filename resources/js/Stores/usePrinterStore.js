@@ -37,7 +37,7 @@ const usePrinterStore = create(
                 if (device.configuration === null) {
                     await device.selectConfiguration(1);
                 }
-                
+
                 // Find interface with direction === 'out' endpoint
                 let foundIfaceNumber = null;
                 for (const iface of device.configuration.interfaces) {
@@ -424,7 +424,7 @@ const usePrinterStore = create(
                     const words = text.split(' ');
                     const lines = [];
                     let currentLine = '';
-                    
+
                     words.forEach(word => {
                         if (word.length > limit) {
                             if (currentLine) lines.push(currentLine.trim());
@@ -473,7 +473,7 @@ const usePrinterStore = create(
                 const itemHeader = is80
                     ? "QTY  " + "DESCRIPTION".padEnd(22) + "PRICE".padStart(10) + "AMOUNT".padStart(11) + "\n"
                     : "DESCRIPTION".padEnd(21) + " " + "PRICE".padStart(8) + "\n";
-                
+
                 finalCommands.push(...encode(itemHeader));
                 finalCommands.push(...encode(separator));
 
@@ -485,18 +485,18 @@ const usePrinterStore = create(
                     const amountVal = priceVal * quantity;
                     originalSubtotal += amountVal;
 
-                    const desc = item.product?.name || item.custom_name || item.name || 'Item';
+                    const desc = item.custom_name || item.product?.name || item.name || 'Item';
                     const formattedPrice = fmt(priceVal);
                     const formattedAmount = fmt(amountVal);
 
                     if (is80) {
                         const nameLines = wrapText(desc, 22);
                         // Line 0: Qty (5) + Desc Line 0 (22) + Price (10) + Amount (11)
-                        let itemLines = quantity.toString().padEnd(5) + 
-                                        nameLines[0].padEnd(22) + 
-                                        formattedPrice.padStart(10) + 
+                        let itemLines = quantity.toString().padEnd(5) +
+                                        nameLines[0].padEnd(22) +
+                                        formattedPrice.padStart(10) +
                                         formattedAmount.padStart(11) + "\n";
-                        
+
                         // Remaining Desc Lines: indented by 5 spaces (under DESCRIPTION column)
                         for (let i = 1; i < nameLines.length; i++) {
                             itemLines += " ".repeat(5) + nameLines[i] + "\n";
