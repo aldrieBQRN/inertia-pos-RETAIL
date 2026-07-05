@@ -315,7 +315,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
         window.addEventListener('keydown', handlePOSKeys);
         return () => window.removeEventListener('keydown', handlePOSKeys);
-    }, [showPaymentModal, showQtyModal, showHeldOrdersModal, showCustomItemModal, showCategoryDropdown, categoryNavIndex, categories, customItemForm, isCheckingSku, showCustomCategoryDropdown, customCategoryNavIndex, heldOrders, heldOrdersNavIndex, shortcutsEnabled]);
+    }, [showPaymentModal, showQtyModal, showHeldOrdersModal, showCustomItemModal, showCategoryDropdown, categoryNavIndex, categories, customItemForm, showCustomCategoryDropdown, customCategoryNavIndex, heldOrders, heldOrdersNavIndex, shortcutsEnabled]);
 
     const cart = useCartStore((state) => state.cart);
     const addToCart = useCartStore((state) => state.addToCart);
