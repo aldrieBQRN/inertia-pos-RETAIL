@@ -380,7 +380,7 @@ export default function CartSidebar({
 
             const response = await axios.post('/api/checkout', {
                 cart: cart.map(item => {
-                    const isCustom = typeof item.id === 'string' && item.id.startsWith('custom-');
+                    const isCustom = item.is_custom === true || (typeof item.id === 'string' && item.id.startsWith('custom-'));
                     return {
                         id: isCustom ? null : item.id,
                         quantity: Number(item.quantity),
