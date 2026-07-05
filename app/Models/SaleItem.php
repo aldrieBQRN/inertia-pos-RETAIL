@@ -15,6 +15,10 @@ class SaleItem extends Model
 {
     use HasFactory, BelongsToStore;
 
+    protected $appends = [
+        'display_name',
+    ];
+
     /**
      * The attributes that are mass assignable.
      * * * Includes links to the parent sale and product,
@@ -49,5 +53,21 @@ class SaleItem extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Human-readable line item name for receipts and history views.
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        if (!empty($this->product?->name)) {
+            return $this->product->name;
+        }
+
+        if (!empty($this->custom_name) && $this->custom_name !== 'Custom Item') {
+            return $this->custom_name;
+        }
+
+        return $this->custom_name ?: 'Item';
     }
 }

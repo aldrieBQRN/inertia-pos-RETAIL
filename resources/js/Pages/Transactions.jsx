@@ -711,7 +711,7 @@ export default function Transactions({ auth }) {
                                     {selectedSale.items.map((item, idx) => (
                                         <tr key={idx}>
                                             <td className="py-4 pr-2">
-                                                <div className="font-bold text-gray-900 leading-tight">{item.custom_name || item.product?.name || 'Unknown Product'}</div>
+                                                <div className="font-bold text-gray-900 leading-tight">{item.display_name || item.custom_name || item.product?.name || 'Unknown Product'}</div>
                                                 <div className="text-xs text-gray-400 mt-0.5 font-medium">₱{formatCurrency(item.unit_price)} / pc</div>
                                             </td>
                                             <td className="py-4 text-center font-black text-gray-500">x{item.quantity}</td>

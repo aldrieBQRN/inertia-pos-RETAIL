@@ -485,7 +485,7 @@ const usePrinterStore = create(
                     const amountVal = priceVal * quantity;
                     originalSubtotal += amountVal;
 
-                    const desc = item.custom_name || item.product?.name || item.name || 'Item';
+                    const desc = item.display_name || item.product?.name || item.custom_name || item.name || 'Item';
                     const formattedPrice = fmt(priceVal);
                     const formattedAmount = fmt(amountVal);
 
