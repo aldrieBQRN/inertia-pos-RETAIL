@@ -798,6 +798,24 @@ export default function Inventory({ auth }) {
         }
     };
 
+    const parseNumber = (val) => {
+        if (val === null || val === undefined) return 0;
+        if (typeof val === 'number') return val;
+        let s = String(val).trim();
+        if (s === '') return 0;
+        // Normalize thousand separators and decimal separators
+        // If both comma and dot present, assume comma is thousand separator
+        if (s.indexOf(',') > -1 && s.indexOf('.') > -1) {
+            s = s.replace(/,/g, '');
+        } else if (s.indexOf(',') > -1 && s.indexOf('.') === -1) {
+            // comma as decimal separator
+            s = s.replace(/,/g, '.');
+        }
+        s = s.replace(/\s/g, '');
+        const n = parseFloat(s);
+        return Number.isFinite(n) ? n : 0;
+    };
+
     const parseCSV = (text) => {
         const lines = text.split(/\r?\n/);
         const result = [];
@@ -808,9 +826,9 @@ export default function Inventory({ auth }) {
             const sku = clean(row[0]);
             const name = clean(row[1]);
             const category_name = clean(row[2]);
-            const price = parseFloat(clean(row[3])) || 0;
-            const wholesale_price = parseFloat(clean(row[4])) || null;
-            const cost_price = parseFloat(clean(row[5])) || null;
+            const price = parseNumber(clean(row[3]));
+            const wholesale_price = parseNumber(clean(row[4]));
+            const cost_price = parseNumber(clean(row[5]));
             const stock_quantity = parseInt(clean(row[6]), 10) || 0;
 
             if (sku && name) {
@@ -869,9 +887,17 @@ export default function Inventory({ auth }) {
                             const sku = getCellString(1);
                             const name = getCellString(2);
                             const category_name = getCellString(3);
-                            const price = parseFloat(row.getCell(4).value) || 0;
-                            const wholesale_price = parseFloat(row.getCell(5).value) || null;
-                            const cost_price = parseFloat(row.getCell(6).value) || null;
+                            const parseNumberCell = (val) => {
+                                if (val === null || val === undefined) return 0;
+                                if (typeof val === 'number') return val;
+                                // ExcelJS may give objects for rich text; convert to string first
+                                const s = (typeof val === 'object' && val.text) ? val.text : String(val);
+                                return parseNumber(s);
+                            };
+
+                            const price = parseNumberCell(row.getCell(4).value) || 0;
+                            const wholesale_price = parseNumberCell(row.getCell(5).value);
+                            const cost_price = parseNumberCell(row.getCell(6).value);
                             const stock_quantity = parseInt(row.getCell(7).value, 10) || 0;
 
                             // Add to list if any product identifier is present (backend will validate completeness)
@@ -895,6 +921,22 @@ export default function Inventory({ auth }) {
                         return;
                     }
 
+                    // Deduplicate by SKU (last occurrence wins) to avoid multiple updates for same product
+                    const dedupeResult = (() => {
+                        const map = new Map();
+                        let duplicateCount = 0;
+                        importedProducts.forEach((p) => {
+                            const key = (p.sku || '').trim();
+                            if (!key) return; // ignore rows without SKU
+                            if (map.has(key)) duplicateCount++;
+                            map.set(key, p);
+                        });
+                        return { unique: Array.from(map.values()), duplicateCount };
+                    })();
+
+                    const uniqueProducts = dedupeResult.unique;
+                    const duplicateCount = dedupeResult.duplicateCount;
+
                     // Close parsing loader to show option dialog
                     Swal.close();
 
@@ -902,7 +944,7 @@ export default function Inventory({ auth }) {
                         title: 'Select Import Method',
                         html: `
                             <div class="text-left font-sans text-sm p-1">
-                                <p class="text-gray-600 mb-4">We found <strong>${importedProducts.length}</strong> products in your file. How would you like to handle duplicates?</p>
+                                <p class="text-gray-600 mb-4">We found <strong>${importedProducts.length}</strong> rows in your file (${uniqueProducts.length} unique SKUs, ${duplicateCount} duplicate rows). How would you like to handle duplicates?</p>
                                 
                                 <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg mb-3">
                                     <h4 class="font-bold text-blue-900 text-xs uppercase tracking-wide">Option A: Overwrite Duplicates</h4>
@@ -942,8 +984,17 @@ export default function Inventory({ auth }) {
                         didOpen: () => { Swal.showLoading(); }
                     });
 
+                    // Re-open loader for the backend processing
+                    Swal.fire({
+                        title: 'Processing File...',
+                        text: 'Please wait while we validate and import your product list.',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
                     const response = await axios.post('/api/products/import', { 
-                        products: importedProducts, 
+                        // Send deduplicated rows to backend to avoid repeated updates on same SKU
+                        products: uniqueProducts, 
                         overwrite: overwrite 
                     });
                     if (response.data.success) {

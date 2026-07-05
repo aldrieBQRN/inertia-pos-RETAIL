@@ -1058,8 +1058,6 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                 <input
                                     id="quick-add-qty-input"
                                     type="number"
-                                    step="1"
-                                    min="1"
                                     required
                                     value={customItemForm.qty}
                                     onChange={(e) => setCustomItemForm({ ...customItemForm, qty: e.target.value })}

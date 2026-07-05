@@ -309,7 +309,32 @@ class ProductController extends Controller
                 
                 // Track missing/invalid fields for this specific row
                 $rowErrors = [];
-                
+
+                // Normalize numeric-looking fields to ensure server-side validation accepts
+                $normalizeNumber = function ($v) {
+                    if ($v === null || $v === '') return 0;
+                    if (is_numeric($v)) return $v;
+                    $s = (string) $v;
+                    $s = trim($s);
+                    // Remove common currency symbols and spaces
+                    $s = preg_replace('/[^0-9,\.\-]/u', '', $s);
+                    if ($s === '') return 0;
+                    // If both comma and dot present, assume comma is thousands separator
+                    if (strpos($s, ',') !== false && strpos($s, '.') !== false) {
+                        $s = str_replace(',', '', $s);
+                    } elseif (strpos($s, ',') !== false && strpos($s, '.') === false) {
+                        // comma as decimal separator
+                        $s = str_replace(',', '.', $s);
+                    }
+                    $s = str_replace(' ', '', $s);
+                    return is_numeric($s) ? $s : 0;
+                };
+
+                // Coerce incoming price fields to numeric (handles '0', '0.00', '0,00', '1,234.56')
+                $item['price'] = $normalizeNumber($item['price'] ?? null);
+                $item['wholesale_price'] = $normalizeNumber($item['wholesale_price'] ?? null);
+                $item['cost_price'] = $normalizeNumber($item['cost_price'] ?? null);
+
                 if (empty($item['sku'])) {
                     $rowErrors[] = "Barcode/SKU is empty";
                 }
