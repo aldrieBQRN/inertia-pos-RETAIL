@@ -41,6 +41,7 @@ export default function CartSidebar({
     const [lastTransactionId, setLastTransactionId] = useState(null);
     const [hoveredItemId, setHoveredItemId] = useState(null);
     const [focusedIndex, setFocusedIndex] = useState(-1);
+    const [successDetails, setSuccessDetails] = useState(null);
 
     const cartBottomRef = useRef(null);
     const sidebarRef = useRef(null);
@@ -410,6 +411,13 @@ export default function CartSidebar({
             });
 
             if (response.data.success) {
+                setSuccessDetails({
+                    total: totalInUnits,
+                    cashGiven: cashGiven,
+                    change: change,
+                    paymentMethod: paymentDetails.method,
+                    reference: paymentDetails.reference
+                });
                 setLastTransactionId(response.data.sale_id);
                 setShowPaymentModal(false);
                 clearCart();
@@ -425,6 +433,7 @@ export default function CartSidebar({
     const handleNewOrder = () => {
         setShowSuccessModal(false);
         setLastTransactionId(null);
+        setSuccessDetails(null);
         if (onClose) onClose();
     };
 
@@ -724,9 +733,45 @@ export default function CartSidebar({
                             <svg className="w-8 h-8 md:w-10 md:h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                         </div>
 
-                        <h2 className="text-xl md:text-2xl font-extrabold text-gray-800 mb-2">Payment Successful!</h2>
+                        <h2 className="text-xl md:text-2xl font-extrabold text-gray-850 mb-1">Payment Successful!</h2>
 
-                        <div className="w-full space-y-2 md:space-y-3 mt-4 md:mt-6">
+                        {/* Transaction Summary (Total, Cash, Change) */}
+                        {successDetails && (
+                            <div className="w-full bg-gray-50 border border-gray-150 rounded-xl p-4 my-3 text-left font-sans text-sm space-y-2.5 shadow-inner">
+                                <div className="flex justify-between items-center text-gray-600">
+                                    <span className="font-bold text-xs uppercase tracking-wider text-gray-400">Total Amount Due</span>
+                                    <span className="font-black text-gray-900 text-base">₱{successDetails.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                </div>
+                                {successDetails.paymentMethod === 'cash' ? (
+                                    <>
+                                        <div className="flex justify-between items-center text-gray-600">
+                                            <span className="font-bold text-xs uppercase tracking-wider text-gray-400">Cash Received</span>
+                                            <span className="font-black text-gray-900 text-base">₱{successDetails.cashGiven.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                        </div>
+                                        <div className="h-px bg-gray-200 my-1"></div>
+                                        <div className="flex justify-between items-center text-green-700 font-extrabold">
+                                            <span className="text-xs uppercase tracking-wider">Change Due</span>
+                                            <span className="text-xl font-black">₱{successDetails.change.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="flex justify-between items-center text-gray-600">
+                                            <span className="font-bold text-xs uppercase tracking-wider text-gray-400">Payment Method</span>
+                                            <span className="font-extrabold text-indigo-600 uppercase text-xs tracking-wider">{successDetails.paymentMethod}</span>
+                                        </div>
+                                        {successDetails.reference && (
+                                            <div className="flex justify-between items-center text-gray-600">
+                                                <span className="font-bold text-xs uppercase tracking-wider text-gray-400">Reference No.</span>
+                                                <span className="font-mono text-xs font-bold text-gray-800 bg-white border border-gray-250 px-2 py-0.5 rounded shadow-sm select-all">{successDetails.reference}</span>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="w-full space-y-2 md:space-y-3 mt-2">
                             <button
                                 onClick={() => onPrintReceipt(lastTransactionId)}
                                 className="w-full py-2.5 md:py-3.5 bg-blue-600 text-white font-bold rounded-md md:rounded-lg shadow-lg hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-2 text-sm md:text-base"
