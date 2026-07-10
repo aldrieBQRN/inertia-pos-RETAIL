@@ -504,7 +504,6 @@ export default function CartSidebar({
                                 <React.Fragment key={item.id}>
                                     {/* Desktop Row */}
                                     <div
-                                        key={item.id}
                                         onMouseEnter={() => setHoveredItemId(item.id)}
                                         onMouseLeave={() => setHoveredItemId(prev => prev === item.id ? null : prev)}
                                         onClick={() => {
@@ -513,7 +512,7 @@ export default function CartSidebar({
                                             window.dispatchEvent(new CustomEvent('reset-catalog-nav'));
                                             setFocusedIndex(index);
                                         }}
-                                        className={`cart-item-row hidden lg:grid grid-cols-[90px_1fr_100px_110px] gap-2 px-3 py-3 items-center border-b border-gray-100 hover:bg-gray-50 transition-colors text-base font-bold group cursor-pointer ${focusedIndex === index ? 'ring-2 ring-inset ring-indigo-500 bg-indigo-50/40' : ''}`}
+                                        className={`w-full cart-item-row hidden lg:grid grid-cols-[90px_1fr_100px_110px] gap-2 px-3 py-3 items-center border-b border-gray-100 hover:bg-gray-50 transition-colors text-base font-bold group cursor-pointer ${focusedIndex === index ? 'ring-2 ring-inset ring-indigo-500 bg-indigo-50/40' : ''}`}
                                     >
                                         {/* QTY Column with Hover Controls */}
                                         <div className="flex items-center justify-between h-6 select-none relative w-full">
@@ -589,7 +588,7 @@ export default function CartSidebar({
                                             window.dispatchEvent(new CustomEvent('reset-catalog-nav'));
                                             setFocusedIndex(index);
                                         }}
-                                        className={`cart-item-row flex lg:hidden flex-col p-3.5 border rounded-lg bg-white transition-all relative cursor-pointer ${focusedIndex === index ? 'ring-2 ring-indigo-500 bg-indigo-50/20' : 'border-gray-200'}`}
+                                        className={`w-full cart-item-row flex lg:hidden flex-col p-3.5 border rounded-lg bg-white transition-all relative cursor-pointer ${focusedIndex === index ? 'ring-2 ring-indigo-500 bg-indigo-50/20' : 'border-gray-200'}`}
                                     >
                                         {/* Top section: Name and Delete button */}
                                         <div className="flex justify-between items-start gap-2">
