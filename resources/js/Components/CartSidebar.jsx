@@ -44,6 +44,7 @@ export default function CartSidebar({
 
     const cartBottomRef = useRef(null);
     const sidebarRef = useRef(null);
+    const scrollContainerRef = useRef(null);
     const prevCartLengthRef = useRef(cart.length);
 
     useEffect(() => {
@@ -54,6 +55,19 @@ export default function CartSidebar({
         }
         prevCartLengthRef.current = cart.length;
     }, [cart]);
+
+    useEffect(() => {
+        if (focusedIndex !== -1 && scrollContainerRef.current) {
+            const items = scrollContainerRef.current.querySelectorAll('.cart-item-row');
+            const desktopRow = items[focusedIndex * 2];
+            const mobileRow = items[focusedIndex * 2 + 1];
+            const activeRow = (desktopRow && (desktopRow.offsetWidth > 0 || desktopRow.offsetHeight > 0)) ? desktopRow : mobileRow;
+            
+            if (activeRow) {
+                activeRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        }
+    }, [focusedIndex]);
 
     useEffect(() => {
         const handleDocClick = (e) => {
@@ -469,7 +483,7 @@ export default function CartSidebar({
                 </div>
 
                 {/* CART ITEMS LIST */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar">
                     {cart.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-gray-300 pb-10">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-10 h-10 md:w-12 md:h-12 mb-2"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>
