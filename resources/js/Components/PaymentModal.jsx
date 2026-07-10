@@ -12,7 +12,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
     // The exact method sent to DB
     const [method, setMethod] = useState('cash');
 
-    const [cashGiven, setCashGiven] = useState('');
+    const [cashGiven, setCashGiven] = useState(() => total ? total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '');
     const [reference, setReference] = useState('');
     const [change, setChange] = useState(0);
 
@@ -261,6 +261,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                                         type="text"
                                         inputMode="decimal"
                                         autoFocus
+                                        onFocus={(e) => e.target.select()}
                                         className="w-full px-4 py-3 text-xl font-black text-gray-900 border-gray-300 rounded-lg focus:ring-gray-900 focus:border-gray-900 shadow-sm"
                                         value={cashGiven}
                                         onChange={handleCashChange}
