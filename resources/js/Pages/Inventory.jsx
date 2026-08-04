@@ -1283,7 +1283,7 @@ export default function Inventory({ auth }) {
                                 <input
                                     type="text"
                                     placeholder="Search SKU or product name..."
-                                    className="pl-11 pr-4 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm font-medium transition-colors"
+                                    className="pl-11 pr-4 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg w-full focus:border-gray-400 focus:ring-1 focus:ring-gray-300/40 focus:bg-white text-sm font-medium transition-colors"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
@@ -1294,7 +1294,7 @@ export default function Inventory({ auth }) {
                                 <select
                                     value={filterCategory}
                                     onChange={(e) => setFilterCategory(e.target.value)}
-                                    className="col-span-1 lg:col-span-1 w-full bg-white border border-gray-200 rounded-lg py-2.5 sm:py-3 pl-3 pr-8 focus:ring-2 focus:ring-blue-500 focus:bg-white text-gray-600 text-xs sm:text-sm font-medium transition-colors"
+                                    className="col-span-1 lg:col-span-1 w-full bg-white border border-gray-200 rounded-lg py-2.5 sm:py-3 pl-3 pr-8 focus:border-gray-400 focus:ring-1 focus:ring-gray-300/40 focus:bg-white text-gray-600 text-xs sm:text-sm font-medium transition-colors"
                                 >
                                     <option value="">All Categories</option>
                                     {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -1303,7 +1303,7 @@ export default function Inventory({ auth }) {
                                 <select
                                     value={filterStatus}
                                     onChange={(e) => setFilterStatus(e.target.value)}
-                                    className="col-span-1 lg:col-span-1 w-full bg-white border border-gray-200 rounded-lg py-2.5 sm:py-3 pl-3 pr-8 focus:ring-2 focus:ring-blue-500 focus:bg-white text-gray-600 text-xs sm:text-sm font-medium transition-colors"
+                                    className="col-span-1 lg:col-span-1 w-full bg-white border border-gray-200 rounded-lg py-2.5 sm:py-3 pl-3 pr-8 focus:border-gray-400 focus:ring-1 focus:ring-gray-300/40 focus:bg-white text-gray-600 text-xs sm:text-sm font-medium transition-colors"
                                 >
                                     <option value="all">All Statuses</option>
                                     <option value="active">Active Only</option>
@@ -1320,66 +1320,29 @@ export default function Inventory({ auth }) {
                                     <span className="sm:hidden text-[11px]">Low Stock</span>
                                 </button>
 
-                                <button onClick={() => setShowCategoryManager(true)} className={`col-span-1 w-full py-2.5 sm:py-3 flex items-center justify-center bg-white text-gray-700 rounded-lg font-bold border border-gray-200 shadow-sm hover:bg-gray-50 active:scale-95 transition-all text-xs sm:text-sm whitespace-nowrap`}>
+                                <button onClick={() => setShowCategoryManager(true)} className={`col-span-1 w-full py-2.5 sm:py-3 flex items-center justify-center bg-white text-slate-700 rounded-lg font-bold border border-slate-200 shadow-sm hover:bg-slate-50 active:scale-95 transition-all text-xs sm:text-sm whitespace-nowrap`}>
                                     {auth.user.is_admin ? 'Categories' : 'View Categories'}
                                 </button>
-
-                                {auth.user.is_admin && (
-                                    <button
-                                        onClick={exportPDF}
-                                        disabled={isExporting}
-                                        className={`col-span-1 w-full py-2.5 sm:py-3 rounded-lg font-bold flex items-center justify-center gap-1 sm:gap-2 shadow-sm transition-all text-xs sm:text-sm active:scale-95
-                                            ${isExporting
-                                                ? 'opacity-50 cursor-not-allowed bg-green-600 text-white'
-                                                : 'bg-green-600 text-white hover:bg-green-700'
-                                            }`}
-                                    >
-                                        {isExporting ? (
-                                            <>
-                                                <svg className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                                <span>Wait...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 sm:w-4 sm:h-4">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                                                </svg>
-                                                <span>Export PDF</span>
-                                            </>
-                                        )}
-                                    </button>
-                                )}
-
-                                {auth.user.is_admin && (
-                                    <button onClick={openAddModal} className="col-span-1 w-full py-2.5 sm:py-3 flex items-center justify-center bg-gray-900 text-white rounded-lg font-bold hover:bg-black shadow-sm active:scale-95 transition-all text-xs sm:text-sm gap-1.5 sm:gap-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                                        New Product
-                                    </button>
-                                )}
-
                             </div>
 
                             {auth.user.is_admin && (
-                                <div className="border-t border-gray-100 pt-3 flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3 sm:items-center sm:justify-between">
-                                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                                        Inventory Data Operations
-                                    </div>
-                                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
-                                        {/* Row 1 on mobile: Download Template (full width) */}
+                                <div className="border-t border-slate-100 pt-3">
+                                    <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full">
+                                        {/* Download Template */}
                                         <button
                                             onClick={downloadTemplate}
-                                            className="col-span-2 sm:col-span-1 px-4 py-2 text-xs font-bold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                                            className="flex-1 min-w-[140px] px-3 py-2.5 text-xs sm:text-sm font-bold text-[#1B3B6A] bg-[#EFF4F9] border border-[#CBD7E6] hover:bg-[#E2ECF6] rounded-lg shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap"
                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 text-gray-500"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 text-[#1B3B6A]"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
                                             Download Template
                                         </button>
 
-                                        {/* Row 2 on mobile: Import + Export Excel side by side */}
+                                        {/* Import Excel/CSV */}
                                         <button
                                             onClick={() => document.getElementById('excel-import-input').click()}
-                                            className="col-span-1 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                                            className="flex-1 min-w-[140px] px-3 py-2.5 text-xs sm:text-sm font-bold text-[#1B3B6A] bg-[#EFF4F9] border border-[#CBD7E6] hover:bg-[#E2ECF6] rounded-lg shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap"
                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 text-[#1B3B6A]"><path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
                                             Import Excel/CSV
                                         </button>
                                         <input
@@ -1390,12 +1353,44 @@ export default function Inventory({ auth }) {
                                             onChange={handleImport}
                                         />
 
+                                        {/* Export Excel */}
                                         <button
                                             onClick={exportExcel}
-                                            className="col-span-1 px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                                            className="flex-1 min-w-[140px] px-3 py-2.5 text-xs sm:text-sm font-bold text-[#1B3B6A] bg-[#EFF4F9] border border-[#CBD7E6] hover:bg-[#E2ECF6] rounded-lg shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap"
                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 text-[#1B3B6A]"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
                                             Export Excel
+                                        </button>
+
+                                        {/* Export PDF */}
+                                        <button
+                                            onClick={exportPDF}
+                                            disabled={isExporting}
+                                            className={`flex-1 min-w-[140px] px-3 py-2.5 rounded-lg font-bold flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm transition-all text-xs sm:text-sm active:scale-95 whitespace-nowrap ${
+                                                isExporting
+                                                    ? 'opacity-50 cursor-not-allowed bg-slate-100 text-slate-400 border border-slate-200'
+                                                    : 'text-[#1B3B6A] bg-[#EFF4F9] border border-[#CBD7E6] hover:bg-[#E2ECF6]'
+                                            }`}
+                                        >
+                                            {isExporting ? (
+                                                <>
+                                                    <svg className="animate-spin h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                    <span>Wait...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#1B3B6A]">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                                    </svg>
+                                                    <span>Export PDF</span>
+                                                </>
+                                            )}
+                                        </button>
+
+                                        {/* New Product (Primary CTA) */}
+                                        <button onClick={openAddModal} className="flex-1 min-w-[140px] px-3 py-2.5 flex items-center justify-center bg-[#1B3B6A] text-white rounded-lg font-bold hover:bg-[#142E54] shadow-sm active:scale-95 transition-all text-xs sm:text-sm gap-1.5 sm:gap-2 whitespace-nowrap">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                            New Product
                                         </button>
                                     </div>
                                 </div>
@@ -1409,13 +1404,13 @@ export default function Inventory({ auth }) {
                             <table className="w-full text-left">
                                 <thead className="bg-gray-50 border-b text-gray-500 uppercase text-[10px] font-black tracking-wider">
                                     <tr>
-                                        <th className="p-4 w-32">Barcode</th>
+                                        <th className="p-4 w-36">Item SKU</th>
                                         <th className="p-4">Product Details</th>
                                         <th className="p-4">Category</th>
                                         <th className="p-4 text-right">Cost Price</th>
                                         <th className="p-4 text-right">Price</th>
-                                        <th className="p-4 text-center">Inventory</th>
-                                        <th className="p-4 text-center w-24">Actions</th>
+                                        <th className="p-4 text-center">Stock</th>
+                                        <th className="p-4 text-center w-28">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -1463,7 +1458,11 @@ export default function Inventory({ auth }) {
                                     ) : (
                                         paginatedProducts.map((p, index) => (
                                             <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                                                <td className="p-4"><Barcode value={p.sku} width={1} height={25} fontSize={10} /></td>
+                                                <td className="p-4">
+                                                    <span className="font-mono text-sm font-bold text-gray-700 whitespace-nowrap">
+                                                        {p.sku || 'N/A'}
+                                                    </span>
+                                                </td>
                                                 <td className="p-4 flex items-center gap-3">
                                                     <div className="w-10 h-10 bg-gray-50 rounded-md border flex items-center justify-center overflow-hidden shrink-0">
                                                         {p.image_path ? <img src={p.image_path} className="w-full h-full object-cover" loading="lazy"/> : (
@@ -1473,7 +1472,7 @@ export default function Inventory({ auth }) {
                                                     <div className="flex flex-col">
                                                         <span className="font-bold text-gray-800">{p.name}</span>
                                                         {!p.is_active && (
-                                                            <span className="inline-flex items-center w-max px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest uppercase bg-slate-100 text-slate-500 border border-slate-200 mt-0.5">
+                                                            <span className="inline-flex items-center w-max px-2 py-0.5 rounded-lg text-[9px] font-black tracking-wider uppercase bg-slate-50 text-slate-600 border border-slate-200/70 mt-0.5 shadow-xs">
                                                                 Archived
                                                             </span>
                                                         )}
@@ -1481,12 +1480,11 @@ export default function Inventory({ auth }) {
                                                 </td>
                                                 <td className="p-4">
                                                     {p.category ? (
-                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-white border border-gray-200 text-gray-600 shadow-sm">
-                                                            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.category.color || '#3B82F6' }}></span>
+                                                        <span className="text-xs font-bold text-gray-700">
                                                             {p.category.name}
                                                         </span>
                                                     ) : (
-                                                        <span className="text-gray-400 text-sm italic">Uncategorized</span>
+                                                        <span className="text-gray-400 text-xs italic">Uncategorized</span>
                                                     )}
                                                 </td>
                                                 <td className="p-4 text-right tracking-tight">
@@ -1500,133 +1498,81 @@ export default function Inventory({ auth }) {
                                                         <div className="text-[10px] text-gray-400 font-bold mt-0.5" title="Wholesale Price">WS: ₱{formatCurrency(p.wholesale_price)}</div>
                                                     )}
                                                 </td>
-                                                <td className="p-4">
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <span className={`px-2.5 py-1 rounded-md text-xs font-black tracking-wider uppercase ${p.stock_quantity <= 10 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                                                            {p.stock_quantity} Left
-                                                        </span>
-                                                        <button onClick={() => handleQuickAdd(p)} className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center font-bold transition-all active:scale-95" title="Quick Add Stock">
+                                                <td className="p-4 text-center">
+                                                    <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase border shadow-xs ${p.stock_quantity <= 10 ? 'bg-red-50 text-red-700 border-red-200/70' : 'bg-emerald-50 text-emerald-700 border-emerald-200/70'}`}>
+                                                        {p.stock_quantity} Left
+                                                    </span>
+                                                </td>
+                                                <td className="p-4 text-center whitespace-nowrap">
+                                                    <div className="flex items-center justify-center gap-1">
+                                                        {/* Restock (For both Admin and Cashier) */}
+                                                        <button
+                                                            onClick={() => handleQuickAdd(p)}
+                                                            className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95"
+                                                            title="Restock Item"
+                                                            aria-label="Restock Item"
+                                                        >
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                                         </button>
+
+                                                        {/* Print Labels (For both Admin and Cashier) */}
+                                                        <button
+                                                            onClick={() => setPrintState({ isOpen: true, product: p, quantity: 1, mode: 'thermal' })}
+                                                            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95"
+                                                            title="Print Labels"
+                                                            aria-label="Print Labels"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
+                                                        </button>
+
+                                                        {/* Save PNG Barcode (For both Admin and Cashier) */}
+                                                        <button
+                                                            onClick={() => downloadLabelImage(p, settings?.store_name || 'POS STORE')}
+                                                            className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95"
+                                                            title="Save PNG Barcode"
+                                                            aria-label="Save PNG Barcode"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                                        </button>
+
+                                                        {auth.user.is_admin && (
+                                                            <>
+                                                                {/* Edit Product */}
+                                                                <button
+                                                                    onClick={() => openEditModal(p)}
+                                                                    className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95"
+                                                                    title="Edit Product"
+                                                                    aria-label="Edit Product"
+                                                                >
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+                                                                </button>
+
+                                                                {/* Archive / Restore Product */}
+                                                                <button
+                                                                    onClick={() => handleToggleActive(p)}
+                                                                    className={`p-1.5 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95 ${p.is_active ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-50' : 'text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50'}`}
+                                                                    title={p.is_active ? "Archive Product" : "Restore Product"}
+                                                                    aria-label={p.is_active ? "Archive Product" : "Restore Product"}
+                                                                >
+                                                                    {p.is_active ? (
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+                                                                    ) : (
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
+                                                                    )}
+                                                                </button>
+
+                                                                {/* Delete Product */}
+                                                                <button
+                                                                    onClick={() => handleDelete(p)}
+                                                                    className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95"
+                                                                    title="Delete Product"
+                                                                    aria-label="Delete Product"
+                                                                >
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                                                </button>
+                                                            </>
+                                                        )}
                                                     </div>
-                                                </td>
-                                                <td className="p-4 text-center action-dropdown-container overflow-visible">
-                                                    {auth.user.is_admin ? (
-                                                        <div className="relative inline-block text-left">
-                                                            <button 
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setActiveDropdownId(activeDropdownId === p.id ? null : p.id);
-                                                                }}
-                                                                className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors inline-flex items-center justify-center"
-                                                                title="Actions"
-                                                            >
-                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-                                                                </svg>
-                                                            </button>
-
-                                                            {activeDropdownId === p.id && (
-                                                                <div className={`absolute right-0 w-48 bg-white rounded-lg border border-gray-150 shadow-xl z-50 py-1 divide-y divide-gray-50 text-left ${
-                                                                    index >= paginatedProducts.length - 3 && paginatedProducts.length > 3 
-                                                                        ? 'bottom-full mb-1' 
-                                                                        : 'top-full mt-1'
-                                                                }`}>
-                                                                    <div className="py-1">
-                                                                        <button 
-                                                                            onClick={() => {
-                                                                                setActiveDropdownId(null);
-                                                                                openEditModal(p);
-                                                                            }} 
-                                                                            className="w-full px-3 py-2 text-[11px] font-bold text-blue-700 hover:bg-blue-50 transition-colors flex items-center gap-2"
-                                                                        >
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
-                                                                            Edit Product
-                                                                        </button>
-
-                                                                        <button 
-                                                                            onClick={() => {
-                                                                                setActiveDropdownId(null);
-                                                                                setPrintState({ isOpen: true, product: p, quantity: 1, mode: 'thermal' });
-                                                                            }} 
-                                                                            className="w-full px-3 py-2 text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
-                                                                        >
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
-                                                                            Print Labels
-                                                                        </button>
-
-                                                                        <button 
-                                                                            onClick={() => {
-                                                                                setActiveDropdownId(null);
-                                                                                downloadLabelImage(p, settings?.store_name || 'POS STORE');
-                                                                            }} 
-                                                                            className="w-full px-3 py-2 text-[11px] font-bold text-green-700 hover:bg-green-50 transition-colors flex items-center gap-2"
-                                                                        >
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                                                                            Save PNG Barcode
-                                                                        </button>
-                                                                    </div>
-
-                                                                    <div className="py-1">
-                                                                        <button 
-                                                                            onClick={() => {
-                                                                                setActiveDropdownId(null);
-                                                                                handleToggleActive(p);
-                                                                            }} 
-                                                                            className={`w-full px-3 py-2 text-[11px] font-bold transition-colors flex items-center gap-2 ${p.is_active ? 'text-slate-600 hover:bg-slate-50' : 'text-emerald-700 hover:bg-emerald-50'}`}
-                                                                        >
-                                                                            {p.is_active ? (
-                                                                                <>
-                                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
-                                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                                                                                    </svg>
-                                                                                    Archive Product
-                                                                                </>
-                                                                            ) : (
-                                                                                <>
-                                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
-                                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
-                                                                                    </svg>
-                                                                                    Restore Product
-                                                                                </>
-                                                                            )}
-                                                                        </button>
-                                                                    </div>
-
-                                                                    <div className="py-1">
-                                                                        <button 
-                                                                            onClick={() => {
-                                                                                setActiveDropdownId(null);
-                                                                                handleDelete(p);
-                                                                            }} 
-                                                                            className="w-full px-3 py-2 text-[11px] font-bold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
-                                                                        >
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-                                                                            Delete Product
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        <div className="flex justify-center gap-1.5">
-                                                            <button 
-                                                                onClick={() => setPrintState({ isOpen: true, product: p, quantity: 1, mode: 'thermal' })} 
-                                                                className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors inline-flex items-center justify-center" 
-                                                                title="Print Labels"
-                                                            >
-                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
-                                                            </button>
-
-                                                            <button 
-                                                                onClick={() => downloadLabelImage(p, settings?.store_name || 'POS STORE')} 
-                                                                className="p-2 text-green-500 hover:text-green-700 hover:bg-green-100 rounded-lg transition-colors inline-flex items-center justify-center" 
-                                                                title="Save Barcode Image"
-                                                            >
-                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                                                            </button>
-                                                        </div>
-                                                    )}
                                                 </td>
                                             </tr>
                                         ))
@@ -1636,7 +1582,7 @@ export default function Inventory({ auth }) {
                         </div>
                     </div>
 
-                    {/* MOBILE APP-LIKE CARD VIEW */}
+                    {/* MOBILE CARD VIEW */}
                     <div className="md:hidden flex flex-col divide-y divide-gray-100 bg-white sm:rounded-lg border-y sm:border border-gray-200 shadow-sm">
                         {loading ? (
                             Array.from({ length: 4 }).map((_, index) => (
@@ -1656,10 +1602,12 @@ export default function Inventory({ auth }) {
                                         <div className="h-5 bg-gray-200 rounded w-1/2"></div>
                                         <div className="h-7 bg-gray-200 rounded-lg w-16"></div>
                                     </div>
-                                    <div className={`grid gap-2 pt-1 ${auth.user.is_admin ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2'}`}>
+                                    <div className={`grid gap-2 pt-1 ${auth.user.is_admin ? 'grid-cols-3 sm:grid-cols-6' : 'grid-cols-3'}`}>
+                                        <div className="h-9 bg-gray-200 rounded-lg"></div>
+                                        <div className="h-9 bg-gray-200 rounded-lg"></div>
+                                        <div className="h-9 bg-gray-200 rounded-lg"></div>
                                         {auth.user.is_admin && <div className="h-9 bg-gray-200 rounded-lg"></div>}
-                                        <div className="h-9 bg-gray-200 rounded-lg"></div>
-                                        <div className="h-9 bg-gray-200 rounded-lg"></div>
+                                        {auth.user.is_admin && <div className="h-9 bg-gray-200 rounded-lg"></div>}
                                         {auth.user.is_admin && <div className="h-9 bg-gray-200 rounded-lg"></div>}
                                     </div>
                                 </div>
@@ -1688,17 +1636,19 @@ export default function Inventory({ auth }) {
                                             </h3>
                                             {p.category ? (
                                                 <div className="flex items-center gap-1.5 mt-1 mb-1">
-                                                    <span className="w-2.5 h-2.5 rounded-full border border-black/10" style={{ backgroundColor: p.category.color || '#3B82F6' }}></span>
                                                     <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{p.category.name}</span>
                                                 </div>
                                             ) : (
                                                 <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 mb-1">Uncategorized</div>
                                             )}
                                              <div className="flex justify-between items-end mt-1.5">
-                                                 <div className="flex flex-col items-end">
+                                                 <div className="flex flex-col">
+                                                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                                         Cost: {p.cost_price ? `₱${formatCurrency(p.cost_price)}` : '—'}
+                                                     </span>
                                                      <p className="font-black text-gray-900 text-xl tracking-tight">₱{formatCurrency(p.price)}</p>
                                                      {p.wholesale_price && (
-                                                         <p className="text-[10px] text-gray-400 font-bold mt-0.5">WS: ₱{formatCurrency(p.wholesale_price)}</p>
+                                                         <span className="text-[10px] font-bold text-gray-400">WS: ₱{formatCurrency(p.wholesale_price)}</span>
                                                      )}
                                                  </div>
                                                  <span className={`px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest ${p.stock_quantity <= 10 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
@@ -1708,58 +1658,67 @@ export default function Inventory({ auth }) {
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center bg-gray-50 p-2.5 rounded-lg border border-gray-100 mt-1">
-                                        <div className="pl-1 scale-90 origin-left opacity-75"><Barcode value={p.sku} width={1} height={20} fontSize={10} /></div>
-                                        <button onClick={() => handleQuickAdd(p)} className="text-xs bg-white border border-gray-200 text-blue-700 px-3 py-1.5 rounded-md font-bold shadow-sm active:scale-95 transition-transform">
-                                            + Stock
-                                        </button>
-                                    </div>
-                                    <div className={`grid gap-2 pt-1 ${auth.user.is_admin ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-2'}`}>
-                                        {auth.user.is_admin && (
-                                            <button onClick={() => openEditModal(p)} className="py-2 text-xs font-bold text-blue-700 bg-blue-50 rounded-lg border border-blue-200 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
-                                                Edit
-                                            </button>
-                                        )}
+                                         <span className="font-mono text-sm font-bold text-gray-700">
+                                             SKU: {p.sku || 'N/A'}
+                                         </span>
+                                     </div>
+                                     <div className={`grid gap-1.5 pt-1 w-full ${auth.user.is_admin ? 'grid-cols-3 sm:grid-cols-6' : 'grid-cols-3'}`}>
+                                          {/* Restock (Both) */}
+                                          <button onClick={() => handleQuickAdd(p)} className="py-2 px-1 text-[11px] sm:text-xs font-bold text-blue-700 bg-blue-50 rounded-lg border border-blue-200 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1 whitespace-nowrap">
+                                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                              <span>Restock</span>
+                                          </button>
 
-                                        {/* OPEN PRINT MODAL BUTTON */}
-                                        <button onClick={() => setPrintState({ isOpen: true, product: p, quantity: 1, mode: 'thermal' })} className="py-2 text-xs font-bold text-gray-700 bg-white rounded-lg border border-gray-200 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
-                                            Print
-                                        </button>
+                                          {/* Print Labels (Both) */}
+                                          <button onClick={() => setPrintState({ isOpen: true, product: p, quantity: 1, mode: 'thermal' })} className="py-2 px-1 text-[11px] sm:text-xs font-bold text-slate-700 bg-slate-50 rounded-lg border border-slate-200 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1 whitespace-nowrap">
+                                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
+                                              <span>Print</span>
+                                          </button>
 
-                                        <button onClick={() => downloadLabelImage(p, settings?.store_name || 'POS STORE')} className="py-2 text-xs font-bold text-green-700 bg-green-50 rounded-lg border border-green-200 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                                            Save PNG
-                                        </button>
+                                          {/* Save PNG Barcode (Both) */}
+                                          <button onClick={() => downloadLabelImage(p, settings?.store_name || 'POS STORE')} className="py-2 px-1 text-[11px] sm:text-xs font-bold text-slate-700 bg-slate-50 rounded-lg border border-slate-200 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1 whitespace-nowrap">
+                                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                              <span>Barcode</span>
+                                          </button>
 
-                                        {auth.user.is_admin && (
-                                            <button 
-                                                onClick={() => handleToggleActive(p)} 
-                                                className={`py-2 text-xs font-bold rounded-lg border shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5 ${p.is_active ? 'text-slate-700 bg-slate-50 border-slate-200' : 'text-emerald-700 bg-emerald-50 border-emerald-200'}`}
-                                            >
-                                                {p.is_active ? (
-                                                    <>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
-                                                        Archive
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
-                                                        </svg>
-                                                        Restore
-                                                    </>
-                                                )}
-                                            </button>
-                                        )}
+                                          {/* Edit (Admin only) */}
+                                          {auth.user.is_admin && (
+                                              <button onClick={() => openEditModal(p)} className="py-2 px-1 text-[11px] sm:text-xs font-bold text-slate-700 bg-slate-50 rounded-lg border border-slate-200 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1 whitespace-nowrap">
+                                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+                                                  <span>Edit</span>
+                                              </button>
+                                          )}
 
-                                        {auth.user.is_admin && (
-                                            <button onClick={() => handleDelete(p)} className="col-span-2 sm:col-span-1 py-2 text-xs font-bold text-red-600 bg-red-50 rounded-lg border border-red-100 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1.5">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-                                                Delete
-                                            </button>
-                                        )}
-                                    </div>
+                                          {/* Archive / Restore (Admin only) */}
+                                          {auth.user.is_admin && (
+                                              <button 
+                                                  onClick={() => handleToggleActive(p)} 
+                                                  className={`py-2 px-1 text-[11px] sm:text-xs font-bold rounded-lg border shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1 whitespace-nowrap ${p.is_active ? 'text-slate-700 bg-slate-50 border-slate-200' : 'text-emerald-700 bg-emerald-50 border-emerald-200'}`}
+                                              >
+                                                  {p.is_active ? (
+                                                      <>
+                                                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+                                                          <span>Archive</span>
+                                                      </>
+                                                  ) : (
+                                                      <>
+                                                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 shrink-0">
+                                                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                                                          </svg>
+                                                          <span>Restore</span>
+                                                      </>
+                                                  )}
+                                              </button>
+                                          )}
+
+                                          {/* Delete (Admin only) */}
+                                          {auth.user.is_admin && (
+                                              <button onClick={() => handleDelete(p)} className="py-2 px-1 text-[11px] sm:text-xs font-bold text-red-600 bg-red-50 rounded-lg border border-red-100 shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-1 whitespace-nowrap">
+                                                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                                  <span>Delete</span>
+                                              </button>
+                                          )}
+                                     </div>
                                 </div>
                             ))
                         )}
@@ -1767,12 +1726,12 @@ export default function Inventory({ auth }) {
 
                     {!loading && totalPages > 1 && (
                         <div className="py-4 flex flex-col sm:flex-row justify-between items-center gap-4 pb-10 sm:pb-4 w-full overflow-visible">
-                            <span className="text-xs text-gray-400 font-bold uppercase tracking-widest shrink-0">
-                                Page <span className="text-gray-900">{currentPage}</span> of {totalPages}
+                            <span className="text-xs text-slate-400 font-bold uppercase tracking-widest shrink-0">
+                                Page <span className="text-slate-900">{currentPage}</span> of {totalPages}
                             </span>
                             <div className="w-full sm:w-auto overflow-x-auto hide-scrollbar pb-2 sm:pb-0">
                                 <div className="flex gap-1.5 flex-nowrap w-max mx-auto sm:mx-0 px-1">
-                                    <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({top: 0, behavior: 'smooth'}); }} className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center">&laquo; Prev</button>
+                                    <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({top: 0, behavior: 'smooth'}); }} className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-slate-600 border-slate-200 hover:bg-slate-50 disabled:opacity-40 whitespace-nowrap flex items-center">&laquo; Prev</button>
                                     {(() => {
                                         const pages = [];
                                         const delta = 1;
@@ -1790,19 +1749,19 @@ export default function Inventory({ auth }) {
                                         return pages;
                                     })().map((num, idx) => (
                                         num === '...' ? (
-                                            <span key={`ellipsis-${idx}`} className="px-2 py-2 min-h-9 text-gray-400 font-bold flex items-center">...</span>
+                                            <span key={`ellipsis-${idx}`} className="px-2 py-2 min-h-9 text-slate-400 font-bold flex items-center">...</span>
                                         ) : (
                                             <button
                                                 key={num}
                                                 onClick={() => { setCurrentPage(num); window.scrollTo({top: 0, behavior: 'smooth'}); }}
                                                 className={`shrink-0 px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all flex items-center justify-center
-                                                    ${currentPage === num ? 'bg-gray-900 text-white border-gray-900 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                                                    ${currentPage === num ? 'bg-[#1B3B6A] text-white border-[#1B3B6A] shadow-sm font-extrabold' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
                                             >
                                                 {num}
                                             </button>
                                         )
                                     ))}
-                                    <button disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({top: 0, behavior: 'smooth'}); }} className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center">Next &raquo;</button>
+                                    <button disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({top: 0, behavior: 'smooth'}); }} className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-slate-600 border-slate-200 hover:bg-slate-50 disabled:opacity-40 whitespace-nowrap flex items-center">Next &raquo;</button>
                                 </div>
                             </div>
                         </div>
@@ -1815,12 +1774,12 @@ export default function Inventory({ auth }) {
                 <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity">
                     <div className="absolute inset-0" onClick={() => setPrintState({ ...printState, isOpen: false })}></div>
                     <div className="relative bg-white w-full max-w-sm rounded-lg shadow-2xl p-6 animate-slide-up sm:animate-fade-in-up flex flex-col">
-                        <div className="flex items-start justify-between border-b border-gray-100 pb-4 mb-4">
+                        <div className="flex items-start justify-between border-b border-slate-100 pb-4 mb-4">
                             <div>
-                                <h2 className="text-xl font-black tracking-tight text-gray-900">Print Labels</h2>
-                                <p className="text-xs text-gray-500 mt-1 font-medium">{printState.product?.name}</p>
+                                <h2 className="text-xl font-black tracking-tight text-slate-900">Print Labels</h2>
+                                <p className="text-xs text-slate-500 mt-1 font-medium">{printState.product?.name}</p>
                             </div>
-                            <button onClick={() => setPrintState({ ...printState, isOpen: false })} className="p-2 bg-gray-50 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+                            <button onClick={() => setPrintState({ ...printState, isOpen: false })} className="p-2 bg-slate-50 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
@@ -1828,23 +1787,23 @@ export default function Inventory({ auth }) {
                         <div className="space-y-5">
                             {/* Quantity Input */}
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Number of Labels</label>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Number of Labels</label>
                                 <input
                                     type="number"
                                     min="1" max="200"
                                     value={printState.quantity}
                                     onChange={(e) => setPrintState({ ...printState, quantity: parseInt(e.target.value) || 1 })}
-                                    className="w-full bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 py-2.5 text-lg font-bold text-center transition-colors"
+                                    className="w-full bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] py-2.5 text-lg font-bold text-center transition-colors text-slate-900"
                                 />
                             </div>
 
                             {/* Mode Selector */}
                             <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Printer Layout</label>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Printer Layout</label>
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
                                         onClick={() => setPrintState({ ...printState, mode: 'thermal' })}
-                                        className={`flex flex-col items-center justify-center gap-2 p-3 border-2 rounded-lg transition-all ${printState.mode === 'thermal' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200 hover:bg-gray-50'}`}
+                                        className={`flex flex-col items-center justify-center gap-2 p-3 border-2 rounded-lg transition-all ${printState.mode === 'thermal' ? 'border-[#1B3B6A] bg-[#1B3B6A]/10 text-[#1B3B6A] font-extrabold' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50'}`}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
                                         <div className="text-center">
@@ -1855,7 +1814,7 @@ export default function Inventory({ auth }) {
 
                                     <button
                                         onClick={() => setPrintState({ ...printState, mode: 'a4' })}
-                                        className={`flex flex-col items-center justify-center gap-2 p-3 border-2 rounded-lg transition-all ${printState.mode === 'a4' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200 hover:bg-gray-50'}`}
+                                        className={`flex flex-col items-center justify-center gap-2 p-3 border-2 rounded-lg transition-all ${printState.mode === 'a4' ? 'border-[#1B3B6A] bg-[#1B3B6A]/10 text-[#1B3B6A] font-extrabold' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50'}`}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
                                         <div className="text-center">
@@ -1867,8 +1826,8 @@ export default function Inventory({ auth }) {
                             </div>
                         </div>
 
-                        <div className="mt-6 pt-4 border-t border-gray-100 shrink-0">
-                            <button onClick={executePrint} className="w-full py-3.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-black shadow-lg shadow-blue-500/30 active:scale-95 transition-all text-sm uppercase tracking-wider flex items-center justify-center gap-2">
+                        <div className="mt-6 pt-4 border-t border-slate-100 shrink-0">
+                            <button onClick={executePrint} className="w-full py-3.5 bg-[#1B3B6A] text-white rounded-lg hover:bg-[#142E54] font-black shadow-md active:scale-95 transition-all text-sm uppercase tracking-wider flex items-center justify-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
                                 Print Now
                             </button>
@@ -1878,19 +1837,19 @@ export default function Inventory({ auth }) {
                 document.body
             )}
 
-            {/* PRODUCT ADD/EDIT MODAL: HIDDEN WHEN SCANNER IS ACTIVE */}
+            {/* PRODUCT ADD/EDIT MODAL */}
             {showModal && typeof document !== 'undefined' && createPortal(
                 <div className={`fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[100] sm:p-6 backdrop-blur-sm animate-in fade-in duration-300 ${showScanner ? 'hidden' : ''}`}>
                     <div className="bg-white w-full h-full sm:h-auto sm:max-w-lg sm:rounded-2xl sm:shadow-2xl overflow-hidden flex flex-col sm:max-h-[90vh] animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
 
                         {/* Header (Sticky on Mobile) */}
-                        <div className="bg-white border-b border-gray-100 px-6 sm:px-8 py-5 sm:py-6 flex justify-between items-center shrink-0 sticky top-0 z-50">
-                            <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">
+                        <div className="bg-[#1B3B6A] border-b border-[#142E54] px-6 sm:px-8 py-5 sm:py-6 flex justify-between items-center shrink-0 sticky top-0 z-50 text-white">
+                            <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
                                 {editMode ? 'Update Product' : 'New Product'}
                             </h2>
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="bg-gray-50 hover:bg-gray-100 p-2 sm:p-2.5 rounded-full text-gray-500 hover:text-gray-900 transition-colors active:scale-95"
+                                className="bg-white/10 hover:bg-white/20 p-2 sm:p-2.5 rounded-full text-white transition-colors active:scale-95"
                             >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
@@ -1900,7 +1859,7 @@ export default function Inventory({ auth }) {
                         <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar">
                             <form id="product-form" onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-500">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">SKU / Barcode</label>
+                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5">SKU / Barcode</label>
                                     <div className="flex gap-2">
                                             <input
                                                 name="sku"
@@ -1908,15 +1867,15 @@ export default function Inventory({ auth }) {
                                                 value={formData.sku}
                                                 onChange={handleChange}
                                                 onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
-                                                className="flex-1 border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400 font-mono"
+                                                className="flex-1 border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400 font-mono"
                                                 placeholder="Scan..."
                                             />
-                                        <button type="button" onClick={() => setShowScanner(true)} className="bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 px-4 py-3 rounded-lg transition-colors active:scale-95" title="Scan Barcode">
+                                        <button type="button" onClick={() => setShowScanner(true)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 px-4 py-3 rounded-lg transition-colors active:scale-95" title="Scan Barcode">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" /></svg>
                                         </button>
-                                        <button type="button" onClick={generateSKU} disabled={isCheckingSku} className="bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 px-4 py-3 rounded-lg transition-colors active:scale-95 disabled:opacity-50" title="Generate SKU">
+                                        <button type="button" onClick={generateSKU} disabled={isCheckingSku} className="bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 px-4 py-3 rounded-lg transition-colors active:scale-95 disabled:opacity-50" title="Generate SKU">
                                             {isCheckingSku ? (
-                                                <svg className="animate-spin h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                                <svg className="animate-spin h-5 w-5 text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                             ) : (
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
                                             )}
@@ -1925,57 +1884,57 @@ export default function Inventory({ auth }) {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Name</label>
-                                    <input name="name" required value={formData.name} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="e.g. Classic Cappuccino" />
+                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Name</label>
+                                    <input name="name" required value={formData.name} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400" placeholder="e.g. Classic Cappuccino" />
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Category</label>
-                                        <select name="category_id" value={formData.category_id} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm" required>
+                                        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5">Category</label>
+                                        <select name="category_id" value={formData.category_id} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm" required>
                                             <option value="">Select Category...</option>
                                             {categories.map(cat => ( <option key={cat.id} value={cat.id}>{cat.name}</option> ))}
                                         </select>
                                     </div>
                                     <div>
-                                         <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Initial Stock</label>
-                                         <input type="number" name="stock_quantity" required value={formData.stock_quantity} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0" />
+                                         <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5">Initial Stock</label>
+                                         <input type="number" name="stock_quantity" required value={formData.stock_quantity} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400" placeholder="0" />
                                     </div>
                                 </div>
 
                                 <div>
-                                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱)</label>
-                                     <input type="number" step="0.01" name="cost_price" required value={formData.cost_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
+                                     <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price (₱)</label>
+                                     <input type="number" step="0.01" name="cost_price" required value={formData.cost_price} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400 font-mono" placeholder="0.00" />
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 font-mono">
                                     <div>
-                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Retail Price (₱)</label>
-                                        <input type="number" step="0.01" name="price" required value={formData.price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
+                                        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5 font-sans">Retail Price (₱)</label>
+                                        <input type="number" step="0.01" name="price" required value={formData.price} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400 font-mono" placeholder="0.00" />
                                     </div>
                                     <div>
-                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Wholesale Price (₱)</label>
-                                        <input type="number" step="0.01" name="wholesale_price" required value={formData.wholesale_price} onChange={handleChange} className="w-full border border-gray-300 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400" placeholder="0.00" />
+                                        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5 font-sans">Wholesale Price (₱)</label>
+                                        <input type="number" step="0.01" name="wholesale_price" required value={formData.wholesale_price} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400 font-mono" placeholder="0.00" />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Image (Optional)</label>
-                                    <input type="file" accept="image/*" onChange={handleFileChange} className="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-gray-100 file:text-gray-700 file:hover:bg-gray-200 file:transition-colors bg-gray-50 rounded-lg cursor-pointer border border-gray-300"/>
+                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Image (Optional)</label>
+                                    <input type="file" accept="image/*" onChange={handleFileChange} className="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 file:hover:bg-slate-200 file:transition-colors bg-slate-50 rounded-lg cursor-pointer border border-slate-300"/>
                                 </div>
 
-                                <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                                <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-lg border border-slate-200">
                                     <input
                                         type="checkbox"
                                         name="is_active"
                                         id="is_active_checkbox"
                                         checked={!!formData.is_active}
                                         onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        className="w-4 h-4 text-[#1B3B6A] border-slate-300 rounded focus:ring-[#1B3B6A]"
                                     />
                                     <label htmlFor="is_active_checkbox" className="select-none cursor-pointer">
-                                        <span className="block text-sm font-bold text-gray-900">Active Status</span>
-                                        <span className="block text-[10px] text-gray-500 mt-0.5">If unchecked, this product will be archived and hidden from the POS terminal screen.</span>
+                                        <span className="block text-sm font-bold text-slate-900">Active Status</span>
+                                        <span className="block text-[10px] text-slate-500 mt-0.5">If unchecked, this product will be archived and hidden from the POS terminal screen.</span>
                                     </label>
                                 </div>
                             </form>
@@ -1994,7 +1953,7 @@ export default function Inventory({ auth }) {
                                 type="submit"
                                 form="product-form"
                                 disabled={isSaving}
-                                className="order-1 sm:order-2 w-full sm:w-auto px-8 py-3.5 sm:py-3 bg-gray-900 hover:bg-black text-white font-semibold rounded-lg shadow-md text-sm transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="order-1 sm:order-2 w-full sm:w-auto px-8 py-3.5 sm:py-3 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-semibold rounded-lg shadow-md shadow-[#1B3B6A]/20 text-sm transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {isSaving ? (
                                     <>

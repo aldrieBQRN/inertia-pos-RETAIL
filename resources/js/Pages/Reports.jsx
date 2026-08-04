@@ -59,7 +59,7 @@ export default function Reports({ auth }) {
     const [filters, setFilters] = useState(() => getInitialLast7DaysFilters());
     const [activePreset, setActivePreset] = useState('last_7_days');
 
-    const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6'];
+    const COLORS = ['#1B3B6A', '#2563EB', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4'];
 
     const fetchReports = async (params = {}) => {
         setLoading(true);
@@ -536,11 +536,11 @@ export default function Reports({ auth }) {
                             <div className="flex flex-col sm:flex-row flex-wrap xl:flex-nowrap gap-3 w-full xl:w-auto items-stretch">
 
                                 {/* Quick Preset Dropdown */}
-                                <div className="relative flex items-center bg-blue-50 border border-blue-100 rounded-lg focus-within:ring-2 focus-within:ring-blue-500 transition-colors w-full sm:w-auto sm:min-w-[180px] shrink-0">
-                                    <svg className="w-4 h-4 text-blue-600 absolute left-3 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <div className="relative flex items-center bg-[#EFF4F9] border border-[#CBD7E6] rounded-lg focus-within:ring-2 focus-within:ring-[#1B3B6A] transition-colors w-full sm:w-auto sm:min-w-[180px] shrink-0">
+                                    <svg className="w-4 h-4 text-[#1B3B6A] absolute left-3 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
 
                                     <select
-                                        className="appearance-none !bg-none bg-transparent border-none py-2.5 sm:py-3 pl-9 pr-10 text-sm font-bold text-blue-700 focus:ring-0 cursor-pointer w-full"
+                                        className="appearance-none !bg-none bg-transparent border-none py-2.5 sm:py-3 pl-9 pr-10 text-sm font-bold text-[#1B3B6A] focus:ring-0 cursor-pointer w-full"
                                         value={activePreset}
                                         onChange={handlePresetChange}
                                     >
@@ -552,11 +552,11 @@ export default function Reports({ auth }) {
                                         <option value="last_month">Last Month</option>
                                         <option value="ytd">Year to Date</option>
                                     </select>
-                                    <svg className="w-4 h-4 text-blue-600 absolute right-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    <svg className="w-4 h-4 text-[#1B3B6A] absolute right-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                                 </div>
 
                                 {/* Start Date Input */}
-                                <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2.5 sm:py-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:bg-white transition-colors w-full sm:w-auto flex-1 xl:flex-none">
+                                <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2.5 sm:py-3 focus-within:ring-2 focus-within:ring-[#1B3B6A] focus-within:bg-white transition-colors w-full sm:w-auto flex-1 xl:flex-none">
                                     <span className="text-gray-400 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">From</span>
                                     <input
                                         type="date"
@@ -570,7 +570,7 @@ export default function Reports({ auth }) {
                                 </div>
 
                                 {/* End Date Input */}
-                                <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2.5 sm:py-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:bg-white transition-colors w-full sm:w-auto flex-1 xl:flex-none">
+                                <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2.5 sm:py-3 focus-within:ring-2 focus-within:ring-[#1B3B6A] focus-within:bg-white transition-colors w-full sm:w-auto flex-1 xl:flex-none">
                                     <span className="text-gray-400 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">To</span>
                                     <input
                                         type="date"
@@ -587,7 +587,7 @@ export default function Reports({ auth }) {
                             <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto shrink-0">
                                 <button
                                     onClick={exportExcel}
-                                    className="w-full sm:w-auto bg-gray-800 hover:bg-gray-900 text-white px-5 py-2.5 sm:py-3 rounded-md text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0"
+                                    className="w-full sm:w-auto bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 px-5 py-2.5 sm:py-3 rounded-md text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.5l9 9 9-9M12 22.5V3" />
@@ -598,7 +598,7 @@ export default function Reports({ auth }) {
                                 <button
                                     onClick={exportPDF}
                                     disabled={isExporting}
-                                    className={`w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 sm:py-3 rounded-md text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0 ${isExporting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                    className={`w-full sm:w-auto bg-[#1B3B6A] hover:bg-[#142E54] text-white px-5 py-2.5 sm:py-3 rounded-md text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0 ${isExporting ? 'opacity-70 cursor-not-allowed' : ''}`}
                                 >
                                     {isExporting ? (
                                         <>
@@ -664,8 +664,8 @@ export default function Reports({ auth }) {
                                         <AreaChart data={stats.chart_data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                             <defs>
                                                 <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.15}/>
-                                                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                                                    <stop offset="5%" stopColor="#1B3B6A" stopOpacity={0.15}/>
+                                                    <stop offset="95%" stopColor="#1B3B6A" stopOpacity={0}/>
                                                 </linearGradient>
                                                 <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
                                                     <stop offset="5%" stopColor="#10B981" stopOpacity={0.15}/>
@@ -677,7 +677,7 @@ export default function Reports({ auth }) {
                                             <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₱${val}`} tick={{ fontSize: 11, fill: '#9CA3AF' }} width={50} />
                                             <Tooltip formatter={(value, name) => [`₱${parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, name]} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                                             <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                                            <Area type="monotone" name="Revenue" dataKey="sales" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
+                                            <Area type="monotone" name="Revenue" dataKey="sales" stroke="#1B3B6A" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
                                             <Area type="monotone" name="Net Profit" dataKey="profit" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorProfit)" />
                                         </AreaChart>
                                     </ResponsiveContainer>
@@ -736,7 +736,7 @@ export default function Reports({ auth }) {
                                             <XAxis type="number" hide />
                                             <YAxis dataKey="month" type="category" width={40} axisLine={false} tickLine={false} tick={{fontSize: 11, fill: '#9CA3AF'}} />
                                             <Tooltip cursor={{fill: '#F3F4F6'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                            <Bar dataKey="count" fill="#3B82F6" radius={[0, 4, 4, 0]} barSize={16} />
+                                            <Bar dataKey="count" fill="#1B3B6A" radius={[0, 4, 4, 0]} barSize={16} />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 )}
@@ -802,7 +802,7 @@ export default function Reports({ auth }) {
                                             {stats.top_products.map((item, idx) => (
                                                 <tr key={idx} className="hover:bg-gray-50 transition-colors">
                                                     <td className="px-4 py-3 font-bold text-gray-800 text-xs sm:text-sm">{item.name}</td>
-                                                    <td className="px-4 py-3 text-right font-black text-blue-600 text-xs sm:text-sm">{formatNumber(item.sold)}</td>
+                                                    <td className="px-4 py-3 text-right font-black text-[#1B3B6A] text-xs sm:text-sm">{formatNumber(item.sold)}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -820,9 +820,9 @@ export default function Reports({ auth }) {
 
 function StatCard({ title, value, icon, color, subtext, trend }) {
     const bgColors = {
-        blue: 'bg-blue-50 text-blue-600 ring-1 ring-blue-100',
+        blue: 'bg-[#EFF4F9] text-[#1B3B6A] ring-1 ring-[#CBD7E6]',
         green: 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100',
-        purple: 'bg-purple-50 text-purple-600 ring-1 ring-purple-100',
+        purple: 'bg-[#EFF4F9] text-[#1B3B6A] ring-1 ring-[#CBD7E6]',
         orange: 'bg-orange-50 text-orange-600 ring-1 ring-orange-100'
     };
     return (

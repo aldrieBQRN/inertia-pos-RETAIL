@@ -70,20 +70,37 @@ export default function Dashboard({ auth }) {
     };
 
     const getPaymentBadgeStyle = (method) => {
-        switch(method) {
-            case 'gcash': return 'bg-blue-100 text-blue-700';
-            case 'maya': return 'bg-green-100 text-green-700';
-            case 'credit_card': return 'bg-purple-100 text-purple-700';
-            case 'debit_card': return 'bg-indigo-100 text-indigo-700';
-            default: return 'bg-gray-100 text-gray-700';
+        const m = (method || '').toLowerCase();
+        switch (m) {
+            case 'cash':
+                return 'bg-emerald-50 text-emerald-700 border-emerald-200/70';
+            case 'gcash':
+                return 'bg-blue-50 text-blue-700 border-blue-200/70';
+            case 'maya':
+            case 'paymaya':
+                return 'bg-emerald-50 text-emerald-800 border-emerald-300/70';
+            case 'card':
+            case 'credit_card':
+                return 'bg-purple-50 text-purple-700 border-purple-200/70';
+            case 'debit_card':
+                return 'bg-indigo-50 text-indigo-700 border-indigo-200/70';
+            case 'bank_transfer':
+                return 'bg-sky-50 text-sky-700 border-sky-200/70';
+            default:
+                return 'bg-slate-100 text-slate-700 border-slate-200/70';
         }
     };
 
     const formatPaymentName = (method) => {
-        if (!method) return 'Unknown';
-        if (method === 'credit_card') return 'Credit';
-        if (method === 'debit_card') return 'Debit';
-        return method;
+        if (!method) return 'Cash';
+        const m = method.toLowerCase();
+        if (m === 'cash') return 'Cash';
+        if (m === 'gcash') return 'GCash';
+        if (m === 'maya' || m === 'paymaya') return 'Maya';
+        if (m === 'card' || m === 'credit_card') return 'Credit Card';
+        if (m === 'debit_card') return 'Debit Card';
+        if (m === 'bank_transfer') return 'Bank Transfer';
+        return method.charAt(0).toUpperCase() + method.slice(1);
     };
 
     if (loading && !hasLoaded) return (
@@ -127,8 +144,8 @@ export default function Dashboard({ auth }) {
                                         <AreaChart data={stats.chart_data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                             <defs>
                                                 <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.15}/>
-                                                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                                                    <stop offset="5%" stopColor="#1B3B6A" stopOpacity={0.15}/>
+                                                    <stop offset="95%" stopColor="#1B3B6A" stopOpacity={0}/>
                                                 </linearGradient>
                                                 <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
                                                     <stop offset="5%" stopColor="#10B981" stopOpacity={0.15}/>
@@ -140,7 +157,7 @@ export default function Dashboard({ auth }) {
                                             <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₱${val}`} tick={{ fontSize: 11, fill: '#9CA3AF' }} width={50} />
                                             <Tooltip formatter={(value, name) => [`₱${parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, name]} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                                             <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                                            <Area type="monotone" name="Revenue" dataKey="sales" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
+                                            <Area type="monotone" name="Revenue" dataKey="sales" stroke="#1B3B6A" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
                                             <Area type="monotone" name="Net Profit" dataKey="profit" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorProfit)" />
                                         </AreaChart>
                                     </ResponsiveContainer>
@@ -159,8 +176,8 @@ export default function Dashboard({ auth }) {
                                     <h3 className="text-[15px] sm:text-lg font-bold text-gray-800 tracking-tight">Inventory Alerts</h3>
                                 </div>
                                 <Link
-                                    href="/inventory" // Adjust to your actual inventory route
-                                    className="text-xs font-bold uppercase tracking-wider text-orange-600 hover:text-orange-700 hover:underline transition-colors"
+                                    href="/inventory"
+                                    className="text-xs font-bold uppercase tracking-wider text-[#1B3B6A] hover:text-[#142E54] hover:underline transition-colors"
                                 >
                                     Manage
                                 </Link>
@@ -170,13 +187,13 @@ export default function Dashboard({ auth }) {
                             <ul className="sm:px-6 divide-y divide-gray-50 sm:divide-none pb-4">
                                 {stats.low_stock.length === 0 ? (
                                     <li className="text-emerald-600 text-sm font-bold px-5 sm:px-0 py-4 bg-emerald-50/50 sm:bg-transparent flex items-center gap-2">
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>
                                         Stock levels are healthy.
                                     </li>
                                 ) : stats.low_stock.map((item) => (
-                                    <li key={item.id} className="flex justify-between items-center text-sm px-5 sm:px-4 py-3 sm:bg-orange-50/50 sm:rounded-md mb-2">
+                                    <li key={item.id} className="flex justify-between items-center text-sm px-5 sm:px-4 py-3 sm:bg-amber-50/40 sm:rounded-lg mb-2">
                                         <span className="text-gray-800 font-semibold truncate pr-4">{item.name}</span>
-                                        <span className="bg-orange-100 text-orange-800 px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-black uppercase tracking-wider shrink-0 shadow-sm border border-orange-200/50">{item.stock_quantity} left</span>
+                                        <span className="px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200/70 shadow-xs shrink-0">{item.stock_quantity} left</span>
                                     </li>
                                 ))}
                             </ul>
@@ -192,7 +209,7 @@ export default function Dashboard({ auth }) {
                             </h3>
                             <Link
                                 href="/transactions"
-                                className="text-xs font-bold uppercase tracking-wider text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                                className="text-xs font-bold uppercase tracking-wider text-[#1B3B6A] hover:text-[#142E54] hover:underline transition-colors"
                             >
                                 View All
                             </Link>
@@ -220,14 +237,14 @@ export default function Dashboard({ auth }) {
                                                         {sale.invoice_number}
                                                     </span>
                                                     {sale.status === 'void' && (
-                                                        <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-200">
+                                                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/70 shadow-xs">
                                                             Void
                                                         </span>
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-3.5 text-xs font-medium text-gray-500">{new Date(sale.created_at).toLocaleString()}</td>
                                                 <td className="px-6 py-3.5">
-                                                    <span className={`px-2 py-1 rounded-sm text-[10px] font-bold uppercase tracking-widest ${getPaymentBadgeStyle(sale.payment_method)}`}>
+                                                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-xs ${getPaymentBadgeStyle(sale.payment_method)}`}>
                                                         {formatPaymentName(sale.payment_method)}
                                                     </span>
                                                 </td>
@@ -251,7 +268,7 @@ export default function Dashboard({ auth }) {
                                                 {sale.invoice_number}
                                             </span>
                                             {sale.status === 'void' && (
-                                                <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-200">
+                                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/70 shadow-xs">
                                                     Void
                                                 </span>
                                             )}
@@ -263,7 +280,7 @@ export default function Dashboard({ auth }) {
                                             ₱{formatCurrency(sale.total_amount)}
                                         </div>
                                         <div className="mt-1 flex justify-end">
-                                            <span className={`px-2 py-0.5 rounded-sm text-[9px] font-bold uppercase tracking-widest ${getPaymentBadgeStyle(sale.payment_method)}`}>
+                                            <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border shadow-xs ${getPaymentBadgeStyle(sale.payment_method)}`}>
                                                 {formatPaymentName(sale.payment_method)}
                                             </span>
                                         </div>
@@ -316,9 +333,9 @@ function DashboardSkeleton() {
 
 function StatCard({ title, value, icon, color, subtext, trend }) {
     const bgColors = {
-        blue: 'bg-blue-50 text-blue-600 ring-1 ring-blue-100',
+        blue: 'bg-[#EFF4F9] text-[#1B3B6A] ring-1 ring-[#CBD7E6]',
         green: 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100',
-        purple: 'bg-purple-50 text-purple-600 ring-1 ring-purple-100',
+        purple: 'bg-[#EFF4F9] text-[#1B3B6A] ring-1 ring-[#CBD7E6]',
         orange: 'bg-orange-50 text-orange-600 ring-1 ring-orange-100'
     };
     return (
