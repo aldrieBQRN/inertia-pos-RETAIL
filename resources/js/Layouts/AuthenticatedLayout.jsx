@@ -67,7 +67,7 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
     const isPosTerminal = url === '/pos';
 
     return (
-        <div className={isPosTerminal ? "h-screen overflow-hidden flex flex-col bg-gray-100" : "min-h-screen bg-gray-100"}>
+        <div className={isPosTerminal ? "h-screen overflow-hidden flex flex-col bg-white" : "min-h-screen bg-gray-100"}>
 
             {/* FIX: Only show the broadcast banner to Tenants (Admins/Cashiers), never to Super Admin */}
             {user.role !== 'super_admin' && <GlobalBanner />}
@@ -296,7 +296,7 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
             )}
 
             {/* REMOVED: relative z-0. Main content will now allow modals to escape. */}
-            <main className={`animate-in fade-in duration-500 ${isPosTerminal ? 'flex-1 h-0 overflow-hidden' : ''}`}>{children}</main>
+            <main className={`animate-in fade-in duration-500 ${isPosTerminal ? 'flex-1 h-0 overflow-hidden bg-white' : ''}`}>{children}</main>
         </div>
     );
 }

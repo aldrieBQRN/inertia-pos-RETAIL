@@ -47,17 +47,10 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     const [qtyModalProduct, setQtyModalProduct] = useState(null);
     const [qtyModalInput, setQtyModalInput] = useState('1');
     const [isQtyEditMode, setIsQtyEditMode] = useState(false);
-    const [showCustomItemModal, setShowCustomItemModal] = useState(false);
-    const [customItemForm, setCustomItemForm] = useState({
-        qty: '',
-        name: '',
-        price: ''
-    });
-    const [showCustomCategoryDropdown, setShowCustomCategoryDropdown] = useState(false);
-    const [customCategoryNavIndex, setCustomCategoryNavIndex] = useState(-1);
     const [productNavIndex, setProductNavIndex] = useState(-1);
     const [heldOrdersNavIndex, setHeldOrdersNavIndex] = useState(-1);
     const [showFKeys, setShowFKeys] = useState(true);
+    const [productView, setProductView] = useState(() => localStorage.getItem('pos_product_view') || 'list');
 
     useEffect(() => {
         localStorage.setItem('pos_show_results_only', showResultsOnly);
@@ -159,7 +152,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
             const isControlKey = e.key === 'Escape' || e.key === 'Enter';
             const isNavKey = (e.key === 'ArrowDown' || e.key === 'ArrowUp') &&
-                (showCategoryDropdown || showCustomCategoryDropdown || showHeldOrdersModal);
+                (showCategoryDropdown || showHeldOrdersModal);
 
             // Ignore if standard typing in input/textarea (unless it's an F-key, control key, or active nav key)
             if (!isFKey && !isControlKey && !isNavKey && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
@@ -243,29 +236,6 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 return;
             }
 
-            // Intercept shortcuts specifically for the Add Custom Item modal if open
-            if (showCustomItemModal) {
-
-
-                if (e.key === 'Escape') {
-                    e.preventDefault();
-                    setShowCustomItemModal(false);
-                } else if (e.key === 'Enter') {
-                    e.preventDefault();
-                    document.getElementById('custom-item-form-submit-btn')?.click();
-                } else if (e.key === 'F1') {
-                    e.preventDefault();
-                    document.getElementById('quick-add-qty-input')?.focus();
-                } else if (e.key === 'F2') {
-                    e.preventDefault();
-                    document.getElementById('quick-add-name-input')?.focus();
-                } else if (e.key === 'F3') {
-                    e.preventDefault();
-                    document.getElementById('quick-add-price-input')?.focus();
-                }
-                return;
-            }
-
             if (e.key === 'F1') {
                 // Close category dropdown
                 setShowCategoryDropdown(false);
@@ -290,7 +260,11 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                     return next;
                 });
             } else if (e.key === 'F4') {
-                handleOpenCustomItemModal();
+                setProductView(prev => {
+                    const next = prev === 'list' ? 'card' : 'list';
+                    localStorage.setItem('pos_product_view', next);
+                    return next;
+                });
             } else if (e.key === 'F5') {
                 // Blur search input to prevent input character pollution and free arrow keys
                 if (searchInputRef.current) {
@@ -315,7 +289,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
         window.addEventListener('keydown', handlePOSKeys);
         return () => window.removeEventListener('keydown', handlePOSKeys);
-    }, [showPaymentModal, showQtyModal, showHeldOrdersModal, showCustomItemModal, showCategoryDropdown, categoryNavIndex, categories, customItemForm, showCustomCategoryDropdown, customCategoryNavIndex, heldOrders, heldOrdersNavIndex, shortcutsEnabled]);
+    }, [showPaymentModal, showQtyModal, showHeldOrdersModal, showCategoryDropdown, categoryNavIndex, categories, heldOrders, heldOrdersNavIndex, shortcutsEnabled]);
 
     const cart = useCartStore((state) => state.cart);
     const addToCart = useCartStore((state) => state.addToCart);
@@ -503,55 +477,6 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
 
 
-    const handleOpenCustomItemModal = () => {
-        window.dispatchEvent(new CustomEvent('reset-cart-nav'));
-        setCustomItemForm({ qty: '', name: '', price: '' });
-        setShowCustomItemModal(true);
-        if (searchInputRef.current) searchInputRef.current.blur();
-
-        setTimeout(() => {
-            document.getElementById('quick-add-qty-input')?.focus();
-        }, 150);
-    };
-
-    const handleAddCustomItem = (e) => {
-        if (e) e.preventDefault();
-        const { qty, name, price } = customItemForm;
-
-        const parsedQty = Number(qty);
-        if (!qty || isNaN(parsedQty) || parsedQty <= 0) {
-            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Please enter a valid quantity (e.g. 0.5, 1, 2.75).', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
-            return;
-        }
-        if (!name.trim()) {
-            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Description is required.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
-            return;
-        }
-        const parsedPrice = parseFloat(price);
-        if (!price || isNaN(parsedPrice) || parsedPrice <= 0) {
-            Swal.fire({ icon: 'error', title: 'Validation Error', text: 'Please enter a valid price greater than zero.', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
-            return;
-        }
-
-        // Build a synthetic cart item — stored in-memory only, never written to the products table.
-        // price is stored in cents to match the cart store convention.
-        const customCartItem = {
-            id: null,
-            is_custom: true,
-            custom_key: `custom_${Date.now()}`,
-            name: name.trim(),
-            price: Math.round(parsedPrice * 100),
-            stock_quantity: Infinity,
-        };
-
-        addToCart(customCartItem, parsedQty, Math.round(parsedPrice * 100));
-
-        setShowCustomItemModal(false);
-        setCustomItemForm({ qty: '', name: '', price: '' });
-
-        Swal.fire({ icon: 'success', title: 'Item Added!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1200 });
-    };
-
     const handlePrintReceipt = async (trxId) => {
         try {
             const res = await axios.get(`/api/transactions/${trxId}`);
@@ -606,7 +531,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         }
     };
 
-    const isAnyModalOpen = showPaymentModal || showQtyModal || showHeldOrdersModal || showCustomItemModal;
+    const isAnyModalOpen = showPaymentModal || showQtyModal || showHeldOrdersModal;
     const activeCat = categories.find(c => c.id === selectedCategory);
     const themeColor = activeCat?.color || '#3B82F6';
 
@@ -614,7 +539,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         <AuthenticatedLayout user={auth.user}>
             <Head title="POS Terminal" />
 
-            <div className="pos-terminal flex h-full bg-gray-100 overflow-hidden relative">
+            <div className="pos-terminal flex h-full bg-white overflow-hidden relative">
 
                 {/* LEFT: CART SIDEBAR (50/50 splits) */}
                 <div className={`flex-1 md:w-1/2 flex-col min-w-0 h-full bg-white ${isMobileCartOpen ? 'flex fixed inset-0 z-50 bg-white' : 'hidden md:flex'}`}>
@@ -633,7 +558,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 </div>
 
                 {/* RIGHT PANEL: PRODUCT LISTING (50/50 splits) */}
-                <div className={`w-full md:w-1/2 md:flex-1 min-w-0 bg-gray-50 border-l border-gray-200 md:border-l-2 md:border-gray-300 flex-col h-full ${isMobileCartOpen ? 'hidden md:flex' : 'flex'}`}>
+                <div className={`w-full md:w-1/2 md:flex-1 min-w-0 bg-white border-l border-gray-200 md:border-l-2 md:border-gray-300 flex-col h-full ${isMobileCartOpen ? 'hidden md:flex' : 'flex'}`}>
 
                     {/* COMPACT TOOLBAR */}
                     <div className="p-2 md:p-3 bg-white border-b md:border-b-2 md:border-gray-300 flex flex-col gap-2 shadow-sm z-10 shrink-0">
@@ -701,7 +626,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             </div>
                         </div>
 
-                        {/* Row 2: Wholesale Toggle, Results Only Toggle & Custom Item Button */}
+                        {/* Row 2: Wholesale Toggle, Results Only Toggle & View Toggle */}
                         <div className="flex items-center justify-between w-full pt-1">
                             <div className="flex items-center gap-4">
                                 <label className="flex items-center cursor-pointer select-none">
@@ -735,40 +660,69 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                 </label>
                             </div>
 
-                            <button
-                                onClick={handleOpenCustomItemModal}
-                                disabled={isAnyModalOpen}
-                                className="p-2 lg:px-3 lg:py-2 bg-[#1B3B6A] hover:bg-[#142d52] text-white rounded-md text-xs font-black uppercase tracking-wider active:scale-95 transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Custom Item"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 lg:w-3.5 lg:h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                                <span className="hidden lg:inline">{showFKeys ? "Custom Item (F4)" : "Custom Item"}</span>
-                            </button>
+                            {/* Card / List View Toggle */}
+                            <div className="flex items-center rounded-md border border-slate-200 overflow-hidden shadow-sm" title={showFKeys ? "Toggle View (F4)" : "Toggle View"}>
+                                <button
+                                    onClick={() => { setProductView('list'); localStorage.setItem('pos_product_view', 'list'); }}
+                                    disabled={isAnyModalOpen}
+                                    className={`flex items-center gap-1.5 px-2.5 h-[34px] text-xs font-black uppercase tracking-wider transition-all disabled:cursor-not-allowed
+                                        ${productView === 'list' ? 'bg-[#1B3B6A] text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
+                                    title="List View"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" /></svg>
+                                    <span className="hidden lg:inline">{showFKeys ? 'List (F4)' : 'List'}</span>
+                                </button>
+                                <button
+                                    onClick={() => { setProductView('card'); localStorage.setItem('pos_product_view', 'card'); }}
+                                    disabled={isAnyModalOpen}
+                                    className={`flex items-center gap-1.5 px-2.5 h-[34px] text-xs font-black uppercase tracking-wider transition-all disabled:cursor-not-allowed border-l border-slate-200
+                                        ${productView === 'card' ? 'bg-[#1B3B6A] text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
+                                    title="Card View"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                                    <span className="hidden lg:inline">Card</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    {/* PRODUCT LIST COLUMN HEADERS — desktop only */}
-                    <div className="px-3 py-2 bg-slate-50 border-b border-slate-200 lg:border-b-2 lg:border-slate-300 shrink-0 hidden lg:block">
-                        <div className="grid grid-cols-[140px_1fr_100px_110px] gap-2 text-xs font-black uppercase tracking-wider text-slate-500 font-mono">
-                            <div className="pl-2">SKU / Barcode</div>
-                            <div className="pl-2">Product Name / Category</div>
-                            <div className="text-right">Stock</div>
-                            <div className="text-right">Price</div>
+                    {/* PRODUCT LIST COLUMN HEADERS — desktop only, list view only */}
+                    {productView === 'list' && (
+                        <div className="px-3 py-2 bg-white border-b border-slate-200 lg:border-b-2 lg:border-slate-300 shrink-0 hidden lg:block">
+                            <div className="grid grid-cols-[140px_1fr_100px_110px] gap-2 text-xs font-black uppercase tracking-wider text-slate-500 font-mono">
+                                <div className="pl-2">SKU / Barcode</div>
+                                <div className="pl-2">Product Name / Category</div>
+                                <div className="text-right">Stock</div>
+                                <div className="text-right">Price</div>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* PRODUCT LIST (TABLE-LIKE VIEW FLUSH WITH SIDES) */}
-                    <div ref={catalogContainerRef} className="flex-1 overflow-y-auto custom-scrollbar bg-white divide-y divide-slate-100">
+                    {/* PRODUCT CATALOG */}
+                    <div
+                        ref={catalogContainerRef}
+                        className={`flex-1 overflow-y-auto custom-scrollbar bg-white ${
+                            productView === 'list' ? 'divide-y divide-slate-100' : 'p-3'
+                        }`}
+                    >
                         {isLoading ? (
-                            <div className="p-3 space-y-2">
-                                {Array.from({ length: 8 }).map((_, i) => (
-                                    <div key={i} className="bg-white p-3.5 rounded-md border border-slate-200 animate-pulse flex justify-between items-center">
-                                        <div className="space-y-2 w-2/3">
-                                            <div className="h-3 bg-slate-200 rounded w-3/4"></div>
-                                            <div className="h-2 bg-slate-150 rounded w-1/2"></div>
+                            <div className={productView === 'card' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3' : 'p-3 space-y-2'}>
+                                {Array.from({ length: productView === 'card' ? 8 : 6 }).map((_, i) => (
+                                    productView === 'card' ? (
+                                        <div key={i} className="bg-white rounded-lg border border-slate-200 p-3 animate-pulse">
+                                            <div className="h-20 bg-slate-100 rounded-md mb-2"></div>
+                                            <div className="h-3 bg-slate-200 rounded w-3/4 mb-1.5"></div>
+                                            <div className="h-2 bg-slate-100 rounded w-1/2"></div>
                                         </div>
-                                        <div className="h-5 bg-slate-200 rounded w-12 text-right"></div>
-                                    </div>
+                                    ) : (
+                                        <div key={i} className="bg-white p-3.5 rounded-md border border-slate-200 animate-pulse flex justify-between items-center">
+                                            <div className="space-y-2 w-2/3">
+                                                <div className="h-3 bg-slate-200 rounded w-3/4"></div>
+                                                <div className="h-2 bg-slate-150 rounded w-1/2"></div>
+                                            </div>
+                                            <div className="h-5 bg-slate-200 rounded w-12 text-right"></div>
+                                        </div>
+                                    )
                                 ))}
                             </div>
                         ) : filteredProducts.length === 0 ? (
@@ -780,10 +734,80 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         : "No products found"}
                                 </p>
                             </div>
+                        ) : productView === 'card' ? (
+                            /* ── CARD VIEW ── */
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 pb-20">
+                                {filteredProducts.map((p, index) => {
+                                    const inCart = cart.find(item => item.id === p.id);
+                                    const remainingStock = p.stock_quantity - (inCart ? inCart.quantity : 0);
+                                    const isSoldOut = remainingStock <= 0;
+                                    const isLowStock = !isSoldOut && remainingStock < 10;
+                                    const appliedPrice = (isWholesaleActive && p.wholesale_price !== null) ? p.wholesale_price : p.price;
+                                    const isHighlighted = productNavIndex === index;
+
+                                    return (
+                                        <div
+                                            key={p.id}
+                                            onClick={() => !isSoldOut && triggerQtyModal(p)}
+                                            data-catalog-item-index={index}
+                                            className={`bg-white rounded-lg border flex flex-col transition-all ${
+                                                isSoldOut
+                                                    ? 'opacity-50 cursor-not-allowed border-slate-200'
+                                                    : isHighlighted
+                                                        ? 'ring-2 ring-[#1B3B6A] border-[#1B3B6A] cursor-pointer shadow-md'
+                                                        : 'border-slate-200 cursor-pointer hover:shadow-md hover:border-[#1B3B6A]'
+                                            }`}
+                                        >
+                                            {/* Image / Placeholder */}
+                                            <div className="h-20 bg-slate-50 rounded-t-lg flex items-center justify-center overflow-hidden relative border-b border-slate-100">
+                                                {p.image_path ? (
+                                                    <img src={p.image_path} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
+                                                ) : (
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7 text-slate-300">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                                                    </svg>
+                                                )}
+                                                {/* Stock badge */}
+                                                <div className={`absolute top-1 right-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase shadow-sm border ${
+                                                    isSoldOut
+                                                        ? 'bg-slate-900 text-white border-transparent'
+                                                        : isLowStock
+                                                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                                            : 'bg-slate-50 text-slate-600 border-slate-200'
+                                                }`}>
+                                                    {isSoldOut ? 'Sold Out' : `${remainingStock}`}
+                                                </div>
+                                            </div>
+
+                                            {/* Card Body */}
+                                            <div className="p-2.5 flex flex-col flex-1 justify-between">
+                                                <div>
+                                                    <h3 className="font-extrabold text-slate-900 text-xs leading-tight line-clamp-2" title={p.name}>{p.name}</h3>
+                                                    {p.category && (
+                                                        <span className="inline-flex mt-0.5 items-center px-1 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-gray-100 text-[#1B3B6A] border border-gray-200">
+                                                            {p.category.name}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="mt-2 flex justify-between items-center">
+                                                    <span className="font-extrabold font-mono text-[#1B3B6A] text-sm">
+                                                        ₱{(appliedPrice / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    </span>
+                                                    {!isSoldOut && (
+                                                        <div className="w-5 h-5 bg-gray-100 text-[#1B3B6A] rounded-full flex items-center justify-center text-base font-extrabold hover:bg-[#1B3B6A] hover:text-white transition-colors shadow-sm">
+                                                            +
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         ) : (
+                            /* ── LIST VIEW ── */
                             <div className="flex flex-col divide-y divide-slate-100">
                                 {filteredProducts.map((p, index) => {
-                                    const catColor = p.category?.color || '#f3f4f6';
                                     const inCart = cart.find(item => item.id === p.id);
                                     const remainingStock = p.stock_quantity - (inCart ? inCart.quantity : 0);
                                     const isSoldOut = remainingStock <= 0;
@@ -795,7 +819,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                             key={p.id}
                                             onClick={() => !isSoldOut && triggerQtyModal(p)}
                                             data-catalog-item-index={index}
-                                            className={`px-3 py-3.5 grid grid-cols-[1fr_90px] lg:grid-cols-[140px_1fr_100px_110px] gap-2 items-center cursor-pointer transition-colors hover:bg-slate-50 ${isHighlighted ? 'ring-2 ring-inset ring-[#1B3B6A] bg-[#1B3B6A]/5' : ''} ${isSoldOut ? 'opacity-50 cursor-not-allowed bg-slate-50/50' : ''}`}
+                                            className={`px-3 py-3.5 grid grid-cols-[1fr_90px] lg:grid-cols-[140px_1fr_100px_110px] gap-2 items-center cursor-pointer transition-colors hover:bg-gray-50 ${isHighlighted ? 'ring-2 ring-inset ring-[#1B3B6A] bg-gray-50' : ''} ${isSoldOut ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         >
                                             {/* Barcode Column */}
                                             <div className="min-w-0 font-mono text-base font-black text-slate-900 select-all hidden lg:block truncate pl-2">
@@ -810,9 +834,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                                         <span className="lg:hidden font-mono text-sm font-black text-slate-500">{p.sku}</span>
                                                     )}
                                                     {p.category && (
-                                                        <span
-                                                            className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider whitespace-nowrap bg-slate-100 text-[#1B3B6A] border border-slate-200"
-                                                        >
+                                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider whitespace-nowrap bg-gray-100 text-[#1B3B6A] border border-gray-200">
                                                             {p.category.name}
                                                         </span>
                                                     )}
@@ -874,17 +896,17 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[100] p-0 sm:p-4 backdrop-blur-sm transition-opacity">
                     <div className="bg-white w-full max-w-md h-auto max-h-[85vh] sm:max-h-[90vh] rounded-t-lg sm:rounded-lg shadow-2xl flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in">
                         {/* Header */}
-                        <div className="bg-slate-50 px-4 py-4 border-b border-slate-200 flex justify-between items-center shrink-0">
+                        <div className="bg-white px-4 py-4 border-b border-gray-200 flex justify-between items-center shrink-0">
                             <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight">Recall Saved Order</h2>
                             <button
                                 onClick={() => { setShowHeldOrdersModal(false); setHeldOrdersNavIndex(-1); }}
-                                className="p-1.5 bg-slate-200 rounded-full text-slate-600 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm"
+                                className="p-1.5 bg-gray-100 rounded-full text-slate-600 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
                         {/* Scrollable list */}
-                        <div className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar bg-slate-50 flex flex-col gap-3">
+                        <div className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar bg-white flex flex-col gap-3">
                             {heldOrders.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-12 text-slate-400">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-slate-300 mb-2"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
@@ -901,8 +923,8 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                                 key={order.id}
                                                 data-held-order-index={index}
                                                 onClick={() => setHeldOrdersNavIndex(index)}
-                                                className={`bg-white rounded-lg border transition-all p-3.5 flex flex-col gap-2.5 cursor-pointer group shadow-sm hover:bg-slate-50
-                                                    ${isSelected ? 'ring-2 ring-inset ring-[#1B3B6A] border-[#1B3B6A] bg-[#1B3B6A]/5' : 'border-slate-200'}`}
+                                                className={`bg-white rounded-lg border transition-all p-3.5 flex flex-col gap-2.5 cursor-pointer group shadow-sm hover:bg-gray-50
+                                                    ${isSelected ? 'ring-2 ring-inset ring-[#1B3B6A] border-[#1B3B6A] bg-gray-50' : 'border-gray-200'}`}
                                             >
                                                 {/* Top Row: Note & Price */}
                                                 <div className="flex justify-between items-start gap-3">
@@ -949,11 +971,11 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             )}
                         </div>
                         {/* Footer Action */}
-                        <div className="p-4 border-t border-slate-200 bg-slate-50 shrink-0">
+                        <div className="p-4 border-t border-gray-200 bg-white shrink-0">
                             <button
                                 type="button"
                                 onClick={() => { setShowHeldOrdersModal(false); setHeldOrdersNavIndex(-1); }}
-                                className="w-full py-3 bg-white text-slate-700 border border-slate-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-[0.98]"
+                                className="w-full py-3 bg-white text-slate-700 border border-gray-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-gray-100 hover:text-slate-900 transition-all active:scale-[0.98]"
                             >
                                 Cancel<span className="hidden md:inline"> (Esc)</span>
                             </button>
@@ -966,11 +988,11 @@ export default function PosTerminal({ auth, store_settings, settings }) {
             {showQtyModal && qtyModalProduct && (
                 <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 transition-opacity">
                     <div className="bg-white w-full max-w-sm h-auto max-h-[85vh] sm:max-h-[90vh] rounded-t-lg sm:rounded-lg shadow-2xl flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in">
-                        <div className="bg-slate-50 px-4 py-4 border-b border-slate-200 flex justify-between items-center shrink-0">
+                        <div className="bg-white px-4 py-4 border-b border-gray-200 flex justify-between items-center shrink-0">
                             <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight">Enter Quantity</h2>
                             <button
                                 onClick={closeQtyModal}
-                                className="p-1.5 bg-slate-200 rounded-full text-slate-600 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm"
+                                className="p-1.5 bg-gray-100 rounded-full text-slate-600 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
@@ -986,7 +1008,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             </div>
 
                             {/* Quantity Input Wrapper */}
-                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 shadow-inner flex-1 flex flex-col justify-center">
+                            <div className="bg-white p-4 rounded-lg border border-gray-200 flex-1 flex flex-col justify-center">
                                 <label className="block text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-widest mb-2 text-left">Quantity</label>
                                 <input
                                     type="number"
@@ -995,7 +1017,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     max={qtyModalProduct.stock_quantity}
                                     value={qtyModalInput}
                                     onChange={(e) => setQtyModalInput(e.target.value)}
-                                    className="w-full px-4 py-3 text-center text-3xl font-black text-slate-900 border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] shadow-sm font-mono"
+                                    className="w-full px-4 py-3 text-center text-3xl font-black text-slate-900 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] shadow-sm font-mono"
                                     placeholder="0"
                                     autoFocus
                                     onFocus={(e) => e.target.select()}
@@ -1024,7 +1046,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                 <button
                                     type="button"
                                     onClick={closeQtyModal}
-                                    className="w-full py-3 bg-white text-slate-700 border border-slate-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-[0.98]"
+                                    className="w-full py-3 bg-white text-slate-700 border border-gray-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-gray-100 hover:text-slate-900 transition-all active:scale-[0.98]"
                                 >
                                     Cancel<span className="hidden md:inline"> (Esc)</span>
                                 </button>
@@ -1033,117 +1055,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                     </div>
                 </div>
             )}
-            {/* CUSTOM ITEM MODAL (QUICK ADD) */}
-            {showCustomItemModal && (
-                <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[110] p-0 sm:p-4 backdrop-blur-sm transition-opacity">
-                    <div className="bg-white w-full max-w-md h-auto max-h-[85vh] sm:max-h-[90vh] rounded-t-lg sm:rounded-lg shadow-2xl flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in">
-                        {/* Header */}
-                        <div className="bg-slate-50 px-4 py-4 border-b border-slate-200 flex justify-between items-center shrink-0">
-                            <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight">Quick Add Custom Item</h2>
-                            <button
-                                onClick={() => setShowCustomItemModal(false)}
-                                className="p-1.5 bg-slate-200 rounded-full text-slate-600 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
-                        </div>
-                        {/* Form body */}
-                        <form onSubmit={handleAddCustomItem} className="flex-1 p-4 md:p-5 flex flex-col gap-4 bg-white">
-                            {/* Quantity */}
-                            <div>
-                                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Qty (F1)" : "Qty"}</label>
-                                <input
-                                    id="quick-add-qty-input"
-                                    type="number"
-                                    required
-                                    value={customItemForm.qty}
-                                    onChange={(e) => setCustomItemForm({ ...customItemForm, qty: e.target.value })}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            document.getElementById('quick-add-name-input')?.focus();
-                                        }
-                                    }}
-                                    className="w-full border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-slate-900 shadow-sm"
-                                    step="any"
-                                    min="0.01"
-                                    placeholder="e.g. 0.5 or 1"
-                                />
-                            </div>
 
-                            {/* Description / Name */}
-                            <div>
-                                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Description (F2)" : "Description"}</label>
-                                <input
-                                    id="quick-add-name-input"
-                                    type="text"
-                                    required
-                                    value={customItemForm.name}
-                                    onChange={(e) => setCustomItemForm({ ...customItemForm, name: e.target.value })}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            document.getElementById('quick-add-price-input')?.focus();
-                                        }
-                                    }}
-                                    className="w-full border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-slate-900 shadow-sm"
-                                    placeholder="e.g. Pork"
-                                />
-                            </div>
-
-                            {/* Unit Price & Total Amount Preview */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5">{showFKeys ? "Price (₱) (F3)" : "Price (₱)"}</label>
-                                    <input
-                                        id="quick-add-price-input"
-                                        type="number"
-                                        step="0.01"
-                                        required
-                                        value={customItemForm.price}
-                                        onChange={(e) => setCustomItemForm({ ...customItemForm, price: e.target.value })}
-                                        className="w-full border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-2.5 px-3 text-sm font-semibold text-slate-900 shadow-sm"
-                                        placeholder="0.00"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5">Amount (₱)</label>
-                                    <input
-                                        type="text"
-                                        disabled
-                                        value={
-                                            (!isNaN(parseFloat(customItemForm.qty)) && !isNaN(parseFloat(customItemForm.price)))
-                                                ? (parseFloat(customItemForm.qty) * parseFloat(customItemForm.price)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                                                : "0.00"
-                                        }
-                                        className="w-full border border-slate-200 bg-slate-100 rounded-lg py-2.5 px-3 text-sm font-black text-slate-700 font-mono shadow-sm cursor-not-allowed text-right"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Actions Group */}
-                            <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-slate-200 shrink-0">
-                                <button
-                                    id="custom-item-form-submit-btn"
-                                    type="submit"
-                                    className="w-full py-3.5 bg-[#1B3B6A] hover:bg-[#142d52] text-white font-black text-sm uppercase tracking-widest rounded-lg shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-                                >
-                                    Add Item<span className="hidden md:inline"> (Enter)</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowCustomItemModal(false)}
-                                    className="w-full py-3 bg-white text-slate-700 border border-slate-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-[0.98]"
-                                >
-                                    Cancel<span className="hidden md:inline"> (Esc)</span>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
         </AuthenticatedLayout>
     );
 }

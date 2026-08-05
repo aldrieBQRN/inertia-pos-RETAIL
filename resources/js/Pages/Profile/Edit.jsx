@@ -26,7 +26,7 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
     const getRoleBadge = (role) => {
         const baseClass = "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider inline-flex items-center justify-center shrink-0 border";
         if (role === 'super_admin') return <span className={`${baseClass} bg-purple-50 text-purple-700 border-purple-200/60`}>Super Admin</span>;
-        if (role === 'admin') return <span className={`${baseClass} bg-blue-50 text-blue-700 border-blue-200/60`}>Store Admin</span>;
+        if (role === 'admin') return <span className={`${baseClass} bg-[#EFF4F9] text-[#1B3B6A] border-[#CBD7E6]`}>Store Admin</span>;
         return <span className={`${baseClass} bg-emerald-50 text-emerald-700 border-emerald-200/60`}>Cashier</span>;
     };
 
@@ -110,7 +110,7 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
         >
             <Head title="Profile" />
 
-            <div className="py-0 sm:py-8 lg:py-16 bg-gray-100 sm:bg-[#FAFAFA] min-h-[calc(100vh-65px)] sm:min-h-screen selection:bg-gray-900 selection:text-white">
+            <div className="py-0 sm:py-8 lg:py-16 bg-gray-100 sm:bg-[#FAFAFA] min-h-[calc(100vh-65px)] sm:min-h-screen selection:bg-[#1B3B6A] selection:text-white">
                 <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-2 sm:gap-8 lg:gap-12 items-start animate-in fade-in sm:slide-in-from-bottom-4 duration-500">
 
@@ -119,7 +119,7 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                             <div className="bg-white sm:rounded-2xl sm:shadow-[0_2px_8px_rgb(0,0,0,0.04)] border-y sm:border border-gray-200/60 p-6 sm:p-8 text-center relative overflow-hidden flex flex-col items-center">
 
                                 {/* Subtle decorative background glow */}
-                                <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-gradient-to-b from-gray-50 to-transparent pointer-events-none"></div>
+                                <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-gradient-to-b from-[#EFF4F9] to-transparent pointer-events-none"></div>
 
                                 {/* Avatar */}
                                 <div className="relative inline-block mb-3 sm:mb-5">
@@ -152,16 +152,16 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                                         <>
                                             <button
                                                 onClick={() => setShowProfileModal(true)}
-                                                className="w-full flex items-center justify-center gap-2 px-6 py-3 sm:py-3.5 rounded-md sm:rounded-lg bg-gray-900 text-white font-bold sm:font-semibold text-sm hover:bg-black transition-all active:scale-[0.98] sm:shadow-[0_4px_12px_rgb(0,0,0,0.1)]"
+                                                className="w-full flex items-center justify-center gap-2 px-6 py-3 sm:py-3.5 rounded-md sm:rounded-lg bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold sm:font-semibold text-sm transition-all active:scale-[0.98] shadow-md"
                                             >
                                                 <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                                 Edit Profile
                                             </button>
                                             <button
                                                 onClick={() => setShowPasswordModal(true)}
-                                                className="w-full flex items-center justify-center gap-2 px-6 py-3 sm:py-3.5 rounded-md sm:rounded-lg bg-white border border-gray-200 text-gray-700 font-bold sm:font-semibold text-sm hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-[0.98] shadow-sm sm:shadow-none"
+                                                className="w-full flex items-center justify-center gap-2 px-6 py-3 sm:py-3.5 rounded-md sm:rounded-lg bg-white border border-[#CBD7E6] text-[#1B3B6A] font-bold sm:font-semibold text-sm hover:bg-[#EFF4F9] transition-all active:scale-[0.98] shadow-xs"
                                             >
-                                                <svg className="w-4 h-4 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                                <svg className="w-4 h-4 shrink-0 text-[#1B3B6A]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                                                 Security Settings
                                             </button>
                                         </>
@@ -187,7 +187,7 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                             <div className="bg-white sm:rounded-2xl sm:shadow-[0_2px_8px_rgb(0,0,0,0.04)] border-y sm:border border-gray-200/60 overflow-hidden">
                                 <div className="px-4 sm:px-8 py-3.5 sm:py-5 border-b border-gray-100/80 bg-white">
                                     <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2.5 uppercase sm:normal-case tracking-wider sm:tracking-normal text-[11px] sm:text-sm text-gray-500 sm:text-gray-900">
-                                        <div className="hidden sm:block p-1.5 bg-blue-50 text-blue-600 rounded-md">
+                                        <div className="hidden sm:block p-1.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-md">
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                                         </div>
                                         Personal Information
@@ -218,7 +218,7 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                             <div className="bg-white sm:rounded-2xl sm:shadow-[0_2px_8px_rgb(0,0,0,0.04)] border-y sm:border border-gray-200/60 overflow-hidden">
                                 <div className="px-4 sm:px-8 py-3.5 sm:py-5 border-b border-gray-100/80 bg-white">
                                     <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2.5 uppercase sm:normal-case tracking-wider sm:tracking-normal text-[11px] sm:text-sm text-gray-500 sm:text-gray-900">
-                                        <div className="hidden sm:block p-1.5 bg-indigo-50 text-indigo-600 rounded-md">
+                                        <div className="hidden sm:block p-1.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-md">
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                         </div>
                                         Location & Address

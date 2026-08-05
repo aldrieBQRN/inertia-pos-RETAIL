@@ -71,7 +71,7 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
                     inputAttributes: { maxlength: 6, pattern: '[0-9]*', inputMode: 'numeric' },
                     showCancelButton: true,
                     confirmButtonText: 'Verify & Save',
-                    confirmButtonColor: '#111827'
+                    confirmButtonColor: '#1B3B6A'
                 });
 
                 if (isDismissed) return; // Stop if they clicked cancel
@@ -99,24 +99,17 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
                 }
                 // Fallback for weird server errors
                 else {
-                    Swal.fire('Error', 'Something went wrong.', 'error');
+                    Swal.fire('Error', 'Failed to send verification code. Please try again.', 'error');
                 }
             }
         } else {
-            // Email was not changed, just save the profile normally
+            // Email didn't change, just update the profile directly!
             patchProfile();
         }
     };
 
     const patchProfile = () => {
-        Swal.fire({
-            title: 'Saving Profile...',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); }
-        });
-
         post(route('profile.update'), {
-            preserveScroll: true,
             forceFormData: true,
             onSuccess: () => {
                 onClose();
@@ -124,7 +117,7 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
                     icon: 'success',
                     title: 'Profile Updated!',
                     text: 'Your account information has been saved.',
-                    confirmButtonColor: '#111827'
+                    confirmButtonColor: '#1B3B6A'
                 });
             },
             onError: () => {
@@ -135,7 +128,7 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
 
     const getInitials = (name) => name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '??';
 
-    const inputClasses = "w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400";
+    const inputClasses = "w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400";
     const labelClasses = "block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5";
     const errorClasses = "text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide";
 
@@ -296,7 +289,7 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
                     <button
                         type="button"
                         onClick={onClose}
-                        className="order-2 sm:order-1 w-full sm:w-auto px-6 py-3.5 sm:py-3 text-gray-600 font-semibold bg-white border border-gray-300 hover:bg-gray-50 rounded-lg text-sm transition-all active:scale-[0.98]"
+                        className="order-2 sm:order-1 w-full sm:w-auto px-6 py-3.5 sm:py-3 text-[#1B3B6A] font-bold bg-white border border-[#CBD7E6] hover:bg-[#EFF4F9] rounded-lg text-sm transition-all active:scale-[0.98] shadow-xs"
                     >
                         Cancel
                     </button>
@@ -304,7 +297,7 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
                         type="submit"
                         form="profile-form"
                         disabled={processing || isLoading || isSendingOtp}
-                        className="order-1 sm:order-2 w-full sm:w-auto px-8 py-3.5 sm:py-3 bg-gray-900 hover:bg-black text-white font-semibold rounded-lg shadow-md text-sm transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="order-1 sm:order-2 w-full sm:w-auto px-8 py-3.5 sm:py-3 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold rounded-lg shadow-md text-sm transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                         {processing || isSendingOtp ? (
                             <>

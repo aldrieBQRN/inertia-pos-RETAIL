@@ -63,7 +63,7 @@ export default function CartSidebar({
             const desktopRow = items[focusedIndex * 2];
             const mobileRow = items[focusedIndex * 2 + 1];
             const activeRow = (desktopRow && (desktopRow.offsetWidth > 0 || desktopRow.offsetHeight > 0)) ? desktopRow : mobileRow;
-            
+
             if (activeRow) {
                 activeRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
             }
@@ -481,7 +481,7 @@ export default function CartSidebar({
                     </div>
                 </div>
                 {/* SUB-HEADER: COLUMN HEADERS — desktop only */}
-                <div className="px-3 py-2.5 bg-slate-50 border-t border-b border-slate-200 lg:border-t-2 lg:border-b-2 lg:border-slate-300 shrink-0 hidden lg:block">
+                <div className="px-3 py-2.5 bg-white border-t border-b border-slate-200 lg:border-t-2 lg:border-b-2 lg:border-slate-300 shrink-0 hidden lg:block">
                     {/* COLUMNS HEADERS */}
                     <div className="grid grid-cols-[90px_1fr_100px_110px] gap-2 text-xs font-black uppercase tracking-wider text-slate-500 font-mono">
                         <div className="text-center">Qty</div>
@@ -492,14 +492,14 @@ export default function CartSidebar({
                 </div>
 
                 {/* CART ITEMS LIST */}
-                <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar">
+                <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar bg-white">
                     {cart.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-slate-300 pb-10">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-10 h-10 md:w-12 md:h-12 mb-2"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>
                             <p className="text-xs md:text-sm font-medium text-slate-400">Cart is empty</p>
                         </div>
                     ) : (
-                        <div className="flex flex-col p-2 lg:p-0 gap-2 lg:gap-0">
+                        <div className="flex flex-col p-2 lg:p-0 gap-2 lg:gap-0 bg-white">
                             {cart.map((item, index) => (
                                 <React.Fragment key={item.id}>
                                     {/* Desktop Row */}
@@ -512,7 +512,7 @@ export default function CartSidebar({
                                             window.dispatchEvent(new CustomEvent('reset-catalog-nav'));
                                             setFocusedIndex(index);
                                         }}
-                                        className={`w-full cart-item-row hidden lg:grid grid-cols-[90px_1fr_100px_110px] gap-2 px-3 py-3 items-center border-b border-slate-100 hover:bg-slate-50 transition-colors text-base font-bold group cursor-pointer ${focusedIndex === index ? 'ring-2 ring-inset ring-[#1B3B6A] bg-[#1B3B6A]/5' : ''}`}
+                                        className={`w-full cart-item-row hidden lg:grid grid-cols-[90px_1fr_100px_110px] gap-2 px-3 py-3 items-center border-b border-slate-100 hover:bg-gray-50 transition-colors text-base font-bold group cursor-pointer ${focusedIndex === index ? 'ring-2 ring-inset ring-[#1B3B6A] bg-gray-50' : ''}`}
                                     >
                                         {/* QTY Column with Hover Controls */}
                                         <div className="flex items-center justify-between h-6 select-none relative w-full">
@@ -524,7 +524,7 @@ export default function CartSidebar({
                                                             removeFromCart(item.id);
                                                         }}
                                                         disabled={disabled}
-                                                        className={`w-6 h-6 bg-slate-100 border border-slate-200 hover:bg-[#1B3B6A] hover:text-white hover:border-[#1B3B6A] text-slate-700 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
+                                                        className={`w-6 h-6 bg-gray-100 border border-gray-200 hover:bg-[#1B3B6A] hover:text-white hover:border-[#1B3B6A] text-slate-700 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
                                                         title="Decrease"
                                                     >
                                                         -
@@ -538,7 +538,7 @@ export default function CartSidebar({
                                                             handleIncreaseQty(item);
                                                         }}
                                                         disabled={disabled}
-                                                        className={`w-6 h-6 bg-slate-100 border border-slate-200 hover:bg-[#1B3B6A] hover:text-white hover:border-[#1B3B6A] text-slate-700 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
+                                                        className={`w-6 h-6 bg-gray-100 border border-gray-200 hover:bg-[#1B3B6A] hover:text-white hover:border-[#1B3B6A] text-slate-700 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
                                                         title="Increase"
                                                     >
                                                         +
@@ -556,15 +556,15 @@ export default function CartSidebar({
                                             <span className="font-extrabold text-slate-900 truncate leading-tight block select-none" title={item.name}>
                                                 {item.name}
                                             </span>
-                                             <button
-                                                 onClick={(e) => {
-                                                     e.stopPropagation();
-                                                     handleRemoveEntireItem(item);
-                                                 }}
-                                                 disabled={disabled}
-                                                 className={`text-slate-400 hover:text-rose-600 p-0.5 rounded transition-all shrink-0 ml-1 disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'md:opacity-100' : 'md:opacity-0 md:group-hover:opacity-100')}`}
-                                                 title="Delete"
-                                             >
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRemoveEntireItem(item);
+                                                }}
+                                                disabled={disabled}
+                                                className={`text-slate-400 hover:text-rose-600 p-0.5 rounded transition-all shrink-0 ml-1 disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'md:opacity-100' : 'md:opacity-0 md:group-hover:opacity-100')}`}
+                                                title="Delete"
+                                            >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                             </button>
                                         </div>
@@ -588,7 +588,7 @@ export default function CartSidebar({
                                             window.dispatchEvent(new CustomEvent('reset-catalog-nav'));
                                             setFocusedIndex(index);
                                         }}
-                                        className={`w-full cart-item-row flex lg:hidden flex-col p-3.5 border rounded-lg bg-white transition-all relative cursor-pointer ${focusedIndex === index ? 'ring-2 ring-[#1B3B6A] bg-[#1B3B6A]/5 border-[#1B3B6A]' : 'border-slate-200'}`}
+                                        className={`w-full cart-item-row flex lg:hidden flex-col p-3.5 border rounded-lg bg-white transition-all relative cursor-pointer ${focusedIndex === index ? 'ring-2 ring-[#1B3B6A] bg-gray-50 border-[#1B3B6A]' : 'border-slate-200'}`}
                                     >
                                         {/* Top section: Name and Delete button */}
                                         <div className="flex justify-between items-start gap-2">
@@ -612,7 +612,7 @@ export default function CartSidebar({
                                         <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
                                             {/* Left: Qty Selector */}
                                             {!item.is_custom ? (
-                                                <div className="flex items-center h-7 select-none relative bg-slate-50 border border-slate-200 rounded-full px-1 py-0.5">
+                                                <div className="flex items-center h-7 select-none relative bg-white border border-slate-200 rounded-full px-1 py-0.5">
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
@@ -640,7 +640,7 @@ export default function CartSidebar({
                                                     </button>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center h-7 select-none relative px-2 text-xs font-black text-slate-500 bg-slate-100 border border-slate-200 rounded-lg font-mono">
+                                                <div className="flex items-center h-7 select-none relative px-2 text-xs font-black text-slate-500 bg-gray-100 border border-slate-200 rounded-lg font-mono">
                                                     QTY: <span className="text-slate-900 ml-1">{item.quantity}</span>
                                                 </div>
                                             )}
@@ -665,7 +665,7 @@ export default function CartSidebar({
                 </div>
 
                 {/* FOOTER TOTALS & ACTIONS */}
-                <div className="border-t p-3 md:p-4 bg-slate-50 border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)]">
+                <div className="border-t p-3 md:p-4 bg-white border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)]">
                     <div className="space-y-1.5 mb-3">
                         <div className="flex justify-between text-sm text-slate-500 font-bold">
                             <span>Cash Sales (Subtotal)</span>
@@ -689,14 +689,14 @@ export default function CartSidebar({
                         <button
                             onClick={() => handleSaveOrder()}
                             disabled={disabled || cart.length === 0}
-                            className="w-full py-4 md:py-3.5 rounded-lg bg-slate-200 text-slate-800 font-extrabold text-sm sm:text-xs md:text-sm lg:text-base hover:bg-slate-300 active:bg-slate-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors active:scale-95"
+                            className="w-full py-4 md:py-3.5 rounded-lg bg-gray-100 text-slate-800 font-extrabold text-sm sm:text-xs md:text-sm lg:text-base border border-slate-200 hover:bg-gray-200 active:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors active:scale-95"
                         >
                             {showFKeys ? "Save (F8)" : "Save"}
                         </button>
                         <button
                             onClick={openCashDrawer}
                             disabled={disabled}
-                            className="w-full py-4 md:py-3.5 rounded-lg bg-slate-100 text-slate-700 font-extrabold text-sm sm:text-xs md:text-sm lg:text-base hover:bg-slate-200 border border-slate-300 hover:border-slate-400 active:bg-slate-300 transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full py-4 md:py-3.5 rounded-lg bg-gray-100 text-slate-700 font-extrabold text-sm sm:text-xs md:text-sm lg:text-base hover:bg-gray-200 border border-slate-300 hover:border-slate-400 active:bg-gray-300 transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {showFKeys ? "Drawer (F11)" : "Drawer"}
                         </button>
@@ -725,10 +725,10 @@ export default function CartSidebar({
             )}
 
             {/* SUCCESS MODAL PORTAL */}
-           {showSuccessModal && typeof document !== 'undefined' && createPortal(
+            {showSuccessModal && typeof document !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
                     <div className="bg-white rounded-lg shadow-2xl w-full max-w-sm overflow-hidden text-center p-6 flex flex-col items-center">
-                        <div className="w-12 h-12 md:w-16 md:h-16 bg-slate-100 rounded-full flex items-center justify-center mb-3 md:mb-4">
+                        <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 md:mb-4">
                             <svg className="w-8 h-8 md:w-10 md:h-10 text-[#1B3B6A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                         </div>
 
@@ -736,7 +736,7 @@ export default function CartSidebar({
 
                         {/* Transaction Summary (Total, Cash, Change) */}
                         {successDetails && (
-                            <div className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 my-3 text-left font-sans text-sm space-y-2.5 shadow-inner">
+                            <div className="w-full bg-white border border-slate-200 rounded-xl p-4 my-3 text-left font-sans text-sm space-y-2.5 shadow-sm">
                                 <div className="flex justify-between items-center text-slate-600">
                                     <span className="font-bold text-xs uppercase tracking-wider text-slate-400">Total Amount Due</span>
                                     <span className="font-black text-slate-900 text-base">₱{successDetails.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
