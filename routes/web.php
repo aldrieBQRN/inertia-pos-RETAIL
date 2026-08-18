@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 /**
@@ -267,6 +268,18 @@ Route::middleware(['auth', 'super_admin'])->prefix('developer')->group(function 
 });
 
 require __DIR__ . '/auth.php';
+
+/**
+ * PUBLIC STORAGE ASSET SERVING ROUTE
+ * Streams uploaded store logos and product images directly from storage/app/public/
+ * Works on InfinityFree / shared hosting without symlink support
+ */
+Route::get('/storage/{path}', function ($path) {
+    if (!Storage::disk('public')->exists($path)) {
+        abort(404, 'File not found');
+    }
+    return Storage::disk('public')->response($path);
+})->where('path', '.*')->name('storage.local');
 
 /**
  * SECURE PRODUCTION DATABASE & SYSTEM UTILITY ROUTE
