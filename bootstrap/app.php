@@ -37,13 +37,16 @@ $app = Application::configure(basePath: dirname(__DIR__))
 
         // 3. Render Custom Inertia Error Pages
         $exceptions->respond(function (Response $response, \Throwable $exception, Request $request) {
+            // Bypass Inertia custom error page for utility/migration routes
+            if ($request->is('artisan-migrate*') || $request->is('api/*')) {
+                return $response;
+            }
+
             $validStatuses = [500, 503, 404, 403];
 
             if (in_array($response->getStatusCode(), $validStatuses)) {
-
                 // If we are in local development mode, let Laravel show its detailed error page for 500 crashes
-                // But ALWAYS show the custom Inertia 404/403 pages so you don't get stuck while testing!
-                if (app()->environment(['local', 'testing']) && $response->getStatusCode() === 500) {
+                if (config('app.debug') && $response->getStatusCode() === 500) {
                     return $response;
                 }
 
