@@ -62,8 +62,25 @@ class ImageCompressionService
             $filename = $this->generateRandomFilename('webp');
             $fullPath = $path . '/' . $filename;
 
-            // Store the compressed image - convert to string
-            Storage::disk('public')->put($fullPath, (string)$webpImage);
+            // Store the compressed image in public storage disk
+            $disk = Storage::disk('public');
+            $directory = dirname($fullPath);
+            if (!$disk->exists($directory)) {
+                $disk->makeDirectory($directory);
+            }
+            $disk->put($fullPath, (string)$webpImage);
+
+            // Mirror directly into public/storage for direct web server serving
+            try {
+                $publicTarget = public_path('storage/' . $fullPath);
+                $publicDir = dirname($publicTarget);
+                if (!is_dir($publicDir)) {
+                    @mkdir($publicDir, 0775, true);
+                }
+                @file_put_contents($publicTarget, (string)$webpImage);
+            } catch (\Throwable $t) {
+                // Ignore mirror failure if public_path is read-only
+            }
 
             return $fullPath;
         } catch (\Exception $e) {
@@ -74,9 +91,19 @@ class ImageCompressionService
             // Get the original extension
             $extension = $file->getClientOriginalExtension();
             $filename = $this->generateRandomFilename($extension);
+            $fullPath = $path . '/' . $filename;
 
             if ($file->isValid() && !empty($file->getPathname())) {
-                return Storage::disk('public')->putFileAs($path, $file, $filename);
+                $stored = Storage::disk('public')->putFileAs($path, $file, $filename);
+                try {
+                    $publicTarget = public_path('storage/' . $fullPath);
+                    $publicDir = dirname($publicTarget);
+                    if (!is_dir($publicDir)) {
+                        @mkdir($publicDir, 0775, true);
+                    }
+                    @copy($file->getPathname(), $publicTarget);
+                } catch (\Throwable $t) {}
+                return $stored;
             }
             throw new \Exception('Uploaded file is invalid or has no valid real path: ' . $e->getMessage());
         }
@@ -127,6 +154,6 @@ class ImageCompressionService
      */
     public function compressLogo(UploadedFile $file): string
     {
-        return $this->compressAndStore($file, 'system', quality: 90, maxWidth: 500);
+        return $this->compressAndStore($file, 'logos', quality: 90, maxWidth: 500);
     }
 }
