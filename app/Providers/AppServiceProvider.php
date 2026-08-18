@@ -24,11 +24,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Set correct public path when core is nested inside htdocs (e.g. InfinityFree)
+        // Automatically bind parent directory as public path when core is nested (e.g. htdocs on InfinityFree)
         if (file_exists(base_path('../index.php')) && file_exists(base_path('../build'))) {
             $this->app->usePublicPath(realpath(base_path('..')));
-        } elseif (file_exists(base_path('../public_html'))) {
-            $this->app->usePublicPath(realpath(base_path('../public_html')));
         }
     }
 
