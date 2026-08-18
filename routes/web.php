@@ -283,7 +283,7 @@ Route::get('/artisan-migrate', function (Request $request) {
             . "<p>The token provided in the URL did not match the <code>MIGRATION_TOKEN</code> (or <code>APP_KEY</code>) on the server.</p>"
             . "<p><strong>Your URL token:</strong> <code>" . htmlspecialchars($providedToken ?: '(empty)') . "</code></p>"
             . "<p>Please ensure <code>MIGRATION_TOKEN</code> in your <code>env.php</code> or <code>.env</code> matches.</p>"
-            . "</div>", 403, ['Content-Type' => 'text/html']);
+            . "</div>", 200, ['Content-Type' => 'text/html']);
     }
 
     $output = [];
@@ -300,7 +300,7 @@ Route::get('/artisan-migrate', function (Request $request) {
             . "<p><strong>Database:</strong> <code>" . config('database.connections.mysql.database') . "</code></p>"
             . "<p><strong>Username:</strong> <code>" . config('database.connections.mysql.username') . "</code></p>"
             . "<p><strong>Error:</strong> <span style='color:#dc2626;font-weight:bold;'>" . htmlspecialchars($e->getMessage()) . "</span></p>"
-            . "</div>", 500, ['Content-Type' => 'text/html']);
+            . "</div>", 200, ['Content-Type' => 'text/html']);
     }
 
     try {
