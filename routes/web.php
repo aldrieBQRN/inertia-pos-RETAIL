@@ -275,17 +275,24 @@ require __DIR__ . '/auth.php';
  * Works on InfinityFree / shared hosting without symlink support
  */
 Route::get('/storage/{path}', function ($path) {
-    $fullPath = storage_path('app/public/' . $path);
-    if (file_exists($fullPath)) {
-        return response()->file($fullPath);
+    $cleanPath = ltrim($path, '/');
+    $candidates = [
+        storage_path('app/public/' . $cleanPath),
+        base_path('storage/app/public/' . $cleanPath),
+        __DIR__ . '/../storage/app/public/' . $cleanPath,
+        public_path('storage/' . $cleanPath),
+        dirname(__DIR__) . '/inertia-pos-core/storage/app/public/' . $cleanPath,
+        $_SERVER['DOCUMENT_ROOT'] . '/inertia-pos-core/storage/app/public/' . $cleanPath,
+        $_SERVER['DOCUMENT_ROOT'] . '/storage/' . $cleanPath,
+    ];
+
+    foreach ($candidates as $file) {
+        if (!empty($file) && file_exists($file) && is_file($file)) {
+            return response()->file($file);
+        }
     }
 
-    $altPath = public_path('storage/' . $path);
-    if (file_exists($altPath)) {
-        return response()->file($altPath);
-    }
-
-    abort(404, 'File not found');
+    abort(404, 'File not found: ' . htmlspecialchars($cleanPath));
 })->where('path', '.*')->name('storage.local');
 
 /**

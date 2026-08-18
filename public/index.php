@@ -48,6 +48,12 @@ $storageDirs = [
     $corePath . '/storage/framework/sessions',
     $corePath . '/storage/framework/cache/data',
     $corePath . '/storage/logs',
+    $corePath . '/storage/app/public',
+    $corePath . '/storage/app/public/system',
+    $corePath . '/storage/app/public/logos',
+    $corePath . '/storage/app/public/products',
+    $corePath . '/storage/app/public/avatars',
+    $corePath . '/storage/app/public/receipts',
     $corePath . '/bootstrap/cache',
 ];
 foreach ($storageDirs as $dir) {
