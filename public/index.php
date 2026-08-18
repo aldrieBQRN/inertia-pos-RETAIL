@@ -7,10 +7,12 @@ define('LARAVEL_START', microtime(true));
 
 // Find core directory path across possible InfinityFree directory layouts
 $coreCandidates = [
+    __DIR__ . '/inertia-pos-core',
+    __DIR__ . '/core',
+    __DIR__,
     __DIR__ . '/..',
     __DIR__ . '/../inertia-pos-core',
     __DIR__ . '/../../inertia-pos-core',
-    __DIR__ . '/../../../inertia-pos-core',
 ];
 
 $corePath = null;

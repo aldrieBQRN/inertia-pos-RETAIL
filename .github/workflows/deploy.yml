@@ -35,13 +35,13 @@ jobs:
           npm ci
           npm run build
 
-      - name: 6. Deploy Private Core Files to /inertia-pos-core/ (Outside Web Root)
+      - name: 6. Deploy Private Core Files to htdocs/inertia-pos-core/
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: inertia-pos-core/
+          server-dir: htdocs/inertia-pos-core/
           exclude: |
             **/.git*
             **/.git*/**

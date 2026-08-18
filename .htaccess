@@ -8,7 +8,7 @@ Options -Indexes
 </FilesMatch>
 
 # 3. Block direct web access to sensitive system files & database/log extensions
-<FilesMatch "(^#.*#|\.(bak|config|dist|fla|inc|ini|log|psd|sh|sql|sw[op]|sqlite)|composer\.json|composer\.lock|package\.json|package-lock\.json|artisan|phpunit\.xml)$">
+<FilesMatch "(^#.*#|\.(bak|config|dist|fla|inc|ini|log|psd|sh|sql|sw[op]|sqlite)|composer\.json|composer\.lock|package\.json|package-lock\.json|artisan|phpunit\.xml|env\.php|custom_env\.php)$">
     Order allow,deny
     Deny from all
 </FilesMatch>
@@ -18,7 +18,7 @@ Options -Indexes
     RewriteBase /
 
     # 4. Block direct web access to internal Laravel directories
-    RewriteRule ^(app|bootstrap|config|database|resources|routes|vendor|storage/framework|storage/logs)(/.*)?$ - [F,L]
+    RewriteRule ^(inertia-pos-core|core|app|bootstrap|config|database|resources|routes|vendor|storage/framework|storage/logs)(/.*)?$ - [F,L]
 
     # 5. Route build assets to public/build
     RewriteRule ^build/(.*)$ public/build/$1 [L]
