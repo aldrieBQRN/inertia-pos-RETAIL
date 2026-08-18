@@ -24,8 +24,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Bind the correct public path in production where core code sits parallel to public_html
-        if (file_exists(base_path('../public_html'))) {
+        // Set correct public path when core is nested inside htdocs (e.g. InfinityFree)
+        if (file_exists(base_path('../index.php')) && file_exists(base_path('../build'))) {
+            $this->app->usePublicPath(realpath(base_path('..')));
+        } elseif (file_exists(base_path('../public_html'))) {
             $this->app->usePublicPath(realpath(base_path('../public_html')));
         }
     }
