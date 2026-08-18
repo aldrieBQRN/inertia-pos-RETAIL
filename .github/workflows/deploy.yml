@@ -46,6 +46,7 @@ jobs:
             **/.git*
             **/.git*/**
             **/node_modules/**
+            **/vendor/**
             **/public/**
             **/tests/**
             **/e2e/**
