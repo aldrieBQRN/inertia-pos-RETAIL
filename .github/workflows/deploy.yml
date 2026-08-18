@@ -53,6 +53,9 @@ jobs:
             **/manual_testing_checklist*
             **/*.md
             .env
+            .env.*
+            *.env
+            env.txt
             .env.example
             phpunit.xml
 

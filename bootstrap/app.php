@@ -55,3 +55,16 @@ return Application::configure(basePath: dirname(__DIR__))
             return $response;
         });
     })->create();
+
+// Support alternative environment filenames for InfinityFree (e.g. app.env, env.txt, production.env)
+if (!file_exists($app->environmentFilePath())) {
+    if (file_exists($app->basePath('app.env'))) {
+        $app->loadEnvironmentFrom('app.env');
+    } elseif (file_exists($app->basePath('env.txt'))) {
+        $app->loadEnvironmentFrom('env.txt');
+    } elseif (file_exists($app->basePath('production.env'))) {
+        $app->loadEnvironmentFrom('production.env');
+    }
+}
+
+return $app;
