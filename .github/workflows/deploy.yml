@@ -57,6 +57,8 @@ jobs:
             .env.*
             *.env
             env.txt
+            env.php
+            custom_env.php
             .env.example
             phpunit.xml
 

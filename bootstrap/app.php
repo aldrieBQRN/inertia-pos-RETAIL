@@ -56,12 +56,21 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })->create();
 
-// Support alternative environment filenames for InfinityFree (e.g. app.env, env.txt, production.env)
-if (!file_exists($app->environmentFilePath())) {
-    if (file_exists($app->basePath('app.env'))) {
-        $app->loadEnvironmentFrom('app.env');
-    } elseif (file_exists($app->basePath('env.txt'))) {
+// Support alternative environment files for InfinityFree (env.php, env.txt, app.env)
+if (file_exists($envPhp = $app->basePath('env.php')) || file_exists($envPhp = $app->basePath('custom_env.php'))) {
+    $envVars = require $envPhp;
+    if (is_array($envVars)) {
+        foreach ($envVars as $key => $value) {
+            putenv("{$key}={$value}");
+            $_ENV[$key] = (string) $value;
+            $_SERVER[$key] = (string) $value;
+        }
+    }
+} elseif (!file_exists($app->environmentFilePath())) {
+    if (file_exists($app->basePath('env.txt'))) {
         $app->loadEnvironmentFrom('env.txt');
+    } elseif (file_exists($app->basePath('app.env'))) {
+        $app->loadEnvironmentFrom('app.env');
     } elseif (file_exists($app->basePath('production.env'))) {
         $app->loadEnvironmentFrom('production.env');
     }
