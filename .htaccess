@@ -25,14 +25,16 @@ Options -Indexes
     RewriteEngine On
     RewriteBase /
 
-    # 4. Block direct web access to internal Laravel directories
+    # 5. Block direct web access to internal Laravel directories
     RewriteRule ^(inertia-pos-core|core|app|bootstrap|config|database|resources|routes|vendor)(/.*)?$ - [F,L]
 
-    # 5. Serve real static files and directories directly (build/*, images/*, favicon, manifest, etc.)
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
+    # 6. Route all /storage/... requests directly to Laravel index.php (to stream from inertia-pos-core/storage/app/public)
+    RewriteRule ^storage/(.*)$ index.php [L]
+
+    # 7. Serve real static files directly (e.g. build/*, images/*, favicon, manifest.webmanifest, service-worker.js)
+    RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^ - [L]
 
-    # 6. Route all other application traffic through index.php
+    # 8. Route all other application traffic through index.php
     RewriteRule ^ index.php [L]
 </IfModule>
