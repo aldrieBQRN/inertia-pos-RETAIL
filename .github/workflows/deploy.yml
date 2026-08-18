@@ -36,7 +36,7 @@ jobs:
           npm run build
 
       - name: 6. Deploy Private Core Files to /inertia-pos-core/ (Outside Web Root)
-        uses: SamKirland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
@@ -57,7 +57,7 @@ jobs:
             phpunit.xml
 
       - name: 7. Deploy Public Assets Only to /htdocs/ (Public Web Root)
-        uses: SamKirland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
