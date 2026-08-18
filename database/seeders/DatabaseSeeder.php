@@ -15,8 +15,11 @@ class DatabaseSeeder extends Seeder
     {
         $this->command->info('🚀 Starting Database Seeding...');
 
-        // Call the clean database seeder
+        // 1. Clean database & setup billing plans and system settings
         $this->call(CleanDatabaseSeeder::class);
+
+        // 2. Populate complete demo store, inventory, products, shifts, and sales transactions
+        $this->call(DemoSeeder::class);
 
         $this->command->info('✅ All seeders executed successfully! Your app is ready to test.');
     }

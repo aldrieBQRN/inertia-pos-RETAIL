@@ -322,21 +322,32 @@ Route::get('/artisan-migrate', function (Request $request) {
             }
         }
 
-        // 4. Database Migration
+        // 4. Database Migration & Seeding
+        $seedClass = $request->query('class');
+        $seedParams = ['--force' => true];
+        if ($seedClass) {
+            $seedParams['--class'] = $seedClass;
+        }
+
         if ($request->boolean('fresh')) {
             $params = ['--force' => true];
-            if ($request->boolean('seed')) {
+            if ($request->boolean('seed') && !$seedClass) {
                 $params['--seed'] = true;
             }
             Artisan::call('migrate:fresh', $params);
             $output[] = "=== Migrate Fresh ===\n" . Artisan::output();
+
+            if ($request->boolean('seed') && $seedClass) {
+                Artisan::call('db:seed', $seedParams);
+                $output[] = "=== DB Seed ({$seedClass}) ===\n" . Artisan::output();
+            }
         } else {
             $params = ['--force' => true];
             Artisan::call('migrate', $params);
             $output[] = "=== Migrate ===\n" . Artisan::output();
 
             if ($request->boolean('seed')) {
-                Artisan::call('db:seed', ['--force' => true]);
+                Artisan::call('db:seed', $seedParams);
                 $output[] = "=== DB Seed ===\n" . Artisan::output();
             }
         }
