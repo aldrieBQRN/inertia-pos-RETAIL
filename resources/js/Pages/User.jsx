@@ -301,12 +301,13 @@ export default function User({ auth, users }) {
     };
 
     const RoleBadge = ({ role }) => {
-        const colors = {
-            admin: 'bg-purple-100 text-purple-700 border-purple-200',
-            cashier: 'bg-blue-100 text-blue-700 border-blue-200'
-        };
+        const isAppAdmin = role === 'admin';
         return (
-            <span className={`px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest ${colors[role] || colors.cashier}`}>
+            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-xs ${
+                isAppAdmin
+                    ? 'bg-purple-50 text-purple-700 border-purple-200/70'
+                    : 'bg-[#1B3B6A]/10 text-[#1B3B6A] border-[#1B3B6A]/20'
+            }`}>
                 {role || 'Cashier'}
             </span>
         );
@@ -315,7 +316,7 @@ export default function User({ auth, users }) {
     const StatusBadge = ({ termsAcceptedAt, isActive }) => {
         if (isActive === false) {
             return (
-                <span className="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-rose-100 text-rose-700 border-rose-200 inline-flex items-center gap-1 cursor-default">
+                <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/70 shadow-xs inline-flex items-center gap-1 cursor-default">
                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
                     Revoked
                 </span>
@@ -323,14 +324,14 @@ export default function User({ auth, users }) {
         }
         if (termsAcceptedAt) {
             return (
-                <span className="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 border-emerald-200 inline-flex items-center gap-1 cursor-default">
+                <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/70 shadow-xs inline-flex items-center gap-1 cursor-default">
                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                     Active
                 </span>
             );
         }
         return (
-            <span className="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border-amber-200 inline-flex items-center gap-1 cursor-default">
+            <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200/70 shadow-xs inline-flex items-center gap-1 cursor-default">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6v6m0-6h6H6" /></svg>
                 Pending Setup
             </span>
@@ -357,7 +358,7 @@ export default function User({ auth, users }) {
                                 <input
                                     type="text"
                                     placeholder="Search account no, name or email..."
-                                    className="pl-11 pr-4 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm font-medium transition-colors"
+                                    className="pl-11 pr-4 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg w-full focus:border-gray-400 focus:ring-1 focus:ring-gray-300/40 focus:bg-white text-sm font-medium transition-colors"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
@@ -368,14 +369,14 @@ export default function User({ auth, users }) {
                                 <select
                                     value={roleFilter}
                                     onChange={(e) => setRoleFilter(e.target.value)}
-                                    className="flex-1 md:w-40 bg-white border border-gray-200 rounded-lg py-2.5 sm:py-3 pl-3 pr-8 focus:ring-2 focus:ring-blue-500 focus:bg-white text-gray-600 text-xs sm:text-sm font-medium transition-colors"
+                                    className="flex-1 md:w-40 bg-white border border-gray-200 rounded-lg py-2.5 sm:py-3 pl-3 pr-8 focus:border-gray-400 focus:ring-1 focus:ring-gray-300/40 focus:bg-white text-gray-600 text-xs sm:text-sm font-medium transition-colors"
                                 >
                                     <option value="">All Roles</option>
                                     <option value="admin">Administrator</option>
                                     <option value="cashier">Cashier</option>
                                 </select>
 
-                                <button onClick={openAddModal} className="flex-1 md:w-auto px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-center bg-gray-900 text-white rounded-lg font-bold hover:bg-black shadow-sm active:scale-95 transition-all text-xs sm:text-sm gap-1.5 sm:gap-2 whitespace-nowrap">
+                                <button onClick={openAddModal} className="flex-1 md:w-auto px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-center bg-[#1B3B6A] text-white rounded-lg font-bold hover:bg-[#142E54] shadow-sm active:scale-95 transition-all text-xs sm:text-sm gap-1.5 sm:gap-2 whitespace-nowrap">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                     Invite Staff
                                 </button>
@@ -432,7 +433,7 @@ export default function User({ auth, users }) {
                                                     {u.avatar_path ? (
                                                         <img src={getAvatarUrl(u.avatar_path)} alt={u.name} className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm shrink-0" />
                                                     ) : (
-                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 flex items-center justify-center font-black text-lg border border-blue-100 shrink-0 uppercase">
+                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-lg border border-[#CBD7E6] shrink-0 uppercase">
                                                             {u.name.charAt(0)}
                                                         </div>
                                                     )}
@@ -453,7 +454,7 @@ export default function User({ auth, users }) {
                                                     <button onClick={() => openViewModal(u)} className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="View Profile">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                                     </button>
-                                                    <button onClick={() => openEditModal(u)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-100 rounded-lg transition-colors" title="Edit">
+                                                    <button onClick={() => openEditModal(u)} className="p-2 text-[#1B3B6A] hover:text-[#142E54] hover:bg-[#EFF4F9] rounded-lg transition-colors" title="Edit">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
                                                     </button>
                                                     <button
@@ -525,7 +526,7 @@ export default function User({ auth, users }) {
                                             {u.avatar_path ? (
                                                 <img src={getAvatarUrl(u.avatar_path)} alt={u.name} className="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm shrink-0" />
                                             ) : (
-                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 flex items-center justify-center font-black text-xl border border-blue-100 shrink-0 uppercase shadow-sm">
+                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-xl border border-[#CBD7E6] shrink-0 uppercase shadow-sm">
                                                     {u.name.charAt(0)}
                                                 </div>
                                             )}
@@ -547,7 +548,7 @@ export default function User({ auth, users }) {
 
                                         <div className="grid grid-cols-2 gap-2 pt-1">
                                             <button onClick={() => openViewModal(u)} className="py-2 text-xs font-bold text-gray-700 bg-gray-50 rounded-lg border border-gray-200 shadow-sm active:scale-95 transition-transform">View Profile</button>
-                                            <button onClick={() => openEditModal(u)} className="py-2 text-xs font-bold text-blue-700 bg-blue-50 rounded-lg border border-blue-200 shadow-sm active:scale-95 transition-transform">Edit</button>
+                                            <button onClick={() => openEditModal(u)} className="py-2 text-xs font-bold text-[#1B3B6A] bg-[#EFF4F9] rounded-lg border border-[#CBD7E6] shadow-sm active:scale-95 transition-transform">Edit</button>
                                             <button
                                                 onClick={() => handleToggleActive(u)}
                                                 disabled={auth.user.id === u.id}
@@ -617,7 +618,7 @@ export default function User({ auth, users }) {
                                                     key={num}
                                                     onClick={() => { setCurrentPage(num); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                                                     className={`shrink-0 px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all flex items-center justify-center
-                                                        ${currentPage === num ? 'bg-gray-900 text-white border-gray-900 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                                                        ${currentPage === num ? 'bg-[#1B3B6A] text-white border-[#1B3B6A] shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                                                 >
                                                     {num}
                                                 </button>
@@ -640,10 +641,10 @@ export default function User({ auth, users }) {
                     <div className="relative bg-white w-full max-w-lg rounded-t-xl md:rounded-lg shadow-2xl overflow-hidden animate-slide-up sm:animate-fade-in-up flex flex-col max-h-[90vh]">
 
                         {/* Modal Header */}
-                        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <div className="md:hidden absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-gray-300 rounded"></div>
-                            <h2 className="text-xl font-black text-gray-900 tracking-tight mt-2 md:mt-0">Staff Profile</h2>
-                            <button onClick={() => setViewUser(null)} className="text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 p-2 rounded-full transition-colors mt-2 md:mt-0">
+                        <div className="px-6 py-5 border-b border-[#142E54] flex justify-between items-center bg-[#1B3B6A]">
+                            <div className="md:hidden absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/20 rounded"></div>
+                            <h2 className="text-xl font-black text-white tracking-tight mt-2 md:mt-0">Staff Profile</h2>
+                            <button onClick={() => setViewUser(null)} className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors mt-2 md:mt-0">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
@@ -654,9 +655,9 @@ export default function User({ auth, users }) {
                             {/* Header / Identity Area */}
                             <div className="flex items-center gap-5">
                                 {viewUser.avatar_path ? (
-                                    <img src={getAvatarUrl(viewUser.avatar_path)} alt={viewUser.name} className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-md shrink-0 ring-4 ring-gray-50" />
+                                    <img src={getAvatarUrl(viewUser.avatar_path)} alt={viewUser.name} className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-md shrink-0 ring-4 ring-[#EFF4F9]" />
                                 ) : (
-                                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 flex items-center justify-center font-black text-3xl border-2 border-white shadow-md ring-4 ring-gray-50 shrink-0 uppercase">
+                                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-3xl border-2 border-white shadow-md ring-4 ring-[#EFF4F9] shrink-0 uppercase">
                                         {viewUser.name.charAt(0)}
                                     </div>
                                 )}
@@ -748,21 +749,21 @@ export default function User({ auth, users }) {
             {/* DYNAMIC EDIT/ADD MODAL */}
             {showModal && (
                 <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm sm:p-4 transition-opacity">
-                    <div className="bg-white w-full h-full sm:h-auto sm:max-w-4xl sm:rounded-2xl sm:shadow-2xl overflow-hidden flex flex-col sm:max-h-[90vh] animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
+                    <div className="bg-white w-full h-full sm:h-auto sm:max-w-lg sm:rounded-2xl sm:shadow-2xl overflow-hidden flex flex-col sm:max-h-[90vh] animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
 
                         {/* Header (Sticky on Mobile) */}
-                        <div className="bg-white border-b border-gray-100 px-6 sm:px-10 py-5 sm:py-6 flex justify-between items-center shrink-0 sticky top-0 z-50">
+                        <div className="bg-[#1B3B6A] border-b border-[#142E54] px-6 sm:px-10 py-5 sm:py-6 flex justify-between items-center shrink-0 sticky top-0 z-50">
                             <div>
-                                <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">
+                                <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
                                     {editMode ? 'Edit Staff Member' : 'Invite Staff Member'}
                                 </h2>
-                                <p className="text-[11px] sm:text-xs font-medium text-gray-500 mt-0.5 sm:mt-1">
+                                <p className="text-[11px] sm:text-xs font-medium text-blue-200 mt-0.5 sm:mt-1">
                                     {editMode ? 'Update their identity and contact details.' : 'They will receive a secure email to complete their setup.'}
                                 </p>
                             </div>
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="bg-gray-50 hover:bg-gray-100 p-2 sm:p-2.5 rounded-full text-gray-500 hover:text-gray-900 transition-colors active:scale-95"
+                                className="bg-white/10 hover:bg-white/20 p-2 sm:p-2.5 rounded-full text-white/70 hover:text-white transition-colors active:scale-95"
                             >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
@@ -795,7 +796,7 @@ export default function User({ auth, users }) {
                                                     className="w-16 h-16 rounded-full object-cover border border-gray-200 shadow-sm"
                                                 />
                                             ) : (
-                                                <div className="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-black text-xl border border-blue-200 shrink-0 uppercase">
+                                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-xl border border-[#CBD7E6] shrink-0 uppercase">
                                                     {data.name ? data.name.charAt(0) : 'S'}
                                                 </div>
                                             )}
@@ -826,7 +827,7 @@ export default function User({ auth, users }) {
                                             value={data.name}
                                             onChange={e => setData('name', e.target.value)}
                                             required
-                                            className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
+                                            className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
                                             placeholder="Juan Dela Cruz"
                                         />
                                         {errors.name && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.name}</p>}
@@ -839,12 +840,12 @@ export default function User({ auth, users }) {
                                             value={data.email}
                                             onChange={e => setData('email', e.target.value)}
                                             required
-                                            className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
+                                            className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
                                             placeholder="staff@store.com"
                                         />
                                         {errors.email && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.email}</p>}
                                         {editMode && (
-                                            <p className="text-[10px] text-blue-600 mt-2 leading-relaxed">
+                                            <p className="text-[10px] text-[#1B3B6A] mt-2 leading-relaxed font-medium">
                                                 💡 If you change this email address, a 6-digit verification code will be sent to confirm the change.
                                             </p>
                                         )}
@@ -855,7 +856,7 @@ export default function User({ auth, users }) {
                                         <select
                                             value={data.role}
                                             onChange={e => setData('role', e.target.value)}
-                                            className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm"
+                                            className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm"
                                         >
                                             <option value="cashier">Cashier</option>
                                             <option value="admin">Administrator</option>
@@ -879,7 +880,7 @@ export default function User({ auth, users }) {
                                                 value={data.phone_number}
                                                 onChange={handlePhoneChange}
                                                 maxLength="15"
-                                                className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
+                                                className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
                                                 placeholder="09123456789"
                                             />
                                             {errors.phone_number && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.phone_number}</p>}
@@ -891,7 +892,7 @@ export default function User({ auth, users }) {
                                                 type="text"
                                                 value={data.address}
                                                 onChange={e => setData('address', e.target.value)}
-                                                className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
+                                                className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
                                                 placeholder="House No. & Street"
                                             />
                                             {errors.address && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.address}</p>}
@@ -904,7 +905,7 @@ export default function User({ auth, users }) {
                                                     type="text"
                                                     value={data.city}
                                                     onChange={e => setData('city', e.target.value)}
-                                                    className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
+                                                    className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
                                                     placeholder="City"
                                                 />
                                                 {errors.city && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.city}</p>}
@@ -915,7 +916,7 @@ export default function User({ auth, users }) {
                                                     type="text"
                                                     value={data.province}
                                                     onChange={e => setData('province', e.target.value)}
-                                                    className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
+                                                    className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
                                                     placeholder="Province"
                                                 />
                                                 {errors.province && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.province}</p>}
@@ -938,7 +939,7 @@ export default function User({ auth, users }) {
                                                 type="password"
                                                 value={data.password}
                                                 onChange={e => setData('password', e.target.value)}
-                                                className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
+                                                className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
                                                 placeholder="Leave blank to keep current password"
                                             />
                                             {errors.password && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.password}</p>}
@@ -963,7 +964,7 @@ export default function User({ auth, users }) {
                                 type="submit"
                                 form="user-form"
                                 disabled={processing || isSendingOtp || isSaving}
-                                className="order-1 sm:order-2 w-full sm:w-auto px-8 py-3.5 sm:py-3 bg-gray-900 hover:bg-black text-white font-semibold rounded-lg shadow-md text-sm transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="order-1 sm:order-2 w-full sm:w-auto px-8 py-3.5 sm:py-3 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-semibold rounded-lg shadow-md shadow-[#1B3B6A]/20 text-sm transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {processing || isSendingOtp || isSaving ? (
                                     <>
@@ -973,7 +974,6 @@ export default function User({ auth, users }) {
                                 ) : (editMode ? 'Save Changes' : 'Send Invite Link')}
                             </button>
                         </div>
-
                     </div>
                 </div>
             )}

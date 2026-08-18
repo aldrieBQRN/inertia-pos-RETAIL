@@ -107,6 +107,51 @@ export default function Login({ status, canResetPassword, settings = {} }) {
 
                 {status && <div className="mb-6 font-bold text-sm text-emerald-600 text-center bg-emerald-50 p-3 rounded-lg border border-emerald-100">{status}</div>}
 
+                {/* Quick Demo Credentials */}
+                <div className="mb-6 p-3.5 bg-gray-50/80 border border-gray-200/80 rounded-xl">
+                    <div className="text-[10px] font-black uppercase tracking-wider text-gray-500 mb-2 flex items-center justify-between">
+                        <span>Demo Quick Fill</span>
+                        <span className="text-[9px] bg-blue-100 text-blue-700 font-bold px-1.5 py-0.5 rounded">Click to auto-fill</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setData(prevData => ({
+                                    ...prevData,
+                                    email: 'admin@email.com',
+                                    password: 'password',
+                                }));
+                            }}
+                            className="flex flex-col items-start p-2.5 bg-white border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50/50 active:scale-[0.98] transition-all text-left group shadow-sm"
+                        >
+                            <div className="flex items-center gap-1.5 w-full">
+                                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                                <span className="text-xs font-bold text-gray-900 group-hover:text-blue-600">Admin Demo</span>
+                            </div>
+                            <span className="text-[10px] text-gray-500 mt-0.5 truncate w-full">admin@email.com</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setData(prevData => ({
+                                    ...prevData,
+                                    email: 'cashier@email.com',
+                                    password: 'password',
+                                }));
+                            }}
+                            className="flex flex-col items-start p-2.5 bg-white border border-gray-200 rounded-lg hover:border-emerald-500 hover:bg-emerald-50/50 active:scale-[0.98] transition-all text-left group shadow-sm"
+                        >
+                            <div className="flex items-center gap-1.5 w-full">
+                                <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+                                <span className="text-xs font-bold text-gray-900 group-hover:text-emerald-600">Cashier Demo</span>
+                            </div>
+                            <span className="text-[10px] text-gray-500 mt-0.5 truncate w-full">cashier@email.com</span>
+                        </button>
+                    </div>
+                </div>
+
                 <form onSubmit={submit} className="space-y-5 sm:space-y-6">
                     {/* Email Field */}
                     <div>

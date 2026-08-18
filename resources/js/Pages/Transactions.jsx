@@ -37,20 +37,37 @@ export default function Transactions({ auth }) {
 
     // Helper function for UI badging
     const getPaymentBadgeStyle = (method) => {
-        switch(method) {
-            case 'gcash': return 'bg-blue-100 text-blue-700';
-            case 'maya': return 'bg-green-100 text-green-700';
-            case 'credit_card': return 'bg-purple-100 text-purple-700';
-            case 'debit_card': return 'bg-indigo-100 text-indigo-700';
-            default: return 'bg-gray-100 text-gray-700'; // cash or unknown
+        const m = (method || '').toLowerCase();
+        switch (m) {
+            case 'cash':
+                return 'bg-emerald-50 text-emerald-700 border-emerald-200/70';
+            case 'gcash':
+                return 'bg-blue-50 text-blue-700 border-blue-200/70';
+            case 'maya':
+            case 'paymaya':
+                return 'bg-emerald-50 text-emerald-800 border-emerald-300/70';
+            case 'card':
+            case 'credit_card':
+                return 'bg-purple-50 text-purple-700 border-purple-200/70';
+            case 'debit_card':
+                return 'bg-indigo-50 text-indigo-700 border-indigo-200/70';
+            case 'bank_transfer':
+                return 'bg-sky-50 text-sky-700 border-sky-200/70';
+            default:
+                return 'bg-slate-100 text-slate-700 border-slate-200/70';
         }
     };
 
     const formatPaymentName = (method) => {
-        if (!method) return 'Unknown';
-        if (method === 'credit_card') return 'Credit';
-        if (method === 'debit_card') return 'Debit';
-        return method;
+        if (!method) return 'Cash';
+        const m = method.toLowerCase();
+        if (m === 'cash') return 'Cash';
+        if (m === 'gcash') return 'GCash';
+        if (m === 'maya' || m === 'paymaya') return 'Maya';
+        if (m === 'card' || m === 'credit_card') return 'Credit Card';
+        if (m === 'debit_card') return 'Debit Card';
+        if (m === 'bank_transfer') return 'Bank Transfer';
+        return method.charAt(0).toUpperCase() + method.slice(1);
     };
 
     const handleReprint = async (sale) => {
@@ -259,7 +276,7 @@ export default function Transactions({ auth }) {
                 body: tableRows,
                 startY: tableStartY,
                 theme: 'striped',
-                headStyles: { fillColor: '#1A3A69', textColor: 255, fontStyle: 'bold' },
+                headStyles: { fillColor: '#1B3B6A', textColor: 255, fontStyle: 'bold' },
                 styles: { fontSize: 9, cellPadding: 4, valign: 'middle' },
                 didParseCell: function(data) {
                     if (data.section === 'body' && data.column.index === 4) {
@@ -377,7 +394,7 @@ export default function Transactions({ auth }) {
                                 <input
                                     type="text"
                                     placeholder="Search Invoice or Cashier..."
-                                    className="pl-11 pr-4 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white w-full text-sm font-medium transition-colors"
+                                    className="pl-11 pr-4 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg focus:border-gray-400 focus:ring-1 focus:ring-gray-300/40 focus:bg-white w-full text-sm font-medium transition-colors"
                                     value={searchFilter}
                                     onChange={(e) => setSearchFilter(e.target.value)}
                                 />
@@ -389,20 +406,20 @@ export default function Transactions({ auth }) {
 
                                 {/* Date Filters Container */}
                                 <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto shrink-0">
-                                <div className="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2.5 sm:py-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:bg-white transition-colors">
-                                    <span className="text-gray-400 text-[11px] font-bold uppercase tracking-wider w-8">From</span>
-                                    <input
-                                        type="date"
-                                        className="w-full bg-transparent border-none p-0 text-xs sm:text-sm font-medium text-gray-700 focus:ring-0 cursor-pointer"
+                                    <div className="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2.5 sm:py-3 focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-300/40 focus-within:bg-white transition-colors">
+                                        <span className="text-gray-400 text-[11px] font-bold uppercase tracking-wider w-8">From</span>
+                                        <input
+                                            type="date"
+                                            className="w-full bg-transparent border-none p-0 text-xs sm:text-sm font-medium text-gray-700 focus:ring-0 cursor-pointer"
                                             value={startDate}
                                             onChange={(e) => setStartDate(e.target.value)}
                                         />
                                     </div>
-                                    <div className="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2.5 sm:py-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:bg-white transition-colors">
-                                    <span className="text-gray-400 text-[11px] font-bold uppercase tracking-wider w-8">To</span>
-                                    <input
-                                        type="date"
-                                        className="w-full bg-transparent border-none p-0 text-xs sm:text-sm font-medium text-gray-700 focus:ring-0 cursor-pointer"
+                                    <div className="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2.5 sm:py-3 focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-300/40 focus-within:bg-white transition-colors">
+                                        <span className="text-gray-400 text-[11px] font-bold uppercase tracking-wider w-8">To</span>
+                                        <input
+                                            type="date"
+                                            className="w-full bg-transparent border-none p-0 text-xs sm:text-sm font-medium text-gray-700 focus:ring-0 cursor-pointer"
                                             value={endDate}
                                             onChange={(e) => setEndDate(e.target.value)}
                                         />
@@ -415,7 +432,7 @@ export default function Transactions({ auth }) {
                                     <select
                                         value={paymentFilter}
                                         onChange={(e) => setPaymentFilter(e.target.value)}
-                                        className="flex-1 min-w-[140px] bg-white border border-gray-200 rounded-lg px-3 pr-10 py-2.5 focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm font-medium text-gray-600 transition-colors cursor-pointer"
+                                        className="flex-1 min-w-[140px] bg-white border border-gray-200 rounded-lg px-3 pr-10 py-2.5 focus:border-gray-400 focus:ring-1 focus:ring-gray-300/40 focus:bg-white text-sm font-medium text-gray-600 transition-colors cursor-pointer"
                                     >
                                         <option value="">All Payments</option>
                                         <option value="cash">Cash</option>
@@ -432,8 +449,8 @@ export default function Transactions({ auth }) {
                                             disabled={isExporting}
                                             className={`shrink-0 px-4 py-2.5 rounded-lg font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all text-xs sm:text-sm active:scale-95
                                                 ${isExporting
-                                                    ? 'opacity-50 cursor-not-allowed bg-green-600 text-white'
-                                                    : 'bg-green-600 text-white hover:bg-green-700'
+                                                    ? 'opacity-50 cursor-not-allowed bg-[#1B3B6A] text-white'
+                                                    : 'bg-[#1B3B6A] text-white hover:bg-[#142E54]'
                                                 }`}
                                         >
                                             {isExporting ? (
@@ -508,24 +525,28 @@ export default function Transactions({ auth }) {
                                         paginatedTransactions.map((sale) => (
                                             <tr key={sale.id} className={`transition-colors ${sale.status === 'void' ? 'bg-red-50/50' : 'hover:bg-gray-50'}`}>
                                                 <td className="p-4">
-                                                    <div className={`font-mono font-bold ${sale.status === 'void' ? 'text-red-500 line-through' : 'text-blue-600'}`}>{sale.invoice_number}</div>
-                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded mt-1 text-[9px] font-black uppercase tracking-widest ${sale.status === 'void' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                                                    <div className={`font-mono font-bold ${sale.status === 'void' ? 'text-red-500 line-through' : 'text-[#1B3B6A]'}`}>{sale.invoice_number}</div>
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded mt-1 text-[9px] font-black uppercase tracking-widest ${sale.status === 'void' ? 'bg-red-50 text-red-700 border border-red-200/70 shadow-xs' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/70 shadow-xs'}`}>
                                                         {sale.status === 'void' ? 'VOID' : 'PAID'}
                                                     </span>
                                                 </td>
                                                 <td className="p-4 text-sm text-gray-500 font-medium">{new Date(sale.created_at).toLocaleString()}</td>
                                                 <td className="p-4 font-bold text-gray-700">{sale.cashier?.name || 'Staff'}</td>
                                                 <td className="p-4">
-                                                    <div>
-                                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest ${getPaymentBadgeStyle(sale.payment_method)}`}>
+                                                    <div className="flex flex-col items-start gap-1">
+                                                        <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase border shadow-xs ${getPaymentBadgeStyle(sale.payment_method)}`}>
                                                             {formatPaymentName(sale.payment_method)}
                                                         </span>
-                                                        {sale.is_senior && <span className="ml-2 bg-green-100 text-green-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Discount</span>}
+                                                        {sale.is_senior && (
+                                                            <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase border shadow-xs bg-emerald-50 text-emerald-700 border-emerald-200/70">
+                                                                Discount
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </td>
                                                 <td className={`p-4 text-right font-black text-lg ${sale.status === 'void' ? 'text-red-400' : 'text-gray-900'}`}>₱{formatCurrency(sale.total_amount)}</td>
                                                 <td className="p-4 flex justify-center gap-2">
-                                                    <button onClick={() => handleViewDetails(sale)} className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-100 rounded-lg transition-colors" title="View Details">
+                                                    <button onClick={() => handleViewDetails(sale)} className="p-2 text-[#1B3B6A] hover:bg-[#EFF4F9] rounded-lg transition-colors" title="View Details">
                                                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                                     </button>
 
@@ -538,7 +559,7 @@ export default function Transactions({ auth }) {
                                                             )}
                                                             {auth.user.is_admin && (
                                                                 <button onClick={() => handleVoid(sale)} className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors" title="Void">
-                                                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                                                 </button>
                                                             )}
                                                         </>
@@ -583,7 +604,7 @@ export default function Transactions({ auth }) {
                                             <div className="text-xs text-gray-400 font-medium mt-0.5">{new Date(sale.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</div>
                                         </div>
                                         <div className="flex flex-col items-end flex-shrink-0">
-                                            <span className={`px-2.5 py-0.5 rounded text-[9px] font-black uppercase tracking-widest mb-1 whitespace-nowrap ${sale.status === 'void' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                                            <span className={`px-2.5 py-0.5 rounded text-[9px] font-black uppercase tracking-widest mb-1 whitespace-nowrap ${sale.status === 'void' ? 'bg-red-50 text-red-700 border border-red-200/70 shadow-xs' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/70 shadow-xs'}`}>
                                                 {sale.status === 'void' ? 'VOID' : 'PAID'}
                                             </span>
                                             <span className="font-black text-lg text-gray-900">₱{formatCurrency(sale.total_amount)}</span>
@@ -593,17 +614,17 @@ export default function Transactions({ auth }) {
                                     {/* Meta Row: Cashier & Payment */}
                                     <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-gray-500 mt-1 py-2 border-t border-gray-100">
                                         <span className="truncate">{sale.cashier?.name || 'Staff'}</span>
-                                        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                                            <span className={`px-2 py-0.5 rounded text-[9px] whitespace-nowrap ${getPaymentBadgeStyle(sale.payment_method)}`}>
+                                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                                            <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase border shadow-xs whitespace-nowrap ${getPaymentBadgeStyle(sale.payment_method)}`}>
                                                 {formatPaymentName(sale.payment_method)}
                                             </span>
-                                            {sale.is_senior && <span className="px-2 py-0.5 rounded bg-green-100 text-green-700 text-[9px] whitespace-nowrap">Discount</span>}
+                                            {sale.is_senior && <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wider uppercase border shadow-xs bg-emerald-50 text-emerald-700 border-emerald-200/70 whitespace-nowrap">Discount</span>}
                                         </div>
                                     </div>
 
                                     {/* Action Buttons: Native App Style */}
                                     <div className={`grid gap-2 pt-2 ${sale.status === 'void' ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                                        <button onClick={() => handleViewDetails(sale)} className="py-2 px-3 text-xs font-bold text-blue-700 bg-blue-50 rounded-lg border border-blue-200 shadow-sm active:scale-95 transition-transform">View Details</button>
+                                        <button onClick={() => handleViewDetails(sale)} className="py-2 px-3 text-xs font-bold text-[#1B3B6A] bg-[#EFF4F9] rounded-lg border border-[#CBD7E6] shadow-sm active:scale-95 transition-transform">View Details</button>
 
                                         {sale.status !== 'void' && (
                                             <>
@@ -666,7 +687,7 @@ export default function Transactions({ auth }) {
                                                     key={num}
                                                     onClick={() => { setCurrentPage(num); window.scrollTo({top: 0, behavior: 'smooth'}); }}
                                                     className={`shrink-0 px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all flex items-center justify-center
-                                                        ${currentPage === num ? 'bg-gray-900 text-white border-gray-900 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                                                        ${currentPage === num ? 'bg-[#1B3B6A] text-white border-[#1B3B6A] shadow-sm font-extrabold' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                                                 >
                                                     {num}
                                                 </button>
@@ -688,16 +709,16 @@ export default function Transactions({ auth }) {
 
                     <div className="relative bg-white w-full max-w-lg rounded-t-xl md:rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[85vh] md:max-h-[90vh] animate-slide-up sm:animate-fade-in-up">
 
-                        <div className="md:hidden flex justify-center pt-3 pb-1 bg-gray-900 w-full" onClick={() => setShowDetails(false)}>
+                        <div className="md:hidden flex justify-center pt-3 pb-1 bg-[#1B3B6A] w-full" onClick={() => setShowDetails(false)}>
                             <div className="w-12 h-1.5 bg-white/30 rounded"></div>
                         </div>
 
-                        <div className="bg-gray-900 px-6 py-5 flex justify-between items-center text-white shrink-0">
+                        <div className="bg-[#1B3B6A] px-6 py-5 flex justify-between items-center text-white shrink-0 border-b border-[#142E54]">
                             <div>
-                                <h3 className="text-xl font-black tracking-tight">Order Details</h3>
-                                <div className="text-xs text-blue-400 font-mono mt-0.5">{selectedSale.invoice_number}</div>
+                                <h3 className="text-xl font-black tracking-tight text-white">Order Details</h3>
+                                <div className="text-xs text-blue-200 font-mono mt-0.5">{selectedSale.invoice_number}</div>
                             </div>
-                            <button onClick={() => setShowDetails(false)} className="text-white/50 hover:text-white p-2 -mr-2 transition-colors">
+                            <button onClick={() => setShowDetails(false)} className="text-white/70 hover:text-white p-2 -mr-2 transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
@@ -777,7 +798,7 @@ export default function Transactions({ auth }) {
                                 <span className="text-gray-500 text-sm font-bold uppercase tracking-wider">Total Paid</span>
                                 <span className="text-3xl font-black text-gray-900 tracking-tight">₱{formatCurrency(selectedSale.total_amount)}</span>
                             </div>
-                            <button onClick={() => setShowDetails(false)} className="w-full py-4 bg-gray-900 text-white rounded-lg font-bold text-lg hover:bg-black transition-all active:scale-95 shadow-lg mt-4 hidden md:block">Close</button>
+                            <button onClick={() => setShowDetails(false)} className="w-full py-4 bg-[#1B3B6A] text-white rounded-lg font-bold text-lg hover:bg-[#142E54] transition-all active:scale-95 shadow-lg mt-4 hidden md:block">Close</button>
                         </div>
                     </div>
                 </div>

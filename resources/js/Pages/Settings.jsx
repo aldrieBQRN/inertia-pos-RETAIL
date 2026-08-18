@@ -249,7 +249,7 @@ export default function Settings({ auth }) {
     };
 
     // Style constants for modal inputs
-    const inputClasses = "w-full border-gray-200 bg-gray-50/50 rounded-md focus:ring-2 focus:ring-gray-900 focus:border-gray-900 focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400";
+    const inputClasses = "w-full border-[#CBD7E6] bg-gray-50/50 rounded-md focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400";
     const labelClasses = "block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5";
 
     // ==========================================
@@ -365,7 +365,7 @@ export default function Settings({ auth }) {
         <AuthenticatedLayout user={user} header={<h2 className="font-semibold text-xl text-gray-800 tracking-tight truncate">Store Settings</h2>}>
             <Head title="Settings" />
 
-            <div className="py-0 sm:py-8 lg:py-16 bg-gray-100 sm:bg-[#FAFAFA] min-h-[calc(100vh-65px)] sm:min-h-screen selection:bg-gray-900 selection:text-white">
+            <div className="py-0 sm:py-8 lg:py-16 bg-gray-100 sm:bg-[#FAFAFA] min-h-[calc(100vh-65px)] sm:min-h-screen selection:bg-[#1B3B6A] selection:text-white">
                 <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-2 sm:gap-8 lg:gap-12 items-start animate-in fade-in sm:slide-in-from-bottom-4 duration-500">
 
@@ -373,7 +373,7 @@ export default function Settings({ auth }) {
                         <div className="lg:col-span-4 space-y-2 sm:space-y-6">
                             <div className="bg-white sm:rounded-2xl sm:shadow-[0_2px_8px_rgb(0,0,0,0.04)] border-y sm:border border-gray-200/60 p-6 sm:p-8 text-center relative overflow-hidden flex flex-col items-center">
                                 {/* Subtle decorative background glow */}
-                                <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-gradient-to-b from-blue-50 to-transparent pointer-events-none"></div>
+                                <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-gradient-to-b from-[#EFF4F9] to-transparent pointer-events-none"></div>
 
                                 {/* Logo Display */}
                                 <div className="relative inline-block mb-3 sm:mb-5">
@@ -385,7 +385,7 @@ export default function Settings({ auth }) {
                                 {/* Store Name */}
                                 <div className="space-y-1 sm:space-y-2 mb-2 sm:mb-4 relative z-10 w-full">
                                     <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">{settings.store_name || 'Not Configured'}</h1>
-                                    <p className="text-[10px] sm:text-[11px] font-bold text-blue-600 uppercase tracking-widest mt-1">
+                                    <p className="text-[10px] sm:text-[11px] font-bold text-[#1B3B6A] uppercase tracking-widest mt-1">
                                         Store Identity
                                     </p>
                                 </div>
@@ -404,7 +404,7 @@ export default function Settings({ auth }) {
                                                 setOriginalPreview(preview);
                                                 setShowEditModal(true);
                                             }}
-                                            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-gray-900 text-white font-semibold text-xs uppercase tracking-wider hover:bg-black transition-all active:scale-[0.98] shadow-sm"
+                                            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg bg-[#1B3B6A] hover:bg-[#142E54] text-white font-semibold text-xs uppercase tracking-wider transition-all active:scale-[0.98] shadow-md"
                                         >
                                             <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                             Edit Details
@@ -439,7 +439,7 @@ export default function Settings({ auth }) {
                                         className="px-4 sm:px-8 py-3.5 sm:py-5 border-b border-gray-100/80 bg-white flex justify-between items-center cursor-pointer select-none group"
                                     >
                                         <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2.5 uppercase sm:normal-case tracking-wider sm:tracking-normal text-[11px] sm:text-sm text-gray-500 sm:text-gray-900">
-                                            <div className="hidden sm:block p-1.5 bg-blue-50 text-blue-600 rounded-md">
+                                            <div className="hidden sm:block p-1.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-md">
                                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                                             </div>
                                             Store Details
@@ -483,7 +483,7 @@ export default function Settings({ auth }) {
                                         className="px-4 sm:px-8 py-3.5 sm:py-5 border-b border-gray-100/80 bg-white flex justify-between items-center cursor-pointer select-none group"
                                     >
                                         <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2.5 uppercase sm:normal-case tracking-wider sm:tracking-normal text-[11px] sm:text-sm text-gray-500 sm:text-gray-900">
-                                            <div className="hidden sm:block p-1.5 bg-amber-50 text-amber-600 rounded-md">
+                                            <div className="hidden sm:block p-1.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-md">
                                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                             </div>
                                             Legal & Agreements
@@ -512,10 +512,10 @@ export default function Settings({ auth }) {
                                                         </p>
                                                     </div>
                                                     <div className="flex gap-2 shrink-0">
-                                                        <button type="button" onClick={() => setActiveModal('admin_terms')} className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-50 shadow-sm active:scale-95 transition-all">
+                                                        <button type="button" onClick={() => setActiveModal('admin_terms')} className="px-4 py-2 bg-white border border-[#CBD7E6] text-[#1B3B6A] text-xs font-bold rounded-md hover:bg-[#EFF4F9] shadow-xs active:scale-95 transition-all">
                                                             View Terms
                                                         </button>
-                                                        <button type="button" onClick={() => setActiveModal('admin_privacy')} className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-50 shadow-sm active:scale-95 transition-all">
+                                                        <button type="button" onClick={() => setActiveModal('admin_privacy')} className="px-4 py-2 bg-white border border-[#CBD7E6] text-[#1B3B6A] text-xs font-bold rounded-md hover:bg-[#EFF4F9] shadow-xs active:scale-95 transition-all">
                                                             View Privacy
                                                         </button>
                                                     </div>
@@ -532,10 +532,10 @@ export default function Settings({ auth }) {
                                                         </p>
                                                     </div>
                                                     <div className="flex gap-2 shrink-0">
-                                                        <button type="button" onClick={() => setActiveModal('staff_terms')} className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-50 shadow-sm active:scale-95 transition-all">
+                                                        <button type="button" onClick={() => setActiveModal('staff_terms')} className="px-4 py-2 bg-white border border-[#CBD7E6] text-[#1B3B6A] text-xs font-bold rounded-md hover:bg-[#EFF4F9] shadow-xs active:scale-95 transition-all">
                                                             View Terms
                                                         </button>
-                                                        <button type="button" onClick={() => setActiveModal('staff_privacy')} className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-50 shadow-sm active:scale-95 transition-all">
+                                                        <button type="button" onClick={() => setActiveModal('staff_privacy')} className="px-4 py-2 bg-white border border-[#CBD7E6] text-[#1B3B6A] text-xs font-bold rounded-md hover:bg-[#EFF4F9] shadow-xs active:scale-95 transition-all">
                                                             View Privacy
                                                         </button>
                                                     </div>
@@ -557,7 +557,7 @@ export default function Settings({ auth }) {
                                             className="px-4 sm:px-8 py-3.5 sm:py-5 border-b border-gray-100/80 bg-white flex justify-between items-center cursor-pointer select-none group"
                                         >
                                             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2.5 uppercase sm:normal-case tracking-wider sm:tracking-normal text-[11px] sm:text-sm text-gray-500 sm:text-gray-900">
-                                                <div className="hidden sm:block p-1.5 bg-emerald-50 text-emerald-600 rounded-md">
+                                                <div className="hidden sm:block p-1.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-md">
                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                                                 </div>
                                                 Hardware
@@ -642,15 +642,15 @@ export default function Settings({ auth }) {
                                                                 <button
                                                                     type="button"
                                                                     onClick={isMobile ? connectBluetooth : connectUsb}
-                                                                    className="w-full md:w-auto px-6 py-3 sm:py-2.5 bg-blue-600 text-white font-bold sm:font-semibold text-sm rounded-lg sm:rounded-lg shadow-sm hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                                                                    className="w-full md:w-auto px-6 py-3 sm:py-2.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold sm:font-semibold text-sm rounded-lg sm:rounded-lg shadow-md active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                                                                 >
                                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
                                                                     Pair {isMobile ? 'Bluetooth' : 'USB'}
                                                                 </button>
                                                             ) : (
                                                                 <>
-                                                                    <button type="button" onClick={handleTestPrint} className="flex-1 md:flex-none px-4 sm:px-5 py-3 sm:py-2.5 bg-gray-100 border border-transparent sm:bg-white sm:border-gray-200 text-gray-800 sm:text-gray-700 font-bold sm:font-semibold text-sm rounded-lg sm:rounded-lg sm:shadow-sm hover:bg-gray-200 sm:hover:bg-gray-50 transition-all active:scale-[0.98] whitespace-nowrap">Test Print</button>
-                                                                    <button type="button" onClick={openCashDrawer} className="flex-1 md:flex-none px-4 sm:px-5 py-3 sm:py-2.5 bg-gray-100 border border-transparent sm:bg-white sm:border-gray-200 text-gray-800 sm:text-gray-700 font-bold sm:font-semibold text-sm rounded-lg sm:rounded-lg sm:shadow-sm hover:bg-gray-200 sm:hover:bg-gray-50 transition-all active:scale-[0.98] whitespace-nowrap">Open Drawer</button>
+                                                                    <button type="button" onClick={handleTestPrint} className="flex-1 md:flex-none px-4 sm:px-5 py-3 sm:py-2.5 bg-white border border-gray-200 text-gray-700 font-bold sm:font-semibold text-sm rounded-lg sm:rounded-lg shadow-xs hover:bg-slate-50 transition-all active:scale-[0.98] whitespace-nowrap">Test Print</button>
+                                                                    <button type="button" onClick={openCashDrawer} className="flex-1 md:flex-none px-4 sm:px-5 py-3 sm:py-2.5 bg-white border border-gray-200 text-gray-700 font-bold sm:font-semibold text-sm rounded-lg sm:rounded-lg shadow-xs hover:bg-slate-50 transition-all active:scale-[0.98] whitespace-nowrap">Open Drawer</button>
                                                                     <button type="button" onClick={disconnect} className="flex-1 md:flex-none w-full md:w-auto px-4 sm:px-5 py-3 sm:py-2.5 bg-red-100 sm:bg-red-50 border border-transparent sm:border-red-100 text-red-700 sm:text-red-600 font-bold sm:font-semibold text-sm rounded-lg sm:rounded-lg sm:shadow-sm hover:bg-red-200 sm:hover:bg-red-100 transition-all active:scale-[0.98] whitespace-nowrap">Disconnect</button>
                                                                 </>
                                                             )}
@@ -693,7 +693,7 @@ export default function Settings({ auth }) {
                                         >
                                             <div className="flex items-center gap-2.5">
                                                 <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2.5 uppercase sm:normal-case tracking-wider sm:tracking-normal text-[11px] sm:text-sm text-gray-500 sm:text-gray-900">
-                                                    <div className="hidden sm:block p-1.5 bg-purple-50 text-purple-600 rounded-md">
+                                                    <div className="hidden sm:block p-1.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-md">
                                                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                                     </div>
                                                     Shift Summary
@@ -794,7 +794,7 @@ export default function Settings({ auth }) {
                                                     </div>
                                                 )}
 
-                                                <button onClick={() => setShowShiftModal(true)} className="w-full bg-gray-900 text-white px-8 py-4 sm:py-3.5 rounded-md font-black text-sm sm:shadow-[0_4px_12px_rgb(0,0,0,0.1)] hover:bg-black active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                                                <button onClick={() => setShowShiftModal(true)} className="w-full bg-[#1B3B6A] text-white px-8 py-4 sm:py-3.5 rounded-md font-black text-sm shadow-md hover:bg-[#142E54] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
                                                     Perform Z-Read & Close Shift
                                                 </button>
                                             </div>
@@ -808,8 +808,8 @@ export default function Settings({ auth }) {
                                             className="px-4 sm:px-8 py-3.5 sm:py-5 border-b border-gray-100/80 bg-white flex justify-between items-center cursor-pointer select-none group"
                                         >
                                             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2.5 uppercase sm:normal-case tracking-wider sm:tracking-normal text-[11px] sm:text-sm text-gray-500 sm:text-gray-900">
-                                                <div className="hidden sm:block p-1.5 bg-amber-50 text-amber-600 rounded-md">
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                                <div className="hidden sm:block p-1.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-md">
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                                 </div>
                                                 Legal & Agreements
                                             </h3>
@@ -817,9 +817,7 @@ export default function Settings({ auth }) {
                                                 className={`w-5 h-5 text-gray-400 group-hover:text-gray-700 transition-transform duration-200 ${openSections.legal ? 'rotate-180' : ''}`} 
                                                 fill="none" 
                                                 viewBox="0 0 24 24" 
-                                                stroke="currentColor"
-                                                strokeWidth="2.5"
-                                            >
+                                             >
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                                             </svg>
                                         </div>
@@ -835,10 +833,10 @@ export default function Settings({ auth }) {
                                                             </p>
                                                         </div>
                                                         <div className="flex gap-2 shrink-0">
-                                                            <button type="button" onClick={() => setActiveModal('staff_terms')} className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-50 shadow-sm active:scale-95 transition-all">
+                                                            <button type="button" onClick={() => setActiveModal('staff_terms')} className="px-4 py-2 bg-white border border-[#CBD7E6] text-[#1B3B6A] text-xs font-bold rounded-md hover:bg-[#EFF4F9] shadow-xs active:scale-95 transition-all">
                                                                 View Terms
                                                             </button>
-                                                            <button type="button" onClick={() => setActiveModal('staff_privacy')} className="px-4 py-2 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-md hover:bg-gray-50 shadow-sm active:scale-95 transition-all">
+                                                            <button type="button" onClick={() => setActiveModal('staff_privacy')} className="px-4 py-2 bg-white border border-[#CBD7E6] text-[#1B3B6A] text-xs font-bold rounded-md hover:bg-[#EFF4F9] shadow-xs active:scale-95 transition-all">
                                                                 View Privacy
                                                             </button>
                                                         </div>
@@ -896,7 +894,7 @@ export default function Settings({ auth }) {
                                         <button
                                             type="button"
                                             onClick={() => document.getElementById('store-logo-input').click()}
-                                            className="text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-lg transition-colors shadow-sm"
+                                            className="text-xs font-semibold text-[#1B3B6A] bg-white border border-[#CBD7E6] hover:bg-[#EFF4F9] px-4 py-2 rounded-lg transition-colors shadow-xs"
                                         >
                                             Choose new image
                                         </button>
@@ -953,7 +951,7 @@ export default function Settings({ auth }) {
                                 type="submit"
                                 form="edit-store-form"
                                 disabled={saving}
-                                className="order-1 sm:order-2 w-full sm:w-auto px-8 py-3.5 sm:py-3 bg-gray-900 hover:bg-black text-white font-semibold rounded-md shadow-md text-sm transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="order-1 sm:order-2 w-full sm:w-auto px-8 py-3.5 sm:py-3 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-semibold rounded-md shadow-md text-sm transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {saving ? (
                                     <>
@@ -986,7 +984,7 @@ export default function Settings({ auth }) {
                         <div className="p-6 overflow-y-auto text-sm text-gray-700 space-y-4 leading-relaxed custom-scrollbar bg-white">
                             {modalConfig[activeModal]?.content ? (
                                 <div
-                                    className="prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-a:text-blue-600 prose-p:leading-relaxed"
+                                    className="prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-a:text-[#1B3B6A] prose-p:leading-relaxed"
                                     dangerouslySetInnerHTML={{ __html: modalConfig[activeModal].content }}
                                 />
                             ) : (
@@ -997,7 +995,7 @@ export default function Settings({ auth }) {
                         </div>
 
                         <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end">
-                            <button onClick={() => setActiveModal(null)} className="px-6 py-2.5 bg-gray-900 hover:bg-black text-white font-bold rounded-md text-sm transition-colors shadow-sm">Close Document</button>
+                            <button onClick={() => setActiveModal(null)} className="px-6 py-2.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold rounded-md text-sm transition-colors shadow-md">Close Document</button>
                         </div>
                     </div>
                 </div>

@@ -301,7 +301,7 @@ export default function ShiftHistory({ auth }) {
                                 <input
                                     type="text"
                                     placeholder="Search Staff Name..."
-                                    className="pl-11 pr-4 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm font-medium transition-colors"
+                                    className="pl-11 pr-4 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg w-full focus:border-gray-400 focus:ring-1 focus:ring-gray-300/40 focus:bg-white text-sm font-medium transition-colors"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
@@ -309,7 +309,7 @@ export default function ShiftHistory({ auth }) {
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto items-stretch flex-1 lg:max-w-2xl">
-                                <div className="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2.5 sm:py-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:bg-white transition-colors">
+                                <div className="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2.5 sm:py-3 focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-300/40 focus-within:bg-white transition-colors">
                                     <span className="text-gray-400 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">From</span>
                                     <input
                                         type="date"
@@ -318,7 +318,7 @@ export default function ShiftHistory({ auth }) {
                                         onChange={(e) => setStartDate(e.target.value)}
                                     />
                                 </div>
-                                <div className="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2.5 sm:py-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:bg-white transition-colors">
+                                <div className="flex-1 flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-3 py-2.5 sm:py-3 focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-300/40 focus-within:bg-white transition-colors">
                                     <span className="text-gray-400 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">To</span>
                                     <input
                                         type="date"
@@ -333,7 +333,7 @@ export default function ShiftHistory({ auth }) {
                                         onClick={exportPDF}
                                         disabled={isExporting}
                                         className={`w-full sm:w-auto px-6 py-2.5 sm:py-3 rounded-lg font-bold flex items-center justify-center gap-2 border transition-all text-xs sm:text-sm whitespace-nowrap active:scale-95
-                                            ${isExporting ? 'opacity-50 cursor-not-allowed bg-green-600 text-white border-green-600' : 'bg-green-600 text-white hover:bg-green-700 border-green-600 shadow-sm'}`}
+                                            ${isExporting ? 'opacity-50 cursor-not-allowed bg-[#1B3B6A] text-white border-[#1B3B6A]' : 'bg-[#1B3B6A] text-white hover:bg-[#142E54] border-[#1B3B6A] shadow-sm'}`}
                                     >
                                         {isExporting ? (
                                             <>
@@ -409,15 +409,15 @@ export default function ShiftHistory({ auth }) {
                                                 <td className="p-4 text-right text-green-600 font-black tracking-tight">+₱{formatCurrencyPH(shift.cash_sales)}</td>
                                                 <td className="p-4 text-right text-red-500 font-black tracking-tight">-₱{formatCurrencyPH(shift.expenses || 0)}</td>
                                                 <td className="p-4 text-right text-gray-500 font-bold tracking-tight">₱{formatCurrencyPH(shift.expected_cash)}</td>
-                                                <td className="p-4 text-right font-black text-blue-600 tracking-tight">{shift.actual_cash ? `₱${formatCurrencyPH(shift.actual_cash)}` : '-'}</td>
+                                                <td className="p-4 text-right font-black text-[#1B3B6A] tracking-tight">{shift.actual_cash ? `₱${formatCurrencyPH(shift.actual_cash)}` : '-'}</td>
                                                 <td className="p-4 text-center">
-                                                    <span className={`px-2.5 py-1 rounded text-xs font-black tracking-widest ${Math.abs(Number(shift.difference)) < 1 ? 'bg-gray-100 text-gray-600' : Number(shift.difference) < 0 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                                                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-xs ${Math.abs(Number(shift.difference)) < 1 ? 'bg-gray-50 text-gray-600 border-gray-200/70' : Number(shift.difference) < 0 ? 'bg-red-50 text-red-700 border-red-200/70' : 'bg-emerald-50 text-emerald-700 border-emerald-200/70'}`}>
                                                         {Number(shift.difference) > 0 ? '+' : ''}{formatNumberWithDecimals(shift.difference)}
                                                     </span>
                                                 </td>
                                                 <td className="p-4 text-center flex justify-center gap-2">
                                                     {/* NEW: Clean Eye Icon Action Button */}
-                                                    <button onClick={() => handleViewDetails(shift)} className="p-2 text-blue-500 hover:text-blue-700 rounded-lg transition-colors" title="View Summary Details">
+                                                    <button onClick={() => handleViewDetails(shift)} className="p-2 text-[#1B3B6A] hover:bg-[#EFF4F9] rounded-lg transition-colors" title="View Summary Details">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -462,10 +462,10 @@ export default function ShiftHistory({ auth }) {
                                     </div>
                                     <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
                                         <div className="flex flex-col"><span className="text-[10px] text-gray-400 uppercase font-black tracking-widest">Expected</span><span className="font-bold text-gray-600">₱{formatCurrencyPH(shift.expected_cash)}</span></div>
-                                        <div className="flex flex-col items-end"><span className="text-[10px] text-gray-400 uppercase font-black tracking-widest">Actual</span><span className="font-black text-blue-600 text-lg tracking-tight">{shift.actual_cash ? `₱${formatCurrencyPH(shift.actual_cash)}` : '-'}</span></div>
+                                        <div className="flex flex-col items-end"><span className="text-[10px] text-gray-400 uppercase font-black tracking-widest">Actual</span><span className="font-black text-[#1B3B6A] text-lg tracking-tight">{shift.actual_cash ? `₱${formatCurrencyPH(shift.actual_cash)}` : '-'}</span></div>
                                     </div>
                                     <div className="pt-2 border-t border-gray-50">
-                                        <button onClick={() => handleViewDetails(shift)} className="w-full py-2.5 text-xs font-bold flex items-center justify-center gap-2 text-blue-700 bg-blue-50 rounded-lg border border-blue-200 shadow-sm active:scale-95 transition-transform">
+                                        <button onClick={() => handleViewDetails(shift)} className="w-full py-2.5 text-xs font-bold flex items-center justify-center gap-2 text-[#1B3B6A] bg-[#EFF4F9] rounded-lg border border-[#CBD7E6] shadow-sm active:scale-95 transition-transform">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -501,7 +501,7 @@ export default function ShiftHistory({ auth }) {
                                     <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({top:0, behavior:'smooth'}); }} className="px-3 py-2 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40">&laquo;</button>
                                     {getPageNumbers().map((num, idx) => (
                                         num === '...' ? <span key={idx} className="px-2 py-2 text-gray-400 font-bold">...</span> : (
-                                            <button key={num} onClick={() => { setCurrentPage(num); window.scrollTo({top:0, behavior:'smooth'}); }} className={`px-3.5 py-2 rounded-lg text-xs font-bold border transition-all ${currentPage === num ? 'bg-gray-900 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>{num}</button>
+                                            <button key={num} onClick={() => { setCurrentPage(num); window.scrollTo({top:0, behavior:'smooth'}); }} className={`px-3.5 py-2 rounded-lg text-xs font-bold border transition-all ${currentPage === num ? 'bg-[#1B3B6A] text-white border-[#1B3B6A] shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>{num}</button>
                                         )
                                     ))}
                                     <button disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({top:0, behavior:'smooth'}); }} className="px-3 py-2 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40">&raquo;</button>
@@ -518,13 +518,13 @@ export default function ShiftHistory({ auth }) {
                     <div className="absolute inset-0" onClick={() => setShowDetails(false)}></div>
 
                     <div className="relative bg-white w-full sm:max-w-md rounded-t-xl sm:rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
-                        <div className="sm:hidden flex justify-center pt-4 pb-2 bg-gray-900 w-full shrink-0" onClick={() => setShowDetails(false)}>
+                        <div className="sm:hidden flex justify-center pt-4 pb-2 bg-[#1B3B6A] w-full shrink-0" onClick={() => setShowDetails(false)}>
                             <div className="w-12 h-1.5 bg-white/20 rounded"></div>
                         </div>
 
-                        <div className="px-6 py-5 border-b text-white flex justify-between items-center bg-gray-900 shrink-0">
-                            <h2 className="text-xl font-black tracking-tight">Shift Summary</h2>
-                            <button onClick={() => setShowDetails(false)} className="text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-full hidden sm:block">
+                        <div className="px-6 py-5 border-b border-[#142E54] text-white flex justify-between items-center bg-[#1B3B6A] shrink-0">
+                            <h2 className="text-xl font-black tracking-tight text-white">Shift Summary</h2>
+                            <button onClick={() => setShowDetails(false)} className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full hidden sm:block">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
@@ -532,7 +532,7 @@ export default function ShiftHistory({ auth }) {
                         <div className="p-6 overflow-y-auto custom-scrollbar bg-white">
                             {isLoadingDetails || !selectedShiftData ? (
                                 <div className="py-20 flex justify-center items-center">
-                                    <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    <svg className="animate-spin h-8 w-8 text-[#1B3B6A]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                 </div>
                             ) : (
                                 <div className="space-y-4 pb-4 sm:pb-0">
@@ -568,7 +568,7 @@ export default function ShiftHistory({ auth }) {
                                             <span className="text-gray-800">Expected in Drawer</span>
                                             <span className="text-gray-900">₱{formatCurrencyPH(selectedShiftData.expected_cash)}</span>
                                         </div>
-                                        <div className="flex justify-between items-center font-black text-[15px] text-blue-600">
+                                        <div className="flex justify-between items-center font-black text-[15px] text-[#1B3B6A]">
                                             <span>Actual Count</span>
                                             <span>₱{formatCurrencyPH(selectedShiftData.actual_cash)}</span>
                                         </div>
@@ -579,7 +579,7 @@ export default function ShiftHistory({ auth }) {
                                             <div className="text-[10px] uppercase font-black text-gray-400 tracking-widest mb-2">Non-Cash Sales</div>
 
                                             {selectedShiftData.gcash_sales > 0 && (
-                                                <div className="flex justify-between items-center"><span className="text-gray-500 font-medium">GCash</span><span className="font-bold text-blue-600">+₱{formatCurrencyPH(selectedShiftData.gcash_sales)}</span></div>
+                                                <div className="flex justify-between items-center"><span className="text-gray-500 font-medium">GCash</span><span className="font-bold text-[#1B3B6A]">+₱{formatCurrencyPH(selectedShiftData.gcash_sales)}</span></div>
                                             )}
                                             {selectedShiftData.maya_sales > 0 && (
                                                 <div className="flex justify-between items-center"><span className="text-gray-500 font-medium">Maya</span><span className="font-bold text-green-600">+₱{formatCurrencyPH(selectedShiftData.maya_sales)}</span></div>
@@ -608,7 +608,7 @@ export default function ShiftHistory({ auth }) {
                                         </div>
                                     </div>
 
-                                    <div className={`p-4 rounded-lg text-center border shadow-sm ${Math.abs(selectedShiftData.difference) < 0.01 ? 'bg-green-50 text-green-700 border-green-100' : selectedShiftData.difference > 0 ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
+                                    <div className={`p-4 rounded-lg text-center border shadow-sm ${Math.abs(selectedShiftData.difference) < 0.01 ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : selectedShiftData.difference > 0 ? 'bg-[#EFF4F9] text-[#1B3B6A] border-[#CBD7E6]' : 'bg-rose-50 text-rose-700 border-rose-100'}`}>
                                         <div className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-1">
                                             {Math.abs(selectedShiftData.difference) < 0.01 ? 'Drawer Status' : (selectedShiftData.difference > 0 ? 'Drawer Overage' : 'Drawer Shortage')}
                                         </div>
@@ -618,7 +618,7 @@ export default function ShiftHistory({ auth }) {
                                     </div>
 
                                     <div className="pt-4">
-                                        <button onClick={() => setShowDetails(false)} className="w-full py-3.5 bg-gray-900 text-white font-bold rounded-lg shadow-lg hover:bg-black transition-all active:scale-[0.98]">
+                                        <button onClick={() => setShowDetails(false)} className="w-full py-3.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold rounded-lg shadow-md shadow-[#1B3B6A]/20 transition-all active:scale-[0.98]">
                                             Close Details
                                         </button>
                                     </div>

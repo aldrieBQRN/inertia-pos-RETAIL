@@ -148,23 +148,23 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
             <div className="bg-white w-full max-w-sm h-auto max-h-[85vh] sm:max-h-[90vh] rounded-t-lg sm:rounded-lg shadow-2xl flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in">
 
                 {/* Modal Header */}
-                <div className="bg-gray-50 px-4 py-4 border-b flex justify-between items-center shrink-0">
-                    <h2 className="text-lg md:text-xl font-black text-gray-800 tracking-tight">Checkout</h2>
-                    <button onClick={onClose} className="p-1.5 bg-gray-200 rounded-full text-gray-500 hover:bg-red-100 hover:text-red-500 transition-colors shadow-sm">
+                <div className="bg-white px-4 py-4 border-b border-gray-200 flex justify-between items-center shrink-0">
+                    <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight">Checkout</h2>
+                    <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full text-slate-600 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
 
                 {/* Scrollable Content Area */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar flex flex-col">
+                <div className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar flex flex-col bg-white">
 
                     {/* Grand Total Display */}
                     <div className="text-center mb-5 shrink-0">
-                        <div className="text-[10px] text-gray-400 uppercase tracking-widest font-black mb-1">Total Amount Due</div>
-                        <div className="text-4xl md:text-5xl font-black text-blue-600 tracking-tighter">{total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        <div className="text-[10px] text-slate-400 uppercase tracking-widest font-black mb-1">Total Amount Due</div>
+                        <div className="text-4xl md:text-5xl font-black text-[#1B3B6A] tracking-tighter font-mono">{total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                     </div>
 
-                    {/* PRIMARY CATEGORY BUTTONS (Restored Big Icon Layout) */}
+                    {/* PRIMARY CATEGORY BUTTONS */}
                     <div className="grid grid-cols-3 gap-2 md:gap-3 mb-4 shrink-0">
 
                         {/* Cash Button */}
@@ -172,7 +172,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                             type="button"
                             onClick={() => handleCategorySelect('cash')}
                             className={`flex flex-col items-center justify-center py-3 md:py-4 rounded-lg border-2 transition-all duration-200 gap-1 md:gap-2 shadow-sm
-                                ${category === 'cash' ? 'border-green-500 bg-green-50 text-green-700 transform scale-[1.02]' : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200 hover:bg-gray-50'}`}
+                                ${category === 'cash' ? 'border-[#1B3B6A] bg-gray-100 text-[#1B3B6A] font-extrabold transform scale-[1.02]' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 md:w-7 md:h-7">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -185,7 +185,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                             type="button"
                             onClick={() => handleCategorySelect('ewallet')}
                             className={`flex flex-col items-center justify-center py-3 md:py-4 rounded-lg border-2 transition-all duration-200 gap-1 md:gap-2 shadow-sm
-                                ${category === 'ewallet' ? 'border-blue-500 bg-blue-50 text-blue-700 transform scale-[1.02]' : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200 hover:bg-gray-50'}`}
+                                ${category === 'ewallet' ? 'border-[#1B3B6A] bg-gray-100 text-[#1B3B6A] font-extrabold transform scale-[1.02]' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 md:w-7 md:h-7">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
@@ -198,7 +198,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                             type="button"
                             onClick={() => handleCategorySelect('card')}
                             className={`flex flex-col items-center justify-center py-3 md:py-4 rounded-lg border-2 transition-all duration-200 gap-1 md:gap-2 shadow-sm
-                                ${category === 'card' ? 'border-purple-500 bg-purple-50 text-purple-700 transform scale-[1.02]' : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200 hover:bg-gray-50'}`}
+                                ${category === 'card' ? 'border-[#1B3B6A] bg-gray-100 text-[#1B3B6A] font-extrabold transform scale-[1.02]' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 md:w-7 md:h-7">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
@@ -207,14 +207,14 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                         </button>
                     </div>
 
-                    {/* E-WALLET SUB-MENU (Only shows if E-Wallet is selected) */}
+                    {/* E-WALLET SUB-MENU */}
                     {category === 'ewallet' && (
                         <div className="grid grid-cols-2 gap-3 mb-4 animate-in slide-in-from-top-2 duration-200">
                             <button
                                 type="button"
                                 onClick={() => setMethod('gcash')}
                                 className={`flex flex-col items-center justify-center py-2.5 rounded-lg border-2 transition-all duration-200 gap-1 shadow-sm
-                                    ${method === 'gcash' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-100 bg-white text-gray-400 hover:bg-gray-50'}`}
+                                    ${method === 'gcash' ? 'border-[#1B3B6A] bg-gray-100 text-[#1B3B6A] font-extrabold' : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'}`}
                             >
                                 <span className="font-black text-[11px] uppercase tracking-wider">{showFKeys ? "GCash (F3)" : "GCash"}</span>
                             </button>
@@ -222,21 +222,21 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                                 type="button"
                                 onClick={() => setMethod('maya')}
                                 className={`flex flex-col items-center justify-center py-2.5 rounded-lg border-2 transition-all duration-200 gap-1 shadow-sm
-                                    ${method === 'maya' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-100 bg-white text-gray-400 hover:bg-gray-50'}`}
+                                    ${method === 'maya' ? 'border-[#1B3B6A] bg-gray-100 text-[#1B3B6A] font-extrabold' : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'}`}
                             >
                                 <span className="font-black text-[11px] uppercase tracking-wider">{showFKeys ? "Maya (F4)" : "Maya"}</span>
                             </button>
                         </div>
                     )}
 
-                    {/* CARD SUB-MENU (Only shows if Card is selected) */}
+                    {/* CARD SUB-MENU */}
                     {category === 'card' && (
                         <div className="grid grid-cols-2 gap-3 mb-4 animate-in slide-in-from-top-2 duration-200">
                             <button
                                 type="button"
                                 onClick={() => setMethod('credit_card')}
                                 className={`flex flex-col items-center justify-center py-2.5 rounded-lg border-2 transition-all duration-200 gap-1 shadow-sm
-                                    ${method === 'credit_card' ? 'border-purple-500 bg-purple-50 text-purple-700' : 'border-gray-100 bg-white text-gray-400 hover:bg-gray-50'}`}
+                                    ${method === 'credit_card' ? 'border-[#1B3B6A] bg-gray-100 text-[#1B3B6A] font-extrabold' : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'}`}
                             >
                                 <span className="font-black text-[10px] md:text-[11px] uppercase tracking-wider">{showFKeys ? "Credit (F8)" : "Credit"}</span>
                             </button>
@@ -244,7 +244,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                                 type="button"
                                 onClick={() => setMethod('debit_card')}
                                 className={`flex flex-col items-center justify-center py-2.5 rounded-lg border-2 transition-all duration-200 gap-1 shadow-sm
-                                    ${method === 'debit_card' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-100 bg-white text-gray-400 hover:bg-gray-50'}`}
+                                    ${method === 'debit_card' ? 'border-[#1B3B6A] bg-gray-100 text-[#1B3B6A] font-extrabold' : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'}`}
                             >
                                 <span className="font-black text-[10px] md:text-[11px] uppercase tracking-wider">{showFKeys ? "Debit (F9)" : "Debit"}</span>
                             </button>
@@ -254,35 +254,35 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                     {/* Method-Specific Input Fields */}
                     <div className="space-y-4 shrink-0">
                         {category === 'cash' ? (
-                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 shadow-inner">
-                                <label className="block text-[10px] md:text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Cash Received</label>
+                            <div className="bg-white p-4 rounded-lg border border-gray-200">
+                                <label className="block text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Cash Received</label>
                                 <div className="relative flex items-center">
                                     <input
                                         type="text"
                                         inputMode="decimal"
                                         autoFocus
                                         onFocus={(e) => e.target.select()}
-                                        className="w-full px-4 py-3 text-xl font-black text-gray-900 border-gray-300 rounded-lg focus:ring-gray-900 focus:border-gray-900 shadow-sm"
+                                        className="w-full px-4 py-3 text-xl font-black text-slate-900 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] shadow-sm font-mono"
                                         value={cashGiven}
                                         onChange={handleCashChange}
                                         placeholder="0.00"
                                     />
                                 </div>
-                                <div className={`mt-3 p-3 rounded-lg flex justify-between items-center shadow-sm border ${change >= 0 ? 'bg-green-100 border-green-200 text-green-800' : 'bg-red-50 border-red-100 text-red-700'}`}>
+                                <div className={`mt-3 p-3 rounded-lg flex justify-between items-center shadow-sm border ${change >= 0 ? 'bg-gray-50 border-gray-200 text-[#1B3B6A]' : 'bg-rose-50 border-rose-200 text-rose-700'}`}>
                                     <span className="font-black text-[10px] md:text-xs uppercase tracking-wider">Change Due</span>
-                                    <span className="text-xl font-black">{change >= 0 ? change.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</span>
+                                    <span className="text-xl font-black font-mono">{change >= 0 ? change.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</span>
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 shadow-inner animate-in fade-in duration-300">
-                                <label className="block text-[10px] md:text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                            <div className="bg-white p-4 rounded-lg border border-gray-200 animate-in fade-in duration-300">
+                                <label className="block text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-widest mb-2">
                                     {category === 'card' ? 'Terminal Reference' : 'Payment Reference'}
                                 </label>
                                 <input
                                     type="text"
                                     inputMode="numeric"
                                     autoFocus
-                                    className="w-full px-4 py-3 text-base font-black text-gray-900 font-mono tracking-widest border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                                    className="w-full px-4 py-3 text-base font-black text-slate-900 font-mono tracking-widest border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] shadow-sm"
                                     value={reference}
                                     onChange={(e) => setReference(e.target.value)}
                                     placeholder={getReferencePlaceholder()}
@@ -297,8 +297,8 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                             type="button"
                             onClick={handleManualSubmit}
                             disabled={isProcessing}
-                            className={`w-full py-4 text-white font-black text-sm uppercase tracking-widest rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]
-                                ${isProcessing ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none' : 'bg-gray-900 hover:bg-black hover:shadow-xl'}`}
+                            className={`w-full py-4 text-white font-black text-sm uppercase tracking-widest rounded-lg shadow-md flex items-center justify-center gap-2 transition-all active:scale-[0.98]
+                                ${isProcessing ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none' : 'bg-[#1B3B6A] hover:bg-[#142d52]'}`}
                         >
                             {isProcessing ? <>Processing...</> : <>Confirm Payment<span className="hidden md:inline"> (Enter)</span></>}
                         </button>
@@ -306,7 +306,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                             type="button"
                             onClick={onClose}
                             disabled={isProcessing}
-                            className="w-full py-3 bg-white text-gray-750 border border-gray-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                            className="w-full py-3 bg-white text-slate-700 border border-gray-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-gray-100 hover:text-slate-900 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                         >
                             Cancel<span className="hidden md:inline"> (Esc)</span>
                         </button>

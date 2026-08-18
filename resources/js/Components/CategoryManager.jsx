@@ -12,7 +12,7 @@ import Swal from 'sweetalert2';
 export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
     const [categories, setCategories] = useState([]);
     const [newCategory, setNewCategory] = useState('');
-    const [newColor, setNewColor] = useState('#3B82F6'); // Default Blue
+    const [newColor, setNewColor] = useState('#1B3B6A'); // Default Brand Navy
     const [loading, setLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(false);
 
@@ -52,7 +52,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
 
             // Reset fields
             setNewCategory('');
-            setNewColor('#3B82F6');
+            setNewColor('#1B3B6A');
 
             fetchCategories();
             if (onUpdate) onUpdate(); // Triggers a refresh of the parent component's product data
@@ -77,7 +77,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
                 icon: error.response?.status === 422 ? 'warning' : 'error',
                 title: error.response?.status === 422 ? 'Oops!' : 'Error',
                 text: errorMessage,
-                confirmButtonColor: '#3B82F6'
+                confirmButtonColor: '#1B3B6A'
             });
         } finally {
             setLoading(false);
@@ -96,8 +96,8 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
                 text: "Deleting this category may affect products assigned to it!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
+                confirmButtonColor: '#DC2626',
+                cancelButtonColor: '#64748B',
                 confirmButtonText: 'Yes, delete it!'
             });
 
@@ -134,14 +134,14 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
             html: `
                 <div class="flex flex-col gap-4 text-left px-2 mt-4">
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1">Category Name</label>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Category Name</label>
                         <input id="swal-input-name" class="swal2-input !m-0 !w-full" value="${category.name}" placeholder="Enter category name...">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1">Badge Color</label>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Badge Color</label>
                         <div class="flex items-center gap-3">
-                            <input id="swal-input-color" type="color" class="w-12 h-12 rounded cursor-pointer border-0 p-0" value="${category.color || '#3B82F6'}">
-                            <span class="text-sm text-gray-500">Choose a color identifier</span>
+                            <input id="swal-input-color" type="color" class="w-12 h-12 rounded cursor-pointer border-0 p-0" value="${category.color || '#1B3B6A'}">
+                            <span class="text-sm text-slate-500">Choose a color identifier</span>
                         </div>
                     </div>
                 </div>
@@ -149,14 +149,16 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
             focusConfirm: false,
             showCancelButton: true,
             confirmButtonText: 'Update Category',
+            confirmButtonColor: '#1B3B6A',
+            cancelButtonColor: '#64748B',
             preConfirm: () => {
                 const name = document.getElementById('swal-input-name').value;
                 const color = document.getElementById('swal-input-color').value;
                 if (!name.trim()) {
-                    Swal.showValidationMessage('Category name is required');
+                    Swal.showValidationMessage('Category name cannot be empty');
                     return false;
                 }
-                return { name, color };
+                return { name: name.trim(), color };
             }
         });
 
@@ -190,7 +192,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
                     icon: error.response?.status === 422 ? 'warning' : 'error',
                     title: error.response?.status === 422 ? 'Oops!' : 'Error',
                     text: errorMessage,
-                    confirmButtonColor: '#3B82F6'
+                    confirmButtonColor: '#1B3B6A'
                 });
             }
         }
@@ -201,11 +203,11 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
             <div className="bg-white w-full max-w-md rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
 
                 {/* Modal Header */}
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:py-4 border-b flex justify-between items-center shrink-0">
-                    <h3 className="text-lg font-bold text-gray-800">
+                <div className="bg-[#1B3B6A] px-4 py-3 sm:px-6 sm:py-4 border-b border-[#142E54] flex justify-between items-center shrink-0 text-white">
+                    <h3 className="text-lg font-black text-white">
                         {isAdmin ? 'Manage Categories' : 'Category List'}
                     </h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-red-500 text-2xl font-bold transition-colors">
+                    <button onClick={onClose} className="text-gray-300 hover:text-white text-2xl font-bold transition-colors">
                         &times;
                     </button>
                 </div>
@@ -213,7 +215,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
                 <div className="p-4 sm:p-6 flex-1 overflow-y-auto">
                     {/* Inline Add Category Form - ONLY VISIBLE TO ADMINS */}
                     {isAdmin && (
-                        <form onSubmit={handleAdd} className="flex gap-2 mb-6 bg-gray-50 p-3 rounded-md border border-gray-100">
+                        <form onSubmit={handleAdd} className="flex gap-2 mb-6 bg-slate-50 p-3 rounded-md border border-slate-200">
                             <input
                                 type="color"
                                 title="Pick a category color"
@@ -223,7 +225,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
                             />
                             <input
                                 type="text"
-                                className="flex-1 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm py-2"
+                                className="flex-1 border-slate-300 rounded-md focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] text-sm py-2 text-slate-900"
                                 placeholder="New Category Name..."
                                 value={newCategory}
                                 onChange={(e) => setNewCategory(e.target.value)}
@@ -231,7 +233,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="bg-blue-600 text-white px-4 py-2 rounded-md font-bold hover:bg-blue-700 disabled:opacity-50 text-sm whitespace-nowrap shadow-sm transition-colors"
+                                className="bg-[#1B3B6A] text-white px-4 py-2 rounded-md font-bold hover:bg-[#142e54] disabled:opacity-50 text-sm whitespace-nowrap shadow-sm transition-colors"
                             >
                                 Add
                             </button>
@@ -243,15 +245,15 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
                         {isFetching ? (
                             // Loading Skeletons
                             Array.from({ length: 4 }).map((_, i) => (
-                                <div key={i} className="flex justify-between items-center p-3 bg-white rounded-md border border-gray-150 animate-pulse">
+                                <div key={i} className="flex justify-between items-center p-3 bg-white rounded-md border border-slate-200 animate-pulse">
                                     <div className="flex items-center gap-3 w-2/3">
-                                        <div className="w-4 h-4 rounded-full bg-gray-200 shrink-0"></div>
-                                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                                        <div className="w-4 h-4 rounded-full bg-slate-200 shrink-0"></div>
+                                        <div className="h-4 bg-slate-200 rounded w-2/3"></div>
                                     </div>
                                     {isAdmin && (
                                         <div className="flex gap-2.5 shrink-0">
-                                            <div className="w-5 h-5 bg-gray-200 rounded"></div>
-                                            <div className="w-5 h-5 bg-gray-200 rounded"></div>
+                                            <div className="w-5 h-5 bg-slate-200 rounded"></div>
+                                            <div className="w-5 h-5 bg-slate-200 rounded"></div>
                                         </div>
                                     )}
                                 </div>
@@ -259,15 +261,15 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
                         ) : (
                             <>
                                 {categories.map(cat => (
-                                    <div key={cat.id} className="flex justify-between items-center p-3 bg-white rounded-md border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all">
+                                    <div key={cat.id} className="flex justify-between items-center p-3 bg-white rounded-md border border-slate-200 hover:border-[#1B3B6A] hover:bg-slate-50 transition-all">
 
                                         {/* COLOR BADGE AND NAME */}
                                         <div className="flex items-center gap-3 overflow-hidden">
                                             <div
                                                 className="w-4 h-4 rounded-full shrink-0 border border-black/10 shadow-sm"
-                                                style={{ backgroundColor: cat.color || '#3B82F6' }}
+                                                style={{ backgroundColor: cat.color || '#1B3B6A' }}
                                             ></div>
-                                            <span className="font-bold text-gray-700 truncate text-sm" title={cat.name}>
+                                            <span className="font-extrabold text-slate-900 truncate text-sm" title={cat.name}>
                                                 {cat.name}
                                             </span>
                                         </div>
@@ -277,7 +279,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
                                             <div className="flex gap-1 shrink-0">
                                                 <button
                                                     onClick={() => handleEdit(cat)}
-                                                    className="text-gray-400 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-md transition-colors"
+                                                    className="text-slate-400 hover:text-[#1B3B6A] hover:bg-slate-100 p-2 rounded-md transition-colors"
                                                     title="Edit Category"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -286,7 +288,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(cat.id)}
-                                                    className="text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-md transition-colors"
+                                                    className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 p-2 rounded-md transition-colors"
                                                     title="Delete Category"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -298,8 +300,8 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
                                     </div>
                                 ))}
                                 {categories.length === 0 && (
-                                    <div className="text-center py-8 text-gray-500 text-sm flex flex-col items-center">
-                                        <svg className="w-12 h-12 text-gray-200 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <div className="text-center py-8 text-slate-500 text-sm flex flex-col items-center">
+                                        <svg className="w-12 h-12 text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 6h.008v.008H6V6z" />
                                         </svg>
