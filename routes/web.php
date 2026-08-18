@@ -16,6 +16,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\TenantSetupController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -265,3 +266,52 @@ Route::middleware(['auth', 'super_admin'])->prefix('developer')->group(function 
 });
 
 require __DIR__ . '/auth.php';
+
+/**
+ * SECURE PRODUCTION DATABASE & SYSTEM UTILITY ROUTE
+ * Use this to run migrations, seeds, or storage links on InfinityFree
+ * URL: /artisan-migrate?token=YOUR_TOKEN[&fresh=1][&seed=1][&storage=1]
+ */
+Route::get('/artisan-migrate', function (Request $request) {
+    $expectedToken = env('MIGRATION_TOKEN', config('app.key'));
+    $providedToken = $request->query('token');
+
+    if (empty($providedToken) || empty($expectedToken) || !hash_equals((string) $expectedToken, (string) $providedToken)) {
+        abort(403, 'Unauthorized. Invalid or missing migration token.');
+    }
+
+    $output = [];
+
+    // 1. Optimize & Clear Config Cache
+    Artisan::call('optimize:clear');
+    $output[] = "=== Cache & Config Clear ===\n" . Artisan::output();
+
+    // 2. Storage link if requested
+    if ($request->boolean('storage')) {
+        Artisan::call('storage:link');
+        $output[] = "=== Storage Link ===\n" . Artisan::output();
+    }
+
+    // 3. Database Migration
+    if ($request->boolean('fresh')) {
+        $params = ['--force' => true];
+        if ($request->boolean('seed')) {
+            $params['--seed'] = true;
+        }
+        Artisan::call('migrate:fresh', $params);
+        $output[] = "=== Migrate Fresh ===\n" . Artisan::output();
+    } else {
+        $params = ['--force' => true];
+        Artisan::call('migrate', $params);
+        $output[] = "=== Migrate ===\n" . Artisan::output();
+
+        if ($request->boolean('seed')) {
+            Artisan::call('db:seed', ['--force' => true]);
+            $output[] = "=== DB Seed ===\n" . Artisan::output();
+        }
+    }
+
+    return response('<pre style="background:#1e1e2e;color:#a6adc8;padding:24px;border-radius:8px;font-family:monospace;font-size:14px;line-height:1.5;">' 
+        . htmlspecialchars(implode("\n", $output)) 
+        . '</pre>', 200, ['Content-Type' => 'text/html']);
+});
