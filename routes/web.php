@@ -18,6 +18,7 @@ use App\Http\Controllers\TenantSetupController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -277,38 +278,62 @@ Route::get('/artisan-migrate', function (Request $request) {
     $providedToken = $request->query('token');
 
     if (empty($providedToken) || empty($expectedToken) || !hash_equals((string) $expectedToken, (string) $providedToken)) {
-        abort(403, 'Unauthorized. Invalid or missing migration token.');
+        return response("<div style='font-family:sans-serif;padding:30px;max-width:700px;margin:auto;'>"
+            . "<h2 style='color:#e11d48;'>403 - Invalid or Missing Migration Token</h2>"
+            . "<p>The token provided in the URL did not match the <code>MIGRATION_TOKEN</code> (or <code>APP_KEY</code>) on the server.</p>"
+            . "<p><strong>Your URL token:</strong> <code>" . htmlspecialchars($providedToken ?: '(empty)') . "</code></p>"
+            . "<p>Please ensure <code>MIGRATION_TOKEN</code> in your <code>env.php</code> or <code>.env</code> matches.</p>"
+            . "</div>", 403, ['Content-Type' => 'text/html']);
     }
 
     $output = [];
 
-    // 1. Optimize & Clear Config Cache
-    Artisan::call('optimize:clear');
-    $output[] = "=== Cache & Config Clear ===\n" . Artisan::output();
-
-    // 2. Storage link if requested
-    if ($request->boolean('storage')) {
-        Artisan::call('storage:link');
-        $output[] = "=== Storage Link ===\n" . Artisan::output();
+    // 1. Test Database Connection First
+    try {
+        DB::connection()->getPdo();
+        $output[] = "=== Database Connection: SUCCESSFUL (" . DB::connection()->getDatabaseName() . ") ===\n";
+    } catch (\Throwable $e) {
+        return response("<div style='font-family:sans-serif;padding:30px;max-width:800px;margin:auto;'>"
+            . "<h2 style='color:#e11d48;'>Database Connection Failed</h2>"
+            . "<p>Laravel could not connect to MySQL. Please check your InfinityFree database credentials in <code>inertia-pos-core/env.php</code> or <code>.env</code>.</p>"
+            . "<p><strong>Host:</strong> <code>" . config('database.connections.mysql.host') . "</code></p>"
+            . "<p><strong>Database:</strong> <code>" . config('database.connections.mysql.database') . "</code></p>"
+            . "<p><strong>Username:</strong> <code>" . config('database.connections.mysql.username') . "</code></p>"
+            . "<p><strong>Error:</strong> <span style='color:#dc2626;font-weight:bold;'>" . htmlspecialchars($e->getMessage()) . "</span></p>"
+            . "</div>", 500, ['Content-Type' => 'text/html']);
     }
 
-    // 3. Database Migration
-    if ($request->boolean('fresh')) {
-        $params = ['--force' => true];
-        if ($request->boolean('seed')) {
-            $params['--seed'] = true;
-        }
-        Artisan::call('migrate:fresh', $params);
-        $output[] = "=== Migrate Fresh ===\n" . Artisan::output();
-    } else {
-        $params = ['--force' => true];
-        Artisan::call('migrate', $params);
-        $output[] = "=== Migrate ===\n" . Artisan::output();
+    try {
+        // 2. Optimize & Clear Config Cache
+        Artisan::call('optimize:clear');
+        $output[] = "=== Cache & Config Clear ===\n" . Artisan::output();
 
-        if ($request->boolean('seed')) {
-            Artisan::call('db:seed', ['--force' => true]);
-            $output[] = "=== DB Seed ===\n" . Artisan::output();
+        // 3. Storage link if requested
+        if ($request->boolean('storage')) {
+            Artisan::call('storage:link');
+            $output[] = "=== Storage Link ===\n" . Artisan::output();
         }
+
+        // 4. Database Migration
+        if ($request->boolean('fresh')) {
+            $params = ['--force' => true];
+            if ($request->boolean('seed')) {
+                $params['--seed'] = true;
+            }
+            Artisan::call('migrate:fresh', $params);
+            $output[] = "=== Migrate Fresh ===\n" . Artisan::output();
+        } else {
+            $params = ['--force' => true];
+            Artisan::call('migrate', $params);
+            $output[] = "=== Migrate ===\n" . Artisan::output();
+
+            if ($request->boolean('seed')) {
+                Artisan::call('db:seed', ['--force' => true]);
+                $output[] = "=== DB Seed ===\n" . Artisan::output();
+            }
+        }
+    } catch (\Throwable $e) {
+        $output[] = "\n!!! MIGRATION EXCEPTION !!!\n" . $e->getMessage() . "\n" . $e->getTraceAsString();
     }
 
     return response('<pre style="background:#1e1e2e;color:#a6adc8;padding:24px;border-radius:8px;font-family:monospace;font-size:14px;line-height:1.5;">' 

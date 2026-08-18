@@ -18,24 +18,13 @@ Options -Indexes
     RewriteBase /
 
     # 4. Block direct web access to internal Laravel directories
-    RewriteRule ^(inertia-pos-core|core|app|bootstrap|config|database|resources|routes|vendor|storage/framework|storage/logs)(/.*)?$ - [F,L]
+    RewriteRule ^(inertia-pos-core|core|app|bootstrap|config|database|resources|routes|vendor)(/.*)?$ - [F,L]
 
-    # 5. Route build assets to public/build
-    RewriteRule ^build/(.*)$ public/build/$1 [L]
+    # 5. Serve real static files and directories directly (build/*, images/*, favicon, manifest, etc.)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
 
-    # 6. Route images to public/images
-    RewriteRule ^images/(.*)$ public/images/$1 [L]
-
-    # 7. Route public storage files
-    RewriteRule ^storage/(.*)$ storage/app/public/$1 [L]
-
-    # 8. Route common public files
-    RewriteRule ^favicon\.ico$ public/favicon.ico [L]
-    RewriteRule ^favicon\.png$ public/favicon.png [L]
-    RewriteRule ^robots\.txt$ public/robots.txt [L]
-    RewriteRule ^manifest\.webmanifest$ public/manifest.webmanifest [L]
-    RewriteRule ^service-worker\.js$ public/service-worker.js [L]
-
-    # 9. Route everything else to root index.php
+    # 6. Route all other application traffic through index.php
     RewriteRule ^ index.php [L]
 </IfModule>
