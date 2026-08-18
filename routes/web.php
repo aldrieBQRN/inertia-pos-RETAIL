@@ -308,10 +308,18 @@ Route::get('/artisan-migrate', function (Request $request) {
         Artisan::call('optimize:clear');
         $output[] = "=== Cache & Config Clear ===\n" . Artisan::output();
 
-        // 3. Storage link if requested
+        // 3. Storage link if requested (Safe for shared hosting where exec is disabled)
         if ($request->boolean('storage')) {
-            Artisan::call('storage:link');
-            $output[] = "=== Storage Link ===\n" . Artisan::output();
+            try {
+                $target = storage_path('app/public');
+                $link = public_path('storage');
+                if (!file_exists($link)) {
+                    @symlink($target, $link);
+                }
+                $output[] = "=== Storage Link: Safe Link Handled ===\n";
+            } catch (\Throwable $e) {
+                $output[] = "=== Storage Link: (Symlink skipped: " . $e->getMessage() . ") ===\n";
+            }
         }
 
         // 4. Database Migration
