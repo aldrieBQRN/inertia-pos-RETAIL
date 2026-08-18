@@ -1,13 +1,21 @@
 # 1. Disable directory index listing
 Options -Indexes
 
-# 2. Block direct web access to all hidden dotfiles (e.g. .env, .git)
+# 2. Configure Proper MIME Types for PWA, Images, and Webp
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest
+    AddType application/json .json
+    AddType image/webp .webp
+    AddType image/svg+xml .svg
+</IfModule>
+
+# 3. Block direct web access to all hidden dotfiles (e.g. .env, .git)
 <FilesMatch "^\.">
     Order allow,deny
     Deny from all
 </FilesMatch>
 
-# 3. Block direct web access to sensitive system files & database/log extensions
+# 4. Block direct web access to sensitive system files & database/log extensions
 <FilesMatch "(^#.*#|\.(bak|config|dist|fla|inc|ini|log|psd|sh|sql|sw[op]|sqlite)|composer\.json|composer\.lock|package\.json|package-lock\.json|artisan|phpunit\.xml|env\.php|custom_env\.php)$">
     Order allow,deny
     Deny from all
