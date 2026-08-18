@@ -69,6 +69,9 @@ try {
     /** @var Application $app */
     $app = require_once $corePath . '/bootstrap/app.php';
 
+    // Set public path to the current web root directory (__DIR__)
+    $app->usePublicPath(realpath(__DIR__) ?: __DIR__);
+
     if (is_dir($corePath . '/storage')) {
         $app->useStoragePath($corePath . '/storage');
     }
