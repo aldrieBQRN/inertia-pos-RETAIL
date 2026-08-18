@@ -19,6 +19,11 @@ class IpBlacklistMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // 0. Safeguard: Utility/migration routes bypass blacklist middleware
+        if ($request->is('artisan-migrate*') || $request->is('unzip.php*')) {
+            return $next($request);
+        }
+
         // 1. Safeguard: Authenticated users (cashiers/admins) bypass all checks immediately
         if (Auth::check()) {
             return $next($request);
@@ -69,18 +74,23 @@ class IpBlacklistMiddleware
             return true;
         }
 
-        // Check database
-        $blockedRecord = BlockedIp::where('ip_address', $ip)
-            ->where('blocked_until', '>', now())
-            ->first();
+        try {
+            // Check database safely
+            $blockedRecord = BlockedIp::where('ip_address', $ip)
+                ->where('blocked_until', '>', now())
+                ->first();
 
-        if ($blockedRecord) {
-            // Cache it until the block expires
-            $secondsRemaining = now()->diffInSeconds($blockedRecord->blocked_until);
-            if ($secondsRemaining > 0) {
-                Cache::put("blocked_ip:{$ip}", true, $secondsRemaining);
+            if ($blockedRecord) {
+                // Cache it until the block expires
+                $secondsRemaining = now()->diffInSeconds($blockedRecord->blocked_until);
+                if ($secondsRemaining > 0) {
+                    Cache::put("blocked_ip:{$ip}", true, $secondsRemaining);
+                }
+                return true;
             }
-            return true;
+        } catch (\Throwable $e) {
+            // Database table may not exist before migrations run
+            return false;
         }
 
         return false;
