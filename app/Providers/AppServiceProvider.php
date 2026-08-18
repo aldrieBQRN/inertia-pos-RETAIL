@@ -3,8 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\URL; // <-- ADDED THIS IMPORT
-use Illuminate\Support\Facades\Vite;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
@@ -35,6 +35,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Fix MySQL key length limit on shared hosting
+        Schema::defaultStringLength(191);
+
         // Configures Vite to prefetch assets for improved frontend performance
         Vite::prefetch(concurrency: 3);
 
