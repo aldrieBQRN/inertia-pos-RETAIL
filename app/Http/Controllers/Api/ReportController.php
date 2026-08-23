@@ -27,16 +27,17 @@ class ReportController extends Controller
      */
     public function index(Request $request)
     {
-        $storeId = $request->user()->store_id;
+        try {
+            $storeId = $request->user()->store_id;
 
-        // 1. Date Range Handling (Default to Last 7 Days)
-        $startDate = $request->has('start_date') && $request->start_date
-            ? Carbon::parse($request->start_date)->startOfDay()
-            : Carbon::now()->subDays(6)->startOfDay();
+            // 1. Date Range Handling (Default to Last 7 Days)
+            $startDate = $request->has('start_date') && $request->start_date
+                ? Carbon::parse($request->start_date)->startOfDay()
+                : Carbon::now()->subDays(6)->startOfDay();
 
-        $endDate = $request->has('end_date') && $request->end_date
-            ? Carbon::parse($request->end_date)->endOfDay()
-            : Carbon::now()->endOfDay();
+            $endDate = $request->has('end_date') && $request->end_date
+                ? Carbon::parse($request->end_date)->endOfDay()
+                : Carbon::now()->endOfDay();
 
         $userId = $request->user_id;
         $categoryId = $request->category_id;
@@ -209,19 +210,19 @@ class ReportController extends Controller
         $productSalesRaw = $productSalesQuery
             ->selectRaw('
                 sale_items.product_id,
-                COALESCE(products.name, sale_items.custom_name, "Custom Item") as product_name,
-                COALESCE(products.sku, "N/A") as sku,
-                COALESCE(categories.name, "Uncategorized") as category_name,
-                COALESCE(categories.id, 0) as category_id,
-                COALESCE(products.price, sale_items.unit_price) as unit_retail_price,
-                COALESCE(products.cost_price, 0) as unit_cost_price,
-                COALESCE(products.stock_quantity, 0) as current_stock,
-                COALESCE(products.is_active, 1) as is_active,
+                MAX(COALESCE(products.name, sale_items.custom_name, "Custom Item")) as product_name,
+                MAX(COALESCE(products.sku, "N/A")) as sku,
+                MAX(COALESCE(categories.name, "Uncategorized")) as category_name,
+                MAX(COALESCE(categories.id, 0)) as category_id,
+                MAX(COALESCE(products.price, sale_items.unit_price)) as unit_retail_price,
+                MAX(COALESCE(products.cost_price, 0)) as unit_cost_price,
+                MAX(COALESCE(products.stock_quantity, 0)) as current_stock,
+                MAX(COALESCE(products.is_active, 1)) as is_active,
                 SUM(sale_items.quantity) as units_sold,
                 SUM(sale_items.subtotal) as total_revenue,
                 SUM(COALESCE(products.cost_price, 0) * sale_items.quantity) as total_cost
             ')
-            ->groupBy('sale_items.product_id', 'product_name', 'sku', 'category_name', 'category_id', 'unit_retail_price', 'unit_cost_price', 'current_stock', 'is_active')
+            ->groupBy('sale_items.product_id')
             ->orderByDesc('units_sold')
             ->get();
 
@@ -235,7 +236,7 @@ class ReportController extends Controller
                 'name' => $p->product_name,
                 'sku' => $p->sku,
                 'category_name' => $p->category_name,
-                'category_id' => $p->category_id,
+                'category_id' => (int)$p->category_id,
                 'unit_retail_price' => (int)$p->unit_retail_price,
                 'unit_cost_price' => (int)$p->unit_cost_price,
                 'current_stock' => (int)$p->current_stock,
@@ -260,14 +261,14 @@ class ReportController extends Controller
             ->when($userId, fn($q) => $q->where('sales.cashier_id', $userId))
             ->when($paymentMethod, fn($q) => $q->where('sales.payment_method', $paymentMethod))
             ->selectRaw('
-                COALESCE(categories.name, "Uncategorized") as category_name,
                 COALESCE(categories.id, 0) as category_id,
+                MAX(COALESCE(categories.name, "Uncategorized")) as category_name,
                 COUNT(DISTINCT sale_items.product_id) as unique_products_sold,
                 SUM(sale_items.quantity) as units_sold,
                 SUM(sale_items.subtotal) as total_revenue,
                 SUM(COALESCE(products.cost_price, 0) * sale_items.quantity) as total_cost
             ')
-            ->groupBy('category_name', 'category_id')
+            ->groupBy(DB::raw('COALESCE(categories.id, 0)'))
             ->orderByDesc('total_revenue')
             ->get();
 
@@ -376,13 +377,14 @@ class ReportController extends Controller
             ->where('products.store_id', $storeId)
             ->where('products.is_active', true)
             ->selectRaw('
-                COALESCE(categories.name, "Uncategorized") as category_name,
+                COALESCE(categories.id, 0) as category_id,
+                MAX(COALESCE(categories.name, "Uncategorized")) as category_name,
                 COUNT(*) as skus_count,
                 SUM(products.stock_quantity) as total_units,
                 SUM(COALESCE(products.cost_price, 0) * products.stock_quantity) as total_cost_value,
                 SUM(products.price * products.stock_quantity) as total_retail_value
             ')
-            ->groupBy('category_name')
+            ->groupBy(DB::raw('COALESCE(categories.id, 0)'))
             ->orderByDesc('total_retail_value')
             ->get();
 
@@ -588,5 +590,12 @@ class ReportController extends Controller
                 ]
             ]
         ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Reports API Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            return response()->json([
+                'message' => 'Failed to retrieve reports data: ' . $e->getMessage(),
+                'error' => config('app.debug') ? $e->getTraceAsString() : null
+            ], 500);
+        }
     }
 }
