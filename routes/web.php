@@ -7,11 +7,12 @@ use App\Http\Controllers\Api\PosController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\ShiftController;
+use App\Http\Controllers\Api\TerminalController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\DeveloperController;
 use App\Http\Controllers\Api\SetupController;
-use App\Http\Controllers\Api\ActivityLogController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\TenantSetupController;
@@ -103,7 +104,30 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
         $user = $request->user();
         if ($user->role === 'super_admin') return redirect()->route('developer.index');
         if ($user->is_admin) return redirect()->route('dashboard');
-        return Inertia::render('PosTerminal');
+
+        // Preload data so POS renders instantly with zero loading delay or layout shift
+        $terminalsRes = app(\App\Http\Controllers\Api\TerminalController::class)->index($request);
+        $terminals = $terminalsRes instanceof \Illuminate\Http\JsonResponse ? $terminalsRes->getData(true) : $terminalsRes;
+
+        $categories = \App\Models\Category::where('store_id', $user->store_id)
+            ->orderBy('name', 'asc')
+            ->get();
+
+        $products = \App\Models\Product::where('store_id', $user->store_id)
+            ->where('is_active', true)
+            ->with('category')
+            ->orderBy('name', 'asc')
+            ->get();
+
+        $shiftRes = app(\App\Http\Controllers\Api\ShiftController::class)->current($request);
+        $shiftData = $shiftRes instanceof \Illuminate\Http\JsonResponse ? $shiftRes->getData(true) : $shiftRes;
+
+        return Inertia::render('PosTerminal', [
+            'initial_shift_data' => $shiftData,
+            'initial_terminals' => $terminals,
+            'initial_categories' => $categories,
+            'initial_products' => $products,
+        ]);
     })->name('pos');
 
     // Inventory Management
@@ -118,11 +142,11 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
         return Inertia::render('Transactions');
     })->name('transactions.index');
 
-    // Shift Records (Z-Read History)
+    // Shift Records (Z-Read History) - Admin Restricted
     Route::get('/shifts', function (Request $request) {
         if ($request->user()->role === 'super_admin') return redirect()->route('developer.index');
         return Inertia::render('ShiftHistory');
-    })->name('shifts.index');
+    })->name('shifts.index')->middleware('admin');
 
     // Store Settings
     Route::get('/settings', function (Request $request) {
@@ -166,6 +190,8 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class, 'throt
     Route::get('/api/products', [ProductController::class, 'index']);
     Route::post('/api/products', [ProductController::class, 'store']);
     Route::get('/api/products/next-sku', [ProductController::class, 'getNextSku']);
+    Route::get('/api/products/{id}/history', [ProductController::class, 'stockHistory']);
+    Route::get('/api/inventory/recent-activity', [ProductController::class, 'recentActivity']);
     Route::get('/api/categories', [CategoryController::class, 'index']);
     Route::get('/api/transactions', [TransactionController::class, 'index']);
     Route::get('/api/transactions/{id}', [TransactionController::class, 'show']);
@@ -175,7 +201,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class, 'throt
     Route::middleware('admin')->group(function () {
         Route::post('/api/settings', [SettingController::class, 'update']);
         Route::get('/api/dashboard', [DashboardController::class, 'index']);
-        Route::get('/api/reports', [DashboardController::class, 'reports']);
+        Route::get('/api/reports', [ReportController::class, 'index']);
         Route::get('/api/dashboard/export', [DashboardController::class, 'export']);
 
         Route::post('/api/products/import', [ProductController::class, 'bulkImport']);
@@ -188,14 +214,24 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class, 'throt
         Route::delete('/api/categories/{id}', [CategoryController::class, 'destroy']);
 
         Route::post('/api/transactions/{id}/void', [TransactionController::class, 'void']);
+
+        // Shift History API for Admins
+        Route::get('/api/shifts', [ShiftController::class, 'index']);
     });
 
-    // API: Shift & Reporting
-    Route::get('/api/shifts', [ShiftController::class, 'index']);
-    Route::get('/api/shift/check', [ShiftController::class, 'check']);
-    Route::post('/api/shift/start', [ShiftController::class, 'start']);
+    // API: Shift Lifecycle & Cash Management (Terminal Operations)
+    Route::get('/api/shift/current', [ShiftController::class, 'current']);
+    Route::get('/api/shifts/active', [ShiftController::class, 'activeShifts']);
+    Route::post('/api/shift/open', [ShiftController::class, 'open']);
+    Route::post('/api/shift/cash-movement', [ShiftController::class, 'cashMovement']);
     Route::post('/api/shift/close', [ShiftController::class, 'close']);
     Route::get('/api/pos/shift/data/{id}', [ShiftController::class, 'data']);
+
+    // API: POS Terminals / Registers
+    Route::get('/api/terminals', [TerminalController::class, 'index']);
+    Route::post('/api/terminals', [TerminalController::class, 'store']);
+    Route::put('/api/terminals/{id}', [TerminalController::class, 'update']);
+    Route::delete('/api/terminals/{id}', [TerminalController::class, 'destroy']);
 
     // API: Held Orders (Parked Sales)
     Route::get('/api/held-orders', [HeldOrderController::class, 'index']);
@@ -208,6 +244,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class, 'throt
         Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
         Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
+        Route::post('/users/{user}/resend-invite', [UserController::class, 'resendInvite'])->name('users.resend-invite');
     });
 
     // API: Activity Logs (Admin Audit Trail)

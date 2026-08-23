@@ -13,12 +13,16 @@ import Swal from 'sweetalert2';
  */
 export default function CartSidebar({
     settings,
+    shiftData,
+    onOpenShift,
+    onCloseShift,
     showPaymentModal,
     setShowPaymentModal,
     onClose,
     onPrintReceipt,
     onRecallClick,
     onEditItemQty,
+    onCheckoutSuccess,
     disabled = false,
     showFKeys = true,
     enableShortcuts = true
@@ -124,8 +128,8 @@ export default function CartSidebar({
                 return;
             }
 
-            // 1. Toggling/Activating Cart Navigation with F6
-            if (e.key === 'F6') {
+            // 1. Toggling/Activating Cart Navigation with F7 (Current Order)
+            if (e.key === 'F7') {
                 if (cart.length > 0) {
                     setFocusedIndex(prev => {
                         const next = prev === -1 ? 0 : -1;
@@ -225,18 +229,16 @@ export default function CartSidebar({
                 }
             }
 
-            if (e.key === 'F8') {
-                if (cart.length > 0) {
-                    handleSaveOrder();
-                }
-            } else if (e.key === 'F9') {
-                toggleSenior();
-            } else if (e.key === 'F10') {
+            if (e.key === 'F9') {
                 if (cart.length > 0) {
                     handleClearCart();
                 }
+            } else if (e.key === 'F10') {
+                toggleSenior();
             } else if (e.key === 'F11') {
-                openCashDrawer();
+                if (cart.length > 0) {
+                    handleSaveOrder();
+                }
             } else if (e.key === 'F12') {
                 if (cart.length > 0) {
                     setShowPaymentModal(true);
@@ -407,7 +409,8 @@ export default function CartSidebar({
                 reference: paymentDetails.reference,
                 is_senior: isSenior,
                 cash_given: cashGiven,
-                change: change
+                change: change,
+                terminal_id: localStorage.getItem('pos_terminal_id') || null
             });
 
             if (response.data.success) {
@@ -422,6 +425,11 @@ export default function CartSidebar({
                 setShowPaymentModal(false);
                 clearCart();
                 setShowSuccessModal(true);
+
+                if (onCheckoutSuccess) {
+                    onCheckoutSuccess();
+                }
+                window.dispatchEvent(new CustomEvent('shift-refresh'));
             }
         } catch (error) {
             Swal.fire('Error', error.response?.data?.message || "Transaction failed", 'error');
@@ -441,51 +449,55 @@ export default function CartSidebar({
         <>
             <div ref={sidebarRef} className="flex flex-col h-full relative bg-white">
                 {/* HEADER */}
-                <div className="px-3 py-2 md:px-3 md:py-2.5 flex justify-between items-center border-b border-slate-200 bg-white">
-                    <div className="flex items-center gap-1 md:gap-1.5">
+                <div className="px-4 py-3 flex justify-between items-center border-b border-gray-200 bg-white shrink-0">
+                    <div className="flex items-center gap-2">
                         {onClose && (
-                            <button onClick={onClose} className="md:hidden p-1 -ml-1 text-slate-500 hover:bg-slate-100 rounded-full">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                            <button onClick={onClose} className="md:hidden p-1 -ml-1 text-gray-500 hover:bg-gray-100 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                                 </svg>
                             </button>
                         )}
                         <div>
-                            <h2 className="text-base md:text-lg font-black text-slate-900 tracking-tight">
-                                {showFKeys ? "Current Order (F6)" : "Current Order"}
-                            </h2>
-                            <span className="text-[10px] md:text-xs font-semibold text-slate-500">
-                                {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <h2 className="text-base font-black text-gray-900 tracking-tight">
+                                    {showFKeys ? "Current Order (F7)" : "Current Order"}
+                                </h2>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6]">
+                                    {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
+                                </span>
+                            </div>
+                            <p className="text-[11px] font-semibold text-gray-400 mt-0.5">Active checkout transaction</p>
                         </div>
                     </div>
 
-                    <div className="flex gap-1.5">
-                        {/* Recall Button */}
-                        <button onClick={onRecallClick} disabled={disabled} className="p-3 lg:px-3 h-[46px] bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 rounded-md transition-all border border-slate-200 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed" title={showFKeys ? "Recall (F7)" : "Recall"}>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <span className="hidden lg:inline">{showFKeys ? "Recall (F7)" : "Recall"}</span>
+                    <div className="flex items-center gap-1.5">
+                        {/* Recall Button (F8) */}
+                        <button onClick={onRecallClick} disabled={disabled} className="px-2.5 sm:px-3 h-[36px] bg-white text-gray-700 hover:bg-gray-50 rounded-xl transition-all border border-gray-200 flex items-center gap-1.5 text-xs font-bold shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" title={showFKeys ? "Recall (F8)" : "Recall"}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 text-gray-500"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span className="hidden lg:inline">{showFKeys ? "Recall (F8)" : "Recall"}</span>
                         </button>
 
-                        {/* Clear Cart Button */}
-                        <button onClick={handleClearCart} disabled={disabled} className="p-3 lg:px-3 h-[46px] bg-white text-rose-600 hover:bg-rose-50 rounded-md transition-all border border-rose-200 flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed" title={showFKeys ? "Clear Cart (F10)" : "Clear Cart"}>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-                            <span className="hidden lg:inline">{showFKeys ? "Clear (F10)" : "Clear"}</span>
+                        {/* Clear Cart Button (F9) */}
+                        <button onClick={handleClearCart} disabled={disabled} className="px-2.5 sm:px-3 h-[36px] bg-rose-50/50 text-rose-700 hover:bg-rose-100 rounded-xl transition-all border border-rose-200 flex items-center gap-1.5 text-xs font-bold shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" title={showFKeys ? "Clear Cart (F9)" : "Clear Cart"}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 text-rose-600"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                            <span className="hidden lg:inline">{showFKeys ? "Clear (F9)" : "Clear"}</span>
                         </button>
 
-                        {/* Senior Discount Button */}
-                        <button onClick={toggleSenior} disabled={disabled} className={`p-3 lg:px-3 h-[46px] rounded-md transition-all border flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed ${isSenior ? 'bg-slate-100 text-[#1B3B6A] border-slate-300 font-extrabold' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`} title={showFKeys ? "Discount (F9)" : "Discount"}>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
-                            <span className="hidden lg:inline">{showFKeys ? "Discount (F9)" : "Discount"}</span>
+                        {/* Senior Discount Button (F10) */}
+                        <button onClick={toggleSenior} disabled={disabled} className={`px-2.5 sm:px-3 h-[36px] rounded-xl transition-all border flex items-center gap-1.5 text-xs font-bold shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${isSenior ? 'bg-amber-100 text-amber-900 border-amber-300 font-extrabold' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`} title={showFKeys ? "Discount (F10)" : "Discount"}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                            <span className="hidden lg:inline">{showFKeys ? "Senior (F10)" : "Senior"}</span>
                         </button>
                     </div>
                 </div>
+
                 {/* SUB-HEADER: COLUMN HEADERS — desktop only */}
-                <div className="px-3 py-2.5 bg-white border-t border-b border-slate-200 lg:border-t-2 lg:border-b-2 lg:border-slate-300 shrink-0 hidden lg:block">
+                <div className="px-4 py-2.5 bg-slate-100 border-t border-b border-slate-200 shrink-0 hidden lg:block">
                     {/* COLUMNS HEADERS */}
-                    <div className="grid grid-cols-[90px_1fr_100px_110px] gap-2 text-xs font-black uppercase tracking-wider text-slate-500 font-mono">
+                    <div className="grid grid-cols-[85px_1fr_95px_100px] gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
                         <div className="text-center">Qty</div>
-                        <div className="pl-4">Description</div>
+                        <div className="pl-3">Description</div>
                         <div className="text-right">Price</div>
                         <div className="text-right">Amount</div>
                     </div>
@@ -494,12 +506,15 @@ export default function CartSidebar({
                 {/* CART ITEMS LIST */}
                 <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar bg-white">
                     {cart.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-slate-300 pb-10">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-10 h-10 md:w-12 md:h-12 mb-2"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>
-                            <p className="text-xs md:text-sm font-medium text-slate-400">Cart is empty</p>
+                        <div className="flex flex-col items-center justify-center h-full text-gray-300 pb-10 space-y-2">
+                            <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>
+                            </div>
+                            <p className="text-xs font-bold text-gray-400">Order is currently empty</p>
+                            <p className="text-[11px] text-gray-400 font-medium">Scan or click products on the catalog</p>
                         </div>
                     ) : (
-                        <div className="flex flex-col p-2 lg:p-0 gap-2 lg:gap-0 bg-white">
+                        <div className="flex flex-col p-2 lg:p-0 gap-2 lg:gap-0 bg-white divide-y divide-gray-100/80">
                             {cart.map((item, index) => (
                                 <React.Fragment key={item.id}>
                                     {/* Desktop Row */}
@@ -512,24 +527,24 @@ export default function CartSidebar({
                                             window.dispatchEvent(new CustomEvent('reset-catalog-nav'));
                                             setFocusedIndex(index);
                                         }}
-                                        className={`w-full cart-item-row hidden lg:grid grid-cols-[90px_1fr_100px_110px] gap-2 px-3 py-3 items-center border-b border-slate-100 hover:bg-gray-50 transition-colors text-base font-bold group cursor-pointer ${focusedIndex === index ? 'ring-2 ring-inset ring-[#1B3B6A] bg-gray-50' : ''}`}
+                                        className={`w-full cart-item-row hidden lg:grid grid-cols-[85px_1fr_95px_100px] gap-2 px-4 py-2.5 items-center hover:bg-gray-50/80 transition-colors text-xs font-bold group cursor-pointer ${focusedIndex === index ? 'ring-2 ring-inset ring-[#1B3B6A] bg-gray-50' : ''}`}
                                     >
                                         {/* QTY Column with Hover Controls */}
-                                        <div className="flex items-center justify-between h-6 select-none relative w-full">
+                                        <div className="flex items-center justify-between h-7 select-none relative w-full bg-gray-50 rounded-lg p-0.5 border border-gray-200">
                                             {!item.is_custom ? (
                                                 <>
                                                     <button
                                                         onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            removeFromCart(item.id);
+                                                             e.stopPropagation();
+                                                             removeFromCart(item.id);
                                                         }}
                                                         disabled={disabled}
-                                                        className={`w-6 h-6 bg-gray-100 border border-gray-200 hover:bg-[#1B3B6A] hover:text-white hover:border-[#1B3B6A] text-slate-700 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
+                                                        className="w-5 h-5 bg-white hover:bg-[#1B3B6A] hover:text-white rounded-md text-gray-700 flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-2xs cursor-pointer disabled:cursor-not-allowed"
                                                         title="Decrease"
                                                     >
                                                         -
                                                     </button>
-                                                    <span className="flex-1 text-center font-extrabold text-slate-900 font-mono text-base">
+                                                    <span className="flex-1 text-center font-black text-gray-900 font-mono text-xs">
                                                         {item.quantity}
                                                     </span>
                                                     <button
@@ -538,22 +553,22 @@ export default function CartSidebar({
                                                             handleIncreaseQty(item);
                                                         }}
                                                         disabled={disabled}
-                                                        className={`w-6 h-6 bg-gray-100 border border-gray-200 hover:bg-[#1B3B6A] hover:text-white hover:border-[#1B3B6A] text-slate-700 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-sm shadow-sm disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'opacity-100 pointer-events-auto' : 'opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto')}`}
+                                                        className="w-5 h-5 bg-white hover:bg-[#1B3B6A] hover:text-white rounded-md text-gray-700 flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-2xs cursor-pointer disabled:cursor-not-allowed"
                                                         title="Increase"
                                                     >
                                                         +
                                                     </button>
                                                 </>
                                             ) : (
-                                                <span className="flex-1 text-center font-extrabold text-slate-900 font-mono text-base">
+                                                <span className="flex-1 text-center font-black text-gray-900 font-mono text-xs">
                                                     {item.quantity}
                                                 </span>
                                             )}
                                         </div>
 
                                         {/* DESCRIPTION Column */}
-                                        <div className="min-w-0 pl-4 pr-1 flex items-center justify-between">
-                                            <span className="font-extrabold text-slate-900 truncate leading-tight block select-none" title={item.name}>
+                                        <div className="min-w-0 pl-3 pr-1 flex items-center justify-between">
+                                            <span className="font-bold text-gray-900 text-xs truncate leading-tight block select-none" title={item.name}>
                                                 {item.name}
                                             </span>
                                             <button
@@ -562,21 +577,21 @@ export default function CartSidebar({
                                                     handleRemoveEntireItem(item);
                                                 }}
                                                 disabled={disabled}
-                                                className={`text-slate-400 hover:text-rose-600 p-0.5 rounded transition-all shrink-0 ml-1 disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'md:opacity-100' : 'md:opacity-0 md:group-hover:opacity-100')}`}
+                                                className={`text-gray-400 hover:text-rose-600 p-1 rounded-md hover:bg-rose-50 transition-all shrink-0 ml-1 disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'md:opacity-100' : 'md:opacity-0 md:group-hover:opacity-100')}`}
                                                 title="Delete"
                                             >
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                             </button>
                                         </div>
 
                                         {/* PRICE Column */}
-                                        <div className="text-right text-slate-600 font-mono font-semibold text-base">
-                                            {formatPrice(item.price)}
+                                        <div className="text-right text-gray-500 font-mono font-medium text-xs">
+                                            ₱{formatPrice(item.price)}
                                         </div>
 
                                         {/* AMOUNT Column */}
-                                        <div className="text-right text-slate-900 font-mono font-extrabold text-base">
-                                            {formatPrice(item.price * item.quantity)}
+                                        <div className="text-right text-gray-900 font-mono font-black text-xs sm:text-sm">
+                                            ₱{formatPrice(item.price * item.quantity)}
                                         </div>
                                     </div>
 
@@ -588,11 +603,11 @@ export default function CartSidebar({
                                             window.dispatchEvent(new CustomEvent('reset-catalog-nav'));
                                             setFocusedIndex(index);
                                         }}
-                                        className={`w-full cart-item-row flex lg:hidden flex-col p-3.5 border rounded-lg bg-white transition-all relative cursor-pointer ${focusedIndex === index ? 'ring-2 ring-[#1B3B6A] bg-gray-50 border-[#1B3B6A]' : 'border-slate-200'}`}
+                                        className={`w-full cart-item-row flex lg:hidden flex-col p-3 border rounded-xl bg-white transition-all relative cursor-pointer shadow-2xs ${focusedIndex === index ? 'ring-2 ring-[#1B3B6A] bg-gray-50 border-[#1B3B6A]' : 'border-gray-200/80 hover:bg-gray-50'}`}
                                     >
                                         {/* Top section: Name and Delete button */}
                                         <div className="flex justify-between items-start gap-2">
-                                            <span className="font-extrabold text-slate-900 text-sm line-clamp-2 select-none" title={item.name}>
+                                            <span className="font-bold text-gray-900 text-xs sm:text-sm line-clamp-2 select-none leading-tight" title={item.name}>
                                                 {item.name}
                                             </span>
                                             <button
@@ -601,7 +616,7 @@ export default function CartSidebar({
                                                     handleRemoveEntireItem(item);
                                                 }}
                                                 disabled={disabled}
-                                                className="text-slate-400 hover:text-rose-600 p-1 rounded transition-all shrink-0 -mt-1"
+                                                className="text-gray-400 hover:text-rose-600 p-1 rounded-md hover:bg-rose-50 transition-all shrink-0 -mt-1"
                                                 title="Delete"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -609,22 +624,22 @@ export default function CartSidebar({
                                         </div>
 
                                         {/* Price & Stock info: price and amount */}
-                                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+                                        <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-gray-100">
                                             {/* Left: Qty Selector */}
                                             {!item.is_custom ? (
-                                                <div className="flex items-center h-7 select-none relative bg-white border border-slate-200 rounded-full px-1 py-0.5">
+                                                <div className="flex items-center h-7 select-none relative bg-gray-50 border border-gray-200 rounded-lg p-0.5">
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             removeFromCart(item.id);
                                                         }}
                                                         disabled={disabled}
-                                                        className="w-5 h-5 bg-white border border-slate-200 hover:bg-[#1B3B6A] hover:text-white hover:border-[#1B3B6A] text-slate-700 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-sm disabled:cursor-not-allowed"
+                                                        className="w-5 h-5 bg-white border border-gray-200 hover:bg-[#1B3B6A] hover:text-white rounded-md text-gray-700 flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-2xs disabled:cursor-not-allowed"
                                                         title="Decrease"
                                                     >
                                                         -
                                                     </button>
-                                                    <span className="w-8 text-center font-extrabold text-slate-900 font-mono text-xs">
+                                                    <span className="w-7 text-center font-black text-gray-900 font-mono text-xs">
                                                         {item.quantity}
                                                     </span>
                                                     <button
@@ -633,24 +648,24 @@ export default function CartSidebar({
                                                             handleIncreaseQty(item);
                                                         }}
                                                         disabled={disabled}
-                                                        className="w-5 h-5 bg-white border border-slate-200 hover:bg-[#1B3B6A] hover:text-white hover:border-[#1B3B6A] text-slate-700 rounded-full flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-sm disabled:cursor-not-allowed"
+                                                        className="w-5 h-5 bg-white border border-gray-200 hover:bg-[#1B3B6A] hover:text-white rounded-md text-gray-700 flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-2xs disabled:cursor-not-allowed"
                                                         title="Increase"
                                                     >
                                                         +
                                                     </button>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center h-7 select-none relative px-2 text-xs font-black text-slate-500 bg-gray-100 border border-slate-200 rounded-lg font-mono">
-                                                    QTY: <span className="text-slate-900 ml-1">{item.quantity}</span>
+                                                <div className="flex items-center h-7 select-none relative px-2 text-xs font-black text-gray-500 bg-gray-100 border border-gray-200 rounded-lg font-mono">
+                                                    QTY: <span className="text-gray-900 ml-1">{item.quantity}</span>
                                                 </div>
                                             )}
 
                                             {/* Right: Price details */}
                                             <div className="text-right">
-                                                <div className="text-[10px] font-bold text-slate-400 font-mono">
-                                                    {formatPrice(item.price)} x {item.quantity}
+                                                <div className="text-[10px] font-bold text-gray-400 font-mono">
+                                                    ₱{formatPrice(item.price)} × {item.quantity}
                                                 </div>
-                                                <div className="text-sm font-extrabold text-slate-900 font-mono mt-0.5">
+                                                <div className="text-xs sm:text-sm font-black text-gray-900 font-mono mt-0.5">
                                                     ₱{formatPrice(item.price * item.quantity)}
                                                 </div>
                                             </div>
@@ -665,45 +680,56 @@ export default function CartSidebar({
                 </div>
 
                 {/* FOOTER TOTALS & ACTIONS */}
-                <div className="border-t p-3 md:p-4 bg-white border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)]">
-                    <div className="space-y-1.5 mb-3">
-                        <div className="flex justify-between text-sm text-slate-500 font-bold">
-                            <span>Cash Sales (Subtotal)</span>
-                            <span className="font-mono text-slate-900">{formatPrice(subtotal)}</span>
+                <div className="border-t p-4 bg-white border-gray-200 shadow-2xs space-y-3 shrink-0">
+                    <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs text-gray-500 font-semibold">
+                            <span>Gross Subtotal</span>
+                            <span className="font-mono text-gray-900 font-bold">₱{formatPrice(subtotal)}</span>
                         </div>
                         {isSenior && (
-                            <div className="flex justify-between text-sm text-[#1B3B6A] font-bold">
-                                <span>Less: Senior/PWD (20%)</span>
-                                <span className="font-mono">-{formatPrice(discount)}</span>
+                            <div className="flex justify-between text-xs text-emerald-600 font-bold">
+                                <span>Less: Senior/PWD Discount (20%)</span>
+                                <span className="font-mono">-₱{formatPrice(discount)}</span>
                             </div>
                         )}
                     </div>
 
-                    <div className="flex justify-between items-end mb-3 md:mb-4">
-                        <span className="text-sm md:text-base text-slate-600 font-bold">Total Amount</span>
-                        <span className="text-2xl md:text-3xl font-black text-[#1B3B6A] tracking-tight font-mono">{formatPrice(total)}</span>
+                    <div className="pt-2 border-t border-gray-100 flex justify-between items-end">
+                        <span className="text-xs uppercase font-bold text-gray-500 tracking-wider">Total Payable</span>
+                        <span className="text-2xl sm:text-3xl font-black text-[#1B3B6A] tracking-tight font-mono">₱{formatPrice(total)}</span>
                     </div>
 
                     {/* ACTIONS */}
-                    <div className="grid grid-cols-3 gap-2 md:gap-2.5">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-2.5 pt-1">
                         <button
                             onClick={() => handleSaveOrder()}
                             disabled={disabled || cart.length === 0}
-                            className="w-full py-4 md:py-3.5 rounded-lg bg-gray-100 text-slate-800 font-extrabold text-sm sm:text-xs md:text-sm lg:text-base border border-slate-200 hover:bg-gray-200 active:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors active:scale-95"
+                            className="w-full py-3 rounded-xl bg-gray-100 text-gray-700 font-bold text-xs border border-gray-200 hover:bg-gray-200 active:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer shadow-2xs"
                         >
-                            {showFKeys ? "Save (F8)" : "Save"}
+                            {showFKeys ? "Save Order (F11)" : "Save Order"}
                         </button>
                         <button
-                            onClick={openCashDrawer}
-                            disabled={disabled}
-                            className="w-full py-4 md:py-3.5 rounded-lg bg-gray-100 text-slate-700 font-extrabold text-sm sm:text-xs md:text-sm lg:text-base hover:bg-gray-200 border border-slate-300 hover:border-slate-400 active:bg-gray-300 transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {showFKeys ? "Drawer (F11)" : "Drawer"}
-                        </button>
-                        <button
-                            onClick={() => setShowPaymentModal(true)}
+                            onClick={() => {
+                                if (shiftData && !shiftData.has_active_shift) {
+                                    Swal.fire({
+                                        title: 'No Active Work Shift',
+                                        text: 'Please open a work shift and record your starting float before checking out.',
+                                        icon: 'warning',
+                                        confirmButtonColor: '#1B3B6A',
+                                        confirmButtonText: 'Open Shift Now',
+                                        showCancelButton: true,
+                                        cancelButtonText: 'Cancel'
+                                    }).then((res) => {
+                                        if (res.isConfirmed && onOpenShift) {
+                                            onOpenShift();
+                                        }
+                                    });
+                                    return;
+                                }
+                                setShowPaymentModal(true);
+                            }}
                             disabled={disabled || cart.length === 0}
-                            className="w-full py-4 md:py-3.5 rounded-lg bg-[#1B3B6A] text-white font-extrabold text-sm sm:text-xs md:text-sm lg:text-base shadow-md hover:bg-[#142d52] active:bg-[#0e203b] disabled:bg-slate-300 disabled:cursor-not-allowed transition-all active:scale-95"
+                            className="w-full py-3 rounded-xl bg-[#1B3B6A] text-white font-bold text-xs shadow-md hover:bg-[#142E54] active:bg-[#0e203b] disabled:bg-gray-300 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer"
                         >
                             {showFKeys ? "Checkout (F12)" : "Checkout"}
                         </button>
@@ -727,42 +753,43 @@ export default function CartSidebar({
             {/* SUCCESS MODAL PORTAL */}
             {showSuccessModal && typeof document !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white rounded-lg shadow-2xl w-full max-w-sm overflow-hidden text-center p-6 flex flex-col items-center">
-                        <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 md:mb-4">
-                            <svg className="w-8 h-8 md:w-10 md:h-10 text-[#1B3B6A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                    <div className="bg-white rounded-2xl shadow-2xl border border-gray-200/90 w-full max-w-sm overflow-hidden text-center p-6 flex flex-col items-center">
+                        <div className="w-14 h-14 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-2xl flex items-center justify-center mb-3.5 shadow-2xs">
+                            <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
                         </div>
 
-                        <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 mb-1">Payment Successful!</h2>
+                        <h2 className="text-xl font-black text-gray-900 tracking-tight">Payment Successful</h2>
+                        <p className="text-xs text-gray-400 font-semibold mt-0.5">Transaction completed and recorded</p>
 
                         {/* Transaction Summary (Total, Cash, Change) */}
                         {successDetails && (
-                            <div className="w-full bg-white border border-slate-200 rounded-xl p-4 my-3 text-left font-sans text-sm space-y-2.5 shadow-sm">
-                                <div className="flex justify-between items-center text-slate-600">
-                                    <span className="font-bold text-xs uppercase tracking-wider text-slate-400">Total Amount Due</span>
-                                    <span className="font-black text-slate-900 text-base">₱{successDetails.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <div className="w-full bg-[#EFF4F9] border border-[#CBD7E6] rounded-2xl p-4 my-4 text-left font-sans text-xs space-y-2 shadow-2xs">
+                                <div className="flex justify-between items-center text-gray-600">
+                                    <span className="font-bold text-[10px] uppercase tracking-wider text-gray-400">Total Settled</span>
+                                    <span className="font-black text-gray-900 text-sm font-mono">₱{successDetails.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                                 {successDetails.paymentMethod === 'cash' ? (
                                     <>
-                                        <div className="flex justify-between items-center text-slate-600">
-                                            <span className="font-bold text-xs uppercase tracking-wider text-slate-400">Cash Received</span>
-                                            <span className="font-black text-slate-900 text-base">₱{successDetails.cashGiven.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                        <div className="flex justify-between items-center text-gray-600">
+                                            <span className="font-bold text-[10px] uppercase tracking-wider text-gray-400">Cash Tendered</span>
+                                            <span className="font-black text-gray-900 text-sm font-mono">₱{successDetails.cashGiven.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                         </div>
-                                        <div className="h-px bg-slate-200 my-1"></div>
+                                        <div className="h-px bg-[#CBD7E6]/70 my-1"></div>
                                         <div className="flex justify-between items-center text-[#1B3B6A] font-extrabold">
-                                            <span className="text-xs uppercase tracking-wider">Change Due</span>
-                                            <span className="text-xl font-black">₱{successDetails.change.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                            <span className="text-[10px] uppercase tracking-wider">Change Given</span>
+                                            <span className="text-lg font-black font-mono">₱{successDetails.change.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                         </div>
                                     </>
                                 ) : (
                                     <>
-                                        <div className="flex justify-between items-center text-slate-600">
-                                            <span className="font-bold text-xs uppercase tracking-wider text-slate-400">Payment Method</span>
-                                            <span className="font-extrabold text-[#1B3B6A] uppercase text-xs tracking-wider">{successDetails.paymentMethod}</span>
+                                        <div className="flex justify-between items-center text-gray-600">
+                                            <span className="font-bold text-[10px] uppercase tracking-wider text-gray-400">Channel</span>
+                                            <span className="font-black text-[#1B3B6A] uppercase text-xs tracking-wider">{successDetails.paymentMethod}</span>
                                         </div>
                                         {successDetails.reference && (
-                                            <div className="flex justify-between items-center text-slate-600">
-                                                <span className="font-bold text-xs uppercase tracking-wider text-slate-400">Reference No.</span>
-                                                <span className="font-mono text-xs font-bold text-slate-800 bg-white border border-slate-200 px-2 py-0.5 rounded shadow-sm select-all">{successDetails.reference}</span>
+                                            <div className="flex justify-between items-center text-gray-600">
+                                                <span className="font-bold text-[10px] uppercase tracking-wider text-gray-400">Ref Code</span>
+                                                <span className="font-mono text-xs font-bold text-gray-800 bg-white border border-gray-200 px-2 py-0.5 rounded-lg shadow-2xs select-all">{successDetails.reference}</span>
                                             </div>
                                         )}
                                     </>
@@ -770,25 +797,24 @@ export default function CartSidebar({
                             </div>
                         )}
 
-                        <div className="w-full space-y-2 md:space-y-3 mt-2">
+                        <div className="w-full space-y-2 mt-1">
                             <button
                                 onClick={() => onPrintReceipt(lastTransactionId)}
-                                className="w-full py-2.5 md:py-3.5 bg-[#1B3B6A] text-white font-bold rounded-md md:rounded-lg shadow-md hover:bg-[#142d52] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm md:text-base"
+                                className="w-full py-3 bg-[#1B3B6A] text-white font-bold rounded-xl shadow-md hover:bg-[#142E54] active:scale-95 transition-all flex items-center justify-center gap-2 text-xs cursor-pointer"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 md:w-5 md:h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
                                 {showFKeys ? <>Print Receipt<span className="hidden md:inline"> (Enter)</span></> : "Print Receipt"}
                             </button>
 
                             <button
                                 onClick={handleNewOrder}
-                                className="w-full py-2.5 md:py-3.5 border border-slate-300 text-slate-700 font-bold rounded-md md:rounded-lg hover:bg-slate-100 active:scale-95 transition-all text-sm md:text-base"
+                                className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold rounded-xl hover:bg-gray-50 active:scale-95 transition-all text-xs cursor-pointer shadow-2xs"
                             >
-                                {showFKeys ? <>New Order<span className="hidden md:inline"> (Esc)</span></> : "New Order"}
+                                New Order<span className="hidden md:inline"> (Esc)</span>
                             </button>
                         </div>
                     </div>
-                </div>,
-                document.body
+                </div>
             )}
         </>
     );

@@ -120,4 +120,28 @@ class User extends Authenticatable
     {
         return $query->where('store_id', $storeId);
     }
+
+    /**
+     * Shifts worked by this user.
+     */
+    public function shifts()
+    {
+        return $this->hasMany(Shift::class, 'user_id');
+    }
+
+    /**
+     * Current open shift (if any).
+     */
+    public function activeShift()
+    {
+        return $this->hasOne(Shift::class, 'user_id')->where('status', 'open')->latest('start_time');
+    }
+
+    /**
+     * Sales transactions processed by this cashier.
+     */
+    public function sales()
+    {
+        return $this->hasMany(Sale::class, 'cashier_id');
+    }
 }

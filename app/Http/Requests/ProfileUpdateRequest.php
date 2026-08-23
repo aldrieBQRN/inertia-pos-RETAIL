@@ -18,6 +18,15 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $user = $this->user();
+        $isAdmin = (bool) ($user && ($user->is_admin || in_array($user->role, ['admin', 'super_admin'])));
+
+        if (!$isAdmin) {
+            return [
+                'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            ];
+        }
+
         return [
             // Standard name validation
             'name' => ['required', 'string', 'max:255'],

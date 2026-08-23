@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import axios from 'axios';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import {
-    BarChart, Bar, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-    PieChart, Pie, Cell, Legend
+    AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Legend
 } from 'recharts';
 import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
@@ -20,891 +19,2506 @@ const formatDate = (date) => {
     return `${year}-${month}-${day}`;
 };
 
-const getInitialLast7DaysFilters = () => {
-    const today = new Date();
-    const last7 = new Date(today);
-    last7.setDate(last7.getDate() - 6);
-    return {
-        start_date: formatDate(last7),
-        end_date: formatDate(today)
-    };
+const formatCurrency = (cents) => {
+    return ((cents || 0) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+const formatNumber = (num) => {
+    return (num || 0).toLocaleString('en-US');
+};
+
+const formatPaymentName = (method) => {
+    if (!method) return 'Unknown';
+    if (method === 'credit_card') return 'Credit Card';
+    if (method === 'debit_card') return 'Debit Card';
+    if (method === 'gcash') return 'GCash';
+    if (method === 'maya') return 'Maya';
+    if (method === 'cash') return 'Cash';
+    return method.charAt(0).toUpperCase() + method.slice(1);
 };
 
 export default function Reports({ auth }) {
     const user = auth?.user;
 
-    const [stats, setStats] = useState({
-        total_sales: 0,
-        total_profit: 0,
-        total_orders: 0,
-        average_order_value: 0,
-        sales_growth: null,
-        profit_growth: null,
-        orders_growth: null,
-        aov_growth: null,
-        chart_data: [],
-        peak_hours: [],
-        peak_days: [],
-        peak_months: [],
-        payment_methods: [],
-        sales_by_category: [],
-        top_products: [],
+    // 1. Core State
+    const [loading, setLoading] = useState(true);
+    const [isExporting, setIsExporting] = useState(false);
+    const [showDataMenu, setShowDataMenu] = useState(false);
+    const [activeTab, setActiveTab] = useState('sales'); // 'sales' | 'products' | 'inventory' | 'shifts' | 'staff'
+
+    // View Mode (Table vs Grid)
+    const [viewMode, setViewMode] = useState(() => {
+        try {
+            return localStorage.getItem('pos_reports_view_mode') || 'table';
+        } catch {
+            return 'table';
+        }
     });
 
-    const [loading, setLoading] = useState(true);
-    const [hasLoaded, setHasLoaded] = useState(false);
-    const [isExporting, setIsExporting] = useState(false);
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 12;
 
-    // Default to Last 7 Days
-    const [filters, setFilters] = useState(() => getInitialLast7DaysFilters());
+    // Filter States
+    const [searchTerm, setSearchTerm] = useState('');
     const [activePreset, setActivePreset] = useState('last_7_days');
+    const [startDate, setStartDate] = useState(() => {
+        const today = new Date();
+        const last7 = new Date(today);
+        last7.setDate(last7.getDate() - 6);
+        return formatDate(last7);
+    });
+    const [endDate, setEndDate] = useState(() => formatDate(new Date()));
+    const [selectedCashier, setSelectedCashier] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
 
-    const COLORS = ['#1B3B6A', '#2563EB', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4'];
+    // Sorting
+    const [sortField, setSortField] = useState('date');
+    const [sortOrder, setSortOrder] = useState('desc');
 
-    const fetchReports = async (params = {}) => {
-        setLoading(true);
+    // Drill-Down Drawer
+    const [drawerItem, setDrawerItem] = useState(null);
+    const [drawerType, setDrawerType] = useState(null); // 'date' | 'product' | 'shift' | 'staff'
+    const [showDrawer, setShowDrawer] = useState(false);
+
+    // Data Store from API
+    const [reportData, setReportData] = useState({
+        summary: {
+            total_sales: 0,
+            total_orders: 0,
+            average_order_value: 0,
+            total_discounts: 0,
+            total_units_sold: 0,
+            total_cogs: 0,
+            total_gross_profit: 0,
+            gross_margin_percent: 0,
+            void_count: 0,
+            void_amount: 0,
+            inventory_skus: 0,
+            inventory_units: 0,
+            inventory_cost_value: 0,
+            inventory_retail_value: 0,
+            inventory_unrealized_profit: 0,
+            healthy_stock_count: 0,
+            low_stock_count: 0,
+            out_of_stock_count: 0,
+            shifts_count: 0,
+            net_cash_discrepancy: 0,
+            total_cash_overage: 0,
+            total_cash_shortage: 0,
+        },
+        sales_report: {
+            daily_breakdown: [],
+            payment_methods: [],
+            hourly_velocity: [],
+        },
+        product_report: {
+            products: [],
+            categories: [],
+        },
+        inventory_report: {
+            items: [],
+            total_skus: 0,
+            total_units: 0,
+            total_cost_value: 0,
+            total_retail_value: 0,
+            healthy_count: 0,
+            low_stock_count: 0,
+            out_of_stock_count: 0,
+        },
+        shift_report: {
+            shifts: [],
+            total_shifts: 0,
+            total_overage: 0,
+            total_shortage: 0,
+            net_discrepancy: 0,
+        },
+        staff_report: {
+            staff: [],
+        },
+        meta: {
+            categories: [],
+            cashiers: [],
+            store: { name: 'POS Store System', address: '', phone: '' },
+            date_range: { start_date: '', end_date: '' }
+        }
+    });
+
+    const dataMenuRef = useRef(null);
+    const pipelineTabsRef = useRef(null);
+    const workspaceSectionRef = useRef(null);
+
+    // Fetch Reports from Backend
+    const fetchReports = async (showLoading = true) => {
+        if (showLoading) setLoading(true);
         try {
+            const params = {
+                start_date: startDate,
+                end_date: endDate,
+                user_id: selectedCashier || undefined,
+                category_id: selectedCategory || undefined,
+                payment_method: selectedPaymentMethod || undefined,
+                search: searchTerm || undefined,
+            };
             const response = await axios.get('/api/reports', { params });
-            setStats(response.data);
+            setReportData(response.data);
         } catch (error) {
-            console.error("Reports data retrieval error:", error);
-            Swal.fire('Error', 'Failed to load report data.', 'error');
+            console.error("Reports API Error:", error);
+            Swal.fire('Error', 'Failed to retrieve reports data.', 'error');
         } finally {
-            setLoading(false);
-            setHasLoaded(true);
+            if (showLoading) setLoading(false);
         }
     };
 
-    // Auto-refresh reports when date filters change (debounced)
     useEffect(() => {
-        const t = setTimeout(() => {
-            fetchReports(filters);
-        }, 500);
-        return () => clearTimeout(t);
-    }, [filters.start_date, filters.end_date]);
+        const timer = setTimeout(() => {
+            fetchReports(true);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [startDate, endDate, selectedCashier, selectedCategory, selectedPaymentMethod, searchTerm]);
 
-    // --- QUICK DATE PRESETS LOGIC ---
+    // Handle Outside Click for Data Menu
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dataMenuRef.current && !dataMenuRef.current.contains(e.target)) {
+                setShowDataMenu(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
-    const formatNumber = (num) => {
-        return num.toLocaleString('en-US');
-    };
-
-    const formatCurrencyDirect = (amount) => {
-        return parseFloat(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    };
-
-    const formatPaymentName = (method) => {
-        if (!method) return 'Unknown';
-        if (method === 'credit_card') return 'Credit Card';
-        if (method === 'debit_card') return 'Debit Card';
-        if (method === 'gcash') return 'GCash';
-        if (method === 'maya') return 'Maya';
-        if (method === 'cash') return 'Cash';
-        return method.charAt(0).toUpperCase() + method.slice(1);
-    };
-
-    const handlePresetChange = (e) => {
-        const preset = e.target.value;
+    // Quick Date Presets Handler
+    const handlePresetChange = (preset) => {
         setActivePreset(preset);
-
         const today = new Date();
         let start = '';
-        let end = '';
+        let end = formatDate(today);
 
         switch (preset) {
+            case 'all':
+                start = '2020-01-01';
+                end = formatDate(today);
+                break;
             case 'today':
                 start = formatDate(today);
                 end = start;
                 break;
             case 'yesterday':
-                const yesterday = new Date(today);
-                yesterday.setDate(yesterday.getDate() - 1);
-                start = formatDate(yesterday);
+                const yest = new Date(today);
+                yest.setDate(yest.getDate() - 1);
+                start = formatDate(yest);
                 end = start;
                 break;
+            case 'this_week':
+                const currentDay = today.getDay(); // 0 is Sunday
+                const diffToMonday = today.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+                const monday = new Date(today.setDate(diffToMonday));
+                start = formatDate(monday);
+                end = formatDate(new Date());
+                break;
             case 'last_7_days':
-                const last7 = new Date(today);
-                last7.setDate(last7.getDate() - 6);
-                start = formatDate(last7);
-                end = formatDate(today);
+                const l7 = new Date();
+                l7.setDate(l7.getDate() - 6);
+                start = formatDate(l7);
+                end = formatDate(new Date());
                 break;
             case 'this_month':
-                start = formatDate(new Date(today.getFullYear(), today.getMonth(), 1));
-                end = formatDate(today); // Up to today
+                const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                start = formatDate(firstDayOfMonth);
+                end = formatDate(new Date());
                 break;
             case 'last_month':
-                start = formatDate(new Date(today.getFullYear(), today.getMonth() - 1, 1));
-                end = formatDate(new Date(today.getFullYear(), today.getMonth(), 0));
+                const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                const lastDayLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+                start = formatDate(firstDayLastMonth);
+                end = formatDate(lastDayLastMonth);
                 break;
-            case 'ytd':
-                start = formatDate(new Date(today.getFullYear(), 0, 1));
-                end = formatDate(today);
-                break;
+            case 'custom':
             default:
                 return;
         }
-        setFilters({ start_date: start, end_date: end });
+
+        setStartDate(start);
+        setEndDate(end);
     };
 
-    const getProcessedCategoryData = () => {
-        const data = stats.sales_by_category || [];
-        if (data.length <= 4) return data;
-        const sortedData = [...data].sort((a, b) => b.value - a.value);
-        const top3 = sortedData.slice(0, 3);
-        const othersValue = sortedData.slice(3).reduce((sum, item) => sum + item.value, 0);
-        return [...top3, { name: 'Others', value: othersValue }];
+    // Tab Change with Inverted Scoop Smooth Scroll
+    const handleTabChange = (tabKey) => {
+        setActiveTab(tabKey);
+        setCurrentPage(1);
+        if (typeof window !== 'undefined') {
+            requestAnimationFrame(() => {
+                const targetTab = pipelineTabsRef.current?.querySelector(`[data-tab="${tabKey}"]`);
+                if (targetTab && pipelineTabsRef.current) {
+                    targetTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            });
+        }
     };
 
-    const categoryData = getProcessedCategoryData();
-    const hasTrendData = stats.chart_data && stats.chart_data.some(d => d.sales > 0);
+    // Sort Handler
+    const handleSort = (field) => {
+        if (sortField === field) {
+            setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortOrder('desc');
+        }
+    };
 
-    const exportPDF = async () => {
-        setIsExporting(true);
+    // View Mode Toggle
+    const handleViewModeChange = (mode) => {
+        setViewMode(mode);
         try {
-            const [settingsRes] = await Promise.allSettled([
-                axios.get('/api/settings')
-            ]);
+            localStorage.setItem('pos_reports_view_mode', mode);
+        } catch {}
+    };
 
-            if (stats.total_orders === 0) {
-                Swal.fire({ icon: 'info', title: 'No Data', text: 'No records found for this period to export.', confirmButtonColor: '#111827' });
-                setIsExporting(false);
-                return;
+    // Active Dataset based on Active Tab
+    const currentDataset = useMemo(() => {
+        let list = [];
+        if (activeTab === 'sales') {
+            list = reportData.sales_report.daily_breakdown || [];
+        } else if (activeTab === 'products') {
+            list = reportData.product_report.products || [];
+        } else if (activeTab === 'inventory') {
+            list = reportData.inventory_report.items || [];
+        } else if (activeTab === 'shifts') {
+            list = reportData.shift_report.shifts || [];
+        } else if (activeTab === 'staff') {
+            list = reportData.staff_report.staff || [];
+        }
+
+        // Sort
+        return [...list].sort((a, b) => {
+            let valA = a[sortField];
+            let valB = b[sortField];
+            if (valA === undefined || valB === undefined) return 0;
+            if (typeof valA === 'string') {
+                return sortOrder === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
             }
+            return sortOrder === 'asc' ? valA - valB : valB - valA;
+        });
+    }, [activeTab, reportData, sortField, sortOrder]);
 
-            const settings = settingsRes.status === 'fulfilled' ? settingsRes.value.data : null;
-            const doc = new jsPDF('portrait');
-            const pageWidth = doc.internal.pageSize.width;
+    const totalPages = Math.ceil(currentDataset.length / itemsPerPage);
+    const paginatedData = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        return currentDataset.slice(start, start + itemsPerPage);
+    }, [currentDataset, currentPage]);
 
-            const storeName = settings?.store_name || 'POS Store System';
-            const storeAddress = settings?.address || '';
-            const storeContact = settings?.phone ? `Contact: ${settings.phone}` : '';
-
-            let currentY = 20;
-
-            // Header
-            doc.setFontSize(22);
-            doc.setTextColor(31, 41, 55);
-            doc.setFont(undefined, 'bold');
-            doc.text(storeName, 14, currentY);
-
-            doc.setFontSize(10);
-            doc.setTextColor(107, 114, 128);
-            doc.setFont(undefined, 'normal');
-
-            if (storeAddress) { currentY += 6; doc.text(storeAddress, 14, currentY); }
-            if (storeContact) { currentY += 5; doc.text(storeContact, 14, currentY); }
-
-            currentY += 8;
-            doc.setDrawColor(229, 231, 235);
-            doc.setLineWidth(0.5);
-            doc.line(14, currentY, pageWidth - 14, currentY);
-
-            currentY += 10;
-            doc.setFontSize(16);
-            doc.setTextColor(31, 41, 55);
-            doc.setFont(undefined, 'bold');
-            doc.text('Business Analytics Report', 14, currentY);
-
-            currentY += 6;
-            doc.setFontSize(10);
-            doc.setTextColor(107, 114, 128);
-            doc.setFont(undefined, 'normal');
-
-            const filterText = (filters.start_date || filters.end_date)
-                ? `Period: ${filters.start_date || 'Start'} to ${filters.end_date || 'Present'}`
-                : 'Period: Current Month (Default)';
-            doc.text(filterText, 14, currentY);
-
-            const generatedText = `Generated: ${new Date().toLocaleString()}`;
-            const textWidth = doc.getTextWidth(generatedText);
-            doc.text(generatedText, pageWidth - 14 - textWidth, currentY);
-
-            const startY = currentY + 8;
-            const money = (v) => `PHP ${Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            const num = (v) => Number(v || 0).toLocaleString('en-US');
-
-            // SECTION 1: KPI Summary
-            autoTable(doc, {
-                head: [['Key Performance Indicator', 'Value']],
-                body: [
-                    ['Gross Revenue', money(stats.total_sales)],
-                    ['Net Profit', money(stats.total_profit)],
-                    ['Total Transactions', num(stats.total_orders)],
-                    ['Average Ticket Size', money(stats.average_order_value)]
-                ],
-                startY,
-                theme: 'striped',
-                headStyles: { fillColor: '#111827', textColor: 255, fontStyle: 'bold' },
-                styles: { fontSize: 10, cellPadding: 4, valign: 'middle' },
-                columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 70 } }
-            });
-
-            const nextY = () => (doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : startY + 20);
-
-            // SECTION 2: Payment Split
-            const payRows = (stats.payment_methods || []).map((r) => ([
-                formatPaymentName(r.payment_method),
-                num(r.count)
-            ]));
-            autoTable(doc, {
-                head: [['Payment Method', 'Transactions']],
-                body: payRows.length ? payRows : [['No data', '']],
-                startY: nextY(),
-                theme: 'striped',
-                headStyles: { fillColor: '#10b981', textColor: 255, fontStyle: 'bold' },
-                styles: { fontSize: 9, cellPadding: 3, valign: 'middle' }
-            });
-
-            // SECTION 3: Category Sales
-            const rawCats = Array.isArray(stats.sales_by_category) ? stats.sales_by_category : [];
-            const catRows = rawCats.map((r) => ([ r.name || 'Unknown', num(r.value) ]));
-            autoTable(doc, {
-                head: [['Product Category', 'Items Sold']],
-                body: catRows.length ? catRows : [['No data', '']],
-                startY: nextY(),
-                theme: 'striped',
-                headStyles: { fillColor: '#8b5cf6', textColor: 255, fontStyle: 'bold' },
-                styles: { fontSize: 9, cellPadding: 3, valign: 'middle' }
-            });
-
-            // SECTION 4: Peak Analytics (Hours, Days, Months)
-            const peakHourRows = (stats.peak_hours || []).map((r) => ([ r.hour || 'Unknown', num(r.count) ]));
-            autoTable(doc, {
-                head: [['Peak Hours', 'Transactions']],
-                body: peakHourRows.length ? peakHourRows : [['No data', '']],
-                startY: nextY(),
-                theme: 'striped',
-                headStyles: { fillColor: '#F59E0B', textColor: 255, fontStyle: 'bold' },
-                styles: { fontSize: 9, cellPadding: 3, valign: 'middle' }
-            });
-
-            const peakDayRows = (stats.peak_days || []).map((r) => ([ r.day || 'Unknown', num(r.count) ]));
-            autoTable(doc, {
-                head: [['Peak Days', 'Transactions']],
-                body: peakDayRows.length ? peakDayRows : [['No data', '']],
-                startY: nextY(),
-                theme: 'striped',
-                headStyles: { fillColor: '#10B981', textColor: 255, fontStyle: 'bold' },
-                styles: { fontSize: 9, cellPadding: 3, valign: 'middle' }
-            });
-
-            const peakMonthRows = (stats.peak_months || []).map((r) => ([ r.month || 'Unknown', num(r.count) ]));
-            autoTable(doc, {
-                head: [['Peak Months', 'Transactions']],
-                body: peakMonthRows.length ? peakMonthRows : [['No data', '']],
-                startY: nextY(),
-                theme: 'striped',
-                headStyles: { fillColor: '#3B82F6', textColor: 255, fontStyle: 'bold' },
-                styles: { fontSize: 9, cellPadding: 3, valign: 'middle' }
-            });
-
-            // SECTION 5: Best Sellers
-            const topRows = (stats.top_products || []).map((r) => ([ r.name || 'Unknown', num(r.sold) ]));
-            autoTable(doc, {
-                head: [['Top 5 Best Sellers', 'Quantity Sold']],
-                body: topRows.length ? topRows : [['No data', '']],
-                startY: nextY(),
-                theme: 'striped',
-                headStyles: { fillColor: '#0f172a', textColor: 255, fontStyle: 'bold' },
-                styles: { fontSize: 9, cellPadding: 3, valign: 'middle' }
-            });
-
-            const filename = `Analytics_Report_${filters.start_date || 'Month'}_to_${filters.end_date || 'Month'}.pdf`;
-            doc.save(filename);
-
-            Swal.fire({ icon: 'success', title: 'Report Exported!', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
-
-        } catch (error) {
-            console.error("Export Error:", error);
-            Swal.fire('Error', 'Failed to generate the PDF report.', 'error');
-        } finally {
-            setIsExporting(false);
-        }
+    // Open Drill-down Drawer
+    const handleRowClick = (item, type) => {
+        setDrawerItem(item);
+        setDrawerType(type);
+        setShowDrawer(true);
     };
 
+    // =========================================================================
+    // EXPORT TO EXCEL (ExcelJS — Branded Store Theme)
+    // =========================================================================
     const exportExcel = async () => {
-        if (stats.total_orders === 0) {
-            Swal.fire({ icon: 'info', title: 'No Data', text: 'No records found for this period to export.', confirmButtonColor: '#111827' });
-            return;
-        }
+        setIsExporting(true);
+        setShowDataMenu(false);
 
         try {
-            const [settingsRes] = await Promise.allSettled([
-                axios.get('/api/settings')
-            ]);
-            const settings = settingsRes.status === 'fulfilled' ? settingsRes.value.data : null;
-            
-            const storeName = settings?.store_name || 'POS Store System';
-            const storeAddress = settings?.address || '';
-            const storeContact = settings?.phone ? `Contact: ${settings.phone}` : '';
-
             const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('Analytics Report', {
-                views: [{ showGridLines: true }]
-            });
+            const sheetName = activeTab.charAt(0).toUpperCase() + activeTab.slice(1) + ' Report';
+            const worksheet = workbook.addWorksheet(sheetName, { views: [{ showGridLines: true }] });
 
-            // Set column widths
-            worksheet.getColumn('A').width = 35; // Metric / Item Name
-            worksheet.getColumn('B').width = 25; // Value / Count
-            worksheet.getColumn('C').width = 30; // Growth (%)
+            const storeName = reportData.meta.store.name || 'POS Retail Store';
+            const storeAddress = reportData.meta.store.address || '';
+            const storeContact = reportData.meta.store.phone ? `Contact: ${reportData.meta.store.phone}` : '';
 
-            // 1. Store Header (Rows 1 to 5)
-            // Store Name
-            worksheet.mergeCells('A1:C1');
+            // 1. Store Header
+            let colCount = 8;
+            if (activeTab === 'sales') colCount = 9;
+            if (activeTab === 'products') colCount = 9;
+            if (activeTab === 'inventory') colCount = 8;
+            if (activeTab === 'shifts') colCount = 10;
+            if (activeTab === 'staff') colCount = 9;
+
+            const endColLetter = String.fromCharCode(64 + colCount);
+
+            worksheet.mergeCells(`A1:${endColLetter}1`);
             worksheet.getCell('A1').value = storeName.toUpperCase();
-            worksheet.getCell('A1').font = { bold: true, color: { argb: '1B3A69' }, size: 14 };
+            worksheet.getCell('A1').font = { bold: true, color: { argb: '1B3A69' }, size: 16 };
             worksheet.getCell('A1').alignment = { vertical: 'middle', horizontal: 'center' };
-            worksheet.getRow(1).height = 24;
+            worksheet.getRow(1).height = 28;
 
-            // Address
-            worksheet.mergeCells('A2:C2');
+            worksheet.mergeCells(`A2:${endColLetter}2`);
             worksheet.getCell('A2').value = storeAddress;
             worksheet.getCell('A2').font = { color: { argb: '555555' }, size: 9 };
             worksheet.getCell('A2').alignment = { vertical: 'middle', horizontal: 'center' };
             worksheet.getRow(2).height = 16;
 
-            // Contact
-            worksheet.mergeCells('A3:C3');
+            worksheet.mergeCells(`A3:${endColLetter}3`);
             worksheet.getCell('A3').value = storeContact;
             worksheet.getCell('A3').font = { color: { argb: '555555' }, size: 9, italic: true };
             worksheet.getCell('A3').alignment = { vertical: 'middle', horizontal: 'center' };
             worksheet.getRow(3).height = 16;
 
-            // Report Title
-            worksheet.mergeCells('A4:C4');
-            worksheet.getCell('A4').value = 'BUSINESS ANALYTICS REPORT';
+            worksheet.mergeCells(`A4:${endColLetter}4`);
+            worksheet.getCell('A4').value = `OFFICIAL ${activeTab.toUpperCase()} AUDIT REPORT (${startDate} to ${endDate})`;
             worksheet.getCell('A4').font = { bold: true, color: { argb: '333333' }, size: 11 };
             worksheet.getCell('A4').alignment = { vertical: 'middle', horizontal: 'center' };
             worksheet.getRow(4).height = 20;
 
-            // Period and Generation Time
-            worksheet.mergeCells('A5:C5');
-            const filterText = (filters.start_date || filters.end_date)
-                ? `Period: ${filters.start_date || 'Start'} to ${filters.end_date || 'Present'}`
-                : 'Period: Current Month (Default)';
-            const generatedText = `Generated: ${new Date().toLocaleString()}`;
-            worksheet.getCell('A5').value = `${filterText}  |  ${generatedText}`;
-            worksheet.getCell('A5').font = { color: { argb: '777777' }, size: 9 };
-            worksheet.getCell('A5').alignment = { vertical: 'middle', horizontal: 'center' };
-            worksheet.getRow(5).height = 16;
+            worksheet.getRow(5).height = 10;
 
-            // Spacer
-            worksheet.getRow(6).height = 12;
+            // 2. Table Headers & Rows per Domain
+            let headers = [];
+            if (activeTab === 'sales') {
+                headers = ['Date', 'Transactions', 'Gross Revenue', 'Discounts', 'Net Sales', 'Avg Basket (AOV)', 'Cash Sales', 'Digital Sales', 'Voids'];
+                worksheet.columns = [
+                    { width: 16 }, { width: 14 }, { width: 18 }, { width: 15 }, { width: 18 }, { width: 18 }, { width: 18 }, { width: 18 }, { width: 14 }
+                ];
+            } else if (activeTab === 'products') {
+                headers = ['SKU / Code', 'Product Name', 'Category', 'Selling Price', 'Cost Price', 'Units Sold', 'Total Revenue', 'Gross Profit', 'Margin %'];
+                worksheet.columns = [
+                    { width: 18 }, { width: 30 }, { width: 20 }, { width: 16 }, { width: 16 }, { width: 14 }, { width: 18 }, { width: 18 }, { width: 14 }
+                ];
+            } else if (activeTab === 'inventory') {
+                headers = ['SKU', 'Product Name', 'Category', 'Stock Qty', 'Cost Price', 'Retail Price', 'Total Cost Value', 'Total Retail Value'];
+                worksheet.columns = [
+                    { width: 18 }, { width: 32 }, { width: 22 }, { width: 14 }, { width: 16 }, { width: 16 }, { width: 20 }, { width: 20 }
+                ];
+            } else if (activeTab === 'shifts') {
+                headers = ['Shift ID', 'Cashier', 'Terminal', 'Open Time', 'Close Time', 'Starting Float', 'Cash Sales', 'Expected Cash', 'Actual Cash', 'Over / Short'];
+                worksheet.columns = [
+                    { width: 12 }, { width: 22 }, { width: 16 }, { width: 20 }, { width: 20 }, { width: 16 }, { width: 16 }, { width: 18 }, { width: 18 }, { width: 16 }
+                ];
+            } else if (activeTab === 'staff') {
+                headers = ['Account #', 'Staff Name', 'Role', 'Shifts Worked', 'Transactions', 'Total Sales', 'Avg Transaction', 'Discounts Given', 'Voids'];
+                worksheet.columns = [
+                    { width: 15 }, { width: 26 }, { width: 16 }, { width: 15 }, { width: 16 }, { width: 20 }, { width: 18 }, { width: 18 }, { width: 14 }
+                ];
+            }
 
-            let currentRow = 7;
+            // Style Header Row (Row 6)
+            headers.forEach((h, colIndex) => {
+                const cell = worksheet.getRow(6).getCell(colIndex + 1);
+                cell.value = h;
+                cell.font = { bold: true, color: { argb: 'FFFFFF' }, size: 10 };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1B3A69' } };
+                cell.alignment = { vertical: 'middle', horizontal: colIndex >= 3 ? 'right' : 'left' };
+            });
+            worksheet.getRow(6).height = 25;
 
-            // Helper to style section headers
-            const addSectionHeader = (title, hexColor) => {
-                worksheet.mergeCells(`A${currentRow}:C${currentRow}`);
-                const cell = worksheet.getCell(`A${currentRow}`);
-                cell.value = title;
-                cell.font = { bold: true, color: { argb: 'FFFFFF' }, size: 11 };
-                cell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: hexColor }
-                };
-                cell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
-                worksheet.getRow(currentRow).height = 24;
-                currentRow++;
-            };
+            // Fill Data Rows
+            currentDataset.forEach((row, idx) => {
+                const rowNum = idx + 7;
+                const r = worksheet.getRow(rowNum);
 
-            // Helper to style table headers
-            const addTableHeaders = (headers, hexColor = '1B3A69') => {
-                headers.forEach((h, index) => {
-                    const cell = worksheet.getRow(currentRow).getCell(index + 1);
-                    cell.value = h;
-                    cell.font = { bold: true, color: { argb: 'FFFFFF' }, size: 10 };
-                    cell.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: hexColor }
-                    };
-                    cell.alignment = { vertical: 'middle', horizontal: index === 0 ? 'left' : 'right' };
-                });
-                worksheet.getRow(currentRow).height = 20;
-                currentRow++;
-            };
+                if (activeTab === 'sales') {
+                    r.getCell(1).value = row.date;
+                    r.getCell(2).value = row.orders_count;
+                    r.getCell(3).value = row.gross_sales / 100;
+                    r.getCell(4).value = row.discounts / 100;
+                    r.getCell(5).value = row.net_sales / 100;
+                    r.getCell(6).value = row.aov / 100;
+                    r.getCell(7).value = row.cash_sales / 100;
+                    r.getCell(8).value = row.digital_sales / 100;
+                    r.getCell(9).value = row.void_count;
+                } else if (activeTab === 'products') {
+                    r.getCell(1).value = row.sku;
+                    r.getCell(2).value = row.name;
+                    r.getCell(3).value = row.category_name;
+                    r.getCell(4).value = row.unit_retail_price / 100;
+                    r.getCell(5).value = row.unit_cost_price / 100;
+                    r.getCell(6).value = row.units_sold;
+                    r.getCell(7).value = row.total_revenue / 100;
+                    r.getCell(8).value = row.total_profit / 100;
+                    r.getCell(9).value = `${row.margin_percent}%`;
+                } else if (activeTab === 'inventory') {
+                    r.getCell(1).value = row.sku;
+                    r.getCell(2).value = row.name;
+                    r.getCell(3).value = row.category_name;
+                    r.getCell(4).value = row.stock_quantity;
+                    r.getCell(5).value = row.cost_price / 100;
+                    r.getCell(6).value = row.retail_price / 100;
+                    r.getCell(7).value = row.total_cost_value / 100;
+                    r.getCell(8).value = row.total_retail_value / 100;
+                } else if (activeTab === 'shifts') {
+                    r.getCell(1).value = `#${row.id}`;
+                    r.getCell(2).value = row.cashier_name;
+                    r.getCell(3).value = row.terminal_name;
+                    r.getCell(4).value = row.start_time ? new Date(row.start_time).toLocaleString() : '—';
+                    r.getCell(5).value = row.end_time ? new Date(row.end_time).toLocaleString() : 'Open';
+                    r.getCell(6).value = row.starting_cash;
+                    r.getCell(7).value = row.cash_sales;
+                    r.getCell(8).value = row.expected_cash;
+                    r.getCell(9).value = row.actual_cash !== null ? row.actual_cash : '—';
+                    r.getCell(10).value = row.difference;
+                } else if (activeTab === 'staff') {
+                    r.getCell(1).value = row.account_number;
+                    r.getCell(2).value = row.name;
+                    r.getCell(3).value = row.role === 'admin' ? 'Administrator' : 'Cashier';
+                    r.getCell(4).value = row.shifts_count;
+                    r.getCell(5).value = row.transactions_count;
+                    r.getCell(6).value = row.total_sales / 100;
+                    r.getCell(7).value = row.average_basket / 100;
+                    r.getCell(8).value = row.discounts_given / 100;
+                    r.getCell(9).value = row.voids_count;
+                }
 
-            // Helper to add data row
-            // Helper to add data row with formatting support
-            const addDataRow = (data, rowFormats = []) => {
-                data.forEach((val, index) => {
-                    const cell = worksheet.getRow(currentRow).getCell(index + 1);
-                    cell.value = val;
-                    cell.font = { size: 10 };
+                // Format Alignments & Number formats
+                for (let c = 1; c <= colCount; c++) {
+                    const cell = r.getCell(c);
+                    cell.alignment = { vertical: 'middle', horizontal: c >= 4 ? 'right' : 'left' };
                     cell.border = {
-                        bottom: { style: 'thin', color: { argb: 'E5E7EB' } }
+                        top: { style: 'thin', color: { argb: 'E2E8F0' } },
+                        bottom: { style: 'thin', color: { argb: 'E2E8F0' } },
+                        left: { style: 'thin', color: { argb: 'E2E8F0' } },
+                        right: { style: 'thin', color: { argb: 'E2E8F0' } }
                     };
+                }
+            });
 
-                    if (rowFormats[index]) {
-                        cell.numFmt = rowFormats[index];
-                    }
+            // =================================================================
+            // SUMMARY FOOTER BOX (Audit Totals & Statistics)
+            // =================================================================
+            const summaryStartRow = currentDataset.length + 8;
+            worksheet.getRow(summaryStartRow).height = 10;
 
-                    if (index === 0) {
-                        cell.alignment = { vertical: 'middle', horizontal: 'left' };
-                    } else {
-                        cell.alignment = { vertical: 'middle', horizontal: 'right' };
-                    }
-                });
-                worksheet.getRow(currentRow).height = 20;
-                currentRow++;
+            worksheet.mergeCells(`A${summaryStartRow + 1}:${endColLetter}${summaryStartRow + 1}`);
+            const summaryTitleCell = worksheet.getCell(`A${summaryStartRow + 1}`);
+            summaryTitleCell.value = `${activeTab.toUpperCase()} AUDIT SUMMARY & TOTALS`;
+            summaryTitleCell.font = { bold: true, color: { argb: '1E293B' }, size: 10 };
+            summaryTitleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+            summaryTitleCell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'F1F5F9' }
             };
+            worksheet.getRow(summaryStartRow + 1).height = 20;
 
-            // Formatting schemas
-            const currencyFormat = '"PHP " #,##0.00';
-            const percentFormat = '0.0%';
-            const growthFormat = '+0.0%;-0.0%;0.0%';
-            const intFormat = '#,##0';
+            if (activeTab === 'sales') {
+                const totalGross = currentDataset.reduce((sum, r) => sum + (r.gross_sales || 0), 0);
+                const totalDiscounts = currentDataset.reduce((sum, r) => sum + (r.discounts || 0), 0);
+                const totalNet = currentDataset.reduce((sum, r) => sum + (r.net_sales || 0), 0);
+                const totalOrders = currentDataset.reduce((sum, r) => sum + (r.orders_count || 0), 0);
+                const totalVoids = currentDataset.reduce((sum, r) => sum + (r.void_count || 0), 0);
 
-            const formatGrowthValue = (val) => {
-                if (val === null || val === undefined || isNaN(val)) return "N/A";
-                return val / 100;
-            };
+                const summaryRow = worksheet.getRow(summaryStartRow + 2);
+                summaryRow.getCell(1).value = `Days / Records: ${currentDataset.length}`;
+                summaryRow.getCell(2).value = `Total Orders: ${formatNumber(totalOrders)}`;
+                summaryRow.getCell(3).value = `Gross: ₱${formatCurrency(totalGross)}`;
+                summaryRow.getCell(4).value = `Discounts: ₱${formatCurrency(totalDiscounts)}`;
+                summaryRow.getCell(5).value = `Net Sales: ₱${formatCurrency(totalNet)}`;
+                summaryRow.getCell(7).value = `Total Voids: ${totalVoids}`;
 
-            // 2. Section: KEY METRICS
-            addSectionHeader("BUSINESS PERFORMANCE KEY METRICS", "1B3A69");
-            addTableHeaders(["Metric", "Value", "Growth vs Last Period"], "2C5282");
-            
-            addDataRow(["Gross Revenue", stats.total_sales, formatGrowthValue(stats.sales_growth)], [null, currencyFormat, growthFormat]);
-            addDataRow(["Net Profit", stats.total_profit, formatGrowthValue(stats.profit_growth)], [null, currencyFormat, growthFormat]);
-            addDataRow(["Total Transactions", stats.total_orders, formatGrowthValue(stats.orders_growth)], [null, intFormat, growthFormat]);
-            addDataRow(["Average Ticket Size", stats.average_order_value, formatGrowthValue(stats.aov_growth)], [null, currencyFormat, growthFormat]);
+                for (let c = 1; c <= colCount; c++) {
+                    const cell = summaryRow.getCell(c);
+                    cell.font = { bold: true, size: 9, color: { argb: '1E293B' } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F8FAFC' } };
+                }
+                summaryRow.height = 22;
+            } else if (activeTab === 'products') {
+                const totalUnits = currentDataset.reduce((sum, r) => sum + (r.units_sold || 0), 0);
+                const totalRev = currentDataset.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
+                const totalProf = currentDataset.reduce((sum, r) => sum + (r.total_profit || 0), 0);
+                const avgMargin = totalRev > 0 ? ((totalProf / totalRev) * 100).toFixed(1) : 0;
 
-            // Spacer
-            currentRow++;
+                const summaryRow = worksheet.getRow(summaryStartRow + 2);
+                summaryRow.getCell(1).value = `Products: ${currentDataset.length}`;
+                summaryRow.getCell(3).value = `Total Units Sold: ${formatNumber(totalUnits)}`;
+                summaryRow.getCell(6).value = `Total Revenue: ₱${formatCurrency(totalRev)}`;
+                summaryRow.getCell(8).value = `Total Profit: ₱${formatCurrency(totalProf)}`;
+                summaryRow.getCell(9).value = `Avg Margin: ${avgMargin}%`;
 
-            // 3. Section: BEST SELLERS
-            addSectionHeader("TOP 5 BEST SELLING PRODUCTS", "10B981");
-            addTableHeaders(["Product Name", "Quantity Sold", ""], "059669");
-            (stats.top_products || []).forEach(item => {
-                addDataRow([item.name, item.sold, ""], [null, intFormat, null]);
-            });
+                for (let c = 1; c <= colCount; c++) {
+                    const cell = summaryRow.getCell(c);
+                    cell.font = { bold: true, size: 9, color: { argb: '1E293B' } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F8FAFC' } };
+                }
+                summaryRow.height = 22;
+            } else if (activeTab === 'inventory') {
+                const totalStock = currentDataset.reduce((sum, r) => sum + (r.stock_quantity || 0), 0);
+                const totalCost = currentDataset.reduce((sum, r) => sum + (r.total_cost_value || 0), 0);
+                const totalRetail = currentDataset.reduce((sum, r) => sum + (r.total_retail_value || 0), 0);
+                const projectedProfit = totalRetail - totalCost;
 
-            // Spacer
-            currentRow++;
+                const summaryRow = worksheet.getRow(summaryStartRow + 2);
+                summaryRow.getCell(1).value = `Total SKUs: ${currentDataset.length}`;
+                summaryRow.getCell(4).value = `Total Units: ${formatNumber(totalStock)}`;
+                summaryRow.getCell(6).value = `Cost Valuation: ₱${formatCurrency(totalCost)}`;
+                summaryRow.getCell(7).value = `Retail Valuation: ₱${formatCurrency(totalRetail)}`;
+                summaryRow.getCell(8).value = `Projected Profit: ₱${formatCurrency(projectedProfit)}`;
 
-            // 4. Section: CATEGORIES
-            addSectionHeader("SALES BY PRODUCT CATEGORY", "8B5CF6");
-            addTableHeaders(["Category Name", "Quantity Sold", ""], "7C3AED");
-            (stats.sales_by_category || []).forEach(item => {
-                addDataRow([item.name || 'Uncategorized', item.value, ""], [null, intFormat, null]);
-            });
+                for (let c = 1; c <= colCount; c++) {
+                    const cell = summaryRow.getCell(c);
+                    cell.font = { bold: true, size: 9, color: { argb: '1E293B' } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F8FAFC' } };
+                }
+                summaryRow.height = 22;
+            } else if (activeTab === 'shifts') {
+                const totalStarting = currentDataset.reduce((sum, r) => sum + (parseFloat(r.starting_cash) || 0), 0);
+                const totalCashSales = currentDataset.reduce((sum, r) => sum + (parseFloat(r.cash_sales) || 0), 0);
+                const totalExpected = currentDataset.reduce((sum, r) => sum + (parseFloat(r.expected_cash) || 0), 0);
+                const totalDiff = currentDataset.reduce((sum, r) => sum + (parseFloat(r.difference) || 0), 0);
 
-            // Spacer
-            currentRow++;
+                const summaryRow = worksheet.getRow(summaryStartRow + 2);
+                summaryRow.getCell(1).value = `Total Shifts: ${currentDataset.length}`;
+                summaryRow.getCell(4).value = `Total Starting Float: ₱${formatCurrency(totalStarting * 100)}`;
+                summaryRow.getCell(6).value = `Total Cash Sales: ₱${formatCurrency(totalCashSales * 100)}`;
+                summaryRow.getCell(8).value = `Total Expected: ₱${formatCurrency(totalExpected * 100)}`;
+                summaryRow.getCell(10).value = `Net Variance: ₱${formatCurrency(totalDiff * 100)}`;
 
-            // 5. Section: PAYMENTS
-            addSectionHeader("PAYMENT METHOD DISTRIBUTION", "F59E0B");
-            addTableHeaders(["Payment Method", "Transactions Count", ""], "D97706");
-            (stats.payment_methods || []).forEach(item => {
-                addDataRow([formatPaymentName(item.payment_method), item.count, ""], [null, intFormat, null]);
-            });
+                for (let c = 1; c <= colCount; c++) {
+                    const cell = summaryRow.getCell(c);
+                    cell.font = { bold: true, size: 9, color: { argb: '1E293B' } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F8FAFC' } };
+                }
+                summaryRow.height = 22;
+            } else if (activeTab === 'staff') {
+                const totalShifts = currentDataset.reduce((sum, r) => sum + (r.shifts_count || 0), 0);
+                const totalTxns = currentDataset.reduce((sum, r) => sum + (r.transactions_count || 0), 0);
+                const totalSales = currentDataset.reduce((sum, r) => sum + (r.total_sales || 0), 0);
+                const totalDiscounts = currentDataset.reduce((sum, r) => sum + (r.discounts_given || 0), 0);
+                const totalVoids = currentDataset.reduce((sum, r) => sum + (r.voids_count || 0), 0);
 
-            // Generate and Save Excel File
+                const summaryRow = worksheet.getRow(summaryStartRow + 2);
+                summaryRow.getCell(1).value = `Staff Count: ${currentDataset.length}`;
+                summaryRow.getCell(3).value = `Total Shifts: ${totalShifts}`;
+                summaryRow.getCell(5).value = `Total Txns: ${formatNumber(totalTxns)}`;
+                summaryRow.getCell(6).value = `Total Sales: ₱${formatCurrency(totalSales)}`;
+                summaryRow.getCell(8).value = `Total Discounts: ₱${formatCurrency(totalDiscounts)}`;
+                summaryRow.getCell(9).value = `Total Voids: ${totalVoids}`;
+
+                for (let c = 1; c <= colCount; c++) {
+                    const cell = summaryRow.getCell(c);
+                    cell.font = { bold: true, size: 9, color: { argb: '1E293B' } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F8FAFC' } };
+                }
+                summaryRow.height = 22;
+            }
+
             const buffer = await workbook.xlsx.writeBuffer();
-            const dateRangeStr = (filters.start_date && filters.end_date)
-                ? `${filters.start_date}_to_${filters.end_date}`
-                : `Month_Period`;
-            const fileBlob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            saveAs(fileBlob, `Analytics_Report_${dateRangeStr}.xlsx`);
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const safeStorePrefix = (storeName || 'POS').replace(/[^a-zA-Z0-9_-]/g, '_');
+            saveAs(blob, `${safeStorePrefix}_${activeTab.toUpperCase()}_Report_${formatDate(new Date())}.xlsx`);
 
-            Swal.fire({ icon: 'success', title: 'Excel Report Exported!', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+            Swal.fire({
+                icon: 'success',
+                title: 'Excel Exported!',
+                text: `${activeTab.toUpperCase()} report successfully generated.`,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2500
+            });
+
         } catch (error) {
-            console.error("Excel Export Error:", error);
-            Swal.fire('Error', 'Failed to generate the Excel report.', 'error');
+            console.error("Excel generation error:", error);
+            Swal.fire('Error', 'Failed to generate Excel report.', 'error');
+        } finally {
+            setIsExporting(false);
         }
     };
 
-    if (loading && !hasLoaded) return (
-        <AuthenticatedLayout user={user} header={<h2 className="font-semibold text-xl text-gray-800 tracking-tight truncate">Analytics & Reports</h2>}>
-            <ReportsSkeleton />
-        </AuthenticatedLayout>
-    );
+    // =========================================================================
+    // EXPORT TO PDF (jsPDF Landscape with Striped AutoTable)
+    // =========================================================================
+    const exportPDF = () => {
+        setIsExporting(true);
+        setShowDataMenu(false);
+
+        try {
+            const doc = new jsPDF('landscape');
+            const pageWidth = doc.internal.pageSize.width;
+
+            const storeName = reportData.meta.store.name || 'POS Retail Store';
+            const storeAddress = reportData.meta.store.address || '';
+            const storeContact = reportData.meta.store.phone ? `Contact: ${reportData.meta.store.phone}` : '';
+
+            let currentY = 18;
+
+            doc.setFontSize(20);
+            doc.setTextColor(31, 41, 55);
+            doc.setFont(undefined, 'bold');
+            doc.text(storeName, 14, currentY);
+
+            doc.setFontSize(9);
+            doc.setTextColor(107, 114, 128);
+            doc.setFont(undefined, 'normal');
+
+            if (storeAddress) {
+                currentY += 5;
+                doc.text(storeAddress, 14, currentY);
+            }
+            if (storeContact) {
+                currentY += 4;
+                doc.text(storeContact, 14, currentY);
+            }
+
+            currentY += 6;
+            doc.setDrawColor(229, 231, 235);
+            doc.setLineWidth(0.5);
+            doc.line(14, currentY, pageWidth - 14, currentY);
+
+            currentY += 8;
+            doc.setFontSize(14);
+            doc.setTextColor(31, 41, 55);
+            doc.setFont(undefined, 'bold');
+            doc.text(`Official ${activeTab.toUpperCase()} Audit & Analysis Report`, 14, currentY);
+
+            currentY += 5;
+            doc.setFontSize(9);
+            doc.setTextColor(107, 114, 128);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Reporting Period: ${startDate} to ${endDate}`, 14, currentY);
+
+            const generatedText = `Generated: ${new Date().toLocaleString()}`;
+            const textWidth = doc.getTextWidth(generatedText);
+            doc.text(generatedText, pageWidth - 14 - textWidth, currentY);
+
+            let tableHead = [];
+            let tableBody = [];
+
+            if (activeTab === 'sales') {
+                tableHead = [['Date', 'Orders', 'Gross Sales', 'Discounts', 'Net Sales', 'AOV', 'Cash Sales', 'Digital Sales', 'Voids']];
+                tableBody = currentDataset.map(r => [
+                    r.date,
+                    formatNumber(r.orders_count),
+                    `P ${formatCurrency(r.gross_sales)}`,
+                    `P ${formatCurrency(r.discounts)}`,
+                    `P ${formatCurrency(r.net_sales)}`,
+                    `P ${formatCurrency(r.aov)}`,
+                    `P ${formatCurrency(r.cash_sales)}`,
+                    `P ${formatCurrency(r.digital_sales)}`,
+                    r.void_count.toString()
+                ]);
+            } else if (activeTab === 'products') {
+                tableHead = [['SKU', 'Product Name', 'Category', 'Price', 'Cost', 'Units Sold', 'Revenue', 'Profit', 'Margin']];
+                tableBody = currentDataset.map(r => [
+                    r.sku,
+                    r.name,
+                    r.category_name,
+                    `P ${formatCurrency(r.unit_retail_price)}`,
+                    `P ${formatCurrency(r.unit_cost_price)}`,
+                    formatNumber(r.units_sold),
+                    `P ${formatCurrency(r.total_revenue)}`,
+                    `P ${formatCurrency(r.total_profit)}`,
+                    `${r.margin_percent}%`
+                ]);
+            } else if (activeTab === 'inventory') {
+                tableHead = [['SKU', 'Product Name', 'Category', 'Stock Qty', 'Cost Price', 'Retail Price', 'Cost Valuation', 'Retail Valuation']];
+                tableBody = currentDataset.map(r => [
+                    r.sku,
+                    r.name,
+                    r.category_name,
+                    formatNumber(r.stock_quantity),
+                    `P ${formatCurrency(r.cost_price)}`,
+                    `P ${formatCurrency(r.retail_price)}`,
+                    `P ${formatCurrency(r.total_cost_value)}`,
+                    `P ${formatCurrency(r.total_retail_value)}`
+                ]);
+            } else if (activeTab === 'shifts') {
+                tableHead = [['ID', 'Cashier', 'Terminal', 'Open Time', 'Close Time', 'Float', 'Cash Sales', 'Expected', 'Actual', 'Variance']];
+                tableBody = currentDataset.map(r => [
+                    `#${r.id}`,
+                    r.cashier_name,
+                    r.terminal_name,
+                    r.start_time ? new Date(r.start_time).toLocaleDateString() : '—',
+                    r.end_time ? new Date(r.end_time).toLocaleDateString() : 'Open',
+                    `P ${r.starting_cash.toFixed(2)}`,
+                    `P ${r.cash_sales.toFixed(2)}`,
+                    `P ${r.expected_cash.toFixed(2)}`,
+                    r.actual_cash !== null ? `P ${r.actual_cash.toFixed(2)}` : '—',
+                    `P ${r.difference.toFixed(2)}`
+                ]);
+            } else if (activeTab === 'staff') {
+                tableHead = [['Account', 'Staff Name', 'Role', 'Shifts', 'Transactions', 'Total Sales', 'AOV', 'Discounts', 'Voids']];
+                tableBody = currentDataset.map(r => [
+                    r.account_number,
+                    r.name,
+                    r.role === 'admin' ? 'Admin' : 'Cashier',
+                    formatNumber(r.shifts_count),
+                    formatNumber(r.transactions_count),
+                    `P ${formatCurrency(r.total_sales)}`,
+                    `P ${formatCurrency(r.average_basket)}`,
+                    `P ${formatCurrency(r.discounts_given)}`,
+                    formatNumber(r.voids_count)
+                ]);
+            }
+
+            autoTable(doc, {
+                head: tableHead,
+                body: tableBody,
+                startY: currentY + 6,
+                theme: 'striped',
+                headStyles: { fillColor: '#1B3A69', textColor: 255, fontStyle: 'bold', fontSize: 8 },
+                styles: { fontSize: 8, cellPadding: 3, valign: 'middle' },
+            });
+
+            let finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : currentY + 20;
+            if (finalY > 165) {
+                doc.addPage();
+                finalY = 15;
+            }
+
+            // Summary Box
+            doc.setFillColor(249, 250, 251);
+            doc.setDrawColor(229, 231, 235);
+            doc.rect(14, finalY, pageWidth - 28, 26, 'FD');
+
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(31, 41, 55);
+            doc.text('Key Report Summary & Highlights', 20, finalY + 7);
+
+            doc.setFontSize(8.5);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(75, 85, 99);
+            doc.text(`Total Period Revenue: P ${formatCurrency(reportData.summary.total_sales)}`, 20, finalY + 15);
+            doc.text(`Gross Profit: P ${formatCurrency(reportData.summary.total_gross_profit)} (${reportData.summary.gross_margin_percent}%)`, 20, finalY + 21);
+
+            doc.text(`Total Transactions: ${formatNumber(reportData.summary.total_orders)}`, pageWidth / 2 - 30, finalY + 15);
+            doc.text(`Average Basket: P ${formatCurrency(reportData.summary.average_order_value)}`, pageWidth / 2 - 30, finalY + 21);
+
+            doc.text(`Units Sold: ${formatNumber(reportData.summary.total_units_sold)}`, pageWidth - 80, finalY + 15);
+            doc.text(`Total Discounts: P ${formatCurrency(reportData.summary.total_discounts)}`, pageWidth - 80, finalY + 21);
+
+            const safeStorePrefix = (storeName || 'POS').replace(/[^a-zA-Z0-9_-]/g, '_');
+            doc.save(`${safeStorePrefix}_${activeTab.toUpperCase()}_Report_${formatDate(new Date())}.pdf`);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'PDF Exported!',
+                text: `${activeTab.toUpperCase()} report successfully generated.`,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2500
+            });
+
+        } catch (error) {
+            console.error("PDF generation error:", error);
+            Swal.fire('Error', 'Failed to generate PDF report.', 'error');
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    // Print Report (Standard Document Print)
+    const handlePrint = () => {
+        window.print();
+    };
 
     return (
-        <AuthenticatedLayout user={user} header={<h2 className="font-semibold text-xl text-gray-800 tracking-tight truncate">Analytics & Reports</h2>}>
-            <Head title="Reports" />
+        <AuthenticatedLayout
+            user={auth.user}
+            header={
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="font-bold text-lg sm:text-xl text-gray-900 tracking-tight">Audit & Reports Center</h2>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                            In-depth operational audit, multi-criteria filtering, stock valuation, shift reconciliation, and official exports
+                        </p>
+                    </div>
+                </div>
+            }
+        >
+            <Head title="Reports & Auditing" />
 
-            <div className="py-0 sm:py-8 lg:py-12 bg-gray-100 sm:bg-[#FAFAFA] min-h-[calc(100vh-65px)] sm:min-h-screen">
-                <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 space-y-4 sm:space-y-6 animate-in fade-in sm:slide-in-from-bottom-4 duration-500 pb-10 sm:pb-0">
+            <div className="py-3 sm:py-6 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
+                <div className="w-full max-w-full px-3 sm:px-6 lg:px-8 space-y-5">
 
-                    {/* SMART RESPONSIVE FILTER & EXPORT TOOLBAR */}
-                    <div className="px-0 sm:px-0 pt-4 sm:pt-0">
-                        <div className="bg-white p-4 sm:rounded-xl border-y sm:border border-gray-200/60 shadow-sm flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-
-                            <div className="flex flex-col sm:flex-row flex-wrap xl:flex-nowrap gap-3 w-full xl:w-auto items-stretch">
-
-                                {/* Quick Preset Dropdown */}
-                                <div className="relative flex items-center bg-[#EFF4F9] border border-[#CBD7E6] rounded-lg focus-within:ring-2 focus-within:ring-[#1B3B6A] transition-colors w-full sm:w-auto sm:min-w-[180px] shrink-0">
-                                    <svg className="w-4 h-4 text-[#1B3B6A] absolute left-3 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-
-                                    <select
-                                        className="appearance-none !bg-none bg-transparent border-none py-2.5 sm:py-3 pl-9 pr-10 text-sm font-bold text-[#1B3B6A] focus:ring-0 cursor-pointer w-full"
-                                        value={activePreset}
-                                        onChange={handlePresetChange}
-                                    >
-                                        <option value="custom" disabled hidden>Custom Range</option>
-                                        <option value="today">Today</option>
-                                        <option value="yesterday">Yesterday</option>
-                                        <option value="last_7_days">Last 7 Days</option>
-                                        <option value="this_month">This Month</option>
-                                        <option value="last_month">Last Month</option>
-                                        <option value="ytd">Year to Date</option>
-                                    </select>
-                                    <svg className="w-4 h-4 text-[#1B3B6A] absolute right-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    {/* ========================================================================= */}
+                    {/* 1. EXECUTIVE KPI SUMMARY METRIC STRIP (4 CARDS)                           */}
+                    {/* ========================================================================= */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                        
+                        {/* KPI 1: Net Sales Revenue */}
+                        <div className="p-3.5 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-0.5 sm:space-y-1">
+                                    <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider">Net Sales Revenue</p>
+                                    <h3 className="text-base sm:text-2xl font-bold text-gray-900 tracking-tight">
+                                        ₱{formatCurrency(reportData.summary.total_sales)}
+                                    </h3>
                                 </div>
-
-                                {/* Start Date Input */}
-                                <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2.5 sm:py-3 focus-within:ring-2 focus-within:ring-[#1B3B6A] focus-within:bg-white transition-colors w-full sm:w-auto flex-1 xl:flex-none">
-                                    <span className="text-gray-400 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">From</span>
-                                    <input
-                                        type="date"
-                                        className="bg-transparent border-none p-0 text-sm font-medium text-gray-700 focus:ring-0 cursor-pointer w-full"
-                                        value={filters.start_date}
-                                        onChange={(e) => {
-                                            setActivePreset('custom');
-                                            setFilters({ ...filters, start_date: e.target.value });
-                                        }}
-                                    />
-                                </div>
-
-                                {/* End Date Input */}
-                                <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2.5 sm:py-3 focus-within:ring-2 focus-within:ring-[#1B3B6A] focus-within:bg-white transition-colors w-full sm:w-auto flex-1 xl:flex-none">
-                                    <span className="text-gray-400 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">To</span>
-                                    <input
-                                        type="date"
-                                        className="bg-transparent border-none p-0 text-sm font-medium text-gray-700 focus:ring-0 cursor-pointer w-full"
-                                        value={filters.end_date}
-                                        onChange={(e) => {
-                                            setActivePreset('custom');
-                                            setFilters({ ...filters, end_date: e.target.value });
-                                        }}
-                                    />
+                                <div className="p-2 sm:p-2.5 bg-blue-50 text-blue-700 rounded-xl ring-1 ring-blue-100 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
                                 </div>
                             </div>
+                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500">
+                                <span>{formatNumber(reportData.summary.total_orders)} Transactions</span>
+                                <span className="font-semibold text-gray-800">Avg: ₱{formatCurrency(reportData.summary.average_order_value)}</span>
+                            </div>
+                        </div>
 
-                            <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto shrink-0">
-                                <button
-                                    onClick={exportExcel}
-                                    className="w-full sm:w-auto bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 px-5 py-2.5 sm:py-3 rounded-md text-sm font-bold shadow-sm transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.5l9 9 9-9M12 22.5V3" />
+                        {/* KPI 2: Gross Profit & Margin */}
+                        <div className="p-3.5 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-0.5 sm:space-y-1">
+                                    <p className="text-[10px] sm:text-xs font-bold text-emerald-700 uppercase tracking-wider">Gross Profit</p>
+                                    <h3 className="text-base sm:text-2xl font-bold text-emerald-900 tracking-tight">
+                                        ₱{formatCurrency(reportData.summary.total_gross_profit)}
+                                    </h3>
+                                </div>
+                                <div className="p-2 sm:p-2.5 bg-emerald-50 text-emerald-700 rounded-xl ring-1 ring-emerald-100 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
                                     </svg>
-                                    Export Excel Report
-                                </button>
+                                </div>
+                            </div>
+                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-emerald-50 flex items-center justify-between text-[10px] sm:text-xs text-emerald-700">
+                                <span>Gross Margin</span>
+                                <span className="font-bold text-emerald-800">{reportData.summary.gross_margin_percent}%</span>
+                            </div>
+                        </div>
 
+                        {/* KPI 3: Units Sold & Discounts */}
+                        <div className="p-3.5 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-0.5 sm:space-y-1">
+                                    <p className="text-[10px] sm:text-xs font-bold text-amber-700 uppercase tracking-wider">Volume & Markdown</p>
+                                    <h3 className="text-base sm:text-2xl font-bold text-gray-900 tracking-tight">
+                                        {formatNumber(reportData.summary.total_units_sold)} <span className="text-xs sm:text-sm font-semibold text-gray-400">Units</span>
+                                    </h3>
+                                </div>
+                                <div className="p-2 sm:p-2.5 bg-amber-50 text-amber-700 rounded-xl ring-1 ring-amber-100 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-amber-50 flex items-center justify-between text-[10px] sm:text-xs text-gray-500">
+                                <span>Discounts Granted</span>
+                                <span className="font-semibold text-amber-700">₱{formatCurrency(reportData.summary.total_discounts)}</span>
+                            </div>
+                        </div>
+
+                        {/* KPI 4: Stock Valuation & Discrepancies */}
+                        <div className="p-3.5 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-0.5 sm:space-y-1">
+                                    <p className="text-[10px] sm:text-xs font-bold text-purple-700 uppercase tracking-wider">Inventory Valuation</p>
+                                    <h3 className="text-base sm:text-2xl font-bold text-purple-900 tracking-tight">
+                                        ₱{formatCurrency(reportData.summary.inventory_retail_value)}
+                                    </h3>
+                                </div>
+                                <div className="p-2 sm:p-2.5 bg-purple-50 text-purple-700 rounded-xl ring-1 ring-purple-100 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-purple-50 flex items-center justify-between text-[10px] sm:text-xs text-gray-500">
+                                <span>Cost Value: ₱{formatCurrency(reportData.summary.inventory_cost_value)}</span>
+                                <span className="font-semibold text-purple-700">{formatNumber(reportData.summary.inventory_skus)} SKUs</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ========================================================================= */}
+                    {/* 2. CONNECTED PIPELINE TABS (With Inverted Scoop Radiuses)                  */}
+                    {/* ========================================================================= */}
+                    <div ref={workspaceSectionRef} className="flex flex-col scroll-mt-4">
+                        
+                        {/* Interactive Pipeline Status Tabs */}
+                        <div className="w-full max-w-full overflow-x-auto overflow-y-hidden no-scrollbar scroll-smooth -mb-px relative z-20 pt-1">
+                            <div ref={pipelineTabsRef} className="flex flex-nowrap items-end gap-1 sm:gap-1.5 px-3 w-max min-w-full">
+                                
+                                {/* Tab 1: Sales & Revenue */}
                                 <button
-                                    onClick={exportPDF}
-                                    disabled={isExporting}
-                                    className={`w-full sm:w-auto bg-[#1B3B6A] hover:bg-[#142E54] text-white px-5 py-2.5 sm:py-3 rounded-md text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0 ${isExporting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                    data-tab="sales"
+                                    onClick={() => handleTabChange('sales')}
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
+                                        activeTab === 'sales'
+                                            ? 'bg-white text-[#1B3A69] font-black border-t-[#1B3A69] border-x-gray-200/90 shadow-xs z-20'
+                                            : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
+                                    }`}
                                 >
-                                    {isExporting ? (
+                                    {activeTab === 'sales' && (
                                         <>
-                                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                            Exporting...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                                            </svg>
-                                            Export PDF Report
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
                                         </>
                                     )}
+                                    <span>Sales & Revenue Audit</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                        activeTab === 'sales' ? 'bg-[#1B3A69] text-white shadow-2xs' : 'bg-gray-200 text-gray-700 group-hover:bg-gray-300'
+                                    }`}>
+                                        {reportData.sales_report.daily_breakdown.length}
+                                    </span>
+                                </button>
+
+                                {/* Tab 2: Product Performance */}
+                                <button
+                                    data-tab="products"
+                                    onClick={() => handleTabChange('products')}
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
+                                        activeTab === 'products'
+                                            ? 'bg-white text-blue-900 font-black border-t-blue-600 border-x-gray-200/90 shadow-xs z-20'
+                                            : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
+                                    }`}
+                                >
+                                    {activeTab === 'products' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
+                                    <span>Products & Categories</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                        activeTab === 'products' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-blue-50 text-blue-700 group-hover:bg-blue-100'
+                                    }`}>
+                                        {reportData.product_report.products.length}
+                                    </span>
+                                </button>
+
+                                {/* Tab 3: Inventory Valuation */}
+                                <button
+                                    data-tab="inventory"
+                                    onClick={() => handleTabChange('inventory')}
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
+                                        activeTab === 'inventory'
+                                            ? 'bg-white text-purple-900 font-black border-t-purple-600 border-x-gray-200/90 shadow-xs z-20'
+                                            : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
+                                    }`}
+                                >
+                                    {activeTab === 'inventory' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
+                                    <span>Inventory Valuation</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                        activeTab === 'inventory' ? 'bg-purple-600 text-white shadow-2xs' : 'bg-purple-50 text-purple-700 group-hover:bg-purple-100'
+                                    }`}>
+                                        {reportData.inventory_report.items.length}
+                                    </span>
+                                </button>
+
+                                {/* Tab 4: Shift & Cash Reconciliation */}
+                                <button
+                                    data-tab="shifts"
+                                    onClick={() => handleTabChange('shifts')}
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
+                                        activeTab === 'shifts'
+                                            ? 'bg-white text-emerald-900 font-black border-t-emerald-600 border-x-gray-200/90 shadow-xs z-20'
+                                            : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
+                                    }`}
+                                >
+                                    {activeTab === 'shifts' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
+                                    <span>Shift & Cash Reconciliation</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                        activeTab === 'shifts' ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-emerald-50 text-emerald-700 group-hover:bg-emerald-100'
+                                    }`}>
+                                        {reportData.shift_report.shifts.length}
+                                    </span>
+                                </button>
+
+                                {/* Tab 5: Staff Accountability */}
+                                <button
+                                    data-tab="staff"
+                                    onClick={() => handleTabChange('staff')}
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
+                                        activeTab === 'staff'
+                                            ? 'bg-white text-indigo-900 font-black border-t-indigo-600 border-x-gray-200/90 shadow-xs z-20'
+                                            : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
+                                    }`}
+                                >
+                                    {activeTab === 'staff' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
+                                    <span>Staff Accountability</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                        activeTab === 'staff' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-indigo-50 text-indigo-700 group-hover:bg-indigo-100'
+                                    }`}>
+                                        {reportData.staff_report.staff.length}
+                                    </span>
                                 </button>
                             </div>
                         </div>
-                    </div>
 
-                    {/* KPI SCORECARDS */}
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 px-2 sm:px-0">
-                                <StatCard
-                                    title="Period Revenue"
-                                    value={`₱${formatCurrencyDirect(stats.total_sales)}`}
-                                    trend={stats.sales_growth}
-                                    subtext="Gross Sales for Period"
-                                    color="blue"
-                                    icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                                />
-                                <StatCard
-                                    title="Net Profit"
-                                    value={`₱${formatCurrencyDirect(stats.total_profit)}`}
-                                    trend={stats.profit_growth}
-                                    subtext="Earnings for Period"
-                                    color="green"
-                                    icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>}
-                                />
-                                <StatCard
-                                    title="Transactions"
-                                    value={formatNumber(stats.total_orders)}
-                                    trend={stats.orders_growth}
-                                    subtext="Count for Period"
-                                    color="purple"
-                                    icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>}
-                                />
-                                <StatCard
-                                    title="Average Ticket"
-                                    value={`₱${formatCurrencyDirect(stats.average_order_value)}`}
-                                    trend={stats.aov_growth}
-                                    subtext="Per customer for Period"
-                                    color="orange"
-                                    icon={<svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>}
-                                />
+                        {/* MAIN CONTENT CARD: TOOLBAR + TABLE / CARDS + PAGINATION */}
+                        <div className="bg-white rounded-b-2xl sm:rounded-tr-2xl border border-gray-200/80 shadow-sm overflow-hidden flex flex-col relative z-10">
+
+                            {/* 3. FULLY RESPONSIVE SEARCH, FILTER & OPERATIONAL TOOLBAR */}
+                            <div className="p-3.5 sm:p-4 bg-white border-b border-gray-100 space-y-3 relative z-10">
+                                
+                                {/* Tier 1: Search Bar, View Mode Toggle (List vs Cards) & Dropdown Filters */}
+                                <div className="overflow-x-auto no-scrollbar pb-0.5">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:flex-nowrap gap-2.5 min-w-full sm:min-w-max lg:min-w-0">
+                                        
+                                        {/* Multi-Attribute Search Input */}
+                                        <div className="relative flex-1 min-w-full sm:min-w-[220px] lg:min-w-[240px]">
+                                            <input
+                                                type="text"
+                                                placeholder={
+                                                    activeTab === 'sales' ? 'Search sales, transactions, cashiers...' :
+                                                    activeTab === 'products' ? 'Search products, SKUs, categories...' :
+                                                    activeTab === 'inventory' ? 'Search inventory items, SKUs...' :
+                                                    activeTab === 'shifts' ? 'Search shift logs, cashiers, registers...' :
+                                                    'Search staff members, cashiers, emails...'
+                                                }
+                                                className="pl-11 pr-10 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl w-full focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 focus:bg-white text-xs sm:text-sm font-medium transition-all shadow-2xs placeholder:text-gray-400"
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                            <svg className="w-5 h-5 text-gray-400 absolute left-3.5 top-3 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                            {searchTerm && (
+                                                <button onClick={() => setSearchTerm('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 p-0.5 cursor-pointer">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* View Mode Toggle (Desktop only) */}
+                                        <div className="hidden lg:inline-flex rounded-xl bg-gray-100 p-1 border border-gray-200 shrink-0 self-start sm:self-auto">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleViewModeChange('table')}
+                                                className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'table' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                                title="List View"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+                                                <span className="hidden sm:inline">List</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleViewModeChange('grid')}
+                                                className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'grid' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                                title="Cards View"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25h-2.25a2.25 2.25 0 01-2.25-2.25v-2.25z" /></svg>
+                                                <span className="hidden sm:inline">Cards</span>
+                                            </button>
+                                        </div>
+
+                                        {/* Contextual Dropdowns */}
+                                        <div className="grid grid-cols-2 sm:flex sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto shrink-0">
+                                            {/* Cashier Filter (Sales, Shifts, Staff tabs) */}
+                                            {['sales', 'shifts', 'staff'].includes(activeTab) && (
+                                                <select
+                                                    value={selectedCashier}
+                                                    onChange={(e) => setSelectedCashier(e.target.value)}
+                                                    className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[160px] lg:w-[175px] shrink-0 cursor-pointer"
+                                                >
+                                                    <option value="">All Cashiers & Staff</option>
+                                                    {reportData.meta.cashiers.map(c => (
+                                                        <option key={c.id} value={c.id}>{c.name} ({c.role})</option>
+                                                    ))}
+                                                </select>
+                                            )}
+
+                                            {/* Category Filter (Sales, Products, Inventory tabs) */}
+                                            {['sales', 'products', 'inventory'].includes(activeTab) && (
+                                                <select
+                                                    value={selectedCategory}
+                                                    onChange={(e) => setSelectedCategory(e.target.value)}
+                                                    className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[160px] lg:w-[175px] shrink-0 cursor-pointer"
+                                                >
+                                                    <option value="">All Categories</option>
+                                                    {reportData.meta.categories.map(cat => (
+                                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                                    ))}
+                                                </select>
+                                            )}
+
+                                            {/* Payment Method Filter (Sales tab) */}
+                                            {activeTab === 'sales' && (
+                                                <select
+                                                    value={selectedPaymentMethod}
+                                                    onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                                                    className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[160px] lg:w-[175px] shrink-0 cursor-pointer"
+                                                >
+                                                    <option value="">All Payment Methods</option>
+                                                    <option value="cash">Cash Only</option>
+                                                    <option value="gcash">GCash Only</option>
+                                                    <option value="maya">Maya Only</option>
+                                                    <option value="credit_card">Credit Card Only</option>
+                                                    <option value="debit_card">Debit Card Only</option>
+                                                </select>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Tier 2: Domain Title (Desktop Left) + Date Presets, Date Picker & Data & Export (Right) */}
+                                <div className="pt-2.5 border-t border-gray-100 pb-0.5 relative z-20">
+                                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5 w-full">
+                                        
+                                        {/* Left Side: Section Label (Desktop Only) */}
+                                        <div className="hidden lg:block">
+                                            <span className="text-xs font-black text-gray-800 uppercase tracking-wider">Report Actions</span>
+                                        </div>
+
+                                        {/* Right Side: From, To, Date Presets, Data & Export */}
+                                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:flex lg:w-auto items-center gap-2 w-full lg:w-auto shrink-0 justify-end">
+                                            
+                                            {/* Custom Date Range: From */}
+                                            <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl px-2.5 sm:px-3 py-2 w-full lg:w-auto shrink-0 shadow-2xs">
+                                                <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider shrink-0">From</span>
+                                                <input
+                                                    type="date"
+                                                    className="w-full bg-transparent border-none p-0 text-xs font-semibold text-gray-700 focus:ring-0 cursor-pointer"
+                                                    value={startDate}
+                                                    onChange={(e) => { setStartDate(e.target.value); setActivePreset(''); }}
+                                                />
+                                            </div>
+
+                                            {/* Custom Date Range: To */}
+                                            <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl px-2.5 sm:px-3 py-2 w-full lg:w-auto shrink-0 shadow-2xs">
+                                                <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider shrink-0">To</span>
+                                                <input
+                                                    type="date"
+                                                    className="w-full bg-transparent border-none p-0 text-xs font-semibold text-gray-700 focus:ring-0 cursor-pointer"
+                                                    value={endDate}
+                                                    onChange={(e) => { setEndDate(e.target.value); setActivePreset(''); }}
+                                                />
+                                            </div>
+
+                                            {/* Date Presets Dropdown */}
+                                            <div className="w-full lg:w-[145px] shrink-0">
+                                                <select
+                                                    value={activePreset}
+                                                    onChange={(e) => handlePresetChange(e.target.value)}
+                                                    className="h-[38px] bg-white border border-gray-200 rounded-xl py-2 pl-3 pr-7 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
+                                                >
+                                                    <option value="all">All Time</option>
+                                                    <option value="today">Today</option>
+                                                    <option value="yesterday">Yesterday</option>
+                                                    <option value="last_7_days">Last 7 Days</option>
+                                                    <option value="this_month">This Month</option>
+                                                    <option value="last_month">Last Month</option>
+                                                </select>
+                                            </div>
+
+                                            {/* Data & Export Dropdown Button */}
+                                            <div className="relative data-menu-container w-full lg:w-auto shrink-0" ref={dataMenuRef}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowDataMenu(!showDataMenu)}
+                                                    className="h-[38px] w-full lg:w-auto justify-center px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm bg-[#EFF4F9] text-[#1B3A69] hover:bg-[#E2ECF6] border border-[#CBD7E6] shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-[#1B3A69]">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                                    </svg>
+                                                    <span>Data & Export</span>
+                                                    <svg className={`w-3.5 h-3.5 ml-0.5 text-gray-500 transition-transform duration-200 ${showDataMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </button>
+
+                                                {showDataMenu && (
+                                                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                                        <div className="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400">Reports & Export</div>
+                                                        <button
+                                                            onClick={exportExcel}
+                                                            disabled={isExporting}
+                                                            className="w-full px-4 py-2 text-left text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-emerald-600">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                                                            </svg>
+                                                            Export to Excel (.xlsx)
+                                                        </button>
+                                                        <button
+                                                            onClick={exportPDF}
+                                                            disabled={isExporting}
+                                                            className="w-full px-4 py-2 text-left text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-rose-600">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                                            </svg>
+                                                            Export to PDF Document
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                    {/* MAIN TREND CHART (App-like on mobile) */}
-                    <div className="px-0 sm:px-0">
-                        <div className="bg-white p-5 sm:p-6 sm:rounded-xl shadow-sm border-y sm:border border-gray-200/60 flex flex-col h-[350px] sm:h-[400px]">
-                            <h3 className="text-[15px] sm:text-lg font-bold text-gray-800 mb-4 tracking-tight">Revenue & Net Profit Trend</h3>
-                            <div className="flex-1 w-full -ml-4 sm:ml-0">
-                                {!hasTrendData ? <NoData /> : (
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={stats.chart_data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                            <defs>
-                                                <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#1B3B6A" stopOpacity={0.15}/>
-                                                    <stop offset="95%" stopColor="#1B3B6A" stopOpacity={0}/>
-                                                </linearGradient>
-                                                <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.15}/>
-                                                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
-                                                </linearGradient>
-                                            </defs>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                                            <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9CA3AF' }} dy={10} />
-                                            <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₱${val}`} tick={{ fontSize: 11, fill: '#9CA3AF' }} width={50} />
-                                            <Tooltip formatter={(value, name) => [`₱${parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, name]} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                            <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                                            <Area type="monotone" name="Revenue" dataKey="sales" stroke="#1B3B6A" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
-                                            <Area type="monotone" name="Net Profit" dataKey="profit" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorProfit)" />
-                                        </AreaChart>
-                                    </ResponsiveContainer>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+                            {/* ========================================================================= */}
+                            {/* 4.5 DOMAIN-SPECIFIC REPORT CHARTS & ANALYTICS VISUALIZATION               */}
+                            {/* ========================================================================= */}
+                            {!loading && (
+                                <div className="p-3.5 sm:p-4 bg-gray-50/30 border-b border-gray-100 space-y-4">
+                                    
+                                    {/* ----------------------------------------------------------------- */}
+                                    {/* 📊 TAB 1: SALES & REVENUE VISUALIZATIONS                          */}
+                                    {/* ----------------------------------------------------------------- */}
+                                    {activeTab === 'sales' && (
+                                        <div className="space-y-3">
+                                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+                                                
+                                                {/* Chart 1: Revenue & Order Velocity Trend (8 Cols) */}
+                                                <div className="lg:col-span-8 p-4 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3">
+                                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                                        <div>
+                                                            <h4 className="font-bold text-sm sm:text-base text-gray-900">
+                                                                Sales Revenue & Trend Over Time
+                                                            </h4>
+                                                            <p className="text-xs text-gray-500 font-medium mt-0.5">Daily gross and net revenue performance</p>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-xs">
+                                                            <span className="flex items-center gap-1 text-gray-600 font-semibold text-xs">
+                                                                <span className="w-2.5 h-2.5 rounded-xs bg-[#1B3A69]"></span> Gross
+                                                            </span>
+                                                            <span className="flex items-center gap-1 text-emerald-600 font-semibold text-xs">
+                                                                <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500"></span> Cash
+                                                            </span>
+                                                            <span className="flex items-center gap-1 text-blue-600 font-semibold text-xs">
+                                                                <span className="w-2.5 h-2.5 rounded-xs bg-blue-500"></span> Digital
+                                                            </span>
+                                                        </div>
+                                                    </div>
 
-                    {/* ROW 1: TIME-BASED ANALYTICS (3 COLUMNS) */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 px-0 sm:px-0">
+                                                    <div className="h-56 sm:h-64 w-full">
+                                                        {reportData.sales_report.daily_breakdown.length === 0 ? (
+                                                            <div className="h-full flex items-center justify-center text-xs text-gray-400 font-medium">
+                                                                No sales trend data recorded for selected period
+                                                            </div>
+                                                        ) : (
+                                                            <ResponsiveContainer width="100%" height="100%">
+                                                                <AreaChart
+                                                                    data={[...reportData.sales_report.daily_breakdown].reverse()}
+                                                                    margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                                                                >
+                                                                    <defs>
+                                                                        <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                                                                            <stop offset="5%" stopColor="#1B3A69" stopOpacity={0.25}/>
+                                                                            <stop offset="95%" stopColor="#1B3A69" stopOpacity={0.0}/>
+                                                                        </linearGradient>
+                                                                    </defs>
+                                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                                                                    <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#64748B' }} tickLine={false} axisLine={false} />
+                                                                    <YAxis tick={{ fontSize: 10, fill: '#64748B' }} tickLine={false} axisLine={false} tickFormatter={(v) => `₱${v >= 1000 ? (v/1000).toFixed(0) + 'k' : v}`} />
+                                                                    <Tooltip
+                                                                        content={({ active, payload, label }) => {
+                                                                            if (active && payload && payload.length) {
+                                                                                const d = payload[0].payload;
+                                                                                return (
+                                                                                    <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
+                                                                                        <p className="font-bold text-gray-900">{label}</p>
+                                                                                        <div className="space-y-0.5 pt-1 border-t border-gray-100 text-xs">
+                                                                                            <p className="text-[#1B3A69] font-bold">Gross Sales: ₱{formatCurrency(d.gross_sales)}</p>
+                                                                                            <p className="text-emerald-700 font-semibold">Cash: ₱{formatCurrency(d.cash_sales)}</p>
+                                                                                            <p className="text-blue-700 font-semibold">Digital: ₱{formatCurrency(d.digital_sales)}</p>
+                                                                                            <p className="text-amber-700 font-semibold">Discounts: ₱{formatCurrency(d.discounts)}</p>
+                                                                                            <p className="text-gray-500">{d.orders_count} transactions</p>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                );
+                                                                            }
+                                                                            return null;
+                                                                        }}
+                                                                    />
+                                                                    <Area type="monotone" dataKey={(d) => d.gross_sales / 100} stroke="#1B3A69" strokeWidth={2.5} fillOpacity={1} fill="url(#colorSales)" />
+                                                                </AreaChart>
+                                                            </ResponsiveContainer>
+                                                        )}
+                                                    </div>
+                                                </div>
 
-                        {/* Peak Hours */}
-                        <div className="bg-white p-5 sm:p-6 sm:rounded-xl shadow-sm border-y sm:border border-gray-200/60">
-                            <h3 className="text-[15px] sm:text-lg font-bold text-gray-800 mb-4 tracking-tight">Peak Hours</h3>
-                            <div className="h-60 sm:h-72 w-full">
-                                {stats.peak_hours.length === 0 ? <NoData /> : (
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={stats.peak_hours} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E5E7EB" />
-                                            <XAxis type="number" hide />
-                                            <YAxis dataKey="hour" type="category" width={60} axisLine={false} tickLine={false} tick={{fontSize: 11, fill: '#9CA3AF'}} />
-                                            <Tooltip cursor={{fill: '#F3F4F6'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                            <Bar dataKey="count" fill="#F59E0B" radius={[0, 4, 4, 0]} barSize={16} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                )}
-                            </div>
-                        </div>
+                                                {/* Chart 2: Payment Method Breakdown (4 Cols) */}
+                                                <div className="lg:col-span-4 p-4 rounded-2xl bg-white border border-gray-200/80 shadow-2xs space-y-3 flex flex-col justify-between">
+                                                    <div>
+                                                        <h4 className="font-bold text-sm text-gray-900">
+                                                            Payment Method Mix
+                                                        </h4>
+                                                        <p className="text-[11px] text-gray-400 font-medium">Revenue share per tender channel</p>
+                                                    </div>
 
-                        {/* Peak Days */}
-                        <div className="bg-white p-5 sm:p-6 sm:rounded-xl shadow-sm border-y sm:border border-gray-200/60">
-                            <h3 className="text-[15px] sm:text-lg font-bold text-gray-800 mb-4 tracking-tight">Peak Days</h3>
-                            <div className="h-60 sm:h-72 w-full">
-                                {(!stats.peak_days || stats.peak_days.length === 0) ? <NoData /> : (
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={stats.peak_days} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E5E7EB" />
-                                            <XAxis type="number" hide />
-                                            <YAxis dataKey="day" type="category" width={40} axisLine={false} tickLine={false} tick={{fontSize: 11, fill: '#9CA3AF'}} />
-                                            <Tooltip cursor={{fill: '#F3F4F6'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                            <Bar dataKey="count" fill="#10B981" radius={[0, 4, 4, 0]} barSize={16} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                )}
-                            </div>
-                        </div>
+                                                    <div className="h-44 w-full relative flex items-center justify-center">
+                                                        {reportData.sales_report.payment_methods.length === 0 ? (
+                                                            <div className="text-xs text-gray-400 font-medium">No payment breakdown</div>
+                                                        ) : (
+                                                            <ResponsiveContainer width="100%" height="100%">
+                                                                <PieChart>
+                                                                    <Pie
+                                                                        data={reportData.sales_report.payment_methods}
+                                                                        dataKey="total_amount"
+                                                                        nameKey="method"
+                                                                        innerRadius={45}
+                                                                        outerRadius={68}
+                                                                        paddingAngle={3}
+                                                                    >
+                                                                        {reportData.sales_report.payment_methods.map((entry, index) => {
+                                                                            const colors = ['#10B981', '#2563EB', '#06B6D4', '#8B5CF6', '#F59E0B', '#EC4899'];
+                                                                            return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
+                                                                        })}
+                                                                    </Pie>
+                                                                    <Tooltip
+                                                                        content={({ active, payload }) => {
+                                                                            if (active && payload && payload.length) {
+                                                                                const d = payload[0].payload;
+                                                                                return (
+                                                                                    <div className="bg-white p-2.5 rounded-xl shadow-xl border border-gray-100 text-xs z-50">
+                                                                                        <p className="font-bold text-gray-900">{formatPaymentName(d.method)}</p>
+                                                                                        <p className="text-[#1B3A69] font-bold">₱{formatCurrency(d.total_amount)}</p>
+                                                                                        <p className="text-gray-400 text-[10px]">{d.percentage}% of revenue ({d.count} orders)</p>
+                                                                                    </div>
+                                                                                );
+                                                                            }
+                                                                            return null;
+                                                                        }}
+                                                                    />
+                                                                </PieChart>
+                                                            </ResponsiveContainer>
+                                                        )}
+                                                    </div>
 
-                        {/* Peak Months */}
-                        <div className="bg-white p-5 sm:p-6 sm:rounded-xl shadow-sm border-y sm:border border-gray-200/60">
-                            <h3 className="text-[15px] sm:text-lg font-bold text-gray-800 mb-4 tracking-tight">Peak Months</h3>
-                            <div className="h-60 sm:h-72 w-full">
-                                {(!stats.peak_months || stats.peak_months.length === 0) ? <NoData /> : (
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={stats.peak_months} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E5E7EB" />
-                                            <XAxis type="number" hide />
-                                            <YAxis dataKey="month" type="category" width={40} axisLine={false} tickLine={false} tick={{fontSize: 11, fill: '#9CA3AF'}} />
-                                            <Tooltip cursor={{fill: '#F3F4F6'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                            <Bar dataKey="count" fill="#1B3B6A" radius={[0, 4, 4, 0]} barSize={16} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                )}
-                            </div>
-                        </div>
+                                                    {/* Legend List */}
+                                                    <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-gray-100 text-[11px]">
+                                                        {reportData.sales_report.payment_methods.map((pm, i) => {
+                                                            const colors = ['bg-emerald-500', 'bg-blue-600', 'bg-cyan-500', 'bg-purple-500', 'bg-amber-500', 'bg-pink-500'];
+                                                            return (
+                                                                <div key={i} className="flex items-center justify-between p-1 bg-gray-50/70 rounded-lg">
+                                                                    <span className="flex items-center gap-1 text-gray-600 font-medium">
+                                                                        <span className={`w-2 h-2 rounded-full ${colors[i % colors.length]}`}></span>
+                                                                        {formatPaymentName(pm.method)}
+                                                                    </span>
+                                                                    <span className="font-bold text-gray-900">{pm.percentage}%</span>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
-                    </div>
+                                    {/* ----------------------------------------------------------------- */}
+                                    {/* TAB 2: PRODUCT PERFORMANCE & VELOCITY VISUALIZATIONS               */}
+                                    {/* ----------------------------------------------------------------- */}
+                                    {activeTab === 'products' && (
+                                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4">
+                                            
+                                            {/* Chart 1: Top Selling Products (7 Cols) */}
+                                            <div className="lg:col-span-7 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
+                                                            Top Selling Products by Volume
+                                                        </h4>
+                                                        <p className="text-xs text-gray-500 font-medium mt-0.5">Most demanded item inventory</p>
+                                                    </div>
+                                                    <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-bold text-xs rounded-full">Top Movers</span>
+                                                </div>
 
-                    {/* ROW 2: SPLIT METRICS (3 COLUMNS) */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 px-0 sm:px-0 mt-4 sm:mt-6">
+                                                <div className="h-56 sm:h-64 w-full">
+                                                    {reportData.product_report.products.length === 0 ? (
+                                                        <div className="h-full flex items-center justify-center text-xs text-gray-400 font-medium">
+                                                            No product sales recorded for this period
+                                                        </div>
+                                                    ) : (
+                                                        <ResponsiveContainer width="100%" height="100%">
+                                                            <BarChart
+                                                                data={reportData.product_report.products.slice(0, 6)}
+                                                                layout="vertical"
+                                                                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                                                            >
+                                                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#F1F5F9" />
+                                                                <XAxis type="number" tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                                                                <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: '#334155' }} width={90} axisLine={false} tickLine={false} />
+                                                                <Tooltip
+                                                                    content={({ active, payload }) => {
+                                                                        if (active && payload && payload.length) {
+                                                                            const d = payload[0].payload;
+                                                                            return (
+                                                                                <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
+                                                                                    <p className="font-bold text-gray-900">{d.name}</p>
+                                                                                    <p className="text-[#1B3A69] font-bold">{d.units_sold} Units Sold</p>
+                                                                                    <p className="text-gray-700 font-semibold">Revenue: ₱{formatCurrency(d.total_revenue)}</p>
+                                                                                    <p className="text-emerald-700 font-semibold">Profit: ₱{formatCurrency(d.total_profit)} ({d.margin_percent}%)</p>
+                                                                                </div>
+                                                                            );
+                                                                        }
+                                                                        return null;
+                                                                    }}
+                                                                />
+                                                                <Bar dataKey="units_sold" fill="#1B3A69" radius={[0, 6, 6, 0]} />
+                                                            </BarChart>
+                                                        </ResponsiveContainer>
+                                                    )}
+                                                </div>
+                                            </div>
 
-                        {/* Payment Split */}
-                        <div className="bg-white p-5 sm:p-6 sm:rounded-xl shadow-sm border-y sm:border border-gray-200/60 flex flex-col items-center">
-                            <h3 className="text-[15px] sm:text-lg font-bold text-gray-800 mb-2 w-full tracking-tight">Payment Methods</h3>
-                            <div className="h-60 sm:h-72 w-full">
-                                {stats.payment_methods.length === 0 ? <NoData /> : (
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie data={stats.payment_methods} innerRadius={50} outerRadius={75} paddingAngle={5} dataKey="count" nameKey="payment_method" stroke="none">
-                                                {stats.payment_methods.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-                                            </Pie>
-                                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                            <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} formatter={(value) => formatPaymentName(value)}/>
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                )}
-                            </div>
-                        </div>
+                                            {/* Chart 2: Category Revenue Performance (5 Cols) */}
+                                            <div className="lg:col-span-5 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+                                                <div>
+                                                    <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
+                                                        Category Revenue Contribution
+                                                    </h4>
+                                                    <p className="text-xs text-gray-500 font-medium mt-0.5">Revenue generated per department</p>
+                                                </div>
 
-                        {/* Category Sales */}
-                        <div className="bg-white p-5 sm:p-6 sm:rounded-xl shadow-sm border-y sm:border border-gray-200/60 flex flex-col items-center">
-                            <h3 className="text-[15px] sm:text-lg font-bold text-gray-800 mb-2 w-full tracking-tight">Category Breakdown</h3>
-                            <div className="h-60 sm:h-72 w-full">
-                                {categoryData.length === 0 ? <NoData /> : (
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie data={categoryData} innerRadius={0} outerRadius={75} dataKey="value" nameKey="name" stroke="none">
-                                                {categoryData.map((entry, index) => <Cell key={`c-${index}`} fill={COLORS[index % COLORS.length]} />)}
-                                            </Pie>
-                                            <Tooltip formatter={(value) => `${value} items`} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                            <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                )}
-                            </div>
-                        </div>
+                                                <div className="h-56 sm:h-64 w-full">
+                                                    {reportData.product_report.categories.length === 0 ? (
+                                                        <div className="h-full flex items-center justify-center text-xs text-gray-400 font-medium">
+                                                            No category data available
+                                                        </div>
+                                                    ) : (
+                                                        <ResponsiveContainer width="100%" height="100%">
+                                                            <BarChart data={reportData.product_report.categories.slice(0, 5)}>
+                                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                                                                <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                                                                <YAxis tick={{ fontSize: 9, fill: '#64748B' }} axisLine={false} tickLine={false} tickFormatter={(v) => `₱${(v/100000).toFixed(0)}k`} />
+                                                                <Tooltip
+                                                                    content={({ active, payload }) => {
+                                                                        if (active && payload && payload.length) {
+                                                                            const d = payload[0].payload;
+                                                                            return (
+                                                                                <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
+                                                                                    <p className="font-bold text-gray-900">{d.name}</p>
+                                                                                    <p className="text-purple-700 font-bold">Revenue: ₱{formatCurrency(d.total_revenue)}</p>
+                                                                                    <p className="text-emerald-700 font-semibold">Profit: ₱{formatCurrency(d.total_profit)}</p>
+                                                                                    <p className="text-gray-400 text-xs">{d.revenue_share}% revenue share</p>
+                                                                                </div>
+                                                                            );
+                                                                        }
+                                                                        return null;
+                                                                    }}
+                                                                />
+                                                                <Bar dataKey="total_revenue" fill="#8B5CF6" radius={[6, 6, 0, 0]} />
+                                                            </BarChart>
+                                                        </ResponsiveContainer>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
-                        {/* BEST SELLERS TABLE WIDGET */}
-                        <div className="bg-white p-5 sm:p-6 sm:rounded-xl shadow-sm border-y sm:border border-gray-200/60 flex flex-col h-full">
-                            <h3 className="text-[15px] sm:text-lg font-bold text-gray-800 mb-4 tracking-tight">Top 5 Best Sellers</h3>
-                            <div className="w-full flex-1 overflow-x-auto">
-                                {stats.top_products.length === 0 ? (
-                                    <div className="h-40"><NoData /></div>
-                                ) : (
-                                    <table className="w-full text-left text-sm">
-                                        <thead className="bg-gray-50 text-gray-500">
-                                            <tr>
-                                                <th className="px-4 py-2 font-black text-[10px] uppercase tracking-widest rounded-tl-lg rounded-bl-lg">Product Name</th>
-                                                <th className="px-4 py-2 text-right font-black text-[10px] uppercase tracking-widest rounded-tr-lg rounded-br-lg">Sold</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-gray-100">
-                                            {stats.top_products.map((item, idx) => (
-                                                <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                                    <td className="px-4 py-3 font-bold text-gray-800 text-xs sm:text-sm">{item.name}</td>
-                                                    <td className="px-4 py-3 text-right font-black text-[#1B3B6A] text-xs sm:text-sm">{formatNumber(item.sold)}</td>
-                                                </tr>
+                                    {/* ----------------------------------------------------------------- */}
+                                    {/* TAB 3: INVENTORY HEALTH & VALUATION VISUALIZATIONS                 */}
+                                    {/* ----------------------------------------------------------------- */}
+                                    {activeTab === 'inventory' && (
+                                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4">
+                                            
+                                            {/* Chart 1: Stock Health Composition (4 Cols) */}
+                                            <div className="lg:col-span-4 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+                                                <div>
+                                                    <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
+                                                        Stock Health Breakdown
+                                                    </h4>
+                                                    <p className="text-xs text-gray-500 font-medium mt-0.5">Inventory level status distribution</p>
+                                                </div>
+
+                                                <div className="h-56 sm:h-64 w-full flex items-center justify-center">
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <PieChart>
+                                                            <Pie
+                                                                data={[
+                                                                    { name: 'Healthy', value: reportData.summary.healthy_stock_count, color: '#10B981' },
+                                                                    { name: 'Low Stock', value: reportData.summary.low_stock_count, color: '#F59E0B' },
+                                                                    { name: 'Out of Stock', value: reportData.summary.out_of_stock_count, color: '#EF4444' },
+                                                                ]}
+                                                                dataKey="value"
+                                                                nameKey="name"
+                                                                innerRadius={45}
+                                                                outerRadius={68}
+                                                                paddingAngle={3}
+                                                            >
+                                                                <Cell fill="#10B981" />
+                                                                <Cell fill="#F59E0B" />
+                                                                <Cell fill="#EF4444" />
+                                                            </Pie>
+                                                            <Tooltip
+                                                                content={({ active, payload }) => {
+                                                                    if (active && payload && payload.length) {
+                                                                        const d = payload[0].payload;
+                                                                        return (
+                                                                            <div className="bg-white p-2.5 rounded-xl shadow-xl border border-gray-100 text-xs">
+                                                                                <p className="font-bold text-gray-900">{d.name}</p>
+                                                                                <p className="font-bold text-gray-700">{d.value} SKUs</p>
+                                                                            </div>
+                                                                        );
+                                                                    }
+                                                                    return null;
+                                                                    }}
+                                                            />
+                                                        </PieChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+
+                                                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 text-center">
+                                                    <div className="p-2 rounded-xl bg-emerald-50 text-emerald-800">
+                                                        <p className="text-xs text-emerald-600 font-semibold">Healthy</p>
+                                                        <p className="text-sm font-bold">{reportData.summary.healthy_stock_count}</p>
+                                                    </div>
+                                                    <div className="p-2 rounded-xl bg-amber-50 text-amber-800">
+                                                        <p className="text-xs text-amber-600 font-semibold">Low Stock</p>
+                                                        <p className="text-sm font-bold">{reportData.summary.low_stock_count}</p>
+                                                    </div>
+                                                    <div className="p-2 rounded-xl bg-rose-50 text-rose-800">
+                                                        <p className="text-xs text-rose-600 font-semibold">Depleted</p>
+                                                        <p className="text-sm font-bold">{reportData.summary.out_of_stock_count}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Summary 2: Valuation Aggregates (8 Cols) */}
+                                            <div className="lg:col-span-8 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+                                                <div>
+                                                    <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
+                                                        Total Inventory Capitalization
+                                                    </h4>
+                                                    <p className="text-xs text-gray-500 font-medium mt-0.5">Asset valuations and estimated profit potential</p>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                    <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 space-y-1">
+                                                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Cost Invested</span>
+                                                        <p className="text-lg sm:text-xl font-bold text-gray-900">₱{formatCurrency(reportData.inventory_report.total_cost_value)}</p>
+                                                        <p className="text-xs text-gray-400">Total acquisition cost</p>
+                                                    </div>
+                                                    <div className="p-4 rounded-xl bg-[#EFF4F9] border border-[#CBD7E6] space-y-1">
+                                                        <span className="text-xs font-bold text-[#1B3A69] uppercase tracking-wider">Retail Valuation</span>
+                                                        <p className="text-lg sm:text-xl font-bold text-gray-900">₱{formatCurrency(reportData.inventory_report.total_retail_value)}</p>
+                                                        <p className="text-xs text-gray-500">Gross market potential</p>
+                                                    </div>
+                                                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100 space-y-1">
+                                                        <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Expected Profit</span>
+                                                        <p className="text-lg sm:text-xl font-bold text-emerald-700">₱{formatCurrency(reportData.inventory_report.potential_profit)}</p>
+                                                        <p className="text-xs text-emerald-600 font-semibold">{reportData.inventory_report.potential_margin}% Projected Margin</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="p-3 bg-blue-50/40 rounded-xl border border-blue-100 flex items-center justify-between text-xs">
+                                                    <span className="text-blue-900 font-medium">Catalog Health: <strong>{reportData.summary.total_skus}</strong> unique SKUs in active database</span>
+                                                    <Link href="/inventory" className="font-bold text-[#1B3A69] hover:underline cursor-pointer">Manage Inventory →</Link>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ----------------------------------------------------------------- */}
+                                    {/* TAB 4: SHIFT AUDITS & DRAWER RECONCILIATION VISUALIZATIONS        */}
+                                    {/* ----------------------------------------------------------------- */}
+                                    {activeTab === 'shifts' && (
+                                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4">
+                                            
+                                            {/* Chart 1: Expected vs Actual Counted Cash (7 Cols) */}
+                                            <div className="lg:col-span-7 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
+                                                            Expected vs. Actual Cash Reconciled
+                                                        </h4>
+                                                        <p className="text-xs text-gray-500 font-medium mt-0.5">Per-shift drawer variance reconciliation</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs">
+                                                        <span className="flex items-center gap-1 text-emerald-700 font-bold text-xs">
+                                                            <span className="w-2.5 h-2.5 rounded-xs bg-emerald-600"></span> Actual
+                                                        </span>
+                                                        <span className="flex items-center gap-1 text-gray-500 font-bold text-xs">
+                                                            <span className="w-2.5 h-2.5 rounded-xs bg-gray-400"></span> Expected
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="h-56 sm:h-64 w-full">
+                                                    {reportData.shift_report.shifts.length === 0 ? (
+                                                        <div className="h-full flex items-center justify-center text-xs text-gray-400 font-medium">
+                                                            No shift records logged for this period
+                                                        </div>
+                                                    ) : (
+                                                        <ResponsiveContainer width="100%" height="100%">
+                                                            <BarChart data={[...reportData.shift_report.shifts].slice(0, 8)}>
+                                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                                                                <XAxis dataKey="cashier_name" tick={{ fontSize: 9, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                                                                <YAxis tick={{ fontSize: 9, fill: '#64748B' }} axisLine={false} tickLine={false} tickFormatter={(v) => `₱${v}`} />
+                                                                <Tooltip
+                                                                    content={({ active, payload }) => {
+                                                                        if (active && payload && payload.length) {
+                                                                            const d = payload[0].payload;
+                                                                            return (
+                                                                                <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
+                                                                                    <p className="font-bold text-gray-900">{d.cashier_name} (Shift #{d.id})</p>
+                                                                                    <p className="text-emerald-700 font-bold">Actual: ₱{d.actual_cash !== null && d.actual_cash !== undefined ? Number(d.actual_cash).toFixed(2) : '—'}</p>
+                                                                                    <p className="text-gray-500 font-semibold">Expected: ₱{Number(d.expected_cash || 0).toFixed(2)}</p>
+                                                                                    <p className={`font-bold ${(d.difference || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                                                                        Variance: {(d.difference || 0) >= 0 ? '+' : ''}₱{Number(d.difference || 0).toFixed(2)}
+                                                                                    </p>
+                                                                                </div>
+                                                                            );
+                                                                        }
+                                                                        return null;
+                                                                    }}
+                                                                />
+                                                                <Bar dataKey="actual_cash" fill="#10B981" radius={[4, 4, 0, 0]} />
+                                                                <Bar dataKey="expected_cash" fill="#94A3B8" radius={[4, 4, 0, 0]} />
+                                                            </BarChart>
+                                                        </ResponsiveContainer>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Chart 2: Cash Movement Breakdown (5 Cols) */}
+                                            <div className="lg:col-span-5 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+                                                <div>
+                                                    <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
+                                                        Drawer Cash Velocity Flow
+                                                    </h4>
+                                                    <p className="text-xs text-gray-500 font-medium mt-0.5">Cash sales vs drawer additions & safe drops</p>
+                                                </div>
+
+                                                <div className="space-y-2.5 py-2">
+                                                    <div className="p-3 bg-emerald-50/70 rounded-xl flex items-center justify-between">
+                                                        <div>
+                                                            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">Total Shift Cash Sales</span>
+                                                            <p className="text-base font-bold text-emerald-950">
+                                                                ₱{((reportData.shift_report.cash_movements?.total_cash_sales || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                                            </p>
+                                                        </div>
+                                                        <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold">Sales</span>
+                                                    </div>
+
+                                                    <div className="p-3 bg-blue-50/70 rounded-xl flex items-center justify-between">
+                                                        <div>
+                                                            <span className="text-xs font-bold uppercase tracking-wider text-blue-800">Drawer Cash-In (Adds)</span>
+                                                            <p className="text-base font-bold text-blue-950">
+                                                                ₱{((reportData.shift_report.cash_movements?.total_cash_in || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                                            </p>
+                                                        </div>
+                                                        <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">Topup</span>
+                                                    </div>
+
+                                                    <div className="p-3 bg-rose-50/70 rounded-xl flex items-center justify-between">
+                                                        <div>
+                                                            <span className="text-xs font-bold uppercase tracking-wider text-rose-800">Drawer Cash-Out (Drops / Payouts)</span>
+                                                            <p className="text-base font-bold text-rose-950">
+                                                                ₱{((reportData.shift_report.cash_movements?.total_cash_out || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                                            </p>
+                                                        </div>
+                                                        <span className="px-2.5 py-0.5 bg-rose-100 text-rose-800 rounded-full text-xs font-bold">Drops</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ----------------------------------------------------------------- */}
+                                    {/* TAB 5: STAFF ACCOUNTABILITY VISUALIZATIONS                         */}
+                                    {/* ----------------------------------------------------------------- */}
+                                    {activeTab === 'staff' && (
+                                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4">
+                                            
+                                            {/* Chart 1: Sales Generation by Cashier (7 Cols) */}
+                                            <div className="lg:col-span-7 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
+                                                            Revenue Contribution by Staff Member
+                                                        </h4>
+                                                        <p className="text-xs text-gray-500 font-medium mt-0.5">Total sales closed by cashier</p>
+                                                    </div>
+                                                    <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-full">Cashier Ranking</span>
+                                                </div>
+
+                                                <div className="h-56 sm:h-64 w-full">
+                                                    {reportData.staff_report.staff.length === 0 ? (
+                                                        <div className="h-full flex items-center justify-center text-xs text-gray-400 font-medium">
+                                                            No staff transactions recorded for this period
+                                                        </div>
+                                                    ) : (
+                                                        <ResponsiveContainer width="100%" height="100%">
+                                                            <BarChart data={reportData.staff_report.staff}>
+                                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                                                                <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                                                                <YAxis tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false} tickFormatter={(v) => `₱${(v/100000).toFixed(0)}k`} />
+                                                                <Tooltip
+                                                                    content={({ active, payload }) => {
+                                                                        if (active && payload && payload.length) {
+                                                                            const d = payload[0].payload;
+                                                                            return (
+                                                                                <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
+                                                                                    <p className="font-bold text-gray-900">{d.name} ({d.role})</p>
+                                                                                    <p className="text-indigo-700 font-bold">Sales: ₱{formatCurrency(d.total_sales)}</p>
+                                                                                    <p className="text-gray-600 font-semibold">{d.transactions_count} transactions (AOV: ₱{formatCurrency(d.average_basket)})</p>
+                                                                                    <p className="text-amber-700 font-semibold">Discounts: ₱{formatCurrency(d.discounts_given)}</p>
+                                                                                </div>
+                                                                            );
+                                                                        }
+                                                                        return null;
+                                                                    }}
+                                                                />
+                                                                <Bar dataKey="total_sales" fill="#6366F1" radius={[6, 6, 0, 0]} />
+                                                            </BarChart>
+                                                        </ResponsiveContainer>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Chart 2: Discounts vs Voids Accountability (5 Cols) */}
+                                            <div className="lg:col-span-5 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+                                                <div>
+                                                    <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
+                                                        Discounts & Voids Accountability
+                                                    </h4>
+                                                    <p className="text-xs text-gray-500 font-medium mt-0.5">Price reductions and canceled sales per staff</p>
+                                                </div>
+
+                                                <div className="h-56 sm:h-64 w-full">
+                                                    {reportData.staff_report.staff.length === 0 ? (
+                                                        <div className="h-full flex items-center justify-center text-xs text-gray-400 font-medium">
+                                                            No staff accountability logs
+                                                        </div>
+                                                    ) : (
+                                                        <ResponsiveContainer width="100%" height="100%">
+                                                            <BarChart data={reportData.staff_report.staff}>
+                                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                                                                <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                                                                <YAxis tick={{ fontSize: 9, fill: '#64748B' }} axisLine={false} tickLine={false} />
+                                                                <Tooltip
+                                                                    content={({ active, payload }) => {
+                                                                        if (active && payload && payload.length) {
+                                                                            const d = payload[0].payload;
+                                                                            return (
+                                                                                <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
+                                                                                    <p className="font-bold text-gray-900">{d.name}</p>
+                                                                                    <p className="text-amber-700 font-bold">Discounts Granted: ₱{formatCurrency(d.discounts_given)}</p>
+                                                                                    <p className="text-rose-700 font-bold">Voided Receipts: {d.voids_count} (₱{formatCurrency(d.void_amount)})</p>
+                                                                                </div>
+                                                                            );
+                                                                        }
+                                                                        return null;
+                                                                    }}
+                                                                />
+                                                                <Bar dataKey="discounts_given" fill="#F59E0B" radius={[4, 4, 0, 0]} name="Discounts" />
+                                                                <Bar dataKey="voids_count" fill="#EF4444" radius={[4, 4, 0, 0]} name="Voids" />
+                                                            </BarChart>
+                                                        </ResponsiveContainer>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* ========================================================================= */}
+                            {/* 5. DATA TABLES & CARD VIEWS                                               */}
+                            {/* ========================================================================= */}
+                            {loading ? (
+                                <div className="py-20 flex flex-col items-center justify-center space-y-3">
+                                    <div className="w-9 h-9 border-4 border-[#1B3A69] border-t-transparent rounded-full animate-spin"></div>
+                                    <p className="text-xs font-bold text-gray-500">Compiling multi-domain report data...</p>
+                                </div>
+                            ) : paginatedData.length === 0 ? (
+                                <div className="m-3.5 sm:m-4 py-16 text-center space-y-2 border border-dashed border-gray-200 rounded-2xl bg-gray-50/30">
+                                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mx-auto mb-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+                                    </div>
+                                    <p className="text-sm font-bold text-gray-900">No records found for this period</p>
+                                    <p className="text-xs text-gray-400 mt-0.5">Try adjusting your date range, categories, or filters above.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    {/* 1. TABLE VIEW (Desktop Only when viewMode === 'table') */}
+                                    {viewMode === 'table' && (
+                                        <div className="hidden lg:block bg-white overflow-hidden">
+                                            <div className="overflow-x-auto custom-scrollbar">
+                                                <table className="w-full text-left min-w-[900px]">
+                                                    <thead className="bg-gray-50/80 border-b border-gray-200/80 text-gray-500 uppercase text-[10px] font-black tracking-wider whitespace-nowrap">
+                                                        {activeTab === 'sales' && (
+                                                            <tr>
+                                                                <th className="p-3.5 sm:p-4 cursor-pointer" onClick={() => handleSort('date')}>Date</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('orders_count')}>Orders</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('gross_sales')}>Gross Sales</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('discounts')}>Discounts</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('net_sales')}>Net Sales</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('aov')}>Avg Basket</th>
+                                                                <th className="p-3.5 sm:p-4 text-right">Cash / Digital</th>
+                                                                <th className="p-3.5 sm:p-4 text-center">Voids</th>
+                                                                <th className="p-3.5 sm:p-4 text-center">Action</th>
+                                                            </tr>
+                                                        )}
+
+                                                        {activeTab === 'products' && (
+                                                            <tr>
+                                                                <th className="p-3.5 sm:p-4 cursor-pointer" onClick={() => handleSort('name')}>Product / SKU</th>
+                                                                <th className="p-3.5 sm:p-4">Category</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('units_sold')}>Units Sold</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('total_revenue')}>Total Revenue</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('total_profit')}>Gross Profit</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('margin_percent')}>Margin</th>
+                                                                <th className="p-3.5 sm:p-4 text-center">Velocity</th>
+                                                            </tr>
+                                                        )}
+
+                                                        {activeTab === 'inventory' && (
+                                                            <tr>
+                                                                <th className="p-3.5 sm:p-4 cursor-pointer" onClick={() => handleSort('name')}>Item Details / SKU</th>
+                                                                <th className="p-3.5 sm:p-4">Category</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('stock_quantity')}>In Stock</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('total_cost_value')}>Cost Value</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('total_retail_value')}>Retail Value</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('potential_profit')}>Unrealized Profit</th>
+                                                                <th className="p-3.5 sm:p-4 text-center">Health Status</th>
+                                                            </tr>
+                                                        )}
+
+                                                        {activeTab === 'shifts' && (
+                                                            <tr>
+                                                                <th className="p-3.5 sm:p-4">Shift ID / Date</th>
+                                                                <th className="p-3.5 sm:p-4">Cashier</th>
+                                                                <th className="p-3.5 sm:p-4">Opening Time / End</th>
+                                                                <th className="p-3.5 sm:p-4 text-right">Start Float</th>
+                                                                <th className="p-3.5 sm:p-4 text-right">Cash Sales</th>
+                                                                <th className="p-3.5 sm:p-4 text-right">Expected Drawer</th>
+                                                                <th className="p-3.5 sm:p-4 text-right">Actual Counted</th>
+                                                                <th className="p-3.5 sm:p-4 text-center">Variance (O/S)</th>
+                                                            </tr>
+                                                        )}
+
+                                                        {activeTab === 'staff' && (
+                                                            <tr>
+                                                                <th className="p-3.5 sm:p-4 cursor-pointer" onClick={() => handleSort('name')}>Staff Member</th>
+                                                                <th className="p-3.5 sm:p-4">Role</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('shifts_count')}>Shifts Worked</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('transactions_count')}>Orders Closed</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('total_sales')}>Total Sales</th>
+                                                                <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('average_basket')}>Avg Ticket</th>
+                                                                <th className="p-3.5 sm:p-4 text-right">Discounts Issued</th>
+                                                                <th className="p-3.5 sm:p-4 text-center">Voids Logged</th>
+                                                                <th className="p-3.5 sm:p-4 text-center">Status</th>
+                                                            </tr>
+                                                        )}
+                                                    </thead>
+                                                    <tbody className="divide-y divide-gray-100">
+                                                        {paginatedData.map((item, idx) => (
+                                                            <tr key={idx} className="hover:bg-gray-50/80 transition-colors">
+                                                                {/* Sales Row */}
+                                                                {activeTab === 'sales' && (
+                                                                    <>
+                                                                        <td className="p-3.5 sm:p-4 font-bold text-gray-900 text-xs sm:text-sm">{item.date}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-gray-700">{formatNumber(item.orders_count)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-semibold text-xs sm:text-sm text-gray-800">₱{formatCurrency(item.gross_sales)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right text-xs sm:text-sm font-semibold text-amber-700">₱{formatCurrency(item.discounts)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">₱{formatCurrency(item.net_sales)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right text-xs sm:text-sm font-medium text-gray-600">₱{formatCurrency(item.aov)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right text-xs">
+                                                                            <span className="text-emerald-700 font-bold">₱{formatCurrency(item.cash_sales)}</span>
+                                                                            <span className="text-gray-400 font-bold mx-1">/</span>
+                                                                            <span className="text-indigo-700 font-bold">₱{formatCurrency(item.digital_sales)}</span>
+                                                                        </td>
+                                                                        <td className="p-3.5 sm:p-4 text-center">
+                                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${item.voids_count > 0 ? 'bg-rose-50 text-rose-700' : 'bg-gray-50 text-gray-500'}`}>
+                                                                                {item.voids_count}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="p-3.5 sm:p-4 text-center">
+                                                                            <button
+                                                                                onClick={() => handleRowClick(item, 'date')}
+                                                                                className="px-3 py-1.5 rounded-xl text-xs font-bold text-[#1B3A69] bg-[#EFF4F9] hover:bg-[#E2ECF6] border border-[#CBD7E6] shadow-xs active:scale-95 transition-all cursor-pointer"
+                                                                            >
+                                                                                Drill-down
+                                                                            </button>
+                                                                        </td>
+                                                                    </>
+                                                                )}
+
+                                                                {/* Products Row */}
+                                                                {activeTab === 'products' && (
+                                                                    <>
+                                                                        <td className="p-3.5 sm:p-4">
+                                                                            <div className="font-bold text-xs sm:text-sm text-gray-900">{item.name}</div>
+                                                                            <div className="text-xs text-gray-400 font-mono">{item.sku || 'SKU-NONE'}</div>
+                                                                        </td>
+                                                                        <td className="p-3.5 sm:p-4">
+                                                                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700">
+                                                                                {item.category_name}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-gray-900">{formatNumber(item.units_sold)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">₱{formatCurrency(item.total_revenue)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-emerald-700">₱{formatCurrency(item.total_profit)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-gray-700">{item.margin_percent}%</td>
+                                                                        <td className="p-3.5 sm:p-4 text-center">
+                                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                                                                item.units_sold > 50 ? 'bg-emerald-50 text-emerald-700' :
+                                                                                item.units_sold > 15 ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-600'
+                                                                            }`}>
+                                                                                {item.units_sold > 50 ? 'Fast Mover' : item.units_sold > 15 ? 'Moderate' : 'Slow'}
+                                                                            </span>
+                                                                        </td>
+                                                                    </>
+                                                                )}
+
+                                                                {/* Inventory Row */}
+                                                                {activeTab === 'inventory' && (
+                                                                    <>
+                                                                        <td className="p-3.5 sm:p-4">
+                                                                            <div className="font-bold text-xs sm:text-sm text-gray-900">{item.name}</div>
+                                                                            <div className="text-xs text-gray-400 font-mono">{item.sku || 'SKU-NONE'}</div>
+                                                                        </td>
+                                                                        <td className="p-3.5 sm:p-4">
+                                                                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700">
+                                                                                {item.category_name}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-gray-900">{formatNumber(item.stock_quantity)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right text-xs sm:text-sm text-gray-600">₱{formatCurrency(item.total_cost_value)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">₱{formatCurrency(item.total_retail_value)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-emerald-700">₱{formatCurrency(item.potential_profit)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-center">
+                                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                                                                item.status === 'out_of_stock' ? 'bg-rose-50 text-rose-700' :
+                                                                                item.status === 'low_stock' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'
+                                                                            }`}>
+                                                                                {item.status === 'out_of_stock' ? 'Out of Stock' : item.status === 'low_stock' ? 'Low Stock' : 'Optimal'}
+                                                                            </span>
+                                                                        </td>
+                                                                    </>
+                                                                )}
+
+                                                                {/* Shifts Row */}
+                                                                {activeTab === 'shifts' && (
+                                                                    <>
+                                                                        <td className="p-3.5 sm:p-4 font-bold text-xs sm:text-sm text-gray-900">
+                                                                            Shift #{item.id}
+                                                                            <div className="text-xs text-gray-400 font-normal">
+                                                                                {item.start_time ? new Date(item.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (item.opened_at || '—')}
+                                                                            </div>
+                                                                        </td>
+                                                                        <td className="p-3.5 sm:p-4 font-bold text-xs sm:text-sm text-gray-800">{item.cashier_name}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-xs text-gray-500">
+                                                                            {item.end_time ? new Date(item.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (item.closed_at || 'Currently Active')}
+                                                                        </td>
+                                                                        <td className="p-3.5 sm:p-4 text-right text-xs sm:text-sm text-gray-600">₱{Number(item.starting_cash || item.opening_float || 0).toFixed(2)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">₱{Number(item.cash_sales || 0).toFixed(2)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-semibold text-xs sm:text-sm text-gray-800">₱{Number(item.expected_cash || item.expected_drawer || 0).toFixed(2)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-emerald-700">
+                                                                            {item.actual_cash !== null && item.actual_cash !== undefined ? `₱${Number(item.actual_cash).toFixed(2)}` : (item.actual_counted !== null && item.actual_counted !== undefined ? `₱${Number(item.actual_counted).toFixed(2)}` : 'N/A')}
+                                                                        </td>
+                                                                        <td className="p-3.5 sm:p-4 text-center">
+                                                                            {Number(item.difference || 0) > 0.01 ? (
+                                                                                <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                                                                                    +₱{Number(item.difference).toFixed(2)} (Over)
+                                                                                </span>
+                                                                            ) : Number(item.difference || 0) < -0.01 ? (
+                                                                                <span className="text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                                                                                    -₱{Math.abs(Number(item.difference)).toFixed(2)} (Short)
+                                                                                </span>
+                                                                            ) : (
+                                                                                <span className="text-gray-400 font-semibold">Exact ₱0.00</span>
+                                                                            )}
+                                                                        </td>
+                                                                    </>
+                                                                )}
+
+                                                                {/* Staff Row */}
+                                                                {activeTab === 'staff' && (
+                                                                    <>
+                                                                        <td className="p-3.5 sm:p-4">
+                                                                            <div className="font-bold text-xs sm:text-sm text-gray-900">{item.name}</div>
+                                                                            <div className="text-xs text-gray-400">{item.email}</div>
+                                                                        </td>
+                                                                        <td className="p-3.5 sm:p-4">
+                                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                                                                item.role === 'admin' ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'
+                                                                            }`}>
+                                                                                {item.role === 'admin' ? 'Administrator' : 'Cashier'}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-gray-700">{item.shifts_count}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-gray-900">{formatNumber(item.transactions_count)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">₱{formatCurrency(item.total_sales)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right text-gray-600 text-xs sm:text-sm">₱{formatCurrency(item.average_basket)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right text-amber-700 font-semibold text-xs sm:text-sm">₱{formatCurrency(item.discounts_given)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-center font-bold text-xs sm:text-sm text-rose-700">{item.voids_count}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-center">
+                                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                                                                item.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                                                                            }`}>
+                                                                                {item.is_active ? 'Active' : 'Revoked'}
+                                                                            </span>
+                                                                        </td>
+                                                                    </>
+                                                                )}
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* 2. CARD GRID VIEW (Shown on Mobile always, or on Desktop when viewMode === 'grid') */}
+                                    <div className={`${viewMode === 'table' ? 'lg:hidden' : 'block'} p-3.5 sm:p-4 bg-gray-50/40 border-t lg:border-t-0 border-gray-100`}>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                                            {paginatedData.map((item, idx) => (
+                                                <div key={idx} className="bg-white rounded-2xl border border-gray-200/80 shadow-2xs p-3.5 sm:p-4 flex flex-col justify-between gap-3 hover:shadow-md hover:border-[#1B3A69]/40 transition-all">
+                                                    
+                                                    {/* ========================================================= */}
+                                                    {/* TAB 1: SALES & DAILY REVENUE AUDIT CARD                   */}
+                                                    {/* ========================================================= */}
+                                                    {activeTab === 'sales' && (
+                                                        <>
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <div className="min-w-0">
+                                                                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider">AUDIT DATE</div>
+                                                                    <h4 className="font-bold text-sm sm:text-base text-gray-900 leading-tight tracking-tight">
+                                                                        {item.date}
+                                                                    </h4>
+                                                                </div>
+                                                                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#EFF4F9] text-[#1B3A69] border border-[#CBD7E6] shrink-0">
+                                                                    {formatNumber(item.orders_count)} Orders
+                                                                </span>
+                                                            </div>
+
+                                                            <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-gray-100 text-xs">
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">GROSS SALES</span>
+                                                                    <span className="font-semibold text-gray-800 text-xs sm:text-sm">
+                                                                        ₱{formatCurrency(item.gross_sales)}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">NET REVENUE</span>
+                                                                    <span className="font-bold text-[#1B3A69] text-xs sm:text-sm">
+                                                                        ₱{formatCurrency(item.net_sales)}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">DISCOUNTS</span>
+                                                                    <span className="font-semibold text-amber-700 text-xs">
+                                                                        ₱{formatCurrency(item.discounts)}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">AVG TICKET</span>
+                                                                    <span className="font-medium text-gray-600 text-xs">
+                                                                        ₱{formatCurrency(item.aov)}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between gap-2 text-xs">
+                                                                <div className="text-[11px] font-semibold text-gray-600">
+                                                                    <span className="text-emerald-700 font-bold">₱{formatCurrency(item.cash_sales)}</span>
+                                                                    <span className="text-gray-300 mx-1">/</span>
+                                                                    <span className="text-indigo-700 font-bold">₱{formatCurrency(item.digital_sales)}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                                    {item.voids_count > 0 && (
+                                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700">
+                                                                            {item.voids_count} void
+                                                                        </span>
+                                                                    )}
+                                                                    <Link
+                                                                        href={`/transactions?startDate=${item.date}&endDate=${item.date}`}
+                                                                        className="px-2.5 py-1 bg-gray-100 hover:bg-[#1B3A69] hover:text-white rounded-lg text-[11px] font-bold text-gray-700 transition-all cursor-pointer inline-flex items-center gap-1"
+                                                                    >
+                                                                        Audit →
+                                                                    </Link>
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    )}
+
+                                                    {/* ========================================================= */}
+                                                    {/* TAB 2: PRODUCT SALES & MARGIN VELOCITY CARD               */}
+                                                    {/* ========================================================= */}
+                                                    {activeTab === 'products' && (
+                                                        <>
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <div className="min-w-0">
+                                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">
+                                                                        {item.category_name}
+                                                                    </span>
+                                                                    <h4 className="font-bold text-sm sm:text-base text-gray-900 leading-tight tracking-tight mt-1 truncate" title={item.name}>
+                                                                        {item.name}
+                                                                    </h4>
+                                                                    <p className="text-[11px] text-gray-400 font-mono mt-0.5">{item.sku || 'SKU-NONE'}</p>
+                                                                </div>
+                                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 ${
+                                                                    item.units_sold > 50 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                                                                    item.units_sold > 15 ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-gray-100 text-gray-600'
+                                                                }`}>
+                                                                    {item.units_sold > 50 ? 'Fast Mover' : item.units_sold > 15 ? 'Moderate' : 'Slow'}
+                                                                </span>
+                                                            </div>
+
+                                                            <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-gray-100 text-xs">
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">UNITS SOLD</span>
+                                                                    <span className="font-bold text-gray-900 text-xs sm:text-sm">
+                                                                        {formatNumber(item.units_sold)} pcs
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">TOTAL REVENUE</span>
+                                                                    <span className="font-bold text-[#1B3A69] text-xs sm:text-sm">
+                                                                        ₱{formatCurrency(item.total_revenue)}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">GROSS PROFIT</span>
+                                                                    <span className="font-bold text-emerald-700 text-xs sm:text-sm">
+                                                                        ₱{formatCurrency(item.total_profit)}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">PROFIT MARGIN</span>
+                                                                    <span className="font-bold text-gray-700 text-xs sm:text-sm">
+                                                                        {item.margin_percent}%
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    )}
+
+                                                    {/* ========================================================= */}
+                                                    {/* TAB 3: REAL-TIME STOCK VALUATION CARD                     */}
+                                                    {/* ========================================================= */}
+                                                    {activeTab === 'inventory' && (
+                                                        <>
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <div className="min-w-0">
+                                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700">
+                                                                        {item.category_name}
+                                                                    </span>
+                                                                    <h4 className="font-bold text-sm sm:text-base text-gray-900 leading-tight tracking-tight mt-1 truncate" title={item.name}>
+                                                                        {item.name}
+                                                                    </h4>
+                                                                    <p className="text-[11px] text-gray-400 font-mono mt-0.5">{item.sku || 'SKU-NONE'}</p>
+                                                                </div>
+                                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 ${
+                                                                    item.status === 'out_of_stock' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                                                                    item.status === 'low_stock' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                                                }`}>
+                                                                    {item.status === 'out_of_stock' ? 'Out of Stock' : item.status === 'low_stock' ? 'Low Stock' : 'Optimal'}
+                                                                </span>
+                                                            </div>
+
+                                                            <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-gray-100 text-xs">
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">CURRENT STOCK</span>
+                                                                    <span className="font-bold text-gray-900 text-xs sm:text-sm">
+                                                                        {formatNumber(item.stock_quantity)} in stock
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">COST VALUE</span>
+                                                                    <span className="font-semibold text-gray-600 text-xs sm:text-sm">
+                                                                        ₱{formatCurrency(item.total_cost_value)}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">RETAIL VALUE</span>
+                                                                    <span className="font-bold text-[#1B3A69] text-xs sm:text-sm">
+                                                                        ₱{formatCurrency(item.total_retail_value)}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">POTENTIAL PROFIT</span>
+                                                                    <span className="font-bold text-emerald-700 text-xs sm:text-sm">
+                                                                        ₱{formatCurrency(item.potential_profit)}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    )}
+
+                                                    {/* ========================================================= */}
+                                                    {/* TAB 4: CASHIER SHIFT RECONCILIATION CARD                  */}
+                                                    {/* ========================================================= */}
+                                                    {activeTab === 'shifts' && (
+                                                        <>
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <div className="min-w-0">
+                                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
+                                                                        SHIFT #{item.id}
+                                                                    </span>
+                                                                    <h4 className="font-bold text-sm sm:text-base text-gray-900 leading-tight tracking-tight">
+                                                                        {item.cashier_name}
+                                                                    </h4>
+                                                                    <p className="text-[11px] text-gray-400 mt-0.5">
+                                                                        {item.start_time ? new Date(item.start_time).toLocaleString() : (item.opened_at || '—')}
+                                                                    </p>
+                                                                </div>
+                                                                <div className="shrink-0 text-right">
+                                                                    {Number(item.difference || 0) > 0.01 ? (
+                                                                        <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full text-xs font-bold border border-emerald-200 block">
+                                                                            +₱{Number(item.difference).toFixed(2)} (Over)
+                                                                        </span>
+                                                                    ) : Number(item.difference || 0) < -0.01 ? (
+                                                                        <span className="text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full text-xs font-bold border border-rose-200 block">
+                                                                            -₱{Math.abs(Number(item.difference)).toFixed(2)} (Short)
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full text-xs font-bold block">
+                                                                            Exact ₱0.00
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-gray-100 text-xs">
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">START FLOAT</span>
+                                                                    <span className="font-semibold text-gray-600 text-xs">
+                                                                        ₱{Number(item.starting_cash || item.opening_float || 0).toFixed(2)}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">CASH SALES</span>
+                                                                    <span className="font-bold text-[#1B3A69] text-xs sm:text-sm">
+                                                                        ₱{Number(item.cash_sales || 0).toFixed(2)}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">EXPECTED CASH</span>
+                                                                    <span className="font-semibold text-gray-800 text-xs">
+                                                                        ₱{Number(item.expected_cash || item.expected_drawer || 0).toFixed(2)}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">ACTUAL COUNTED</span>
+                                                                    <span className="font-bold text-emerald-700 text-xs sm:text-sm">
+                                                                        {item.actual_cash !== null && item.actual_cash !== undefined ? `₱${Number(item.actual_cash).toFixed(2)}` : (item.actual_counted !== null && item.actual_counted !== undefined ? `₱${Number(item.actual_counted).toFixed(2)}` : 'N/A')}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    )}
+
+                                                    {/* ========================================================= */}
+                                                    {/* TAB 5: CASHIER ACCOUNTABILITY & PERFORMANCE CARD          */}
+                                                    {/* ========================================================= */}
+                                                    {activeTab === 'staff' && (
+                                                        <>
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <div className="min-w-0">
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <h4 className="font-bold text-sm sm:text-base text-gray-900 leading-tight tracking-tight truncate">
+                                                                            {item.name}
+                                                                        </h4>
+                                                                        <span className={`px-2 py-0.2 rounded-full text-[10px] font-bold ${
+                                                                            item.role === 'admin' ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'
+                                                                        }`}>
+                                                                            {item.role === 'admin' ? 'Admin' : 'Cashier'}
+                                                                        </span>
+                                                                    </div>
+                                                                    <p className="text-xs text-gray-400 truncate mt-0.5">{item.email}</p>
+                                                                </div>
+                                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                                                                    item.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                                                                }`}>
+                                                                    {item.is_active ? 'Active' : 'Revoked'}
+                                                                </span>
+                                                            </div>
+
+                                                            <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-gray-100 text-xs">
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">SHIFTS / ORDERS</span>
+                                                                    <span className="font-semibold text-gray-800 text-xs">
+                                                                        {item.shifts_count} shifts ({formatNumber(item.transactions_count)} orders)
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">TOTAL SALES</span>
+                                                                    <span className="font-bold text-[#1B3A69] text-xs sm:text-sm">
+                                                                        ₱{formatCurrency(item.total_sales)}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">AVG TICKET</span>
+                                                                    <span className="font-medium text-gray-600 text-xs">
+                                                                        ₱{formatCurrency(item.average_basket)}
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">DISCOUNTS / VOIDS</span>
+                                                                    <span className="font-semibold text-amber-700 text-xs">
+                                                                        ₱{formatCurrency(item.discounts_given)} ({item.voids_count} voids)
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
                                             ))}
-                                        </tbody>
-                                    </table>
-                                )}
+                                        </div>
+                                    </div>
+
+                                    {/* PAGINATION */}
+                                    {totalPages > 1 && (
+                                        <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+                                            <span className="text-xs text-gray-500 font-semibold">
+                                                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, currentDataset.length)} of {currentDataset.length} records
+                                            </span>
+                                            <div className="flex items-center gap-1.5">
+                                                <button
+                                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                                    disabled={currentPage === 1}
+                                                    className="px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 disabled:opacity-40 hover:bg-gray-50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:cursor-not-allowed"
+                                                >
+                                                    Previous
+                                                </button>
+                                                <span className="px-2 text-xs font-bold text-gray-700">{currentPage} / {totalPages}</span>
+                                                <button
+                                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                                    disabled={currentPage === totalPages}
+                                                    className="px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 disabled:opacity-40 hover:bg-gray-50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:cursor-not-allowed"
+                                                >
+                                                    Next
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* ========================================================================= */}
+                    {/* 6. DRILL-DOWN SLIDE-OVER DRAWER                                           */}
+                    {/* ========================================================================= */}
+                    {showDrawer && drawerItem && (
+                        <div className="fixed inset-0 z-50 overflow-hidden">
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setShowDrawer(false)}></div>
+                            <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+                                <div className="w-screen max-w-md bg-white shadow-2xl p-6 flex flex-col justify-between">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                                            <div>
+                                                <h3 className="font-bold text-base sm:text-lg text-gray-900">Drill-Down Audit</h3>
+                                                <p className="text-xs text-gray-500 font-medium mt-0.5">Detailed breakdown for selected record</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setShowDrawer(false)}
+                                                className="p-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-3 text-xs sm:text-sm">
+                                            <div className="p-3.5 bg-gray-50 rounded-xl space-y-2 border border-gray-100">
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-500 font-medium">Record ID / Date:</span>
+                                                    <span className="font-bold text-gray-900">{drawerItem.date || drawerItem.name || `#${drawerItem.id}`}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-500 font-medium">Gross Volume / Sales:</span>
+                                                    <span className="font-bold text-[#1B3A69]">
+                                                        ₱{formatCurrency(drawerItem.gross_sales || drawerItem.total_revenue || drawerItem.total_sales || (drawerItem.cash_sales * 100))}
+                                                    </span>
+                                                </div>
+                                                {drawerItem.discounts !== undefined && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-500 font-medium">Discounts Given:</span>
+                                                        <span className="font-semibold text-amber-700">₱{formatCurrency(drawerItem.discounts)}</span>
+                                                    </div>
+                                                )}
+                                                {drawerItem.aov !== undefined && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-500 font-medium">Average Order Value:</span>
+                                                        <span className="font-semibold text-gray-700">₱{formatCurrency(drawerItem.aov)}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="p-3.5 bg-blue-50/50 rounded-xl border border-blue-100 space-y-1">
+                                                <span className="text-xs font-bold uppercase tracking-wider text-blue-700">Audit Compliance Note</span>
+                                                <p className="text-xs text-blue-900 leading-relaxed">
+                                                    All transactions, shifts, and inventory adjustments logged under this entry are synchronized with store audit records and system timestamps.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-4 border-t border-gray-100 flex gap-2">
+                                        <button
+                                            onClick={() => setShowDrawer(false)}
+                                            className="w-full py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xs sm:text-sm shadow-xs active:scale-95 transition-all cursor-pointer"
+                                        >
+                                            Close Audit View
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                    )}
 
-                    </div>
                 </div>
             </div>
         </AuthenticatedLayout>
-    );
-}
-
-function StatCard({ title, value, icon, color, subtext, trend }) {
-    const bgColors = {
-        blue: 'bg-[#EFF4F9] text-[#1B3B6A] ring-1 ring-[#CBD7E6]',
-        green: 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100',
-        purple: 'bg-[#EFF4F9] text-[#1B3B6A] ring-1 ring-[#CBD7E6]',
-        orange: 'bg-orange-50 text-orange-600 ring-1 ring-orange-100'
-    };
-    return (
-        <div className="bg-white p-4 sm:p-6 rounded-xl shadow-[0_2px_8px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between transition-transform hover:scale-[1.02] gap-3 sm:gap-0">
-            <div className="flex-1 order-2 sm:order-1">
-                <div className="text-gray-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest">{title}</div>
-                <div className="text-xl sm:text-3xl font-black text-gray-900 mt-0.5 sm:mt-1 tracking-tight">{value}</div>
-                {trend !== undefined && trend !== null && (
-                    <div className={`text-[10px] sm:text-xs font-bold mt-1 flex items-center ${trend >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                        {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}% vs last period
-                    </div>
-                )}
-                {subtext && <div className="text-[9px] sm:text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider">{subtext}</div>}
-            </div>
-            <div className={`p-2.5 sm:p-3 rounded-lg sm:rounded-xl shrink-0 order-1 sm:order-2 ${bgColors[color]}`}>
-                {icon}
-            </div>
-        </div>
-    );
-}
-
-function NoData() {
-    return (
-        <div className="flex flex-col items-center justify-center h-full text-gray-400 py-10">
-            <svg className="w-10 h-10 mb-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-            <p className="text-xs sm:text-sm font-semibold opacity-60 uppercase tracking-widest">No data available.</p>
-        </div>
-    );
-}
-
-function ReportsSkeleton() {
-    const PulseBlock = ({ className }) => <div className={`animate-pulse bg-gray-200/70 rounded ${className || ''}`} />;
-    return (
-        <div className="py-0 sm:py-8 lg:py-12 bg-gray-100 sm:bg-[#FAFAFA] min-h-[calc(100vh-65px)] sm:min-h-screen pb-10 sm:pb-0">
-            <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 space-y-4 sm:space-y-6 pt-4 sm:pt-0">
-                {/* Toolbar Skeleton */}
-                <div className="px-0 sm:px-0">
-                    <div className="bg-white p-4 sm:rounded-xl border-y sm:border border-gray-200/60 shadow-sm flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-                        <div className="flex flex-col sm:flex-row flex-wrap xl:flex-nowrap gap-3 w-full xl:w-auto items-stretch">
-                            <PulseBlock className="h-[46px] sm:h-[50px] w-full sm:w-[180px] rounded-md" />
-                            <PulseBlock className="h-[46px] sm:h-[50px] w-full sm:w-40 flex-1 xl:flex-none rounded-md" />
-                            <PulseBlock className="h-[46px] sm:h-[50px] w-full sm:w-40 flex-1 xl:flex-none rounded-md" />
-                        </div>
-                        <PulseBlock className="h-[46px] sm:h-[50px] w-full xl:w-48 rounded-md" />
-                    </div>
-                </div>
-
-                {/* KPI Skeleton */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6 px-2 sm:px-0">
-                    {Array.from({ length: 4 }).map((_, idx) => (
-                        <div key={`sk-kpi-${idx}`} className="bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between animate-pulse">
-                            <div className="flex-1"><PulseBlock className="h-3 w-16 mb-3" /><PulseBlock className="h-8 w-24 mb-3" /></div>
-                            <PulseBlock className="h-12 w-12 rounded-lg" />
-                        </div>
-                    ))}
-                </div>
-
-                {/* Main Chart Skeleton */}
-                <div className="px-0 sm:px-0">
-                    <div className="bg-white p-5 sm:p-6 sm:rounded-xl shadow-sm border-y sm:border border-gray-200/60 flex flex-col h-[350px] sm:h-[400px]">
-                        <PulseBlock className="h-5 w-40 mb-6" /><PulseBlock className="flex-1 w-full" />
-                    </div>
-                </div>
-
-                {/* 3x3 Grid Row 1 Skeleton */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 px-0 sm:px-0">
-                    {Array.from({ length: 3 }).map((_, idx) => (
-                        <div key={`sk-row1-${idx}`} className="bg-white p-5 sm:p-6 sm:rounded-xl shadow-sm border-y sm:border border-gray-200/60 h-60 sm:h-72 flex flex-col">
-                            <PulseBlock className="h-5 w-32 mb-4" /><PulseBlock className="flex-1 w-full" />
-                        </div>
-                    ))}
-                </div>
-
-                {/* 3x3 Grid Row 2 Skeleton */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 px-0 sm:px-0 mt-4 sm:mt-6">
-                    {Array.from({ length: 3 }).map((_, idx) => (
-                        <div key={`sk-row2-${idx}`} className="bg-white p-5 sm:p-6 sm:rounded-xl shadow-sm border-y sm:border border-gray-200/60 h-60 sm:h-72 flex flex-col">
-                            <PulseBlock className="h-5 w-32 mb-4" /><PulseBlock className="flex-1 w-full" />
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
     );
 }

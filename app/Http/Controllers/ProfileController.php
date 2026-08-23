@@ -30,19 +30,43 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
-
-        $user->fill($request->validated());
-
-        $request->validate([
-            'phone_number' => ['nullable', 'string', 'max:20'],
-            'address'      => ['nullable', 'string', 'max:255'],
-            'city'         => ['nullable', 'string', 'max:100'],
-            'province'     => ['nullable', 'string', 'max:100'],
-            'country'      => ['nullable', 'string', 'max:100'],
-            'avatar'       => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
-        ]);
+        $isAdmin = (bool) ($user->is_admin || in_array($user->role, ['admin', 'super_admin']));
 
         try {
+            // 1. If Cashier: ONLY allow avatar updates (Enterprise Model)
+            if (!$isAdmin) {
+                if ($request->hasFile('avatar')) {
+                    if ($user->avatar_path && Storage::disk('public')->exists($user->avatar_path)) {
+                        Storage::disk('public')->delete($user->avatar_path);
+                    }
+
+                    try {
+                        $imageCompression = new ImageCompressionService();
+                        $path = $imageCompression->compressAvatar($request->file('avatar'));
+                        $user->avatar_path = $path;
+                    } catch (\Exception $e) {
+                        Log::error('Avatar compression failed: ' . $e->getMessage());
+                        $path = $request->file('avatar')->store('avatars', 'public');
+                        $user->avatar_path = $path;
+                    }
+                    $user->save();
+                }
+
+                return Redirect::route('profile.edit')->with('status', 'profile-updated');
+            }
+
+            // 2. If Admin: Full profile update permitted
+            $user->fill($request->validated());
+
+            $request->validate([
+                'phone_number' => ['nullable', 'string', 'max:20'],
+                'address'      => ['nullable', 'string', 'max:255'],
+                'city'         => ['nullable', 'string', 'max:100'],
+                'province'     => ['nullable', 'string', 'max:100'],
+                'country'      => ['nullable', 'string', 'max:100'],
+                'avatar'       => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            ]);
+
             $user->phone_number = $request->phone_number;
             $user->address = $request->address;
             $user->city = $request->city;
@@ -60,14 +84,11 @@ class ProfileController extends Controller
                     $user->avatar_path = $path;
                 } catch (\Exception $e) {
                     Log::error('Avatar compression failed: ' . $e->getMessage());
-                    // Fallback to original upload
                     $path = $request->file('avatar')->store('avatars', 'public');
                     $user->avatar_path = $path;
                 }
             }
 
-            // If they use standard saving (no OTP), reset verification.
-            // (If they used the OTP flow, this won't trigger because verifyOtp already updated it!)
             if ($user->isDirty('email')) {
                 $user->email_verified_at = null;
             }

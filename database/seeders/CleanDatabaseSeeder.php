@@ -35,9 +35,15 @@ class CleanDatabaseSeeder extends Seeder
         Announcement::truncate();
         BlockedIp::truncate();
         HeldOrder::truncate();
+        if (Schema::hasTable('cash_movements')) {
+            \App\Models\CashMovement::truncate();
+        }
         SaleItem::truncate();
         Sale::truncate();
         Shift::truncate();
+        if (Schema::hasTable('terminals')) {
+            \App\Models\Terminal::truncate();
+        }
         Product::truncate();
         Category::truncate();
         SubscriptionPayment::truncate();

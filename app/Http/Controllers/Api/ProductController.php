@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\SaleItem;
+use App\Models\ActivityLog;
 use App\Services\ImageCompressionService;
 use App\Services\ActivityService;
 use Illuminate\Http\Request;
@@ -502,6 +504,242 @@ class ProductController extends Controller
             ], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to toggle product status: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get unified stock movement history (Sales + Restocks + Adjustments) for a specific product.
+     */
+    public function stockHistory($id)
+    {
+        try {
+            $product = Product::with('category')->findOrFail($id);
+            $storeId = Auth::user() ? Auth::user()->store_id : $product->store_id;
+
+            // 1. Fetch sales deductions from SaleItem
+            $salesQuery = SaleItem::where('product_id', $id)->with(['sale.cashier'])->orderBy('created_at', 'desc')->limit(50);
+            if ($storeId) {
+                $salesQuery->whereHas('sale', function ($q) use ($storeId) {
+                    $q->where('store_id', $storeId);
+                });
+            }
+
+            $sales = $salesQuery->get()->map(function ($item) {
+                $inv = $item->sale && $item->sale->invoice_number 
+                    ? $item->sale->invoice_number 
+                    : ('POS-' . str_pad($item->sale_id ?? $item->id, 5, '0', STR_PAD_LEFT));
+
+                return [
+                    'id' => 'sale-' . $item->id,
+                    'type' => 'sale',
+                    'quantity_change' => -$item->quantity,
+                    'quantity' => $item->quantity,
+                    'unit_price' => $item->unit_price / 100,
+                    'subtotal' => $item->subtotal / 100,
+                    'invoice_number' => $inv,
+                    'reference_no' => $inv,
+                    'user_name' => $item->sale && $item->sale->cashier ? $item->sale->cashier->name : 'POS Cashier',
+                    'description' => "Sold {$item->quantity} unit(s) via POS (₱" . number_format($item->subtotal / 100, 2) . ")",
+                    'created_at' => $item->created_at ? $item->created_at->toIso8601String() : now()->toIso8601String(),
+                ];
+            });
+
+            // 2. Fetch stock adjustments & restock logs from ActivityLog
+            $logsQuery = ActivityLog::where(function ($q) use ($id) {
+                $q->where(function ($q2) use ($id) {
+                    $q2->where('model_type', 'Product')->where('model_id', $id);
+                })->orWhere(function ($q2) use ($id) {
+                    $q2->where('model_type', 'Inventory')->where('model_id', $id);
+                });
+            });
+
+            if ($storeId) {
+                $logsQuery->where('store_id', $storeId);
+            }
+
+            $logs = $logsQuery->with('user')
+                ->orderBy('created_at', 'desc')
+                ->limit(50)
+                ->get()
+                ->map(function ($log) {
+                    $type = 'adjustment';
+                    $quantityChange = 0;
+
+                    if ($log->action === 'stock.adjusted' || str_contains(strtolower($log->action), 'stock')) {
+                        $type = 'restock';
+                        $quantityChange = (int) ($log->new_values['quantity_added'] ?? $log->new_values['quantity'] ?? 0);
+                        if ($quantityChange === 0 && isset($log->new_values['stock_quantity'], $log->old_values['stock_quantity'])) {
+                            $quantityChange = (int)$log->new_values['stock_quantity'] - (int)$log->old_values['stock_quantity'];
+                        }
+                    } elseif ($log->action === 'created') {
+                        $type = 'creation';
+                        $quantityChange = (int) ($log->new_values['stock'] ?? $log->new_values['stock_quantity'] ?? 0);
+                    }
+
+                    $refNo = 'LOG-' . str_pad($log->id, 5, '0', STR_PAD_LEFT);
+
+                    return [
+                        'id' => 'log-' . $log->id,
+                        'type' => $type,
+                        'action' => $log->action,
+                        'quantity_change' => $quantityChange,
+                        'reference_no' => $refNo,
+                        'invoice_number' => $refNo,
+                        'old_values' => $log->old_values,
+                        'new_values' => $log->new_values,
+                        'user_name' => $log->user ? $log->user->name : 'Store Admin',
+                        'description' => $log->description ?: "Stock updated for product",
+                        'created_at' => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
+                    ];
+                });
+
+            // Combine list
+            $timeline = $sales->concat($logs)->all();
+
+            // 3. Always include initial catalog registration record
+            $hasCreationLog = collect($timeline)->contains(fn($t) => $t['type'] === 'creation');
+            if (!$hasCreationLog && $product->created_at) {
+                $skuRef = $product->sku ? $product->sku : ('PRD-' . str_pad($product->id, 5, '0', STR_PAD_LEFT));
+                $timeline[] = [
+                    'id' => 'initial-reg-' . $product->id,
+                    'type' => 'creation',
+                    'action' => 'created',
+                    'quantity_change' => $product->stock_quantity,
+                    'reference_no' => $skuRef,
+                    'invoice_number' => $skuRef,
+                    'user_name' => 'Store Admin',
+                    'description' => "Initial catalog registration for {$product->name} (SKU: {$product->sku})",
+                    'created_at' => $product->created_at->toIso8601String(),
+                ];
+            }
+
+            // Sort chronologically descending
+            usort($timeline, fn($a, $b) => strcmp($b['created_at'], $a['created_at']));
+
+            // Calculate aggregate statistics for this item
+            $totalSoldUnits = (int) SaleItem::where('product_id', $id)->sum('quantity');
+            $totalSalesRevenue = (float) (SaleItem::where('product_id', $id)->sum('subtotal') / 100);
+
+            return response()->json([
+                'success' => true,
+                'product' => [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'sku' => $product->sku,
+                    'price' => $product->price / 100,
+                    'cost_price' => $product->cost_price ? $product->cost_price / 100 : null,
+                    'stock_quantity' => $product->stock_quantity,
+                    'is_active' => $product->is_active,
+                    'category_name' => $product->category ? $product->category->name : 'Uncategorized',
+                    'created_at' => $product->created_at ? $product->created_at->toIso8601String() : null,
+                ],
+                'stats' => [
+                    'total_sold_units' => $totalSoldUnits,
+                    'total_revenue' => $totalSalesRevenue,
+                    'current_stock' => $product->stock_quantity,
+                ],
+                'timeline' => $timeline
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Stock history error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            return response()->json(['error' => 'Failed to fetch stock history: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get store-wide recent inventory activity logs.
+     */
+    public function recentActivity(Request $request)
+    {
+        try {
+            $storeId = Auth::user() ? Auth::user()->store_id : null;
+
+            // 1. Fetch activity logs
+            $logsQuery = ActivityLog::where(function ($q) {
+                $q->whereIn('model_type', ['Product', 'Inventory', 'Category'])
+                  ->orWhere('action', 'like', '%stock%')
+                  ->orWhere('action', 'like', '%product%')
+                  ->orWhere('action', 'like', '%category%');
+            });
+
+            if ($storeId) {
+                $logsQuery->where('store_id', $storeId);
+            }
+
+            $logs = $logsQuery->with(['user'])
+                ->orderBy('created_at', 'desc')
+                ->limit(50)
+                ->get()
+                ->map(function ($log) {
+                    return [
+                        'id' => 'log-' . $log->id,
+                        'action' => $log->action,
+                        'model_type' => $log->model_type,
+                        'model_id' => $log->model_id,
+                        'reference_no' => 'LOG-' . str_pad($log->id, 5, '0', STR_PAD_LEFT),
+                        'description' => $log->description,
+                        'user_name' => $log->user ? $log->user->name : 'System',
+                        'old_values' => $log->old_values,
+                        'new_values' => $log->new_values,
+                        'created_at' => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
+                    ];
+                });
+
+            // 2. Fetch recent sales deductions from SaleItem
+            $salesQuery = SaleItem::with(['sale.cashier', 'product'])->orderBy('created_at', 'desc')->limit(30);
+            if ($storeId) {
+                $salesQuery->whereHas('sale', function ($q) use ($storeId) {
+                    $q->where('store_id', $storeId);
+                });
+            }
+
+            $sales = $salesQuery->get()->map(function ($item) {
+                $prodName = $item->product ? $item->product->name : ($item->custom_name ?: 'Product Item');
+                $invoice = $item->sale ? $item->sale->invoice_number : '';
+                return [
+                    'id' => 'sale-' . $item->id,
+                    'action' => 'stock.sale',
+                    'model_type' => 'Product',
+                    'model_id' => $item->product_id,
+                    'invoice_number' => $invoice,
+                    'reference_no' => $invoice ?: ('SALE-' . str_pad($item->sale_id ?: $item->id, 5, '0', STR_PAD_LEFT)),
+                    'sku' => $item->product ? $item->product->sku : null,
+                    'description' => "Sold {$item->quantity}x {$prodName} via POS" . ($invoice ? " (Inv: {$invoice})" : ""),
+                    'user_name' => $item->sale && $item->sale->cashier ? $item->sale->cashier->name : 'Cashier',
+                    'created_at' => $item->created_at ? $item->created_at->toIso8601String() : now()->toIso8601String(),
+                ];
+            });
+
+            // 3. Fetch recent product additions
+            $prodQuery = Product::orderBy('created_at', 'desc')->limit(15);
+            if ($storeId) {
+                $prodQuery->where('store_id', $storeId);
+            }
+
+            $recentProducts = $prodQuery->get()->map(function ($p) {
+                return [
+                    'id' => 'prod-reg-' . $p->id,
+                    'action' => 'created',
+                    'model_type' => 'Product',
+                    'model_id' => $p->id,
+                    'sku' => $p->sku,
+                    'reference_no' => $p->sku ? ('SKU: ' . $p->sku) : ('PRD-' . str_pad($p->id, 5, '0', STR_PAD_LEFT)),
+                    'description' => "Registered new product: {$p->name} (SKU: {$p->sku}) with {$p->stock_quantity} units",
+                    'user_name' => 'Store Admin',
+                    'created_at' => $p->created_at ? $p->created_at->toIso8601String() : now()->toIso8601String(),
+                ];
+            });
+
+            // Combine and sort chronologically
+            $combined = $logs->concat($sales)->concat($recentProducts)->sortByDesc('created_at')->values()->take(50)->all();
+
+            return response()->json([
+                'success' => true,
+                'data' => $combined
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Recent activity error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            return response()->json(['error' => 'Failed to fetch recent activity: ' . $e->getMessage()], 500);
         }
     }
 }

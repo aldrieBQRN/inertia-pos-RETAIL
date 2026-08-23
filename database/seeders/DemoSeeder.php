@@ -12,6 +12,8 @@ use App\Models\Store;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
+use App\Models\Terminal;
+use App\Models\CashMovement;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
@@ -23,9 +25,15 @@ class DemoSeeder extends Seeder
 
         // ========== 1. CLEAN EXISTING TABLES ==========
         Schema::disableForeignKeyConstraints();
+        if (Schema::hasTable('cash_movements')) {
+            CashMovement::truncate();
+        }
         SaleItem::truncate();
         Sale::truncate();
         Shift::truncate();
+        if (Schema::hasTable('terminals')) {
+            Terminal::truncate();
+        }
         Product::truncate();
         Category::truncate();
         User::truncate();
@@ -44,6 +52,23 @@ class DemoSeeder extends Seeder
             'subscription_ends_at' => now()->addMonths(1),
         ]);
         $this->command->info('✅ Store Created: ' . $store->name);
+
+        // ========== 2.1 CREATE DEFAULT TERMINALS ==========
+        $mainTerminal = Terminal::create([
+            'store_id' => $store->id,
+            'name' => 'Main Counter (Register 1)',
+            'code' => 'REG-01',
+            'is_active' => true,
+            'notes' => 'Primary checkout lane',
+        ]);
+        $expressTerminal = Terminal::create([
+            'store_id' => $store->id,
+            'name' => 'Express Lane (Register 2)',
+            'code' => 'REG-02',
+            'is_active' => true,
+            'notes' => 'Secondary checkout station',
+        ]);
+        $this->command->info('✅ Terminals Created: REG-01 & REG-02');
 
         // ========== 3. CREATE USERS (ONLY ONE OF EACH) ==========
         // DEVELOPER / SUPER ADMIN
@@ -265,10 +290,15 @@ class DemoSeeder extends Seeder
             $shift = Shift::create([
                 'store_id' => $store->id,
                 'user_id' => $cashier->id,
+                'terminal_id' => $mainTerminal->id,
                 'start_time' => $date->copy()->setTime(8, 0),
                 'end_time' => $date->copy()->setTime(17, 0),
                 'starting_cash' => 50000,
+                'expected_opening_cash' => 50000,
+                'opening_discrepancy' => 0,
                 'cash_sales' => 0,
+                'cash_in' => 0,
+                'cash_out' => 0,
                 'expenses' => rand(500, 1500),
                 'expected_cash' => 0,
                 'actual_cash' => 0,
@@ -290,6 +320,7 @@ class DemoSeeder extends Seeder
                     'store_id' => $store->id,
                     'invoice_number' => 'INV-' . strtoupper(uniqid()),
                     'cashier_id' => $cashier->id,
+                    'terminal_id' => $mainTerminal->id,
                     'total_amount' => 0,
                     'discount_amount' => rand(1, 10) === 1 ? rand(5000, 15000) : 0, // 10% chance of discount
                     'payment_method' => $paymentMethod,

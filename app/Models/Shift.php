@@ -22,16 +22,24 @@ class Shift extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'store_id',
         'user_id',
+        'terminal_id',
         'start_time',
         'end_time',
+        'expected_opening_cash',
         'starting_cash',
+        'opening_discrepancy',
         'cash_sales',
+        'cash_in',
+        'cash_out',
         'expenses',
         'expected_cash',
         'actual_cash',
         'difference',
-        'status'
+        'status',
+        'opening_notes',
+        'closing_notes'
     ];
 
     /**
@@ -43,15 +51,39 @@ class Shift extends Model
     protected $casts = [
         'start_time' => 'datetime',
         'end_time'   => 'datetime',
+        'expected_opening_cash' => 'decimal:2',
+        'starting_cash' => 'decimal:2',
+        'opening_discrepancy' => 'decimal:2',
+        'cash_sales' => 'decimal:2',
+        'cash_in' => 'decimal:2',
+        'cash_out' => 'decimal:2',
+        'expenses' => 'decimal:2',
+        'expected_cash' => 'decimal:2',
+        'actual_cash' => 'decimal:2',
+        'difference' => 'decimal:2',
     ];
 
     /**
-     * Relationship: Each shift is associated with a specific cashier (User).
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * Get the user (cashier) that owns the shift.
      */
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the terminal / register assigned to the shift.
+     */
+    public function terminal()
+    {
+        return $this->belongsTo(Terminal::class);
+    }
+
+    /**
+     * Get the intermediate and in-shift cash movements for this shift.
+     */
+    public function cashMovements()
+    {
+        return $this->hasMany(CashMovement::class);
     }
 }

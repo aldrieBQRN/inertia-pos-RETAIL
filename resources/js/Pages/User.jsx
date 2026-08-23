@@ -1,26 +1,64 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
-export default function User({ auth, users }) {
+export default function User({ auth, users, settings }) {
+    // 1. Core Data States
+    const [loading, setLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isSendingOtp, setIsSendingOtp] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
+    const [showDataMenu, setShowDataMenu] = useState(false);
+
+    // View Mode State (Table vs Grid) — Matches Inventory & Transactions
+    const [viewMode, setViewMode] = useState(() => {
+        try {
+            return localStorage.getItem('pos_staff_view_mode') || 'table';
+        } catch {
+            return 'table';
+        }
+    });
+
+    // Pagination State (9 for grid, 10 for table)
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const savedMode = localStorage.getItem('pos_staff_view_mode');
+            if (savedMode === 'grid') {
+                return window.innerWidth >= 1280 ? 9 : 10;
+            }
+        }
+        return 10;
+    });
+
+    // Filter States
+    const [statusTab, setStatusTab] = useState('all'); // 'all' | 'on_shift' | 'cashiers' | 'admins' | 'inactive'
+    const [searchFilter, setSearchFilter] = useState('');
+    const [roleFilter, setRoleFilter] = useState('');
+    const [accountStatusFilter, setAccountStatusFilter] = useState('');
+
+    // Detail View Drawer States
+    const [showDetails, setShowDetails] = useState(false);
+    const [selectedStaff, setSelectedStaff] = useState(null);
+
+    // Add / Edit Modal States
     const [showModal, setShowModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [isSendingOtp, setIsSendingOtp] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
     const [originalEmail, setOriginalEmail] = useState('');
-
-    // NEW: State to hold the user being viewed in the read-only modal
-    const [viewUser, setViewUser] = useState(null);
     const [currentAvatarPath, setCurrentAvatarPath] = useState('');
 
-    const [searchQuery, setSearchQuery] = useState('');
-    const [roleFilter, setRoleFilter] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
+    // Section Refs for Smooth Scrolling & Tabs
+    const workspaceSectionRef = useRef(null);
+    const pipelineTabsRef = useRef(null);
+    const dataMenuRef = useRef(null);
 
     const { data, setData, post, put, delete: destroy, processing, errors, reset, clearErrors } = useForm({
         name: '',
@@ -35,48 +73,209 @@ export default function User({ auth, users }) {
         avatar: null,
     });
 
-    const handlePhoneChange = (e) => {
-        const onlyNumbers = e.target.value.replace(/\D/g, '');
-        setData('phone_number', onlyNumbers);
+    const userArray = useMemo(() => {
+        return Array.isArray(users) ? users : (users?.data || []);
+    }, [users]);
+
+    const formatCurrency = (centsOrPesos) => {
+        const val = typeof centsOrPesos === 'number' ? centsOrPesos : parseFloat(centsOrPesos || 0);
+        return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
+    const getAvatarUrl = (path) => {
+        if (!path) return null;
+        if (path.startsWith('http') || path.startsWith('/')) return path;
+        return `/storage/${path}`;
+    };
+
+    // Auto-scroll active pipeline tab into view
     useEffect(() => {
-        const timer = setTimeout(() => setLoading(false), 400);
+        if (pipelineTabsRef.current) {
+            const activeBtn = pipelineTabsRef.current.querySelector(`[data-tab="${statusTab}"]`);
+            if (activeBtn) {
+                activeBtn.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'center'
+                });
+            }
+        }
+    }, [statusTab]);
+
+    // Close Data Menu on outside click
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (showDataMenu && dataMenuRef.current && !dataMenuRef.current.contains(e.target)) {
+                setShowDataMenu(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showDataMenu]);
+
+    // Lock page scroll when slide-over drawer or modal is open
+    useEffect(() => {
+        const isOverlayOpen = showDetails || showModal;
+        if (typeof document !== 'undefined') {
+            document.body.style.overflow = isOverlayOpen ? 'hidden' : 'unset';
+        }
+        return () => {
+            if (typeof document !== 'undefined') {
+                document.body.style.overflow = 'unset';
+            }
+        };
+    }, [showDetails, showModal]);
+
+    // Switch view mode helper
+    const handleViewModeChange = (mode) => {
+        setViewMode(mode);
+        try {
+            localStorage.setItem('pos_staff_view_mode', mode);
+        } catch {}
+        if (mode === 'grid') {
+            setItemsPerPage(window.innerWidth >= 1280 ? 9 : 10);
+        } else {
+            setItemsPerPage(10);
+        }
+        setCurrentPage(1);
+    };
+
+    const scrollToWorkspace = (tabKey) => {
+        // Wait a frame for React to update the filtered list
+        requestAnimationFrame(() => {
+            if (workspaceSectionRef.current) {
+                const isMobile = window.innerWidth < 640;
+                const isTablet = window.innerWidth < 1024;
+                const offset = isMobile ? 68 : (isTablet ? 76 : 85);
+
+                const bodyRect = document.body.getBoundingClientRect().top;
+                const elementRect = workspaceSectionRef.current.getBoundingClientRect().top;
+                const elementPosition = elementRect - bodyRect;
+                const offsetPosition = elementPosition - offset;
+
+                const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+                const maxScroll = Math.max(0, scrollHeight - window.innerHeight);
+
+                if (maxScroll > 0) {
+                    const targetScroll = Math.min(maxScroll, Math.max(0, offsetPosition));
+                    if (Math.abs(window.scrollY - targetScroll) > 6) {
+                        window.scrollTo({
+                            top: targetScroll,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            }
+
+            if (tabKey && pipelineTabsRef.current) {
+                const tabEl = pipelineTabsRef.current.querySelector(`[data-tab="${tabKey}"]`);
+                if (tabEl) {
+                    tabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }
+        });
+    };
+
+    const handleStatusTabChange = (tab) => {
+        setStatusTab(tab);
+        setCurrentPage(1);
+        scrollToWorkspace(tab);
+    };
+
+    // Live Metrics Calculations (Constant across tab filters)
+    const kpiMetrics = useMemo(() => {
+        const total = userArray.length;
+        const onShift = userArray.filter(u => u.active_shift !== null && u.active_shift !== undefined).length;
+        const cashiers = userArray.filter(u => u.role === 'cashier').length;
+        const admins = userArray.filter(u => u.role === 'admin').length;
+        const active = userArray.filter(u => u.is_active !== false).length;
+        const inactive = userArray.filter(u => u.is_active === false).length;
+        const totalSalesCount = userArray.reduce((acc, u) => acc + (u.sales_count || 0), 0);
+        const totalSalesAmount = userArray.reduce((acc, u) => acc + (Number(u.sales_sum_total_amount || 0) / 100), 0);
+
+        return {
+            total,
+            onShift,
+            cashiers,
+            admins,
+            active,
+            inactive,
+            totalSalesCount,
+            totalSalesAmount
+        };
+    }, [userArray]);
+
+    // Tab Counts
+    const tabCounts = useMemo(() => {
+        return {
+            all: userArray.length,
+            on_shift: userArray.filter(u => !!u.active_shift).length,
+            cashiers: userArray.filter(u => u.role === 'cashier').length,
+            admins: userArray.filter(u => u.role === 'admin').length,
+            inactive: userArray.filter(u => u.is_active === false).length,
+        };
+    }, [userArray]);
+
+    // Filter Logic
+    const filteredUsers = useMemo(() => {
+        return userArray.filter(user => {
+            // 1. Pipeline Quick Tabs
+            if (statusTab === 'on_shift' && !user.active_shift) return false;
+            if (statusTab === 'cashiers' && user.role !== 'cashier') return false;
+            if (statusTab === 'admins' && user.role !== 'admin') return false;
+            if (statusTab === 'inactive' && user.is_active !== false) return false;
+
+            // 2. Search Filter
+            if (searchFilter.trim()) {
+                const q = searchFilter.toLowerCase();
+                const matchName = user.name?.toLowerCase().includes(q);
+                const matchEmail = user.email?.toLowerCase().includes(q);
+                const matchAcc = user.account_number?.toLowerCase().includes(q);
+                const matchPhone = user.phone_number?.toLowerCase().includes(q);
+                if (!matchName && !matchEmail && !matchAcc && !matchPhone) return false;
+            }
+
+            // 3. Role Filter
+            if (roleFilter && user.role !== roleFilter) return false;
+
+            // 4. Status Filter
+            if (accountStatusFilter === 'active' && user.is_active === false) return false;
+            if (accountStatusFilter === 'inactive' && user.is_active !== false) return false;
+            if (accountStatusFilter === 'pending' && user.terms_accepted_at) return false;
+
+            return true;
+        });
+    }, [userArray, statusTab, searchFilter, roleFilter, accountStatusFilter]);
+
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage) || 1;
+    const paginatedUsers = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        return filteredUsers.slice(start, start + itemsPerPage);
+    }, [filteredUsers, currentPage, itemsPerPage]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setLoading(false), 200);
         return () => clearTimeout(timer);
     }, []);
 
+    // Auto-reload data periodically
     useEffect(() => {
         const interval = setInterval(() => {
             router.reload({ only: ['users'], preserveState: true, preserveScroll: true });
-        }, 5000);
+        }, 10000);
         return () => clearInterval(interval);
     }, []);
 
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchQuery, roleFilter]);
+    // --- DRAWER & MODAL ACTIONS ---
 
-    const userArray = Array.isArray(users) ? users : (users?.data || []);
+    const handleViewDetails = (user) => {
+        setSelectedStaff(user);
+        setShowDetails(true);
+    };
 
-    const filteredUsers = useMemo(() => {
-        return userArray.filter(user => {
-            const searchLower = searchQuery.toLowerCase();
-            const matchesSearch = user.name.toLowerCase().includes(searchLower) ||
-                user.email.toLowerCase().includes(searchLower) ||
-                (user.account_number && user.account_number.toLowerCase().includes(searchLower));
-            const matchesRole = roleFilter ? user.role === roleFilter : true;
-            return matchesSearch && matchesRole;
-        });
-    }, [userArray, searchQuery, roleFilter]);
-
-    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-    const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-    // --- MODAL HANDLERS ---
-
-    // NEW: Open the View Modal
-    const openViewModal = (user) => {
-        setViewUser(user);
+    const handleCloseDetails = () => {
+        setShowDetails(false);
+        setSelectedStaff(null);
     };
 
     const openAddModal = () => {
@@ -126,63 +325,51 @@ export default function User({ auth, users }) {
         setShowModal(true);
     };
 
+    const handlePhoneChange = (e) => {
+        const onlyNumbers = e.target.value.replace(/\D/g, '');
+        setData('phone_number', onlyNumbers);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         clearErrors();
 
-        // Check if email changed in edit mode
         if (editMode && data.email !== originalEmail) {
             try {
-                // 1. Spin the save button quietly
                 setIsSendingOtp(true);
-
-                // 2. Ask Backend to send OTP to new email
                 await axios.post('/staff/send-otp', { email: data.email, staff_id: editingId });
-
-                // Stop the button spinner
                 setIsSendingOtp(false);
 
-                // 3. Prompt user to enter the code
                 const { value: otp, isDismissed } = await Swal.fire({
                     title: 'Verify New Email',
-                    text: `We sent a 6-digit code to ${data.email}`,
+                    text: `We sent a 6-digit verification code to ${data.email}`,
                     input: 'text',
                     inputAttributes: { maxlength: 6, pattern: '[0-9]*', inputMode: 'numeric' },
                     showCancelButton: true,
                     confirmButtonText: 'Verify & Save',
-                    confirmButtonColor: '#111827'
+                    confirmButtonColor: '#1B3B6A'
                 });
 
-                if (isDismissed) return; // Stop if they clicked cancel
+                if (isDismissed) return;
 
                 if (otp) {
-                    // 4. Verify the code
                     Swal.fire({ title: 'Verifying...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                     await axios.post('/staff/verify-otp', { code: otp, staff_id: editingId });
-
-                    // 5. Code was correct! Proceed to save
                     submitStaffUpdate();
                 } else {
                     Swal.fire('Error', 'Verification code is required.', 'error');
                 }
             } catch (error) {
                 setIsSendingOtp(false);
-
-                // Handle email taken errors
                 if (error.response?.status === 422 && error.response?.data?.errors?.email) {
                     Swal.fire('Error', error.response.data.errors.email[0], 'error');
-                }
-                // Handle wrong OTP code errors
-                else if (error.response?.status === 422 && error.response?.data?.message) {
+                } else if (error.response?.status === 422 && error.response?.data?.message) {
                     Swal.fire('Error', error.response.data.message, 'error');
-                }
-                // Fallback for server errors
-                else {
-                    Swal.fire('Error', 'Something went wrong.', 'error');
+                } else {
+                    Swal.fire('Error', 'Something went wrong while verifying email.', 'error');
                 }
             }
         } else {
-            // Email was not changed or in add mode, just submit normally
             submitStaffUpdate();
         }
     };
@@ -199,9 +386,8 @@ export default function User({ auth, users }) {
                 Swal.fire({
                     icon: 'success',
                     title: editMode ? 'Profile Updated' : 'Invite Sent!',
-                    text: editMode ? 'Changes have been saved successfully.' : `An email has been sent to ${data.email} to complete their setup.`,
-                    position: 'center',
-                    showConfirmButton: true
+                    text: editMode ? 'Staff changes saved successfully.' : `Setup invitation sent to ${data.email}.`,
+                    confirmButtonColor: '#1B3B6A'
                 });
             },
             onError: () => {
@@ -222,14 +408,14 @@ export default function User({ auth, users }) {
     const handleToggleActive = (user) => {
         const isRevoking = user.is_active !== false;
         Swal.fire({
-            title: isRevoking ? 'Revoke Access?' : 'Restore Access?',
+            title: isRevoking ? 'Revoke System Access?' : 'Restore Access?',
             text: isRevoking
-                ? `Are you sure you want to revoke system access for "${user.name}"?`
-                : `Restore system access for "${user.name}"?`,
+                ? `Revoking access for "${user.name}" prevents them from logging into POS or opening shifts immediately. Historical sales will remain intact.`
+                : `Restore POS and administrative login access for "${user.name}"?`,
             icon: isRevoking ? 'warning' : 'question',
             showCancelButton: true,
-            confirmButtonColor: isRevoking ? '#d33' : '#1B3A69',
-            confirmButtonText: isRevoking ? 'Yes, revoke access' : 'Yes, restore access'
+            confirmButtonColor: isRevoking ? '#DC2626' : '#1B3B6A',
+            confirmButtonText: isRevoking ? 'Yes, Revoke Access' : 'Yes, Restore Access'
         }).then((result) => {
             if (result.isConfirmed) {
                 router.patch(route('users.toggle-active', user.id), {}, {
@@ -237,8 +423,8 @@ export default function User({ auth, users }) {
                     preserveState: true,
                     onSuccess: () => {
                         Swal.fire(
-                            isRevoking ? 'Revoked!' : 'Restored!',
-                            isRevoking ? 'User access has been revoked successfully.' : 'User access has been restored successfully.',
+                            isRevoking ? 'Access Revoked' : 'Access Restored',
+                            isRevoking ? 'Staff member can no longer access the system.' : 'Staff member access restored successfully.',
                             'success'
                         );
                     }
@@ -247,52 +433,61 @@ export default function User({ auth, users }) {
         });
     };
 
+    const handleResendInvite = (user) => {
+        Swal.fire({
+            title: 'Resend Setup Invite?',
+            text: `Send a new secure 24-hour setup link to "${user.email}"?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#1B3B6A',
+            confirmButtonText: 'Send Setup Email'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(route('users.resend-invite', user.id), {}, {
+                    preserveScroll: true,
+                    preserveState: true,
+                    onSuccess: () => {
+                        Swal.fire('Invitation Sent', `A new setup link was emailed to ${user.email}.`, 'success');
+                    }
+                });
+            }
+        });
+    };
+
     const handleDelete = (user) => {
         Swal.fire({
-            title: 'Remove Staff?',
-            text: "Are you sure you want to remove this staff member? This action cannot be undone.",
+            title: 'Delete Staff Member?',
+            text: `Are you sure you want to permanently delete "${user.name}"?`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Yes, remove staff'
+            confirmButtonColor: '#DC2626',
+            confirmButtonText: 'Yes, Delete'
         }).then((result) => {
             if (result.isConfirmed) {
                 destroy(route('users.destroy', user.id), {
                     preserveScroll: true,
                     preserveState: true,
-                    onSuccess: () => Swal.fire('Removed!', 'The staff member has been deleted.', 'success'),
+                    onSuccess: () => Swal.fire('Deleted', 'Staff member has been removed.', 'success'),
                     onError: (errors) => {
                         if (errors.delete === 'linked_to_sales') {
-                            if (user.is_active === false) {
-                                Swal.fire({
-                                    title: 'Cannot Delete Staff',
-                                    text: 'This staff member has processed sales records and cannot be permanently deleted. Their system access is already revoked.',
-                                    icon: 'error',
-                                    confirmButtonColor: '#1B3A69',
-                                    confirmButtonText: 'OK'
-                                });
-                            } else {
-                                Swal.fire({
-                                    title: 'Cannot Delete Staff',
-                                    text: 'This staff member has processed sales records and cannot be permanently deleted. Would you like to revoke their access instead?',
-                                    icon: 'warning',
-                                    showCancelButton: true,
-                                    confirmButtonColor: '#1B3A69',
-                                    cancelButtonColor: '#d33',
-                                    confirmButtonText: 'Yes, Revoke Access',
-                                    cancelButtonText: 'No'
-                                }).then((archiveResult) => {
-                                    if (archiveResult.isConfirmed) {
-                                        router.patch(route('users.toggle-active', user.id), {}, {
-                                            preserveScroll: true,
-                                            preserveState: true,
-                                            onSuccess: () => Swal.fire('Revoked!', 'User access has been revoked successfully.', 'success')
-                                        });
-                                    }
-                                });
-                            }
+                            Swal.fire({
+                                title: 'Cannot Delete Staff',
+                                text: 'This staff member has recorded sales transactions. You can revoke their access instead to preserve store audit trails.',
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#1B3B6A',
+                                confirmButtonText: 'Revoke Access Instead'
+                            }).then((archiveResult) => {
+                                if (archiveResult.isConfirmed) {
+                                    router.patch(route('users.toggle-active', user.id), {}, {
+                                        preserveScroll: true,
+                                        preserveState: true,
+                                        onSuccess: () => Swal.fire('Revoked', 'Staff access has been revoked.', 'success')
+                                    });
+                                }
+                            });
                         } else {
-                            Swal.fire('Error', errors.message || 'You cannot delete this user.', 'error');
+                            Swal.fire('Error', errors.message || 'Unable to delete staff member.', 'error');
                         }
                     }
                 });
@@ -300,682 +495,1565 @@ export default function User({ auth, users }) {
         });
     };
 
-    const RoleBadge = ({ role }) => {
-        const isAppAdmin = role === 'admin';
-        return (
-            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border shadow-xs ${
-                isAppAdmin
-                    ? 'bg-purple-50 text-purple-700 border-purple-200/70'
-                    : 'bg-[#1B3B6A]/10 text-[#1B3B6A] border-[#1B3B6A]/20'
-            }`}>
-                {role || 'Cashier'}
-            </span>
-        );
+    // --- EXPORT FUNCTIONALITY (Styled like Inventory & Transactions) ---
+
+    // --- EXPORT FUNCTIONALITY (1:1 with Inventory.jsx) ---
+
+    const exportExcel = async () => {
+        setIsExporting(true);
+        setShowDataMenu(false);
+
+        try {
+            const exportData = filteredUsers;
+            if (!exportData || exportData.length === 0) {
+                Swal.fire('No Data', 'No staff records found to export.', 'info');
+                setIsExporting(false);
+                return;
+            }
+
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Staff Directory', {
+                views: [{ showGridLines: true }]
+            });
+
+            // Set column widths
+            worksheet.getColumn('A').width = 18; // Account #
+            worksheet.getColumn('B').width = 28; // Staff Name
+            worksheet.getColumn('C').width = 18; // System Role
+            worksheet.getColumn('D').width = 16; // Account Status
+            worksheet.getColumn('E').width = 24; // Workstation Shift
+            worksheet.getColumn('F').width = 30; // Email Address
+            worksheet.getColumn('G').width = 18; // Phone Number
+            worksheet.getColumn('H').width = 15; // Total Shifts
+            worksheet.getColumn('I').width = 15; // Total Sales
+
+            // Store Header (Rows 1 to 4)
+            const storeName = settings?.store_name || settings?.name || 'POS Store System';
+            const storeAddress = settings?.address || '';
+            const storeContact = settings?.phone ? `Contact: ${settings.phone}` : '';
+
+            // Store Name
+            worksheet.mergeCells('A1:I1');
+            worksheet.getCell('A1').value = storeName.toUpperCase();
+            worksheet.getCell('A1').font = { bold: true, color: { argb: '1B3A69' }, size: 16 };
+            worksheet.getCell('A1').alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getRow(1).height = 28;
+
+            // Address
+            worksheet.mergeCells('A2:I2');
+            worksheet.getCell('A2').value = storeAddress;
+            worksheet.getCell('A2').font = { color: { argb: '555555' }, size: 9 };
+            worksheet.getCell('A2').alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getRow(2).height = 16;
+
+            // Contact
+            worksheet.mergeCells('A3:I3');
+            worksheet.getCell('A3').value = storeContact;
+            worksheet.getCell('A3').font = { color: { argb: '555555' }, size: 9, italic: true };
+            worksheet.getCell('A3').alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getRow(3).height = 16;
+
+            // Title
+            worksheet.mergeCells('A4:I4');
+            worksheet.getCell('A4').value = `STAFF MANAGEMENT & DUTY ROSTER REPORT (Generated: ${new Date().toLocaleString()})`;
+            worksheet.getCell('A4').font = { bold: true, color: { argb: '333333' }, size: 11 };
+            worksheet.getCell('A4').alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getRow(4).height = 20;
+
+            // Empty spacing row
+            worksheet.getRow(5).height = 10;
+
+            // Headers on Row 6
+            const headers = ['Account #', 'Staff Name', 'System Role', 'Account Status', 'Workstation Shift', 'Email Address', 'Phone Number', 'Total Shifts', 'Total Sales'];
+            headers.forEach((h, colIndex) => {
+                const cell = worksheet.getRow(6).getCell(colIndex + 1);
+                cell.value = h;
+                cell.font = { bold: true, color: { argb: 'FFFFFF' }, size: 10 };
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: '1B3A69' }
+                };
+                cell.alignment = { vertical: 'middle', horizontal: colIndex >= 7 ? 'right' : 'left' };
+            });
+            worksheet.getRow(6).height = 25;
+
+            // Enable worksheet protection
+            worksheet.protect('', {
+                selectLockedCells: true,
+                selectUnlockedCells: true
+            });
+
+            // Counters
+            let cashierCount = 0;
+            let adminCount = 0;
+            let onShiftCount = 0;
+            let activeCount = 0;
+
+            // Add Staff rows starting from Row 7
+            exportData.forEach((u, idx) => {
+                const rowIndex = idx + 7;
+                const row = worksheet.getRow(rowIndex);
+
+                const roleName = u.role === 'admin' ? 'Store Admin' : 'Cashier';
+                const statusName = u.is_active === false ? 'Revoked' : (u.terms_accepted_at ? 'Active' : 'Pending Setup');
+                const shiftName = u.active_shift ? `On Shift (${u.active_shift.terminal?.name || 'POS'})` : 'Off Duty';
+
+                if (u.role === 'admin') adminCount++;
+                if (u.role === 'cashier') cashierCount++;
+                if (u.active_shift) onShiftCount++;
+                if (u.is_active !== false) activeCount++;
+
+                row.getCell(1).value = u.account_number ? `#${u.account_number}` : `ID: #${u.id}`;
+                row.getCell(2).value = u.name || 'Unknown';
+                row.getCell(3).value = roleName;
+                row.getCell(4).value = statusName;
+                row.getCell(5).value = shiftName;
+                row.getCell(6).value = u.email || '';
+                row.getCell(7).value = u.phone_number || 'N/A';
+                row.getCell(8).value = u.shifts_count || 0;
+                row.getCell(9).value = u.sales_count || 0;
+
+                // Format cell alignments
+                row.getCell(1).alignment = { horizontal: 'left' };
+                row.getCell(2).alignment = { horizontal: 'left' };
+                row.getCell(3).alignment = { horizontal: 'left' };
+                row.getCell(4).alignment = { horizontal: 'left' };
+                row.getCell(5).alignment = { horizontal: 'left' };
+                row.getCell(6).alignment = { horizontal: 'left' };
+                row.getCell(7).alignment = { horizontal: 'left' };
+                row.getCell(8).alignment = { horizontal: 'right' };
+                row.getCell(9).alignment = { horizontal: 'right' };
+
+                // Number formats
+                row.getCell(8).numFmt = '#,##0';
+                row.getCell(9).numFmt = '#,##0';
+
+                // Unlock data rows cells for editing
+                for (let c = 1; c <= 9; c++) {
+                    row.getCell(c).protection = { locked: false };
+                }
+            });
+
+            // Summary Footer Box
+            const summaryStartRow = exportData.length + 8;
+            worksheet.getRow(summaryStartRow).height = 10;
+
+            worksheet.mergeCells(`A${summaryStartRow + 1}:I${summaryStartRow + 1}`);
+            const summaryTitleCell = worksheet.getCell(`A${summaryStartRow + 1}`);
+            summaryTitleCell.value = 'STAFF DIRECTORY SUMMARY & STATS';
+            summaryTitleCell.font = { bold: true, color: { argb: '1E293B' }, size: 10 };
+            summaryTitleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+            summaryTitleCell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'F1F5F9' }
+            };
+            worksheet.getRow(summaryStartRow + 1).height = 20;
+
+            const summaryRow = worksheet.getRow(summaryStartRow + 2);
+            summaryRow.getCell('A').value = `Total Staff: ${exportData.length}`;
+            summaryRow.getCell('C').value = `Active Accounts: ${activeCount}`;
+            summaryRow.getCell('E').value = `Currently On Shift: ${onShiftCount}`;
+            summaryRow.getCell('G').value = `Cashiers: ${cashierCount}`;
+            summaryRow.getCell('I').value = `Admins: ${adminCount}`;
+
+            ['A', 'C', 'E', 'G', 'I'].forEach(col => {
+                const cell = summaryRow.getCell(col);
+                cell.font = { bold: true, size: 9, color: { argb: '334155' } };
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'F8FAFC' }
+                };
+            });
+            summaryRow.height = 22;
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const safeStorePrefix = (settings?.store_name || settings?.name || 'POS').replace(/[^a-zA-Z0-9_-]/g, '_');
+            const dateStr = new Date().toISOString().split('T')[0];
+            saveAs(blob, `${safeStorePrefix}_Staff_Directory_${dateStr}.xlsx`);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Excel Exported!',
+                text: 'Staff directory report downloaded successfully.',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        } catch (e) {
+            console.error("Excel Generation Error:", e);
+            Swal.fire('Error', 'Failed to generate Excel report.', 'error');
+        } finally {
+            setIsExporting(false);
+        }
     };
 
-    const StatusBadge = ({ termsAcceptedAt, isActive }) => {
-        if (isActive === false) {
-            return (
-                <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/70 shadow-xs inline-flex items-center gap-1 cursor-default">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
-                    Revoked
-                </span>
-            );
-        }
-        if (termsAcceptedAt) {
-            return (
-                <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/70 shadow-xs inline-flex items-center gap-1 cursor-default">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                    Active
-                </span>
-            );
-        }
-        return (
-            <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200/70 shadow-xs inline-flex items-center gap-1 cursor-default">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6v6m0-6h6H6" /></svg>
-                Pending Setup
-            </span>
-        );
-    };
+    const exportPDF = async () => {
+        setIsExporting(true);
+        setShowDataMenu(false);
 
-    const getAvatarUrl = (path) => {
-        if (!path) return null;
-        if (path.startsWith('http') || path.startsWith('/')) return path;
-        return `/storage/${path}`;
+        try {
+            const exportData = filteredUsers;
+            if (!exportData || exportData.length === 0) {
+                Swal.fire('No Data', 'No staff records found to export.', 'info');
+                setIsExporting(false);
+                return;
+            }
+
+            const doc = new jsPDF('landscape');
+            const pageWidth = doc.internal.pageSize.width;
+
+            const storeName = settings?.store_name || settings?.name || 'POS Store System';
+            const storeAddress = settings?.address || '';
+            const storeContact = settings?.phone ? `Contact: ${settings.phone}` : '';
+
+            let currentY = 20;
+
+            doc.setFontSize(22);
+            doc.setTextColor(31, 41, 55);
+            doc.setFont(undefined, 'bold');
+            doc.text(storeName, 14, currentY);
+
+            doc.setFontSize(10);
+            doc.setTextColor(107, 114, 128);
+            doc.setFont(undefined, 'normal');
+
+            if (storeAddress) {
+                currentY += 6;
+                doc.text(storeAddress, 14, currentY);
+            }
+            if (storeContact) {
+                currentY += 5;
+                doc.text(storeContact, 14, currentY);
+            }
+
+            currentY += 8;
+            doc.setDrawColor(229, 231, 235);
+            doc.setLineWidth(0.5);
+            doc.line(14, currentY, pageWidth - 14, currentY);
+
+            currentY += 10;
+            doc.setFontSize(16);
+            doc.setTextColor(31, 41, 55);
+            doc.setFont(undefined, 'bold');
+            doc.text('Staff Management & Duty Directory Report', 14, currentY);
+
+            currentY += 6;
+            doc.setFontSize(10);
+            doc.setTextColor(107, 114, 128);
+            doc.setFont(undefined, 'normal');
+
+            let filterParts = [];
+            if (searchFilter) filterParts.push(`Search: "${searchFilter}"`);
+            if (roleFilter) filterParts.push(`Role: ${roleFilter === 'admin' ? 'Store Admins' : 'Cashiers'}`);
+            if (accountStatusFilter) filterParts.push(`Status: ${accountStatusFilter}`);
+            if (statusTab === 'on_shift') filterParts.push('Currently On Shift Only');
+            if (statusTab === 'cashiers') filterParts.push('Cashiers Only');
+            if (statusTab === 'admins') filterParts.push('Admins Only');
+            if (statusTab === 'inactive') filterParts.push('Revoked Access Only');
+
+            const filterText = filterParts.length > 0 ? `Filters: ${filterParts.join(' | ')}` : 'Filter: All Staff Members';
+            doc.text(filterText, 14, currentY);
+
+            const generatedText = `Generated: ${new Date().toLocaleString()}`;
+            const textWidth = doc.getTextWidth(generatedText);
+            doc.text(generatedText, pageWidth - 14 - textWidth, currentY);
+
+            const tableStartY = currentY + 8;
+            const tableColumns = ["Account #", "Staff Name", "System Role", "Workstation Shift", "Email Address", "Phone Number", "Total Shifts", "Total Sales", "Status"];
+            const tableRows = [];
+
+            let cashierCount = 0;
+            let adminCount = 0;
+            let onShiftCount = 0;
+            let activeCount = 0;
+
+            exportData.forEach(u => {
+                const roleName = u.role === 'admin' ? 'Store Admin' : 'Cashier';
+                const statusName = u.is_active === false ? 'Revoked' : (u.terms_accepted_at ? 'Active' : 'Pending Setup');
+                const shiftName = u.active_shift ? `On Shift (${u.active_shift.terminal?.name || 'POS'})` : 'Off Duty';
+
+                if (u.role === 'admin') adminCount++;
+                if (u.role === 'cashier') cashierCount++;
+                if (u.active_shift) onShiftCount++;
+                if (u.is_active !== false) activeCount++;
+
+                tableRows.push([
+                    u.account_number ? `#${u.account_number}` : `ID: #${u.id}`,
+                    u.name || 'Unknown',
+                    roleName,
+                    shiftName,
+                    u.email || '—',
+                    u.phone_number || '—',
+                    (u.shifts_count || 0).toString(),
+                    (u.sales_count || 0).toString(),
+                    statusName
+                ]);
+            });
+
+            autoTable(doc, {
+                head: [tableColumns],
+                body: tableRows,
+                startY: tableStartY,
+                theme: 'striped',
+                headStyles: { fillColor: '#1B3A69', textColor: 255, fontStyle: 'bold' },
+                styles: { fontSize: 9, cellPadding: 4, valign: 'middle' },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === 8) {
+                        if (data.cell.raw === 'Revoked') {
+                            data.cell.styles.textColor = [220, 38, 38];
+                            data.cell.styles.fontStyle = 'bold';
+                        } else if (data.cell.raw === 'Active') {
+                            data.cell.styles.textColor = [22, 163, 74];
+                            data.cell.styles.fontStyle = 'bold';
+                        } else {
+                            data.cell.styles.textColor = [217, 119, 6];
+                            data.cell.styles.fontStyle = 'bold';
+                        }
+                    }
+                }
+            });
+
+            let finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 15 : tableStartY + 20;
+
+            if (finalY > 160) {
+                doc.addPage();
+                finalY = 20;
+            }
+
+            // Draw Summary Box Background
+            doc.setFillColor(249, 250, 251);
+            doc.setDrawColor(229, 231, 235);
+            doc.rect(14, finalY, pageWidth - 28, 36, 'FD');
+
+            // Summary Box Title
+            doc.setFontSize(12);
+            doc.setTextColor(31, 41, 55);
+            doc.setFont(undefined, 'bold');
+            doc.text('Staff Directory & Roster Summary', 20, finalY + 8);
+
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(75, 85, 99);
+
+            // Summary text
+            doc.text(`Total Staff Records: ${exportData.length}`, 20, finalY + 18);
+            doc.text(`Active Accounts: ${activeCount}`, 20, finalY + 26);
+            doc.text(`Currently On Shift: ${onShiftCount}`, pageWidth / 2 - 40, finalY + 18);
+            doc.text(`Total Cashiers: ${cashierCount}`, pageWidth / 2 - 40, finalY + 26);
+            doc.text(`Store Administrators: ${adminCount}`, pageWidth - 90, finalY + 18);
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            const safeStorePrefix = (settings?.store_name || settings?.name || 'POS').replace(/[^a-zA-Z0-9_-]/g, '_');
+            doc.save(`${safeStorePrefix}_Staff_Directory_${dateStr}.pdf`);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'PDF Exported!',
+                text: 'Staff directory report downloaded successfully.',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+
+        } catch (error) {
+            console.error("PDF Generation Error:", error);
+            Swal.fire('Error', 'Failed to generate PDF report.', 'error');
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     return (
-        <AuthenticatedLayout user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800">Staff Management</h2>}>
+        <AuthenticatedLayout
+            user={auth.user}
+            header={
+                <div>
+                    <h2 className="font-black text-xl text-gray-900 tracking-tight">Staff Management</h2>
+                    <p className="text-xs font-semibold text-gray-500 mt-0.5">
+                        Manage store cashiers, administrators, system access, and live workstation shifts
+                    </p>
+                </div>
+            }
+        >
             <Head title="Staff Management" />
 
-            <div className="py-4 sm:py-12 bg-gray-50 min-h-screen">
-                <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
+            <div className="py-3 sm:py-8 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
+                <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 space-y-6">
 
-                    {/* UNIFIED FULL-WIDTH MEGA TOOLBAR */}
-                    <div className="px-4 sm:px-0">
-                        <div className="bg-white p-3 sm:p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col md:flex-row gap-3 w-full items-center">
-                            <div className="relative w-full md:flex-1">
-                                <input
-                                    type="text"
-                                    placeholder="Search account no, name or email..."
-                                    className="pl-11 pr-4 py-2.5 sm:py-3 bg-white border border-gray-200 rounded-lg w-full focus:border-gray-400 focus:ring-1 focus:ring-gray-300/40 focus:bg-white text-sm font-medium transition-colors"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                                <svg className="w-5 h-5 text-gray-400 absolute left-4 top-3 sm:top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    {/* ========================================================================= */}
+                    {/* 1. EXECUTIVE STAFF & SHIFT KPI METRIC STRIP (4 CARDS)                     */}
+                    {/* ========================================================================= */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+                        
+                        {/* KPI 1: Total Staff */}
+                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/70 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-0.5 sm:space-y-1">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider">Total Staff</p>
+                                    <h3 className="text-base sm:text-2xl font-black text-gray-900 tracking-tight">{kpiMetrics.total}</h3>
+                                </div>
+                                <div className="p-2 sm:p-2.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-xl ring-1 ring-[#CBD7E6] shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                                    </svg>
+                                </div>
                             </div>
+                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold">
+                                <span>Team Composition</span>
+                                <span className="font-bold text-gray-700">{kpiMetrics.cashiers} Cashiers · {kpiMetrics.admins} Admins</span>
+                            </div>
+                        </div>
 
-                            <div className="flex flex-row gap-2 sm:gap-3 w-full md:w-auto shrink-0">
-                                <select
-                                    value={roleFilter}
-                                    onChange={(e) => setRoleFilter(e.target.value)}
-                                    className="flex-1 md:w-40 bg-white border border-gray-200 rounded-lg py-2.5 sm:py-3 pl-3 pr-8 focus:border-gray-400 focus:ring-1 focus:ring-gray-300/40 focus:bg-white text-gray-600 text-xs sm:text-sm font-medium transition-colors"
+                        {/* KPI 2: Currently On Shift (Clickable filter) */}
+                        <button
+                            onClick={() => handleStatusTabChange(statusTab === 'on_shift' ? 'all' : 'on_shift')}
+                            className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group active:scale-[0.98] ${
+                                statusTab === 'on_shift'
+                                    ? 'bg-emerald-50/80 border-emerald-300 ring-2 ring-emerald-400 shadow-sm'
+                                    : 'bg-white border-gray-200/70 shadow-2xs hover:border-emerald-200 hover:shadow-md'
+                            }`}
+                        >
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-0.5 sm:space-y-1">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-emerald-700 uppercase tracking-wider">Currently On Shift</p>
+                                    <h3 className="text-base sm:text-2xl font-black text-emerald-900 tracking-tight">{kpiMetrics.onShift}</h3>
+                                </div>
+                                <div className="p-2 sm:p-2.5 bg-emerald-100/70 text-emerald-700 rounded-xl ring-1 ring-emerald-200 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-emerald-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-emerald-700">
+                                <span>Active floor selling</span>
+                                <span className="font-bold underline text-[10px] sm:text-[11px]">{statusTab === 'on_shift' ? 'Filtered' : 'Filter'}</span>
+                            </div>
+                        </button>
+
+                        {/* KPI 3: Cashiers (Clickable filter) */}
+                        <button
+                            onClick={() => handleStatusTabChange(statusTab === 'cashiers' ? 'all' : 'cashiers')}
+                            className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group active:scale-[0.98] ${
+                                statusTab === 'cashiers'
+                                    ? 'bg-blue-50/80 border-blue-300 ring-2 ring-blue-400 shadow-sm'
+                                    : 'bg-white border-gray-200/70 shadow-2xs hover:border-blue-200 hover:shadow-md'
+                            }`}
+                        >
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-0.5 sm:space-y-1">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-blue-700 uppercase tracking-wider">Cashier Team</p>
+                                    <h3 className="text-base sm:text-2xl font-black text-blue-900 tracking-tight">{kpiMetrics.cashiers}</h3>
+                                </div>
+                                <div className="p-2 sm:p-2.5 bg-blue-100/70 text-blue-700 rounded-xl ring-1 ring-blue-200 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-blue-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-blue-700">
+                                <span>Frontline register staff</span>
+                                <span className="font-bold underline text-[10px] sm:text-[11px]">{statusTab === 'cashiers' ? 'Filtered' : 'Filter'}</span>
+                            </div>
+                        </button>
+
+                        {/* KPI 4: Store Administrators (Clickable filter) */}
+                        <button
+                            onClick={() => handleStatusTabChange(statusTab === 'admins' ? 'all' : 'admins')}
+                            className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group active:scale-[0.98] ${
+                                statusTab === 'admins'
+                                    ? 'bg-purple-50/80 border-purple-300 ring-2 ring-purple-400 shadow-sm'
+                                    : 'bg-white border-gray-200/70 shadow-2xs hover:border-purple-200 hover:shadow-md'
+                            }`}
+                        >
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-0.5 sm:space-y-1">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-purple-700 uppercase tracking-wider">Store Administrators</p>
+                                    <h3 className="text-base sm:text-2xl font-black text-purple-900 tracking-tight">{kpiMetrics.admins}</h3>
+                                </div>
+                                <div className="p-2 sm:p-2.5 bg-purple-100/70 text-purple-700 rounded-xl ring-1 ring-purple-200 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-purple-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-purple-700">
+                                <span>Management & Controls</span>
+                                <span className="font-bold underline text-[10px] sm:text-[11px]">{statusTab === 'admins' ? 'Filtered' : 'Filter'}</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    {/* ========================================================================= */}
+                    {/* 2. STAFF WORKSPACE: CONNECTED TABS + MAIN CONTENT CARD                     */}
+                    {/* ========================================================================= */}
+                    <div ref={workspaceSectionRef} className="flex flex-col scroll-mt-4">
+                        
+                        {/* Interactive Pipeline Status Tabs (With Inverted Scoop Radiuses) */}
+                        <div className="w-full max-w-full overflow-x-auto overflow-y-hidden no-scrollbar scroll-smooth -mb-px relative z-20 pt-1">
+                            <div ref={pipelineTabsRef} className="flex flex-nowrap items-end gap-1 sm:gap-1.5 px-3 w-max min-w-full">
+                                
+                                {/* Tab 1: All Staff */}
+                                <button
+                                    data-tab="all"
+                                    onClick={() => handleStatusTabChange('all')}
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                        statusTab === 'all'
+                                            ? 'bg-white text-[#1B3B6A] font-black border-t-[#1B3B6A] border-x-gray-200/90 shadow-xs z-20'
+                                            : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
+                                    }`}
                                 >
-                                    <option value="">All Roles</option>
-                                    <option value="admin">Administrator</option>
-                                    <option value="cashier">Cashier</option>
-                                </select>
+                                    {statusTab === 'all' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
+                                    <span>All Staff</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                        statusTab === 'all'
+                                            ? 'bg-[#1B3B6A] text-white shadow-2xs'
+                                            : 'bg-gray-200/80 text-gray-600 group-hover:bg-gray-300 group-hover:text-gray-800'
+                                    }`}>
+                                        {tabCounts.all}
+                                    </span>
+                                </button>
 
-                                <button onClick={openAddModal} className="flex-1 md:w-auto px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-center bg-[#1B3B6A] text-white rounded-lg font-bold hover:bg-[#142E54] shadow-sm active:scale-95 transition-all text-xs sm:text-sm gap-1.5 sm:gap-2 whitespace-nowrap">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                                    Invite Staff
+                                {/* Tab 2: On Shift */}
+                                <button
+                                    data-tab="on_shift"
+                                    onClick={() => handleStatusTabChange('on_shift')}
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                        statusTab === 'on_shift'
+                                            ? 'bg-white text-emerald-800 font-black border-t-emerald-600 border-x-gray-200/90 shadow-xs z-20'
+                                            : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
+                                    }`}
+                                >
+                                    {statusTab === 'on_shift' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
+                                    <span>On Active Shift</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                        statusTab === 'on_shift'
+                                            ? 'bg-emerald-600 text-white shadow-2xs'
+                                            : 'bg-emerald-50 text-emerald-700 group-hover:bg-emerald-100'
+                                    }`}>
+                                        {tabCounts.on_shift}
+                                    </span>
+                                </button>
+
+                                {/* Tab 3: Cashiers */}
+                                <button
+                                    data-tab="cashiers"
+                                    onClick={() => handleStatusTabChange('cashiers')}
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                        statusTab === 'cashiers'
+                                            ? 'bg-white text-blue-800 font-black border-t-blue-600 border-x-gray-200/90 shadow-xs z-20'
+                                            : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
+                                    }`}
+                                >
+                                    {statusTab === 'cashiers' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
+                                    <span>Cashiers</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                        statusTab === 'cashiers'
+                                            ? 'bg-blue-600 text-white shadow-2xs'
+                                            : 'bg-blue-50 text-blue-700 group-hover:bg-blue-100'
+                                    }`}>
+                                        {tabCounts.cashiers}
+                                    </span>
+                                </button>
+
+                                {/* Tab 4: Store Administrators */}
+                                <button
+                                    data-tab="admins"
+                                    onClick={() => handleStatusTabChange('admins')}
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                        statusTab === 'admins'
+                                            ? 'bg-white text-purple-800 font-black border-t-purple-600 border-x-gray-200/90 shadow-xs z-20'
+                                            : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
+                                    }`}
+                                >
+                                    {statusTab === 'admins' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
+                                    <span>Store Admins</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                        statusTab === 'admins'
+                                            ? 'bg-purple-600 text-white shadow-2xs'
+                                            : 'bg-purple-50 text-purple-700 group-hover:bg-purple-100'
+                                    }`}>
+                                        {tabCounts.admins}
+                                    </span>
+                                </button>
+
+                                {/* Tab 5: Inactive / Suspended */}
+                                <button
+                                    data-tab="inactive"
+                                    onClick={() => handleStatusTabChange('inactive')}
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                        statusTab === 'inactive'
+                                            ? 'bg-white text-rose-900 font-black border-t-rose-600 border-x-gray-200/90 shadow-xs z-20'
+                                            : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
+                                    }`}
+                                >
+                                    {statusTab === 'inactive' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
+                                    <span>Inactive / Revoked</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                        statusTab === 'inactive'
+                                            ? 'bg-rose-600 text-white shadow-2xs'
+                                            : 'bg-rose-50 text-rose-700 group-hover:bg-rose-100'
+                                    }`}>
+                                        {tabCounts.inactive}
+                                    </span>
                                 </button>
                             </div>
                         </div>
-                    </div>
 
-                    {/* TABLE: DESKTOP VIEW */}
-                    <div className="hidden md:block bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 mx-4 sm:mx-0">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead className="bg-gray-50 border-b text-gray-500 uppercase text-[10px] font-black tracking-wider">
-                                    <tr>
-                                        <th className="p-4 w-16">Profile</th>
-                                        <th className="p-4">Staff Member</th>
-                                        <th className="p-4">Contact Info</th>
-                                        <th className="p-4">System Role</th>
-                                        <th className="p-4">Status</th>
-                                        <th className="p-4 text-center">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {loading ? (
-                                        Array.from({ length: 4 }).map((_, index) => (
-                                            <tr key={`skel-${index}`} className="animate-pulse">
-                                                <td className="p-4"><div className="w-10 h-10 rounded-full bg-gray-200"></div></td>
-                                                <td className="p-4"><div className="h-5 bg-gray-200 rounded w-32 mb-1"></div><div className="h-3 bg-gray-200 rounded w-16"></div></td>
-                                                <td className="p-4"><div className="h-4 bg-gray-200 rounded w-32 mb-1"></div><div className="h-3 bg-gray-200 rounded w-24"></div></td>
-                                                <td className="p-4"><div className="h-6 bg-gray-200 rounded w-20"></div></td>
-                                                <td className="p-4"><div className="h-6 bg-gray-200 rounded w-24"></div></td>
-                                                <td className="p-4 flex justify-center gap-2 mt-1">
-                                                    <div className="w-9 h-9 bg-gray-200 rounded-md"></div>
-                                                    <div className="w-9 h-9 bg-gray-200 rounded-md"></div>
-                                                    <div className="w-9 h-9 bg-gray-200 rounded-md"></div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : paginatedUsers.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="6" className="p-12 text-center text-gray-500">
-                                                <div className="flex flex-col items-center justify-center py-6">
-                                                    <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                                                    </svg>
-                                                    <h3 className="text-lg font-bold text-gray-900">No staff found</h3>
-                                                    <p className="text-sm text-gray-500 mt-1 max-w-sm mx-auto">We couldn't find any staff matching your current filters.</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        paginatedUsers.map((u) => (
-                                            <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                                                <td className="p-4">
-                                                    {u.avatar_path ? (
-                                                        <img src={getAvatarUrl(u.avatar_path)} alt={u.name} className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm shrink-0" />
-                                                    ) : (
-                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-lg border border-[#CBD7E6] shrink-0 uppercase">
-                                                            {u.name.charAt(0)}
-                                                        </div>
-                                                    )}
-                                                </td>
-                                                <td className="p-4">
-                                                    <div className="font-bold text-gray-800">{u.name}</div>
-                                                    {u.account_number && <div className="text-[10px] font-mono text-gray-400 mt-0.5">Acc: {u.account_number}</div>}
-                                                </td>
-                                                <td className="p-4">
-                                                    <div className="text-gray-900 text-sm">{u.email}</div>
-                                                    <div className="text-gray-500 text-xs mt-0.5">
-                                                        {u.phone_number ? u.phone_number : <span className="text-gray-300 italic">Pending Setup</span>}
-                                                    </div>
-                                                </td>
-                                                <td className="p-4"><RoleBadge role={u.role} /></td>
-                                                <td className="p-4"><StatusBadge termsAcceptedAt={u.terms_accepted_at} isActive={u.is_active} /></td>
-                                                <td className="p-4 text-center flex justify-center gap-2">
-                                                    <button onClick={() => openViewModal(u)} className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="View Profile">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                                    </button>
-                                                    <button onClick={() => openEditModal(u)} className="p-2 text-[#1B3B6A] hover:text-[#142E54] hover:bg-[#EFF4F9] rounded-lg transition-colors" title="Edit">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
-                                                    </button>
+                        {/* ========================================================================= */}
+                        {/* MAIN WHITE CARD CONTAINER                                                 */}
+                        {/* ========================================================================= */}
+                        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs relative z-10 overflow-hidden flex flex-col">
+                            
+                            {/* UNIFIED TOOLBAR: Search, Filters & View Switcher */}
+                            <div className="p-3 sm:p-4 border-b border-gray-100 bg-white space-y-3">
+                                
+                                {/* Tier 1: Search & Filter Controls (1:1 with Inventory.jsx) */}
+                                <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-stretch sm:items-center justify-between">
+                                    
+                                    {/* Search Bar */}
+                                    <div className="relative flex-1 min-w-0">
+                                        <input
+                                            type="text"
+                                            placeholder="Search by name, email, phone, or account #..."
+                                            value={searchFilter}
+                                            onChange={(e) => { setSearchFilter(e.target.value); setCurrentPage(1); }}
+                                            className="w-full pl-11 pr-10 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:bg-white focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 transition-all shadow-2xs"
+                                        />
+                                        <svg className="w-5 h-5 text-gray-400 absolute left-3.5 top-3 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                        {searchFilter && (
+                                            <button onClick={() => setSearchFilter('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 p-0.5">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* View Mode Toggle (Placed right after search bar, with List and Cards labels 1:1 with Inventory.jsx) */}
+                                    <div className="hidden lg:inline-flex rounded-xl bg-gray-100 p-1 border border-gray-200 shrink-0 self-start sm:self-auto">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleViewModeChange('table')}
+                                            className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'table' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                            title="List View"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+                                            <span className="hidden sm:inline">List</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleViewModeChange('grid')}
+                                            className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'grid' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                            title="Card View"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                                            <span className="hidden sm:inline">Cards</span>
+                                        </button>
+                                    </div>
+
+                                    {/* Dropdowns (Single row with Search in Desktop/Tablet; 2nd row in Mobile) */}
+                                    <div className="grid grid-cols-2 sm:flex sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto shrink-0">
+                                        
+                                        {/* Role Dropdown */}
+                                        <select
+                                            value={roleFilter}
+                                            onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }}
+                                            className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[150px] lg:w-[165px] shrink-0"
+                                        >
+                                            <option value="">All Roles</option>
+                                            <option value="cashier">Cashiers</option>
+                                            <option value="admin">Store Admins</option>
+                                        </select>
+
+                                        {/* Status Dropdown */}
+                                        <select
+                                            value={accountStatusFilter}
+                                            onChange={(e) => { setAccountStatusFilter(e.target.value); setCurrentPage(1); }}
+                                            className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[150px] lg:w-[165px] shrink-0"
+                                        >
+                                            <option value="">All Statuses</option>
+                                            <option value="active">Active Accounts</option>
+                                            <option value="pending">Pending Setup</option>
+                                            <option value="inactive">Revoked Access</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Tier 2: Action Buttons & Tools Strip (Admin Only) - 1:1 with Inventory.jsx */}
+                                {auth.user.is_admin && (
+                                    <div className="pt-2.5 border-t border-gray-100 pb-0.5 relative z-20">
+                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5 w-full">
+                                            
+                                            {/* Left Side: Section Label (Desktop Only) */}
+                                            <div className="hidden lg:block">
+                                                <span className="text-xs font-black text-gray-800 uppercase tracking-wider">Staff Actions</span>
+                                            </div>
+
+                                            {/* Right Side Actions: Data & Export + Add Staff */}
+                                            <div className="grid grid-cols-2 lg:flex lg:w-auto items-center gap-2 w-full shrink-0 justify-end">
+                                                
+                                                {/* Data & Export Dropdown */}
+                                                <div className="relative data-menu-container w-full lg:w-auto shrink-0" ref={dataMenuRef}>
                                                     <button
-                                                        onClick={() => handleToggleActive(u)}
-                                                        disabled={auth.user.id === u.id}
-                                                        className={`p-2 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-transparent ${u.is_active === false
-                                                                ? 'text-green-600 hover:text-green-800 hover:bg-green-100'
-                                                                : 'text-amber-600 hover:text-amber-800 hover:bg-amber-100'
-                                                            }`}
-                                                        title={auth.user.id === u.id
-                                                            ? "Cannot modify own status"
-                                                            : u.is_active === false
-                                                                ? "Restore Access"
-                                                                : "Revoke Access"
-                                                        }
+                                                        type="button"
+                                                        onClick={() => setShowDataMenu(!showDataMenu)}
+                                                        className="w-full lg:w-auto justify-center px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-[#EFF4F9] text-[#1B3B6A] hover:bg-[#E2ECF6] border border-[#CBD7E6] shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                                                     >
-                                                        {u.is_active === false ? (
-                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                            </svg>
-                                                        ) : (
-                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                                            </svg>
-                                                        )}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(u)}
-                                                        disabled={auth.user.id === u.id}
-                                                        className="p-2 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-100 transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
-                                                        title={auth.user.id === u.id ? "Cannot delete self" : "Delete Staff"}
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-[#1B3B6A]">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                                        </svg>
+                                                        <span>Data & Export</span>
+                                                        <svg className={`w-3.5 h-3.5 ml-0.5 text-gray-500 transition-transform duration-200 ${showDataMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
                                                         </svg>
                                                     </button>
-                                                </td>
-                                            </tr>
-                                        ))
+
+                                                    {showDataMenu && (
+                                                        <div className="absolute left-0 lg:left-auto lg:right-0 top-full mt-2 w-full sm:w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                                            <div className="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400">Reports & Export</div>
+                                                            <button
+                                                                onClick={exportExcel}
+                                                                disabled={isExporting}
+                                                                className="w-full px-4 py-2 text-left text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                                                            >
+                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-emerald-600">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                                                                </svg>
+                                                                Export to Excel (.xlsx)
+                                                            </button>
+                                                            <button
+                                                                onClick={exportPDF}
+                                                                disabled={isExporting}
+                                                                className="w-full px-4 py-2 text-left text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                                                            >
+                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-rose-600">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                                                </svg>
+                                                                Export to PDF Document
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* 4. Add Staff Button */}
+                                                <button
+                                                    onClick={openAddModal}
+                                                    className="w-full lg:w-auto justify-center px-3.5 sm:px-4 py-2.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white rounded-xl font-bold shadow-md shadow-[#1B3B6A]/15 active:scale-95 transition-all text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 cursor-pointer"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                                    </svg>
+                                                    <span>Add Staff</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* DATA AREA: TABLE OR GRID */}
+                            {loading ? (
+                                <div className="p-12 text-center">
+                                    <div className="animate-spin inline-block w-8 h-8 border-4 border-[#1B3B6A] border-t-transparent rounded-full mb-3"></div>
+                                    <div className="text-sm font-bold text-gray-600">Loading staff directory...</div>
+                                </div>
+                            ) : filteredUsers.length === 0 ? (
+                                <div className="p-12 text-center">
+                                    <svg className="w-16 h-16 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                                    </svg>
+                                    <h3 className="text-base font-extrabold text-gray-900">No staff members found</h3>
+                                    <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">Try clearing search or adjusting your status filters.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    {/* --- 1. DESKTOP TABLE VIEW (Visible on >= lg when viewMode === 'table') --- */}
+                                    {viewMode === 'table' && (
+                                        <div className="hidden lg:block overflow-x-auto custom-scrollbar">
+                                            <table className="w-full text-left text-xs">
+                                                <thead className="bg-gray-50/90 border-b border-gray-200/80 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-500">
+                                                    <tr>
+                                                        <th className="p-3.5 sm:p-4">Staff Member</th>
+                                                        <th className="p-3.5 sm:p-4">Role & Permissions</th>
+                                                        <th className="p-3.5 sm:p-4">Workstation Shift</th>
+                                                        <th className="p-3.5 sm:p-4">Contact Info</th>
+                                                        <th className="p-3.5 sm:p-4">Account Status</th>
+                                                        <th className="p-3.5 sm:p-4 text-center">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-100">
+                                                    {paginatedUsers.map((u) => {
+                                                        const isOnShift = !!u.active_shift;
+                                                        return (
+                                                            <tr
+                                                                key={u.id}
+                                                                onClick={() => handleViewDetails(u)}
+                                                                className="hover:bg-blue-50/30 transition-colors cursor-pointer group"
+                                                            >
+                                                                {/* Staff Name & Avatar */}
+                                                                <td className="p-3.5 sm:p-4">
+                                                                    <div className="flex items-center gap-3">
+                                                                        {u.avatar_path ? (
+                                                                            <img src={getAvatarUrl(u.avatar_path)} alt={u.name} className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0" />
+                                                                        ) : (
+                                                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-sm border border-gray-200 shrink-0 uppercase shadow-2xs">
+                                                                                {u.name.charAt(0)}
+                                                                            </div>
+                                                                        )}
+                                                                        <div>
+                                                                            <div className="font-extrabold text-gray-900 text-sm group-hover:text-[#1B3B6A] transition-colors">{u.name}</div>
+                                                                            <div className="text-[11px] font-mono font-bold text-gray-400 mt-0.5">
+                                                                                {u.account_number ? `#${u.account_number}` : `ID: #${u.id}`}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+
+                                                                {/* Role */}
+                                                                <td className="p-3.5 sm:p-4">
+                                                                    {u.role === 'admin' ? (
+                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200/70 shadow-2xs">
+                                                                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+                                                                            Store Admin
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-[#1B3B6A]/10 text-[#1B3B6A] border border-[#1B3B6A]/20 shadow-2xs">
+                                                                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                                                                            Cashier
+                                                                        </span>
+                                                                    )}
+                                                                </td>
+
+                                                                {/* Workstation Shift (Clean, without glowing bullet) */}
+                                                                <td className="p-3.5 sm:p-4">
+                                                                    {isOnShift ? (
+                                                                        <div className="inline-flex flex-col">
+                                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs">
+                                                                                On Shift · {u.active_shift.terminal?.name || 'POS Workstation'}
+                                                                            </span>
+                                                                            <span className="text-[10px] text-gray-500 font-semibold mt-1">
+                                                                                Shift #{u.active_shift.id} · Float: ₱{formatCurrency(u.active_shift.starting_cash)}
+                                                                            </span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200 shadow-2xs">
+                                                                            Off Duty
+                                                                        </span>
+                                                                    )}
+                                                                </td>
+
+                                                                {/* Contact */}
+                                                                <td className="p-3.5 sm:p-4">
+                                                                    <div className="font-bold text-gray-800">{u.email}</div>
+                                                                    <div className="text-gray-500 text-[11px] font-medium mt-0.5">
+                                                                        {u.phone_number || <span className="text-gray-300 italic">No phone set</span>}
+                                                                    </div>
+                                                                </td>
+
+                                                                {/* Account Status */}
+                                                                <td className="p-3.5 sm:p-4">
+                                                                    {u.is_active === false ? (
+                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs">
+                                                                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                                                                            Revoked
+                                                                        </span>
+                                                                    ) : u.terms_accepted_at ? (
+                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                                                                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                                                                            Active
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
+                                                                            Pending Setup
+                                                                        </span>
+                                                                    )}
+                                                                </td>
+
+                                                                {/* Action Buttons (1:1 with Inventory.jsx - clean transparent buttons with hover bg) */}
+                                                                <td className="p-3.5 sm:p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                                                    <div className="flex items-center justify-center gap-1">
+                                                                        <button
+                                                                            onClick={() => handleViewDetails(u)}
+                                                                            title="View Details"
+                                                                            className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95 cursor-pointer"
+                                                                        >
+                                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                                                        </button>
+
+                                                                        <button
+                                                                            onClick={() => openEditModal(u)}
+                                                                            title="Edit Profile"
+                                                                            className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95 cursor-pointer"
+                                                                        >
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-blue-600">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                                                                            </svg>
+                                                                        </button>
+
+                                                                        {!u.terms_accepted_at && (
+                                                                            <button
+                                                                                onClick={() => handleResendInvite(u)}
+                                                                                title="Resend Setup Email"
+                                                                                className="p-1.5 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95 cursor-pointer"
+                                                                            >
+                                                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+                                                                            </button>
+                                                                        )}
+
+                                                                        <button
+                                                                            onClick={() => handleToggleActive(u)}
+                                                                            title={u.is_active !== false ? 'Revoke Access' : 'Restore Access'}
+                                                                            className={`p-1.5 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95 cursor-pointer ${
+                                                                                u.is_active !== false
+                                                                                    ? 'text-gray-500 hover:text-rose-700 hover:bg-rose-50'
+                                                                                    : 'text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50'
+                                                                            }`}
+                                                                        >
+                                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" /></svg>
+                                                                        </button>
+
+                                                                        <button
+                                                                            onClick={() => handleDelete(u)}
+                                                                            title="Delete Staff"
+                                                                            className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95 cursor-pointer"
+                                                                        >
+                                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     )}
-                                </tbody>
-                            </table>
+
+                                    {/* --- 2. RESPONSIVE CARD VIEW (Mobile/Tablet always, and Laptop/Desktop when viewMode === 'grid') --- */}
+                                    <div className={`${viewMode === 'table' ? 'lg:hidden' : 'block'} p-3.5 sm:p-4 bg-gray-50/40 border-t lg:border-t-0 border-gray-100`}>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
+                                            {paginatedUsers.map((u) => {
+                                                const isOnShift = !!u.active_shift;
+                                                return (
+                                                    <div
+                                                        key={u.id}
+                                                        onClick={() => handleViewDetails(u)}
+                                                        className="bg-white rounded-2xl border border-gray-200/80 shadow-2xs hover:border-[#1B3B6A]/30 hover:shadow-md transition-all p-4 sm:p-5 flex flex-col justify-between cursor-pointer group"
+                                                    >
+                                                        <div>
+                                                            <div className="flex items-center justify-between gap-2 mb-3.5">
+                                                                {u.role === 'admin' ? (
+                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200/70">
+                                                                        Store Admin
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#1B3B6A]/10 text-[#1B3B6A] border border-[#1B3B6A]/20">
+                                                                        Cashier
+                                                                    </span>
+                                                                )}
+
+                                                                {u.is_active === false ? (
+                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+                                                                        Revoked
+                                                                    </span>
+                                                                ) : u.terms_accepted_at ? (
+                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                                        Active
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
+                                                                        Pending Setup
+                                                                    </span>
+                                                                )}
+                                                            </div>
+
+                                                            <div className="flex items-center gap-3.5 mb-3.5">
+                                                                {u.avatar_path ? (
+                                                                    <img src={getAvatarUrl(u.avatar_path)} alt={u.name} className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 shadow-2xs shrink-0" />
+                                                                ) : (
+                                                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-lg border-2 border-gray-200 shrink-0 uppercase shadow-2xs">
+                                                                        {u.name.charAt(0)}
+                                                                    </div>
+                                                                )}
+                                                                <div className="min-w-0 flex-1">
+                                                                    <h3 className="font-extrabold text-gray-900 text-sm sm:text-base truncate group-hover:text-[#1B3B6A] transition-colors">{u.name}</h3>
+                                                                    <p className="text-xs text-gray-500 font-mono mt-0.5 truncate">{u.account_number ? `#${u.account_number}` : `ID: #${u.id}`}</p>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className={`p-2.5 rounded-xl border mb-3.5 text-xs ${
+                                                                isOnShift
+                                                                    ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900'
+                                                                    : 'bg-gray-50 border-gray-200/70 text-gray-600'
+                                                            }`}>
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="font-bold">
+                                                                        {isOnShift ? (
+                                                                            <span>On Shift ({u.active_shift.terminal?.name || 'POS'})</span>
+                                                                        ) : (
+                                                                            <span>Off Duty</span>
+                                                                        )}
+                                                                    </div>
+                                                                    {isOnShift && (
+                                                                        <span className="font-mono font-black text-emerald-700">
+                                                                            ₱{formatCurrency(u.active_shift.starting_cash)}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="space-y-1 text-xs text-gray-600 mb-3.5 font-medium">
+                                                                <div className="flex items-center gap-2 truncate">
+                                                                    <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+                                                                    <span className="truncate">{u.email}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-2 truncate">
+                                                                    <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
+                                                                    <span className="truncate">{u.phone_number || 'No phone number'}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Staff Card Actions */}
+                                                        <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
+                                                            <button
+                                                                onClick={() => handleViewDetails(u)}
+                                                                className="flex-1 py-2 px-3 text-xs font-bold text-[#1B3B6A] bg-[#EFF4F9] hover:bg-[#E2ECF6] rounded-xl border border-[#CBD7E6] flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                                                title="View Details"
+                                                            >
+                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                                                <span>View Details</span>
+                                                            </button>
+
+                                                            <div className="flex items-center gap-1 shrink-0">
+                                                                {/* Edit Button */}
+                                                                <button 
+                                                                    onClick={() => openEditModal(u)} 
+                                                                    className="p-2 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl border border-blue-200 flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                                                    title="Edit Staff Member"
+                                                                >
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-blue-700">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                                                                    </svg>
+                                                                </button>
+
+                                                                {/* Resend Invite (if pending) */}
+                                                                {!u.terms_accepted_at && (
+                                                                    <button
+                                                                        onClick={() => handleResendInvite(u)}
+                                                                        className="p-2 text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl border border-amber-200 flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                                                        title="Resend Setup Email"
+                                                                    >
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+                                                                    </button>
+                                                                )}
+
+                                                                {/* Revoke / Restore Access */}
+                                                                <button
+                                                                    onClick={() => handleToggleActive(u)}
+                                                                    className={`p-2 rounded-xl border transition-all active:scale-95 cursor-pointer shadow-2xs ${
+                                                                        u.is_active !== false
+                                                                            ? 'text-rose-700 bg-rose-50 border-rose-200 hover:bg-rose-100'
+                                                                            : 'text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100'
+                                                                    }`}
+                                                                    title={u.is_active !== false ? "Revoke Access" : "Restore Access"}
+                                                                >
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" /></svg>
+                                                                </button>
+
+                                                                {/* Delete */}
+                                                                <button
+                                                                    onClick={() => handleDelete(u)}
+                                                                    className="p-2 text-gray-500 bg-gray-50 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 rounded-xl border border-gray-200 flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                                                    title="Delete Staff"
+                                                                >
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* PAGINATION FOOTER */}
+                            {totalPages > 1 && (
+                                <div className="p-3.5 sm:p-4 border-t border-gray-200/80 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                    <div className="text-xs text-gray-500 font-semibold">
+                                        Showing <span className="font-bold text-gray-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-gray-900">{Math.min(currentPage * itemsPerPage, filteredUsers.length)}</span> of <span className="font-bold text-gray-900">{filteredUsers.length}</span> staff members
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5">
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                                            disabled={currentPage === 1}
+                                            className="px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-xs font-bold text-gray-700 transition-colors shadow-2xs"
+                                        >
+                                            Previous
+                                        </button>
+                                        <span className="text-xs font-bold text-gray-700 px-2 font-mono">
+                                            {currentPage} / {totalPages}
+                                        </span>
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                                            disabled={currentPage === totalPages}
+                                            className="px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-xs font-bold text-gray-700 transition-colors shadow-2xs"
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
                         </div>
                     </div>
 
-                    {/* MOBILE APP-LIKE CARD VIEW */}
-                    <div className="md:hidden flex flex-col divide-y divide-gray-100 bg-white sm:rounded-lg border-y sm:border border-gray-200 shadow-sm">
-                        {loading ? (
-                            Array.from({ length: 4 }).map((_, index) => (
-                                <div key={`mob-skel-${index}`} className="p-4 flex flex-col gap-3 animate-pulse">
-                                    <div className="flex items-center gap-4 border-b border-gray-50 pb-3">
-                                        <div className="w-12 h-12 rounded-full bg-gray-200 shrink-0"></div>
-                                        <div className="flex-1 flex flex-col gap-2">
-                                            <div className="h-5 bg-gray-200 rounded w-3/4"></div>
-                                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))
-                        ) : paginatedUsers.length === 0 ? (
-                            <div className="p-10 text-center text-gray-500 font-bold text-sm">
-                                No staff found. Adjust filters to see results.
-                            </div>
-                        ) : (
-                            paginatedUsers.map((u) => {
-                                return (
-                                    <div key={u.id} className="p-4 flex flex-col gap-3 active:bg-gray-50 transition-colors">
-                                        <div className="flex items-start gap-4 border-b border-gray-100 pb-3">
-                                            {u.avatar_path ? (
-                                                <img src={getAvatarUrl(u.avatar_path)} alt={u.name} className="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm shrink-0" />
-                                            ) : (
-                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-xl border border-[#CBD7E6] shrink-0 uppercase shadow-sm">
-                                                    {u.name.charAt(0)}
-                                                </div>
-                                            )}
-
-                                            <div className="flex-1 flex flex-col justify-center">
-                                                <div className="flex justify-between items-start">
-                                                    <div className="flex flex-col">
-                                                        <h3 className="font-bold text-gray-900 text-lg leading-tight tracking-tight">{u.name}</h3>
-                                                        {u.account_number && <span className="text-[10px] text-gray-400 font-mono mt-0.5">Acc: {u.account_number}</span>}
-                                                    </div>
-                                                    <div className="flex flex-col items-end gap-1.5">
-                                                        <RoleBadge role={u.role} />
-                                                        <StatusBadge termsAcceptedAt={u.terms_accepted_at} isActive={u.is_active} />
-                                                    </div>
-                                                </div>
-                                                <p className="text-xs font-medium text-gray-500 mt-2">{u.email}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-2 pt-1">
-                                            <button onClick={() => openViewModal(u)} className="py-2 text-xs font-bold text-gray-700 bg-gray-50 rounded-lg border border-gray-200 shadow-sm active:scale-95 transition-transform">View Profile</button>
-                                            <button onClick={() => openEditModal(u)} className="py-2 text-xs font-bold text-[#1B3B6A] bg-[#EFF4F9] rounded-lg border border-[#CBD7E6] shadow-sm active:scale-95 transition-transform">Edit</button>
-                                            <button
-                                                onClick={() => handleToggleActive(u)}
-                                                disabled={auth.user.id === u.id}
-                                                className={`py-2 text-xs font-bold rounded-lg border shadow-sm active:scale-95 transition-transform disabled:opacity-40 disabled:scale-100 ${u.is_active === false
-                                                        ? 'text-green-700 bg-green-50 border-green-200'
-                                                        : 'text-amber-700 bg-amber-50 border-amber-200'
-                                                    }`}
-                                            >
-                                                {u.is_active === false ? 'Restore Access' : 'Revoke Access'}
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(u)}
-                                                disabled={auth.user.id === u.id}
-                                                className="py-2 text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded-lg shadow-sm active:scale-95 transition-transform disabled:opacity-40 disabled:scale-100"
-                                            >
-                                                Delete Staff
-                                            </button>
-                                        </div>
-                                    </div>
-                                )
-                            })
-                        )}
-                    </div>
-
-                    {/* SEAMLESS FRONTEND PAGINATION WITH SMART PAGE DISPLAY */}
-                    {!loading && totalPages > 1 && (() => {
-                        const getPageNumbers = () => {
-                            const pages = [];
-                            const delta = 1; // pages on each side of current page
-                            const left = Math.max(2, currentPage - delta);
-                            const right = Math.min(totalPages - 1, currentPage + delta);
-
-                            // Always add page 1
-                            pages.push(1);
-
-                            // Add ellipsis if there's a gap
-                            if (left > 2) pages.push('...');
-
-                            // Add pages around current
-                            for (let i = left; i <= right; i++) {
-                                if (i !== 1 && i !== totalPages) pages.push(i);
-                            }
-
-                            // Add ellipsis if there's a gap
-                            if (right < totalPages - 1) pages.push('...');
-
-                            // Always add last page if more than 1 page
-                            if (totalPages > 1) pages.push(totalPages);
-
-                            return pages;
-                        };
-
-                        return (
-                            <div className="py-4 flex flex-col sm:flex-row justify-between items-center gap-4 pb-10 sm:pb-4 w-full overflow-visible">
-                                <span className="text-xs text-gray-400 font-bold uppercase tracking-widest shrink-0">
-                                    Page <span className="text-gray-900">{currentPage}</span> of {totalPages}
-                                </span>
-
-                                <div className="w-full sm:w-auto overflow-x-auto hide-scrollbar pb-2 sm:pb-0">
-                                    <div className="flex gap-1.5 flex-nowrap w-max mx-auto sm:mx-0 px-1">
-                                        <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center">&laquo; Prev</button>
-                                        {getPageNumbers().map((num, idx) => (
-                                            num === '...' ? (
-                                                <span key={`ellipsis-${idx}`} className="px-2 py-2 min-h-9 text-gray-400 font-bold flex items-center">...</span>
-                                            ) : (
-                                                <button
-                                                    key={num}
-                                                    onClick={() => { setCurrentPage(num); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                                    className={`shrink-0 px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all flex items-center justify-center
-                                                        ${currentPage === num ? 'bg-[#1B3B6A] text-white border-[#1B3B6A] shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
-                                                >
-                                                    {num}
-                                                </button>
-                                            )
-                                        ))}
-                                        <button disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center">Next &raquo;</button>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })()}
                 </div>
             </div>
 
-            {/* DYNAMIC VIEW PROFILE MODAL */}
-            {viewUser && (
-                <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm sm:p-4 transition-opacity">
-                    <div className="absolute inset-0" onClick={() => setViewUser(null)}></div>
+            {/* ========================================================================= */}
+            {/* 3. SLIDE-OVER STAFF DETAILS DRAWER (PORTALED)                              */}
+            {/* ========================================================================= */}
+            {showDetails && selectedStaff && typeof document !== 'undefined' && createPortal(
+                <div className="fixed inset-0 z-[100] overflow-hidden">
+                    <div
+                        onClick={handleCloseDetails}
+                        className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+                    />
 
-                    <div className="relative bg-white w-full max-w-lg rounded-t-xl md:rounded-lg shadow-2xl overflow-hidden animate-slide-up sm:animate-fade-in-up flex flex-col max-h-[90vh]">
-
-                        {/* Modal Header */}
-                        <div className="px-6 py-5 border-b border-[#142E54] flex justify-between items-center bg-[#1B3B6A]">
-                            <div className="md:hidden absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/20 rounded"></div>
-                            <h2 className="text-xl font-black text-white tracking-tight mt-2 md:mt-0">Staff Profile</h2>
-                            <button onClick={() => setViewUser(null)} className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors mt-2 md:mt-0">
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
-                        </div>
-
-                        {/* Modal Body */}
-                        <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
-
-                            {/* Header / Identity Area */}
-                            <div className="flex items-center gap-5">
-                                {viewUser.avatar_path ? (
-                                    <img src={getAvatarUrl(viewUser.avatar_path)} alt={viewUser.name} className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-md shrink-0 ring-4 ring-[#EFF4F9]" />
-                                ) : (
-                                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-3xl border-2 border-white shadow-md ring-4 ring-[#EFF4F9] shrink-0 uppercase">
-                                        {viewUser.name.charAt(0)}
-                                    </div>
-                                )}
-                                <div className="flex-1">
-                                    <h3 className="font-black text-2xl text-gray-900 leading-tight">{viewUser.name}</h3>
-                                    <p className="text-sm font-medium text-gray-500 mb-1">{viewUser.email}</p>
-                                    <div className="flex items-center gap-2">
-                                        <RoleBadge role={viewUser.role} />
-                                        {viewUser.account_number && <span className="text-[10px] text-gray-400 font-mono bg-gray-100 px-2 py-1 rounded">ID: {viewUser.account_number}</span>}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Contact Information Area */}
-                            <div className="bg-gray-50 rounded-lg p-5 border border-gray-100">
-                                <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-1.5">
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                                    Contact & Location
-                                </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-xs text-gray-500 font-medium">Phone Number</p>
-                                        <p className="text-sm font-bold text-gray-900 mt-0.5">{viewUser.phone_number || <span className="text-gray-400 italic font-normal">Not provided</span>}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-500 font-medium">Street Address</p>
-                                        <p className="text-sm font-bold text-gray-900 mt-0.5">{viewUser.address || <span className="text-gray-400 italic font-normal">Not provided</span>}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-500 font-medium">City</p>
-                                        <p className="text-sm font-bold text-gray-900 mt-0.5">{viewUser.city || <span className="text-gray-400 italic font-normal">Not provided</span>}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-gray-500 font-medium">Province</p>
-                                        <p className="text-sm font-bold text-gray-900 mt-0.5">{viewUser.province || <span className="text-gray-400 italic font-normal">Not provided</span>}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* NEW: Legal & Compliance Area */}
-                            <div>
-                                <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-1.5">
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                                    Security & Compliance
-                                </h4>
-
-                                {viewUser.terms_accepted_at ? (
-                                    <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-4 flex items-start gap-3">
-                                        <div className="mt-0.5 bg-emerald-100 text-emerald-600 rounded-full p-1 shrink-0">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+                        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between border-l border-gray-200 animate-in slide-in-from-right duration-200">
+                            
+                            {/* Drawer Header */}
+                            <div className="p-6 bg-[#1B3B6A] text-white flex items-start justify-between shrink-0 shadow-md">
+                                <div className="flex items-center gap-3.5">
+                                    {selectedStaff.avatar_path ? (
+                                        <img src={getAvatarUrl(selectedStaff.avatar_path)} alt={selectedStaff.name} className="w-14 h-14 rounded-full object-cover border-2 border-white/30 shadow-md shrink-0" />
+                                    ) : (
+                                        <div className="w-14 h-14 rounded-full bg-white/10 text-white flex items-center justify-center font-black text-xl border-2 border-white/20 shrink-0 uppercase shadow-md">
+                                            {selectedStaff.name.charAt(0)}
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-emerald-900">Setup Complete</p>
-                                            <p className="text-xs text-emerald-700 mt-1 leading-relaxed">
-                                                This staff member has completed their profile setup and legally agreed to the store's Terms of Service and Privacy Policy.
-                                            </p>
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mt-2">
-                                                Accepted on: {new Date(viewUser.terms_accepted_at).toLocaleString(undefined, {
-                                                    weekday: 'short',
-                                                    year: 'numeric',
-                                                    month: 'long',
-                                                    day: 'numeric',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                })}
-                                            </p>
+                                    )}
+                                    <div>
+                                        <h2 className="text-lg font-black text-white leading-tight">{selectedStaff.name}</h2>
+                                        <p className="text-xs text-white/80 font-mono mt-0.5">
+                                            {selectedStaff.account_number ? `#${selectedStaff.account_number}` : `ID: #${selectedStaff.id}`}
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-white/20 text-white">
+                                                {selectedStaff.role === 'admin' ? 'Store Admin' : 'Cashier'}
+                                            </span>
+                                            {selectedStaff.is_active === false ? (
+                                                <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-500 text-white">
+                                                    Revoked
+                                                </span>
+                                            ) : selectedStaff.terms_accepted_at ? (
+                                                <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-white">
+                                                    Active
+                                                </span>
+                                            ) : (
+                                                <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-900">
+                                                    Pending Setup
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={handleCloseDetails}
+                                    className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors cursor-pointer"
+                                >
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
+
+                            {/* Drawer Body */}
+                            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6 bg-gray-50/50">
+
+                                {/* Live Shift Card if on duty */}
+                                {selectedStaff.active_shift ? (
+                                    <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-4 shadow-2xs">
+                                        <div className="flex items-center justify-between mb-2.5">
+                                            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
+                                                Currently on Active Shift
+                                            </span>
+                                            <span className="text-xs font-mono font-extrabold text-emerald-900">
+                                                Shift #{selectedStaff.active_shift.id}
+                                            </span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 text-xs">
+                                            <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
+                                                <div className="text-[10px] font-bold text-gray-500 uppercase">Workstation</div>
+                                                <div className="font-black text-gray-900 mt-0.5">{selectedStaff.active_shift.terminal?.name || 'Register 1'}</div>
+                                            </div>
+                                            <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
+                                                <div className="text-[10px] font-bold text-gray-500 uppercase">Opening Float</div>
+                                                <div className="font-black text-emerald-700 mt-0.5 font-mono">₱{formatCurrency(selectedStaff.active_shift.starting_cash)}</div>
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 flex items-start gap-3">
-                                        <div className="mt-0.5 bg-amber-100 text-amber-600 rounded-full p-1 shrink-0">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6v6m0-6h6H6" /></svg>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-amber-900">Pending Setup</p>
-                                            <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                                                This staff member has been invited but has not yet completed their profile or agreed to the store policies. They cannot access the system until this is complete.
-                                            </p>
-                                        </div>
+                                    <div className="bg-white border border-gray-200/80 rounded-2xl p-4 text-center shadow-2xs">
+                                        <span className="text-xs font-bold text-gray-500">Staff is currently off duty (No active shift)</span>
                                     </div>
                                 )}
+
+                                {/* Performance & Activity Stats */}
+                                <div>
+                                    <h4 className="text-[11px] font-black uppercase tracking-wider text-gray-500 mb-2.5">Staff POS Activity</h4>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="bg-white p-3.5 rounded-2xl border border-gray-200/80 shadow-2xs">
+                                            <div className="text-[10px] font-bold text-gray-400 uppercase">Total Shifts Worked</div>
+                                            <div className="text-xl font-black text-gray-900 font-mono mt-1">{selectedStaff.shifts_count || 0}</div>
+                                        </div>
+                                        <div className="bg-white p-3.5 rounded-2xl border border-gray-200/80 shadow-2xs">
+                                            <div className="text-[10px] font-bold text-gray-400 uppercase">Sales Completed</div>
+                                            <div className="text-xl font-black text-gray-900 font-mono mt-1">{selectedStaff.sales_count || 0}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+                                {/* Contact & Profile Details */}
+                                <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-2xs space-y-3">
+                                    <h4 className="text-[11px] font-black uppercase tracking-wider text-gray-500 mb-2">Account Profile Details</h4>
+                                    
+                                    <div className="text-xs">
+                                        <span className="text-gray-400 font-bold block text-[10px] uppercase">Email Address</span>
+                                        <span className="font-extrabold text-gray-800">{selectedStaff.email}</span>
+                                    </div>
+
+                                    <div className="text-xs">
+                                        <span className="text-gray-400 font-bold block text-[10px] uppercase">Phone Number</span>
+                                        <span className="font-extrabold text-gray-800">{selectedStaff.phone_number || 'Not provided'}</span>
+                                    </div>
+
+                                    <div className="text-xs">
+                                        <span className="text-gray-400 font-bold block text-[10px] uppercase">Assigned Address</span>
+                                        <span className="font-extrabold text-gray-800">
+                                            {[selectedStaff.address, selectedStaff.city, selectedStaff.province].filter(Boolean).join(', ') || 'No address logged'}
+                                        </span>
+                                    </div>
+
+                                    <div className="text-xs">
+                                        <span className="text-gray-400 font-bold block text-[10px] uppercase">Account Created</span>
+                                        <span className="font-extrabold text-gray-800 font-mono">
+                                            {selectedStaff.created_at ? new Date(selectedStaff.created_at).toLocaleDateString() : 'N/A'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            {/* Drawer Footer */}
+                            <div className="p-4 bg-white border-t border-gray-200 flex items-center gap-2 shrink-0">
+                                <button
+                                    onClick={() => { handleCloseDetails(); openEditModal(selectedStaff); }}
+                                    className="flex-1 py-2.5 bg-[#1B3B6A] hover:bg-[#142D52] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-white">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                                    </svg>
+                                    Edit Profile
+                                </button>
+
+                                {!selectedStaff.terms_accepted_at && (
+                                    <button
+                                        onClick={() => handleResendInvite(selectedStaff)}
+                                        className="px-3 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl font-bold text-xs transition-colors cursor-pointer"
+                                    >
+                                        Resend Invite
+                                    </button>
+                                )}
+
+                                <button
+                                    onClick={() => handleToggleActive(selectedStaff)}
+                                    className={`px-3 py-2.5 rounded-xl font-bold text-xs transition-colors cursor-pointer ${
+                                        selectedStaff.is_active !== false
+                                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                                            : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                                    }`}
+                                >
+                                    {selectedStaff.is_active !== false ? 'Revoke Access' : 'Restore'}
+                                </button>
                             </div>
 
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
-            {/* DYNAMIC EDIT/ADD MODAL */}
-            {showModal && (
-                <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm sm:p-4 transition-opacity">
-                    <div className="bg-white w-full h-full sm:h-auto sm:max-w-lg sm:rounded-2xl sm:shadow-2xl overflow-hidden flex flex-col sm:max-h-[90vh] animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
-
-                        {/* Header (Sticky on Mobile) */}
-                        <div className="bg-[#1B3B6A] border-b border-[#142E54] px-6 sm:px-10 py-5 sm:py-6 flex justify-between items-center shrink-0 sticky top-0 z-50">
+            {/* ========================================================================= */}
+            {/* 4. ADD / EDIT STAFF MODAL (PORTALED - MATCHING INVENTORY.JSX LABEL SIZES)   */}
+            {/* ========================================================================= */}
+            {showModal && typeof document !== 'undefined' && createPortal(
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
+                    <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden my-8">
+                        
+                        {/* Header */}
+                        <div className="px-6 py-4 bg-[#1B3B6A] text-white flex justify-between items-center">
                             <div>
-                                <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
-                                    {editMode ? 'Edit Staff Member' : 'Invite Staff Member'}
-                                </h2>
-                                <p className="text-[11px] sm:text-xs font-medium text-blue-200 mt-0.5 sm:mt-1">
-                                    {editMode ? 'Update their identity and contact details.' : 'They will receive a secure email to complete their setup.'}
+                                <h3 className="text-base font-black text-white">
+                                    {editMode ? 'Edit Staff Member' : 'Register New Staff Member'}
+                                </h3>
+                                <p className="text-xs text-white/70 font-medium mt-0.5">
+                                    {editMode ? 'Update employee identity, contact, and system role' : 'Create account & send secure 24-hour setup invite'}
                                 </p>
                             </div>
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="bg-white/10 hover:bg-white/20 p-2 sm:p-2.5 rounded-full text-white/70 hover:text-white transition-colors active:scale-95"
+                                className="p-1.5 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors cursor-pointer"
                             >
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
 
-                        {/* Scrollable Form Body */}
-                        <div className="flex-1 overflow-y-auto p-6 sm:p-10 custom-scrollbar">
-
-                            <form id="user-form" onSubmit={handleSubmit} className="space-y-10">
-
-                                {/* Left Column: Identity (Always Visible) */}
-                                <div className="space-y-5 sm:space-y-6">
-                                    <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
-                                        <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                                        System Identity
-                                    </h3>
-
-                                    {editMode && (
-                                        <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                            {data.avatar ? (
-                                                <img
-                                                    src={URL.createObjectURL(data.avatar)}
-                                                    alt="Avatar Preview"
-                                                    className="w-16 h-16 rounded-full object-cover border border-gray-200 shadow-sm"
-                                                />
-                                            ) : currentAvatarPath ? (
-                                                <img
-                                                    src={getAvatarUrl(currentAvatarPath)}
-                                                    alt="Current Avatar"
-                                                    className="w-16 h-16 rounded-full object-cover border border-gray-200 shadow-sm"
-                                                />
-                                            ) : (
-                                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-xl border border-[#CBD7E6] shrink-0 uppercase">
-                                                    {data.name ? data.name.charAt(0) : 'S'}
-                                                </div>
-                                            )}
-
-                                            <div className="flex-1">
-                                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 ml-0.5">Profile Picture</label>
-                                                <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={e => setData('avatar', e.target.files[0])}
-                                                    className="block w-full text-xs text-gray-500
-                                                        file:mr-4 file:py-2 file:px-4
-                                                        file:rounded-md file:border-0
-                                                        file:text-xs file:font-semibold
-                                                        file:bg-gray-100 file:text-gray-700
-                                                        hover:file:bg-gray-200
-                                                        file:cursor-pointer cursor-pointer"
-                                                />
-                                                {errors.avatar && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.avatar}</p>}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div>
-                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Full Name</label>
-                                        <input
-                                            type="text"
-                                            value={data.name}
-                                            onChange={e => setData('name', e.target.value)}
-                                            required
-                                            className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
-                                            placeholder="Juan Dela Cruz"
-                                        />
-                                        {errors.name && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.name}</p>}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Email Address</label>
-                                        <input
-                                            type="email"
-                                            value={data.email}
-                                            onChange={e => setData('email', e.target.value)}
-                                            required
-                                            className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
-                                            placeholder="staff@store.com"
-                                        />
-                                        {errors.email && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.email}</p>}
-                                        {editMode && (
-                                            <p className="text-[10px] text-[#1B3B6A] mt-2 leading-relaxed font-medium">
-                                                💡 If you change this email address, a 6-digit verification code will be sent to confirm the change.
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">System Role</label>
-                                        <select
-                                            value={data.role}
-                                            onChange={e => setData('role', e.target.value)}
-                                            className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm"
-                                        >
-                                            <option value="cashier">Cashier</option>
-                                            <option value="admin">Administrator</option>
-                                        </select>
-                                        {errors.role && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.role}</p>}
-                                    </div>
+                        {/* Form */}
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
+                            
+                            {/* Employee ID & Role */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5">
+                                        Account / Employee #
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={data.account_number}
+                                        disabled={editMode}
+                                        onChange={(e) => setData('account_number', e.target.value)}
+                                        className="w-full px-3.5 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-sm font-mono font-bold text-gray-700 disabled:opacity-75"
+                                        placeholder="10000001"
+                                    />
+                                    {errors.account_number && <div className="text-rose-500 text-xs mt-1">{errors.account_number}</div>}
                                 </div>
 
-                                {/* Personal Details Section - Only visible in Edit Mode */}
-                                {editMode && (
-                                    <div className="space-y-5 sm:space-y-6 animate-fade-in-up">
-                                        <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
-                                            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                            Contact Details
-                                        </h3>
+                                <div>
+                                    <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5">
+                                        System Role <span className="text-rose-500">*</span>
+                                    </label>
+                                    <select
+                                        value={data.role}
+                                        onChange={(e) => setData('role', e.target.value)}
+                                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10"
+                                    >
+                                        <option value="cashier">Cashier</option>
+                                        <option value="admin">Store Administrator</option>
+                                    </select>
+                                </div>
+                            </div>
 
-                                        <div>
-                                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Phone Number</label>
-                                            <input
-                                                type="tel"
-                                                value={data.phone_number}
-                                                onChange={handlePhoneChange}
-                                                maxLength="15"
-                                                className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
-                                                placeholder="09123456789"
-                                            />
-                                            {errors.phone_number && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.phone_number}</p>}
-                                        </div>
+                            {/* Full Name */}
+                            <div>
+                                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5">
+                                    Full Name <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10"
+                                    placeholder="e.g. Maria Santos"
+                                />
+                                {errors.name && <div className="text-rose-500 text-xs mt-1">{errors.name}</div>}
+                            </div>
 
-                                        <div>
-                                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Street Address</label>
-                                            <input
-                                                type="text"
-                                                value={data.address}
-                                                onChange={e => setData('address', e.target.value)}
-                                                className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
-                                                placeholder="House No. & Street"
-                                            />
-                                            {errors.address && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.address}</p>}
-                                        </div>
+                            {/* Email */}
+                            <div>
+                                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5">
+                                    Email Address <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="email"
+                                    required
+                                    value={data.email}
+                                    onChange={(e) => setData('email', e.target.value)}
+                                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10"
+                                    placeholder="employee@store.com"
+                                />
+                                {errors.email && <div className="text-rose-500 text-xs mt-1">{errors.email}</div>}
+                            </div>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                            <div>
-                                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">City / Municipality</label>
-                                                <input
-                                                    type="text"
-                                                    value={data.city}
-                                                    onChange={e => setData('city', e.target.value)}
-                                                    className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
-                                                    placeholder="City"
-                                                />
-                                                {errors.city && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.city}</p>}
-                                            </div>
-                                            <div>
-                                                <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">Province</label>
-                                                <input
-                                                    type="text"
-                                                    value={data.province}
-                                                    onChange={e => setData('province', e.target.value)}
-                                                    className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
-                                                    placeholder="Province"
-                                                />
-                                                {errors.province && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.province}</p>}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
+                            {/* Phone */}
+                            <div>
+                                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5">
+                                    Phone Number
+                                </label>
+                                <input
+                                    type="tel"
+                                    value={data.phone_number}
+                                    onChange={handlePhoneChange}
+                                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10"
+                                    placeholder="09171234567"
+                                />
+                            </div>
 
-                                {/* Security Section - Only visible in Edit Mode */}
-                                {editMode && (
-                                    <div className="space-y-5 sm:space-y-6 border-t border-gray-100 pt-6 animate-fade-in-up">
-                                        <h3 className="text-sm font-bold text-red-600 flex items-center gap-2 border-b border-red-100 pb-3">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                                            Security Override
-                                        </h3>
+                            {/* Address Details */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5">City</label>
+                                    <input
+                                        type="text"
+                                        value={data.city}
+                                        onChange={(e) => setData('city', e.target.value)}
+                                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A]"
+                                        placeholder="Manila"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5">Province</label>
+                                    <input
+                                        type="text"
+                                        value={data.province}
+                                        onChange={(e) => setData('province', e.target.value)}
+                                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A]"
+                                        placeholder="Metro Manila"
+                                    />
+                                </div>
+                            </div>
 
-                                        <div>
-                                            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5">New Password <span className="normal-case font-medium text-gray-400">(Optional)</span></label>
-                                            <input
-                                                type="password"
-                                                value={data.password}
-                                                onChange={e => setData('password', e.target.value)}
-                                                className="w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400"
-                                                placeholder="Leave blank to keep current password"
-                                            />
-                                            {errors.password && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide">{errors.password}</p>}
-                                            <p className="text-[10px] text-gray-500 mt-2 leading-relaxed">Tip: Leave blank to keep their current password. Set a new password only if needed.</p>
-                                        </div>
-                                    </div>
-                                )}
+                            {/* Optional Direct Password (for Edit Mode) */}
+                            {editMode && (
+                                <div className="pt-2 border-t border-gray-100">
+                                    <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5">
+                                        Reset Password <span className="text-gray-400 font-normal text-xs">(Leave blank to keep unchanged)</span>
+                                    </label>
+                                    <input
+                                        type="password"
+                                        value={data.password}
+                                        onChange={(e) => setData('password', e.target.value)}
+                                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A]"
+                                        placeholder="••••••••"
+                                        minLength={8}
+                                    />
+                                </div>
+                            )}
 
-                            </form>
-                        </div>
+                            {/* Avatar Upload */}
+                            {editMode && (
+                                <div className="pt-2 border-t border-gray-100">
+                                    <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5">
+                                        Profile Avatar
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => setData('avatar', e.target.files[0])}
+                                        className="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#1B3B6A]/10 file:text-[#1B3B6A] hover:file:bg-[#1B3B6A]/20 cursor-pointer bg-gray-50 border border-gray-200 rounded-xl p-1"
+                                    />
+                                </div>
+                            )}
 
-                        {/* Footer Actions (Sticky bottom on mobile) */}
-                        <div className="bg-white sm:bg-gray-50/80 px-6 sm:px-10 py-5 border-t border-gray-100 flex flex-col sm:flex-row justify-end gap-3 shrink-0">
-                            <button
-                                type="button"
-                                onClick={() => setShowModal(false)}
-                                className="order-2 sm:order-1 w-full sm:w-auto px-6 py-3.5 sm:py-3 text-gray-600 font-semibold bg-white border border-gray-300 hover:bg-gray-50 rounded-lg text-sm transition-all active:scale-[0.98]"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                form="user-form"
-                                disabled={processing || isSendingOtp || isSaving}
-                                className="order-1 sm:order-2 w-full sm:w-auto px-8 py-3.5 sm:py-3 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-semibold rounded-lg shadow-md shadow-[#1B3B6A]/20 text-sm transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
-                            >
-                                {processing || isSendingOtp || isSaving ? (
-                                    <>
-                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                        {isSaving ? 'Saving Changes...' : 'Processing...'}
-                                    </>
-                                ) : (editMode ? 'Save Changes' : 'Send Invite Link')}
-                            </button>
-                        </div>
+                            {/* Footer Actions */}
+                            <div className="pt-4 border-t border-gray-200 flex justify-end gap-2.5">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowModal(false)}
+                                    className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-sm transition-colors cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSaving || isSendingOtp || processing}
+                                    className="px-6 py-2.5 bg-[#1B3B6A] hover:bg-[#142D52] text-white rounded-xl font-black text-sm shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                >
+                                    {isSaving || isSendingOtp ? 'Saving...' : (editMode ? 'Save Changes' : 'Send Invite')}
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </AuthenticatedLayout>
     );

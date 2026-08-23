@@ -71,6 +71,7 @@ class PosController extends Controller
             $sale = Sale::create([
                 'invoice_number' => $invoiceNumber,
                 'cashier_id' => Auth::id(),
+                'terminal_id' => $request->terminal_id ?? null,
                 'total_amount' => 0,
                 'payment_method' => $request->payment_method,
                 'payment_reference' => $request->reference ?? null,

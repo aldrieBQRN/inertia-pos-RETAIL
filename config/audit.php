@@ -57,6 +57,12 @@ return [
         'payment.reject',
         'payment.refund',
 
+        // Product & Stock Management (Immediate Guaranteed Audit Trail)
+        'product.create',
+        'product.update',
+        'product.delete',
+        'product.stock_adjust',
+
         // Store Management
         'store.suspend',
         'store.reactivate',

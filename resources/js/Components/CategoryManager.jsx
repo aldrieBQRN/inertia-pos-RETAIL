@@ -12,7 +12,6 @@ import Swal from 'sweetalert2';
 export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
     const [categories, setCategories] = useState([]);
     const [newCategory, setNewCategory] = useState('');
-    const [newColor, setNewColor] = useState('#1B3B6A'); // Default Brand Navy
     const [loading, setLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(false);
 
@@ -36,7 +35,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
     };
 
     /**
-     * Handles the creation of a new product category with color.
+     * Handles the creation of a new product category.
      */
     const handleAdd = async (e) => {
         e.preventDefault();
@@ -46,13 +45,11 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
         try {
             setLoading(true);
             await axios.post('/api/categories', {
-                name: newCategory,
-                color: newColor
+                name: newCategory.trim()
             });
 
-            // Reset fields
+            // Reset field
             setNewCategory('');
-            setNewColor('#1B3B6A');
 
             fetchCategories();
             if (onUpdate) onUpdate(); // Triggers a refresh of the parent component's product data
@@ -124,7 +121,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
     };
 
     /**
-     * Initiates a rename and color update operation for an existing category via a custom HTML SweetAlert.
+     * Initiates a rename operation for an existing category via SweetAlert.
      */
     const handleEdit = async (category) => {
         if (!isAdmin) return; // Security check
@@ -132,17 +129,10 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
         const { value: formValues } = await Swal.fire({
             title: 'Edit Category',
             html: `
-                <div class="flex flex-col gap-4 text-left px-2 mt-4">
+                <div class="flex flex-col gap-3 text-left px-2 mt-4">
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Category Name</label>
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Category Name</label>
                         <input id="swal-input-name" class="swal2-input !m-0 !w-full" value="${category.name}" placeholder="Enter category name...">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Badge Color</label>
-                        <div class="flex items-center gap-3">
-                            <input id="swal-input-color" type="color" class="w-12 h-12 rounded cursor-pointer border-0 p-0" value="${category.color || '#1B3B6A'}">
-                            <span class="text-sm text-slate-500">Choose a color identifier</span>
-                        </div>
                     </div>
                 </div>
             `,
@@ -153,20 +143,18 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
             cancelButtonColor: '#64748B',
             preConfirm: () => {
                 const name = document.getElementById('swal-input-name').value;
-                const color = document.getElementById('swal-input-color').value;
                 if (!name.trim()) {
                     Swal.showValidationMessage('Category name cannot be empty');
                     return false;
                 }
-                return { name: name.trim(), color };
+                return { name: name.trim() };
             }
         });
 
         if (formValues) {
             try {
                 await axios.put(`/api/categories/${category.id}`, {
-                    name: formValues.name,
-                    color: formValues.color
+                    name: formValues.name
                 });
 
                 fetchCategories();
@@ -199,41 +187,51 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm animate-fade-in p-4">
-            <div className="bg-white w-full max-w-md rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm animate-in fade-in duration-300 p-4">
+            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-gray-200/80">
 
                 {/* Modal Header */}
-                <div className="bg-[#1B3B6A] px-4 py-3 sm:px-6 sm:py-4 border-b border-[#142E54] flex justify-between items-center shrink-0 text-white">
-                    <h3 className="text-lg font-black text-white">
-                        {isAdmin ? 'Manage Categories' : 'Category List'}
-                    </h3>
-                    <button onClick={onClose} className="text-gray-300 hover:text-white text-2xl font-bold transition-colors">
-                        &times;
+                <div className="bg-[#1B3B6A] px-6 py-5 border-b border-white/10 flex justify-between items-center shrink-0 text-white shadow-md">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="p-2 sm:p-2.5 bg-white/10 rounded-xl shrink-0 ring-1 ring-white/20">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-white">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
+                            </svg>
+                        </div>
+                        <div className="min-w-0">
+                            <h3 className="text-lg font-black text-white tracking-tight truncate">
+                                {isAdmin ? 'Manage Categories' : 'Category List'}
+                            </h3>
+                            <p className="text-xs text-white/80 font-medium truncate mt-0.5">
+                                Organize and manage product categories
+                            </p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={onClose} 
+                        className="bg-white/10 hover:bg-white/20 p-2 sm:p-2.5 rounded-full text-white transition-colors active:scale-95 shrink-0 ml-2 ring-1 ring-white/20"
+                        title="Close Modal"
+                    >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
 
                 <div className="p-4 sm:p-6 flex-1 overflow-y-auto">
                     {/* Inline Add Category Form - ONLY VISIBLE TO ADMINS */}
                     {isAdmin && (
-                        <form onSubmit={handleAdd} className="flex gap-2 mb-6 bg-slate-50 p-3 rounded-md border border-slate-200">
-                            <input
-                                type="color"
-                                title="Pick a category color"
-                                className="w-10 h-10 rounded-md cursor-pointer border-0 shrink-0 bg-transparent p-0"
-                                value={newColor}
-                                onChange={(e) => setNewColor(e.target.value)}
-                            />
+                        <form onSubmit={handleAdd} className="flex gap-2 mb-6 bg-slate-50 p-2.5 sm:p-3 rounded-xl border border-slate-200">
                             <input
                                 type="text"
-                                className="flex-1 border-slate-300 rounded-md focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] text-sm py-2 text-slate-900"
+                                className="flex-1 border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] text-sm py-2 text-slate-900 bg-white"
                                 placeholder="New Category Name..."
                                 value={newCategory}
                                 onChange={(e) => setNewCategory(e.target.value)}
                             />
                             <button
                                 type="submit"
-                                disabled={loading}
-                                className="bg-[#1B3B6A] text-white px-4 py-2 rounded-md font-bold hover:bg-[#142e54] disabled:opacity-50 text-sm whitespace-nowrap shadow-sm transition-colors"
+                                disabled={loading || !newCategory.trim()}
+                                className="bg-[#1B3B6A] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#142e54] disabled:opacity-50 text-sm whitespace-nowrap shadow-sm transition-colors active:scale-95"
                             >
                                 Add
                             </button>
@@ -245,11 +243,8 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
                         {isFetching ? (
                             // Loading Skeletons
                             Array.from({ length: 4 }).map((_, i) => (
-                                <div key={i} className="flex justify-between items-center p-3 bg-white rounded-md border border-slate-200 animate-pulse">
-                                    <div className="flex items-center gap-3 w-2/3">
-                                        <div className="w-4 h-4 rounded-full bg-slate-200 shrink-0"></div>
-                                        <div className="h-4 bg-slate-200 rounded w-2/3"></div>
-                                    </div>
+                                <div key={i} className="flex justify-between items-center p-3 bg-white rounded-xl border border-slate-200 animate-pulse">
+                                    <div className="h-4 bg-slate-200 rounded w-1/2"></div>
                                     {isAdmin && (
                                         <div className="flex gap-2.5 shrink-0">
                                             <div className="w-5 h-5 bg-slate-200 rounded"></div>
@@ -261,14 +256,10 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
                         ) : (
                             <>
                                 {categories.map(cat => (
-                                    <div key={cat.id} className="flex justify-between items-center p-3 bg-white rounded-md border border-slate-200 hover:border-[#1B3B6A] hover:bg-slate-50 transition-all">
+                                    <div key={cat.id} className="flex justify-between items-center p-3 bg-white rounded-xl border border-slate-200 hover:border-[#1B3B6A] hover:bg-slate-50 transition-all">
 
-                                        {/* COLOR BADGE AND NAME */}
-                                        <div className="flex items-center gap-3 overflow-hidden">
-                                            <div
-                                                className="w-4 h-4 rounded-full shrink-0 border border-black/10 shadow-sm"
-                                                style={{ backgroundColor: cat.color || '#1B3B6A' }}
-                                            ></div>
+                                        {/* CATEGORY NAME */}
+                                        <div className="flex items-center gap-2.5 overflow-hidden">
                                             <span className="font-extrabold text-slate-900 truncate text-sm" title={cat.name}>
                                                 {cat.name}
                                             </span>
@@ -279,7 +270,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
                                             <div className="flex gap-1 shrink-0">
                                                 <button
                                                     onClick={() => handleEdit(cat)}
-                                                    className="text-slate-400 hover:text-[#1B3B6A] hover:bg-slate-100 p-2 rounded-md transition-colors"
+                                                    className="text-slate-400 hover:text-[#1B3B6A] hover:bg-slate-100 p-2 rounded-lg transition-colors"
                                                     title="Edit Category"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -288,7 +279,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(cat.id)}
-                                                    className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 p-2 rounded-md transition-colors"
+                                                    className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 p-2 rounded-lg transition-colors"
                                                     title="Delete Category"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">

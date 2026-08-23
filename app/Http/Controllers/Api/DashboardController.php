@@ -4,18 +4,21 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Sale;
+use App\Models\SaleItem;
 use App\Models\Product;
+use App\Models\Shift;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Handles dashboard analytics and data visualization for the POS system.
+ * Handles real-time dashboard analytics and executive business monitoring.
  */
 class DashboardController extends Controller
 {
     /**
-     * DASHBOARD: Fast, lightweight data locked to "Today" and recent trends.
+     * DASHBOARD: Real-time, at-a-glance store monitoring.
      */
     public function index(Request $request)
     {
@@ -24,14 +27,15 @@ class DashboardController extends Controller
         $today = Carbon::today();
         $endOfToday = Carbon::today()->endOfDay();
         $yesterday = Carbon::yesterday();
+        $endOfYesterday = Carbon::yesterday()->endOfDay();
 
-        // KPI Cards (Today)
-        $todaySales = Sale::where('store_id', $storeId)->where('status', '!=', 'void')->whereBetween('created_at', [$today, $endOfToday])->sum('total_amount');
-        $todayOrders = Sale::where('store_id', $storeId)->where('status', '!=', 'void')->whereBetween('created_at', [$today, $endOfToday])->count();
-        $averageOrderValue = $todayOrders > 0 ? $todaySales / $todayOrders : 0;
+        // 1. KPI Cards (Today vs Yesterday)
+        $todaySales = (int) Sale::where('store_id', $storeId)->where('status', '!=', 'void')->whereBetween('created_at', [$today, $endOfToday])->sum('total_amount');
+        $todayOrders = (int) Sale::where('store_id', $storeId)->where('status', '!=', 'void')->whereBetween('created_at', [$today, $endOfToday])->count();
+        $averageOrderValue = $todayOrders > 0 ? (int) ($todaySales / $todayOrders) : 0;
 
-        // Today's Profit: actual sold price minus cost price, including custom items (cost_price = 0), minus discounts
-        $todayItemProfit = DB::table('sale_items')
+        // Today's Profit: sold price minus cost price minus discounts
+        $todayItemProfit = (int) DB::table('sale_items')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.store_id', $storeId)
@@ -39,39 +43,39 @@ class DashboardController extends Controller
             ->whereBetween('sales.created_at', [$today, $endOfToday])
             ->sum(DB::raw('(sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity'));
 
-        $todayDiscounts = Sale::where('store_id', $storeId)
+        $todayDiscounts = (int) Sale::where('store_id', $storeId)
             ->where('status', '!=', 'void')
             ->whereBetween('created_at', [$today, $endOfToday])
             ->sum('discount_amount');
 
         $todayProfit = $todayItemProfit - $todayDiscounts;
+        $profitMargin = $todaySales > 0 ? round(($todayProfit / $todaySales) * 100, 1) : 0.0;
 
         // Yesterday's stats for growth calculations
-        $yesterdaySales = Sale::where('store_id', $storeId)->where('status', '!=', 'void')->whereDate('created_at', $yesterday)->sum('total_amount');
-        $yesterdayOrders = Sale::where('store_id', $storeId)->where('status', '!=', 'void')->whereDate('created_at', $yesterday)->count();
-        $yesterdayAverageOrderValue = $yesterdayOrders > 0 ? $yesterdaySales / $yesterdayOrders : 0;
+        $yesterdaySales = (int) Sale::where('store_id', $storeId)->where('status', '!=', 'void')->whereBetween('created_at', [$yesterday, $endOfYesterday])->sum('total_amount');
+        $yesterdayOrders = (int) Sale::where('store_id', $storeId)->where('status', '!=', 'void')->whereBetween('created_at', [$yesterday, $endOfYesterday])->count();
+        $yesterdayAverageOrderValue = $yesterdayOrders > 0 ? (int) ($yesterdaySales / $yesterdayOrders) : 0;
 
-        $yesterdayItemProfit = DB::table('sale_items')
+        $yesterdayItemProfit = (int) DB::table('sale_items')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.store_id', $storeId)
             ->where('sales.status', '!=', 'void')
-            ->whereDate('sales.created_at', $yesterday)
+            ->whereBetween('sales.created_at', [$yesterday, $endOfYesterday])
             ->sum(DB::raw('(sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity'));
 
-        $yesterdayDiscounts = Sale::where('store_id', $storeId)
+        $yesterdayDiscounts = (int) Sale::where('store_id', $storeId)
             ->where('status', '!=', 'void')
-            ->whereDate('created_at', $yesterday)
+            ->whereBetween('created_at', [$yesterday, $endOfYesterday])
             ->sum('discount_amount');
 
         $yesterdayProfit = $yesterdayItemProfit - $yesterdayDiscounts;
 
-        // Growth Helpers
         $calculateGrowth = function ($current, $previous) {
             if ($previous > 0) {
-                return (($current - $previous) / $previous) * 100;
+                return round((($current - $previous) / $previous) * 100, 1);
             } elseif ($previous < 0) {
-                return (($current - $previous) / abs($previous)) * 100;
+                return round((($current - $previous) / abs($previous)) * 100, 1);
             } else {
                 return $current > 0 ? 100.0 : ($current < 0 ? -100.0 : 0.0);
             }
@@ -82,278 +86,331 @@ class DashboardController extends Controller
         $ordersGrowth = $calculateGrowth($todayOrders, $yesterdayOrders);
         $aovGrowth = $calculateGrowth($averageOrderValue, $yesterdayAverageOrderValue);
 
-        // Low Stock
-        $lowStock = Product::where('store_id', $storeId)->where('is_active', true)->where('stock_quantity', '<', 10)->limit(5)->get();
-
-        // 7-Day Trend Chart
-        $trendStart = Carbon::now()->subDays(6)->startOfDay();
-        $rawChartData = Sale::select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(total_amount) as total'))
-            ->where('store_id', $storeId)
-            ->where('status', '!=', 'void')
-            ->whereBetween('created_at', [$trendStart, $endOfToday])
-            ->groupBy('date')->orderBy('date', 'ASC')->get()->keyBy('date');
-
-        $rawProfitData = DB::table('sale_items')
-            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-            ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
-            ->where('sales.store_id', $storeId)
-            ->where('sales.status', '!=', 'void')
-            ->whereBetween('sales.created_at', [$trendStart, $endOfToday])
-            ->select(DB::raw('DATE(sales.created_at) as date'), DB::raw('SUM((sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity) as item_profit'))
-            ->groupBy('date')
-            ->get()
-            ->keyBy('date');
-
-        $rawDiscountData = Sale::select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(discount_amount) as discount'))
-            ->where('store_id', $storeId)
-            ->where('status', '!=', 'void')
-            ->whereBetween('created_at', [$trendStart, $endOfToday])
-            ->groupBy('date')
-            ->get()
-            ->keyBy('date');
-
+        // 2. Sales Performance Chart (Period-aware)
+        $periodType = $request->get('period', 'today_hourly');
         $chartData = [];
-        $period = \Carbon\CarbonPeriod::create($trendStart, $endOfToday);
-        foreach ($period as $date) {
-            $dateKey = $date->format('Y-m-d');
-            $itemProfit = isset($rawProfitData[$dateKey]) ? $rawProfitData[$dateKey]->item_profit : 0;
-            $discount = isset($rawDiscountData[$dateKey]) ? $rawDiscountData[$dateKey]->discount : 0;
-            $chartData[] = [
-                'date' => $date->format('M d'),
-                'sales' => isset($rawChartData[$dateKey]) ? $rawChartData[$dateKey]->total / 100 : 0,
-                'profit' => ($itemProfit - $discount) / 100
+
+        if ($periodType === 'today_hourly') {
+            // Today hourly (12 AM - 11 PM)
+            $hourlySales = Sale::select(
+                DB::raw('HOUR(created_at) as hour'),
+                DB::raw('SUM(total_amount) as total_sales'),
+                DB::raw('COUNT(*) as orders_count')
+            )
+                ->where('store_id', $storeId)
+                ->where('status', '!=', 'void')
+                ->whereBetween('created_at', [$today, $endOfToday])
+                ->groupBy('hour')
+                ->get()
+                ->keyBy('hour');
+
+            $hourlyProfits = DB::table('sale_items')
+                ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+                ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
+                ->where('sales.store_id', $storeId)
+                ->where('sales.status', '!=', 'void')
+                ->whereBetween('sales.created_at', [$today, $endOfToday])
+                ->select(
+                    DB::raw('HOUR(sales.created_at) as hour'),
+                    DB::raw('SUM((sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity) as item_profit')
+                )
+                ->groupBy('hour')
+                ->get()
+                ->keyBy('hour');
+
+            for ($h = 0; $h < 24; $h++) {
+                $label = Carbon::createFromTime($h, 0)->format('g A');
+                $salesCent = isset($hourlySales[$h]) ? (int) $hourlySales[$h]->total_sales : 0;
+                $profitCent = isset($hourlyProfits[$h]) ? (int) $hourlyProfits[$h]->item_profit : 0;
+                $orders = isset($hourlySales[$h]) ? (int) $hourlySales[$h]->orders_count : 0;
+
+                $chartData[] = [
+                    'label' => $label,
+                    'hour' => $h,
+                    'sales' => $salesCent / 100,
+                    'profit' => $profitCent / 100,
+                    'orders' => $orders
+                ];
+            }
+        } elseif ($periodType === 'last_7_days') {
+            $trendStart = Carbon::now()->subDays(6)->startOfDay();
+            $rawSales = Sale::select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('SUM(total_amount) as total_sales'),
+                DB::raw('COUNT(*) as orders_count')
+            )
+                ->where('store_id', $storeId)
+                ->where('status', '!=', 'void')
+                ->whereBetween('created_at', [$trendStart, $endOfToday])
+                ->groupBy('date')
+                ->get()
+                ->keyBy('date');
+
+            $rawProfits = DB::table('sale_items')
+                ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+                ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
+                ->where('sales.store_id', $storeId)
+                ->where('sales.status', '!=', 'void')
+                ->whereBetween('sales.created_at', [$trendStart, $endOfToday])
+                ->select(
+                    DB::raw('DATE(sales.created_at) as date'),
+                    DB::raw('SUM((sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity) as item_profit')
+                )
+                ->groupBy('date')
+                ->get()
+                ->keyBy('date');
+
+            $periodDates = \Carbon\CarbonPeriod::create($trendStart, $endOfToday);
+            foreach ($periodDates as $date) {
+                $dateKey = $date->format('Y-m-d');
+                $salesCent = isset($rawSales[$dateKey]) ? (int) $rawSales[$dateKey]->total_sales : 0;
+                $profitCent = isset($rawProfits[$dateKey]) ? (int) $rawProfits[$dateKey]->item_profit : 0;
+                $orders = isset($rawSales[$dateKey]) ? (int) $rawSales[$dateKey]->orders_count : 0;
+
+                $chartData[] = [
+                    'label' => $date->format('M d'),
+                    'sales' => $salesCent / 100,
+                    'profit' => $profitCent / 100,
+                    'orders' => $orders
+                ];
+            }
+        } elseif ($periodType === 'this_month') {
+            $monthStart = Carbon::now()->startOfMonth();
+            $rawSales = Sale::select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('SUM(total_amount) as total_sales'),
+                DB::raw('COUNT(*) as orders_count')
+            )
+                ->where('store_id', $storeId)
+                ->where('status', '!=', 'void')
+                ->whereBetween('created_at', [$monthStart, $endOfToday])
+                ->groupBy('date')
+                ->get()
+                ->keyBy('date');
+
+            $rawProfits = DB::table('sale_items')
+                ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+                ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
+                ->where('sales.store_id', $storeId)
+                ->where('sales.status', '!=', 'void')
+                ->whereBetween('sales.created_at', [$monthStart, $endOfToday])
+                ->select(
+                    DB::raw('DATE(sales.created_at) as date'),
+                    DB::raw('SUM((sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity) as item_profit')
+                )
+                ->groupBy('date')
+                ->get()
+                ->keyBy('date');
+
+            $periodDates = \Carbon\CarbonPeriod::create($monthStart, $endOfToday);
+            foreach ($periodDates as $date) {
+                $dateKey = $date->format('Y-m-d');
+                $salesCent = isset($rawSales[$dateKey]) ? (int) $rawSales[$dateKey]->total_sales : 0;
+                $profitCent = isset($rawProfits[$dateKey]) ? (int) $rawProfits[$dateKey]->item_profit : 0;
+                $orders = isset($rawSales[$dateKey]) ? (int) $rawSales[$dateKey]->orders_count : 0;
+
+                $chartData[] = [
+                    'label' => $date->format('M d'),
+                    'sales' => $salesCent / 100,
+                    'profit' => $profitCent / 100,
+                    'orders' => $orders
+                ];
+            }
+        }
+
+        // 3. Current Live Shift / Register Status
+        $activeShift = Shift::where('store_id', $storeId)
+            ->where('status', 'open')
+            ->with(['user', 'terminal', 'cashMovements.user'])
+            ->latest('start_time')
+            ->first();
+
+        $shiftData = null;
+        if ($activeShift) {
+            $shiftData = [
+                'id' => $activeShift->id,
+                'cashier_name' => $activeShift->user ? $activeShift->user->name : 'Unknown Cashier',
+                'cashier_role' => $activeShift->user ? $activeShift->user->role : 'cashier',
+                'terminal_name' => $activeShift->terminal ? $activeShift->terminal->name : 'POS Register',
+                'start_time' => $activeShift->start_time ? $activeShift->start_time->toISOString() : null,
+                'starting_cash' => (float) $activeShift->starting_cash,
+                'cash_sales' => (float) $activeShift->cash_sales,
+                'cash_in' => (float) $activeShift->cash_in,
+                'cash_out' => (float) $activeShift->cash_out,
+                'expenses' => (float) $activeShift->expenses,
+                'expected_cash' => (float) ($activeShift->starting_cash + $activeShift->cash_sales + $activeShift->cash_in - $activeShift->cash_out - $activeShift->expenses),
+                'movements_count' => $activeShift->cashMovements ? $activeShift->cashMovements->count() : 0,
             ];
         }
 
-        // Recent Sales
-        $recentSales = Sale::with(['items.product', 'cashier'])
+        // 4. Payment Method Summary (Today)
+        $paymentMethodsRaw = Sale::select('payment_method', DB::raw('SUM(total_amount) as total'), DB::raw('COUNT(*) as count'))
             ->where('store_id', $storeId)
-            ->latest()
-            ->limit(5)
+            ->where('status', '!=', 'void')
+            ->whereBetween('created_at', [$today, $endOfToday])
+            ->groupBy('payment_method')
             ->get();
 
-        return response()->json([
-            'today_sales' => $todaySales / 100,
-            'sales_growth' => $salesGrowth !== null ? round($salesGrowth, 1) : null,
-            'today_profit' => $todayProfit / 100,
-            'profit_growth' => $profitGrowth !== null ? round($profitGrowth, 1) : null,
-            'today_orders' => $todayOrders,
-            'orders_growth' => $ordersGrowth !== null ? round($ordersGrowth, 1) : null,
-            'average_order_value' => $averageOrderValue / 100,
-            'aov_growth' => $aovGrowth !== null ? round($aovGrowth, 1) : null,
-            'low_stock' => $lowStock,
-            'chart_data' => $chartData,
-            'recent_sales' => $recentSales,
-        ]);
-    }
-
-    /**
-     * REPORTS: Heavy data processing, custom date ranges, and deep analytics.
-     */
-    public function reports(Request $request)
-    {
-        $storeId = $request->user()->store_id;
-
-        // Default to Current Month if no dates provided
-        $startDate = $request->has('start_date') && $request->start_date
-            ? Carbon::parse($request->start_date)->startOfDay()
-            : Carbon::now()->startOfMonth();
-
-        $endDate = $request->has('end_date') && $request->end_date
-            ? Carbon::parse($request->end_date)->endOfDay()
-            : Carbon::now()->endOfDay();
-
-        // KPI Totals for Period
-        $totalSales = Sale::where('store_id', $storeId)->where('status', '!=', 'void')->whereBetween('created_at', [$startDate, $endDate])->sum('total_amount');
-        $totalOrders = Sale::where('store_id', $storeId)->where('status', '!=', 'void')->whereBetween('created_at', [$startDate, $endDate])->count();
-        $averageOrderValue = $totalOrders > 0 ? $totalSales / $totalOrders : 0;
-
-        // Period Profit: actual sold price minus cost price, including custom items (cost_price = 0), minus discounts
-        $totalItemProfit = DB::table('sale_items')
-            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-            ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
-            ->where('sales.store_id', $storeId)
-            ->where('sales.status', '!=', 'void')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->sum(DB::raw('(sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity'));
-
-        $totalDiscounts = Sale::where('store_id', $storeId)
-            ->where('status', '!=', 'void')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->sum('discount_amount');
-
-        $totalProfit = $totalItemProfit - $totalDiscounts;
-
-        // Period-over-Period Growth Calculations
-        $daysDiff = $startDate->diffInDays($endDate) + 1;
-        $prevStartDate = $startDate->copy()->subDays($daysDiff);
-        $prevEndDate = $endDate->copy()->subDays($daysDiff);
-
-        $prevSales = Sale::where('store_id', $storeId)->where('status', '!=', 'void')->whereBetween('created_at', [$prevStartDate, $prevEndDate])->sum('total_amount');
-        $prevOrders = Sale::where('store_id', $storeId)->where('status', '!=', 'void')->whereBetween('created_at', [$prevStartDate, $prevEndDate])->count();
-        $prevAverageOrderValue = $prevOrders > 0 ? $prevSales / $prevOrders : 0;
-
-        $prevItemProfit = DB::table('sale_items')
-            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-            ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
-            ->where('sales.store_id', $storeId)
-            ->where('sales.status', '!=', 'void')
-            ->whereBetween('sales.created_at', [$prevStartDate, $prevEndDate])
-            ->sum(DB::raw('(sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity'));
-
-        $prevDiscounts = Sale::where('store_id', $storeId)
-            ->where('status', '!=', 'void')
-            ->whereBetween('created_at', [$prevStartDate, $prevEndDate])
-            ->sum('discount_amount');
-
-        $prevProfit = $prevItemProfit - $prevDiscounts;
-
-        $calculateGrowth = function ($current, $previous) {
-            if ($previous > 0) {
-                return (($current - $previous) / $previous) * 100;
-            } elseif ($previous < 0) {
-                return (($current - $previous) / abs($previous)) * 100;
-            } else {
-                return null;
-            }
-        };
-
-        $salesGrowth = $calculateGrowth($totalSales, $prevSales);
-        $profitGrowth = $calculateGrowth($totalProfit, $prevProfit);
-        $ordersGrowth = $calculateGrowth($totalOrders, $prevOrders);
-        $aovGrowth = $calculateGrowth($averageOrderValue, $prevAverageOrderValue);
-
-
-
-        // Chart Trend
-        $rawChartData = Sale::select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(total_amount) as total'))
-            ->where('store_id', $storeId)
-            ->where('status', '!=', 'void')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->groupBy('date')->orderBy('date', 'ASC')->get()->keyBy('date');
-
-        $rawProfitData = DB::table('sale_items')
-            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-            ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
-            ->where('sales.store_id', $storeId)
-            ->where('sales.status', '!=', 'void')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->select(DB::raw('DATE(sales.created_at) as date'), DB::raw('SUM((sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity) as item_profit'))
-            ->groupBy('date')
-            ->get()
-            ->keyBy('date');
-
-        $rawDiscountData = Sale::select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(discount_amount) as discount'))
-            ->where('store_id', $storeId)
-            ->where('status', '!=', 'void')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->groupBy('date')
-            ->get()
-            ->keyBy('date');
-
-        $chartData = [];
-        $period = \Carbon\CarbonPeriod::create($startDate, $endDate);
-        foreach ($period as $date) {
-            $dateKey = $date->format('Y-m-d');
-            $itemProfit = isset($rawProfitData[$dateKey]) ? $rawProfitData[$dateKey]->item_profit : 0;
-            $discount = isset($rawDiscountData[$dateKey]) ? $rawDiscountData[$dateKey]->discount : 0;
-            $chartData[] = [
-                'date' => $date->format('M d'),
-                'sales' => isset($rawChartData[$dateKey]) ? $rawChartData[$dateKey]->total / 100 : 0,
-                'profit' => ($itemProfit - $discount) / 100
+        $paymentMethods = [];
+        $totalTenderedCents = $paymentMethodsRaw->sum('total');
+        foreach ($paymentMethodsRaw as $pm) {
+            $pmName = $pm->payment_method ?: 'cash';
+            $pmTotalCent = (int) $pm->total;
+            $percentage = $totalTenderedCents > 0 ? round(($pmTotalCent / $totalTenderedCents) * 100, 1) : 0;
+            $paymentMethods[] = [
+                'method' => $pmName,
+                'total' => $pmTotalCent / 100,
+                'count' => (int) $pm->count,
+                'percentage' => $percentage
             ];
         }
 
-        // Peak Hours
-        $peakHoursData = Sale::select(DB::raw('HOUR(created_at) as hour'), DB::raw('COUNT(*) as count'))
-            ->where('store_id', $storeId)
-            ->where('status', '!=', 'void')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->groupBy('hour')->orderBy('hour')->get()->map(function ($item) {
-                return ['hour' => Carbon::createFromTime($item->hour)->format('g A'), 'count' => $item->count];
+        // 5. Inventory Attention Center (Out-of-Stock & Critical Low Stock)
+        $outOfStockItems = Product::where('store_id', $storeId)
+            ->where('is_active', true)
+            ->where('stock_quantity', '<=', 0)
+            ->with('category')
+            ->orderBy('name')
+            ->limit(5)
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'sku' => $p->sku,
+                    'category_name' => $p->category ? $p->category->name : 'Uncategorized',
+                    'stock_quantity' => $p->stock_quantity,
+                    'price' => $p->price / 100,
+                    'status' => 'out_of_stock'
+                ];
             });
 
-        // Peak Days Analysis
-        $peakDaysRaw = Sale::select(
-            DB::raw('DAYOFWEEK(created_at) as day_index'),
-            DB::raw('DAYNAME(created_at) as day_name'),
-            DB::raw('COUNT(*) as count')
-        )
-            ->where('store_id', $storeId)
-            ->where('status', '!=', 'void')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->groupBy('day_index', 'day_name')
-            ->orderBy('day_index')
-            ->get();
+        $lowStockItems = Product::where('store_id', $storeId)
+            ->where('is_active', true)
+            ->where('stock_quantity', '>', 0)
+            ->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10)')
+            ->with('category')
+            ->orderBy('stock_quantity', 'asc')
+            ->limit(5)
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'sku' => $p->sku,
+                    'category_name' => $p->category ? $p->category->name : 'Uncategorized',
+                    'stock_quantity' => $p->stock_quantity,
+                    'price' => $p->price / 100,
+                    'status' => 'low_stock'
+                ];
+            });
 
-        $peakDaysData = $peakDaysRaw->map(function ($item) {
-            return ['day' => substr($item->day_name, 0, 3), 'count' => $item->count];
-        });
+        $totalOutOfStockCount = Product::where('store_id', $storeId)->where('is_active', true)->where('stock_quantity', '<=', 0)->count();
+        $totalLowStockCount = Product::where('store_id', $storeId)->where('is_active', true)->where('stock_quantity', '>', 0)->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10)')->count();
+        $totalActiveProducts = Product::where('store_id', $storeId)->where('is_active', true)->count();
 
-        // NEW: Peak Months Analysis
-        $peakMonthsRaw = Sale::select(
-            DB::raw('MONTH(created_at) as month_index'),
-            DB::raw('MONTHNAME(created_at) as month_name'),
-            DB::raw('COUNT(*) as count')
-        )
-            ->where('store_id', $storeId)
-            ->where('status', '!=', 'void')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->groupBy('month_index', 'month_name')
-            ->orderBy('month_index')
-            ->get();
-
-        $peakMonthsData = $peakMonthsRaw->map(function ($item) {
-            return ['month' => substr($item->month_name, 0, 3), 'count' => $item->count];
-        });
-
-        // Payment Methods
-        $paymentMethods = Sale::select('payment_method', DB::raw('count(*) as count'))
-            ->where('store_id', $storeId)
-            ->where('status', '!=', 'void')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->groupBy('payment_method')->get();
-
-        // Categories
-        $salesByCategory = DB::table('sale_items')
+        // 6. Top Selling Products (Today)
+        $topProducts = DB::table('sale_items')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
             ->where('sales.store_id', $storeId)
             ->where('sales.status', '!=', 'void')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->select('categories.name', DB::raw('SUM(sale_items.quantity) as value'))
-            ->groupBy('categories.name')->get()->map(function ($item) {
-                return ['name' => $item->name ?? 'Uncategorized', 'value' => (int) $item->value];
+            ->whereBetween('sales.created_at', [$today, $endOfToday])
+            ->select(
+                'products.id',
+                'products.name',
+                'products.sku',
+                'categories.name as category_name',
+                DB::raw('SUM(sale_items.quantity) as units_sold'),
+                DB::raw('SUM(sale_items.unit_price * sale_items.quantity) as total_revenue')
+            )
+            ->groupBy('products.id', 'products.name', 'products.sku', 'categories.name')
+            ->orderByDesc('units_sold')
+            ->limit(5)
+            ->get()
+            ->map(function ($tp) {
+                return [
+                    'id' => $tp->id,
+                    'name' => $tp->name,
+                    'sku' => $tp->sku,
+                    'category_name' => $tp->category_name ?? 'General',
+                    'units_sold' => (int) $tp->units_sold,
+                    'total_revenue' => ((int) $tp->total_revenue) / 100,
+                ];
             });
 
-        // Top Products
-        $topProducts = DB::table('sale_items')
-            ->join('products', 'sale_items.product_id', '=', 'products.id')
-            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-            ->where('sales.store_id', $storeId)
-            ->where('sales.status', '!=', 'void')
-            ->whereBetween('sales.created_at', [$startDate, $endDate])
-            ->select('products.name', DB::raw('sum(sale_items.quantity) as sold'))
-            ->groupBy('products.name')->orderByDesc('sold')->limit(5)->get();
+        // 7. Today's Recent Transactions
+        $recentTransactions = Sale::with(['items', 'cashier'])
+            ->where('store_id', $storeId)
+            ->whereBetween('created_at', [$today, $endOfToday])
+            ->latest('created_at')
+            ->limit(5)
+            ->get()
+            ->map(function ($s) {
+                return [
+                    'id' => $s->id,
+                    'invoice_number' => $s->invoice_number,
+                    'created_at' => $s->created_at->toISOString(),
+                    'time_formatted' => $s->created_at->format('g:i A'),
+                    'cashier_name' => $s->cashier ? $s->cashier->name : 'Cashier',
+                    'payment_method' => $s->payment_method ?: 'cash',
+                    'total_amount' => $s->total_amount / 100,
+                    'discount_amount' => $s->discount_amount / 100,
+                    'status' => $s->status,
+                    'items_count' => $s->items->sum('quantity')
+                ];
+            });
+
+        // 8. Recent System Activity Feed
+        $recentActivities = ActivityLog::where('store_id', $storeId)
+            ->with('user')
+            ->latest('created_at')
+            ->limit(5)
+            ->get()
+            ->map(function ($log) {
+                return [
+                    'id' => $log->id,
+                    'action' => $log->action,
+                    'category' => $log->category,
+                    'description' => $log->description,
+                    'user_name' => $log->user ? $log->user->name : 'System',
+                    'created_at' => $log->created_at->toISOString(),
+                    'time_ago' => $log->created_at->diffForHumans()
+                ];
+            });
 
         return response()->json([
-            'total_sales' => $totalSales / 100,
-            'total_profit' => $totalProfit / 100,
-            'total_orders' => $totalOrders,
-            'average_order_value' => $averageOrderValue / 100,
-            'sales_growth' => $salesGrowth !== null ? round($salesGrowth, 1) : null,
-            'profit_growth' => $profitGrowth !== null ? round($profitGrowth, 1) : null,
-            'orders_growth' => $ordersGrowth !== null ? round($ordersGrowth, 1) : null,
-            'aov_growth' => $aovGrowth !== null ? round($aovGrowth, 1) : null,
-
+            'kpi' => [
+                'today_sales' => $todaySales / 100,
+                'sales_growth' => $salesGrowth,
+                'today_profit' => $todayProfit / 100,
+                'profit_growth' => $profitGrowth,
+                'profit_margin' => $profitMargin,
+                'today_orders' => $todayOrders,
+                'orders_growth' => $ordersGrowth,
+                'average_order_value' => $averageOrderValue / 100,
+                'aov_growth' => $aovGrowth,
+            ],
             'chart_data' => $chartData,
-            'peak_hours' => $peakHoursData,
-            'peak_days' => $peakDaysData,
-            'peak_months' => $peakMonthsData, // Added to response
+            'period' => $periodType,
+            'active_shift' => $shiftData,
             'payment_methods' => $paymentMethods,
-            'sales_by_category' => $salesByCategory,
+            'inventory_alerts' => [
+                'out_of_stock' => $outOfStockItems,
+                'low_stock' => $lowStockItems,
+                'out_of_stock_count' => $totalOutOfStockCount,
+                'low_stock_count' => $totalLowStockCount,
+                'total_active' => $totalActiveProducts,
+            ],
             'top_products' => $topProducts,
+            'recent_transactions' => $recentTransactions,
+            'recent_activities' => $recentActivities,
+            'meta' => [
+                'store_name' => $request->user()->store ? $request->user()->store->name : 'POS Store',
+                'current_time' => Carbon::now()->toISOString(),
+                'formatted_time' => Carbon::now()->format('F j, Y · g:i A')
+            ]
         ]);
     }
 }

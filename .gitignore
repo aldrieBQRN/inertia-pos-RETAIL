@@ -50,3 +50,10 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Local Deployment Artifacts
+vendor.zip
+zip_vendor.php
+app.env
+env.txt
+

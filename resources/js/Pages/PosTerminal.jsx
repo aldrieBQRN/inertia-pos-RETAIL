@@ -5,12 +5,15 @@ import axios from 'axios';
 import useCartStore from '@/Stores/useCartStore';
 import usePrinterStore from '@/Stores/usePrinterStore';
 import CartSidebar from '@/Components/CartSidebar';
+import OpenShiftModal from '@/Components/OpenShiftModal';
+import CashMovementModal from '@/Components/CashMovementModal';
+import ShiftModal from '@/Components/ShiftModal';
 import Swal from 'sweetalert2';
 
 /**
  * PosTerminal Component
  */
-export default function PosTerminal({ auth, store_settings, settings }) {
+export default function PosTerminal({ auth, store_settings, settings, initial_shift_data, initial_terminals, initial_categories, initial_products }) {
     const { props } = usePage();
 
     // Combine all possible settings sources
@@ -24,9 +27,12 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
     const shortcutsEnabled = localStorage.getItem('pos_enable_shortcuts') !== 'false';
 
-    const [products, setProducts] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [products, setProducts] = useState(() => initial_products || props.initial_products || []);
+    const [categories, setCategories] = useState(() => initial_categories || props.initial_categories || []);
+    const [isLoading, setIsLoading] = useState(() => {
+        const prods = initial_products || props.initial_products;
+        return !prods || prods.length === 0;
+    });
 
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('all');
@@ -37,6 +43,25 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     const [heldOrders, setHeldOrders] = useState([]);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+
+    // Shift Lifecycle & Cash Movement States
+    const [shiftData, setShiftData] = useState(() => initial_shift_data || props.initial_shift_data || null);
+    const [showOpenShiftModal, setShowOpenShiftModal] = useState(false);
+    const [showCashMovementModal, setShowCashMovementModal] = useState(false);
+    const [showCloseShiftModal, setShowCloseShiftModal] = useState(false);
+
+    // Terminal / Register Workstation States
+    const [terminals, setTerminals] = useState(() => initial_terminals || props.initial_terminals || []);
+    const [currentTerminal, setCurrentTerminal] = useState(() => {
+        const termList = initial_terminals || props.initial_terminals || [];
+        const savedId = typeof window !== 'undefined' ? localStorage.getItem('pos_terminal_id') : null;
+        if (savedId && termList.length > 0) {
+            const found = termList.find(t => String(t.id) === String(savedId));
+            if (found) return found;
+        }
+        return termList.length > 0 ? termList[0] : null;
+    });
+    const [showTerminalSelectModal, setShowTerminalSelectModal] = useState(false);
 
     // Client revision state variables
     const [isWholesaleActive, setIsWholesaleActive] = useState(false);
@@ -51,6 +76,69 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     const [heldOrdersNavIndex, setHeldOrdersNavIndex] = useState(-1);
     const [showFKeys, setShowFKeys] = useState(true);
     const [productView, setProductView] = useState(() => localStorage.getItem('pos_product_view') || 'list');
+
+    const fetchTerminalsAndShift = async (targetTerminalId = null) => {
+        try {
+            const termRes = await axios.get('/api/terminals');
+            const termList = termRes.data || [];
+            setTerminals(termList);
+
+            let selectedTerm = null;
+            if (targetTerminalId) {
+                selectedTerm = termList.find(t => String(t.id) === String(targetTerminalId));
+            } else {
+                const savedId = localStorage.getItem('pos_terminal_id');
+                selectedTerm = termList.find(t => String(t.id) === String(savedId));
+                if (!selectedTerm && termList.length > 0) {
+                    selectedTerm = termList[0];
+                }
+            }
+
+            if (selectedTerm) {
+                localStorage.setItem('pos_terminal_id', selectedTerm.id);
+                setCurrentTerminal(selectedTerm);
+            }
+
+            const shiftRes = await axios.get('/api/shift/current', {
+                params: { terminal_id: selectedTerm?.id }
+            });
+            setShiftData(shiftRes.data);
+        } catch (e) {
+            console.error("Failed to fetch terminals and shift status:", e);
+        }
+    };
+
+    const fetchCurrentShift = async () => {
+        if (!currentTerminal) {
+            fetchTerminalsAndShift();
+            return;
+        }
+        try {
+            const res = await axios.get('/api/shift/current', {
+                params: { terminal_id: currentTerminal?.id }
+            });
+            setShiftData(res.data);
+        } catch (e) {
+            console.error("Failed to fetch shift status:", e);
+        }
+    };
+
+    const handleSelectTerminal = (term) => {
+        setCurrentTerminal(term);
+        localStorage.setItem('pos_terminal_id', term.id);
+        setShowTerminalSelectModal(false);
+        fetchTerminalsAndShift(term.id);
+    };
+
+    useEffect(() => {
+        fetchTerminalsAndShift();
+
+        const handleShiftRefresh = () => {
+            fetchCurrentShift();
+        };
+        window.addEventListener('shift-refresh', handleShiftRefresh);
+        return () => window.removeEventListener('shift-refresh', handleShiftRefresh);
+    }, []);
 
     useEffect(() => {
         localStorage.setItem('pos_show_results_only', showResultsOnly);
@@ -217,7 +305,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                     e.preventDefault();
                     setShowHeldOrdersModal(false);
                     setHeldOrdersNavIndex(-1);
-                } else if (e.key === 'Enter' || e.key === 'F7') {
+                } else if (e.key === 'Enter' || e.key === 'F8') {
                     e.preventDefault();
                     if (heldOrdersNavIndex !== -1 && heldOrdersNavIndex < heldOrders.length) {
                         handleRecallOrder(heldOrders[heldOrdersNavIndex]);
@@ -237,6 +325,19 @@ export default function PosTerminal({ auth, store_settings, settings }) {
             }
 
             if (e.key === 'F1') {
+                // Blur search input to prevent input character pollution and free arrow keys
+                if (searchInputRef.current) {
+                    searchInputRef.current.blur();
+                }
+                // Reset cart navigation selection
+                window.dispatchEvent(new CustomEvent('reset-cart-nav'));
+
+                setShowCategoryDropdown(prev => {
+                    const next = !prev;
+                    setCategoryNavIndex(-1);
+                    return next;
+                });
+            } else if (e.key === 'F2') {
                 // Close category dropdown
                 setShowCategoryDropdown(false);
                 setCategoryNavIndex(-1);
@@ -251,45 +352,32 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                         searchInputRef.current.select();
                     }
                 }
-            } else if (e.key === 'F2') {
-                setIsWholesaleActive(prev => !prev);
             } else if (e.key === 'F3') {
-                setShowResultsOnly(prev => {
-                    const next = !prev;
-                    localStorage.setItem('pos_show_results_only', next ? '1' : '0');
-                    return next;
-                });
+                setIsWholesaleActive(prev => !prev);
             } else if (e.key === 'F4') {
+                if (shiftData?.has_active_shift) {
+                    setShowCashMovementModal(true);
+                }
+            } else if (e.key === 'F5') {
+                if (shiftData?.has_active_shift) {
+                    setShowCloseShiftModal(true);
+                } else {
+                    setShowOpenShiftModal(true);
+                }
+            } else if (e.key === 'F6') {
                 setProductView(prev => {
                     const next = prev === 'list' ? 'card' : 'list';
                     localStorage.setItem('pos_product_view', next);
                     return next;
                 });
-            } else if (e.key === 'F5') {
-                // Blur search input to prevent input character pollution and free arrow keys
-                if (searchInputRef.current) {
-                    searchInputRef.current.blur();
-                }
-                // Reset cart navigation selection
-                window.dispatchEvent(new CustomEvent('reset-cart-nav'));
-
-                setShowCategoryDropdown(prev => {
-                    const next = !prev;
-                    if (next) {
-                        setCategoryNavIndex(0); // Focus "All Categories" initially
-                    } else {
-                        setCategoryNavIndex(-1);
-                    }
-                    return next;
-                });
-            } else if (e.key === 'F7') {
+            } else if (e.key === 'F8') {
                 fetchHeldOrders();
             }
         };
 
         window.addEventListener('keydown', handlePOSKeys);
         return () => window.removeEventListener('keydown', handlePOSKeys);
-    }, [showPaymentModal, showQtyModal, showHeldOrdersModal, showCategoryDropdown, categoryNavIndex, categories, heldOrders, heldOrdersNavIndex, shortcutsEnabled]);
+    }, [showPaymentModal, showQtyModal, showHeldOrdersModal, showCategoryDropdown, categoryNavIndex, categories, heldOrders, heldOrdersNavIndex, shortcutsEnabled, shiftData]);
 
     const cart = useCartStore((state) => state.cart);
     const addToCart = useCartStore((state) => state.addToCart);
@@ -300,7 +388,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
     const { total } = getComputations ? getComputations() : { total: 0 };
 
     const loadProductsAndCategories = async (showLoading = false) => {
-        if (showLoading) setIsLoading(true);
+        if (showLoading && products.length === 0) setIsLoading(true);
         try {
             const [prodRes, catRes] = await Promise.all([
                 axios.get('/api/products?all=true&active=true'),
@@ -311,12 +399,12 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         } catch (error) {
             console.error("Error loading products/categories:", error);
         } finally {
-            if (showLoading) setIsLoading(false);
+            setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        loadProductsAndCategories(true);
+        loadProductsAndCategories(false);
 
         const interval = setInterval(async () => {
             if (isPolling.current) return;
@@ -338,13 +426,28 @@ export default function PosTerminal({ auth, store_settings, settings }) {
         let result = [...products];
         if (selectedCategory !== 'all') {
             result = result.filter(p => p.category_id === selectedCategory);
-        } else {
-            result.sort((a, b) => (a.category?.name || 'z').localeCompare(b.category?.name || 'z'));
         }
         if (searchQuery) {
             const q = searchQuery.toLowerCase();
             result = result.filter(p => p.name.toLowerCase().includes(q) || p.sku?.toLowerCase().includes(q));
         }
+
+        // Deterministic, consistent sorting:
+        // Group alphabetically by category, then sort alphabetically by product name, tie-break by ID
+        result.sort((a, b) => {
+            if (selectedCategory === 'all' && !searchQuery) {
+                const catA = a.category?.name || 'zz';
+                const catB = b.category?.name || 'zz';
+                const catComp = catA.localeCompare(catB);
+                if (catComp !== 0) return catComp;
+            }
+            const nameA = a.name || '';
+            const nameB = b.name || '';
+            const nameComp = nameA.localeCompare(nameB);
+            if (nameComp !== 0) return nameComp;
+            return (a.id || 0) - (b.id || 0);
+        });
+
         return result;
     }, [products, selectedCategory, searchQuery, showResultsOnly]);
 
@@ -545,11 +648,15 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 <div className={`flex-1 md:w-1/2 flex-col min-w-0 h-full bg-white ${isMobileCartOpen ? 'flex fixed inset-0 z-50 bg-white' : 'hidden md:flex'}`}>
                     <CartSidebar
                         settings={activeSettings}
+                        shiftData={shiftData}
+                        onOpenShift={() => setShowOpenShiftModal(true)}
+                        onCloseShift={() => setShowCloseShiftModal(true)}
                         showPaymentModal={showPaymentModal}
                         setShowPaymentModal={setShowPaymentModal}
                         onPrintReceipt={handlePrintReceipt}
                         onRecallClick={fetchHeldOrders}
                         onEditItemQty={(item) => triggerQtyModal(item, true)}
+                        onCheckoutSuccess={() => fetchCurrentShift()}
                         onClose={isMobile ? () => setIsMobileCartOpen(false) : undefined}
                         disabled={isAnyModalOpen}
                         showFKeys={showFKeys}
@@ -558,10 +665,34 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                 </div>
 
                 {/* RIGHT PANEL: PRODUCT LISTING (50/50 splits) */}
-                <div className={`w-full md:w-1/2 md:flex-1 min-w-0 bg-white border-l border-gray-200 md:border-l-2 md:border-gray-300 flex-col h-full ${isMobileCartOpen ? 'hidden md:flex' : 'flex'}`}>
+                <div className={`w-full md:w-1/2 md:flex-1 min-w-0 bg-white border-l border-gray-200 flex-col h-full ${isMobileCartOpen ? 'hidden md:flex' : 'flex'}`}>
 
                     {/* COMPACT TOOLBAR */}
-                    <div className="p-2 md:p-3 bg-white border-b md:border-b-2 md:border-gray-300 flex flex-col gap-2 shadow-sm z-10 shrink-0">
+                    <div className="p-3 bg-white border-b border-gray-200 flex flex-col gap-2.5 shadow-2xs z-10 shrink-0">
+                        {/* Shift & Terminal Status Bar */}
+                        <div className="flex items-center justify-between px-1 py-0.5 text-xs">
+                            <div className="flex items-center gap-2 flex-wrap text-[11px]">
+                                <span className="font-extrabold text-slate-700 uppercase tracking-wider font-mono flex items-center gap-1">
+                                    <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0H3" /></svg>
+                                    {currentTerminal?.name || 'Register 1'}
+                                </span>
+
+                                <span className="text-slate-300">·</span>
+
+                                {shiftData?.has_active_shift ? (
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="font-semibold text-slate-700">Shift #{shiftData.shift.id} Active</span>
+                                        <span className="text-slate-300">·</span>
+                                        <span className="text-slate-600 font-mono">Float: ₱{Number(shiftData.starting_cash || 0).toFixed(2)}</span>
+                                        <span className="text-slate-300">·</span>
+                                        <span className="text-[#1B3B6A] font-bold font-mono">Drawer: ₱{Number(shiftData.running_expected_cash || 0).toFixed(2)}</span>
+                                    </div>
+                                ) : (
+                                    <span className="text-slate-500 font-medium">No Active Shift · Selling Blocked</span>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Row 1: Category & Search */}
                         <div className="flex gap-2 items-center w-full">
                             <div className="relative">
@@ -573,36 +704,53 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                         }
                                         window.dispatchEvent(new CustomEvent('reset-cart-nav'));
                                         setShowCategoryDropdown(!showCategoryDropdown);
-                                        setCategoryNavIndex(prev => prev === -1 ? 0 : -1);
+                                        setCategoryNavIndex(-1);
                                     }}
                                     disabled={isAnyModalOpen}
-                                    className={`px-3 h-[46px] rounded-md border border-slate-200 transition-all flex items-center gap-1.5 text-xs font-black uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed ${selectedCategory === 'all' ? 'bg-white text-slate-700 hover:bg-slate-50' : 'bg-slate-100 text-[#1B3B6A] border-slate-300'}`}
-                                    title={showFKeys ? "Category Filter (F5)" : "Category Filter"}
+                                    className={`px-3 h-[42px] rounded-xl border transition-all flex items-center gap-1.5 text-xs font-bold shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${selectedCategory === 'all' ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' : 'bg-[#EFF4F9] text-[#1B3B6A] border-[#CBD7E6] font-extrabold'}`}
+                                    title={showFKeys ? "Category Filter (F1)" : "Category Filter"}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" /></svg>
-                                    <span>{showFKeys ? "Category (F5)" : "Category"}</span>
+                                    <span>{showFKeys ? "Category (F1)" : "Category"}</span>
                                 </button>
                                 {showCategoryDropdown && (
                                     <>
                                         <div className="fixed inset-0 z-40" onClick={() => { setShowCategoryDropdown(false); setCategoryNavIndex(-1); }}></div>
-                                        <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-2xl border border-slate-200 z-50 py-1 animate-fade-in-up max-h-[60vh] overflow-y-auto custom-scrollbar">
+                                        <div className="absolute top-full left-0 mt-1.5 w-64 bg-white rounded-2xl shadow-xl border border-gray-200/90 z-50 py-1.5 animate-fade-in-up max-h-[60vh] overflow-y-auto custom-scrollbar">
                                             <button
                                                 onClick={() => {setSelectedCategory('all'); setShowCategoryDropdown(false); setCategoryNavIndex(-1); window.dispatchEvent(new CustomEvent('reset-cart-nav'));}}
-                                                className={`w-full text-left px-4 py-2.5 text-base font-bold transition-colors ${categoryNavIndex === 0 ? 'bg-[#1B3B6A] text-white' : selectedCategory === 'all' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'}`}
+                                                className={`w-full text-left px-4 py-2 text-xs font-bold transition-colors flex items-center justify-between ${
+                                                    categoryNavIndex === 0 || selectedCategory === 'all'
+                                                        ? 'bg-[#EFF4F9] text-[#1B3B6A]'
+                                                        : 'text-gray-700 hover:bg-gray-50'
+                                                }`}
                                             >
-                                                {showFKeys ? "All Categories (F5)" : "All Categories"}
+                                                <span>{showFKeys ? "All Categories (F1)" : "All Categories"}</span>
+                                                {selectedCategory === 'all' && (
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-[#1B3B6A]"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>
+                                                )}
                                             </button>
                                             {categories.map((c, idx) => {
                                                 const isHighlighted = categoryNavIndex === (idx + 1);
                                                 const isSelected = selectedCategory === c.id;
+                                                const isActive = isHighlighted || isSelected;
                                                 return (
                                                     <button
                                                         key={c.id}
                                                         onClick={() => {setSelectedCategory(c.id); setShowCategoryDropdown(false); setCategoryNavIndex(-1); window.dispatchEvent(new CustomEvent('reset-cart-nav'));}}
-                                                        className={`w-full text-left px-4 py-2.5 text-base font-bold flex items-center gap-3 transition-colors ${isHighlighted ? 'bg-[#1B3B6A] text-white' : 'hover:bg-slate-50'}`}
+                                                        className={`w-full text-left px-4 py-2 text-xs font-bold flex items-center justify-between transition-colors ${
+                                                            isActive
+                                                                ? 'bg-[#EFF4F9] text-[#1B3B6A]'
+                                                                : 'text-gray-700 hover:bg-gray-50'
+                                                        }`}
                                                     >
-                                                        <span className={`w-2.5 h-2.5 rounded-full ${isHighlighted ? 'bg-white' : ''}`} style={!isHighlighted ? {backgroundColor: c.color} : {}}></span>
-                                                        <span style={isHighlighted ? {color: '#fff'} : isSelected ? {color: '#1B3B6A'} : {}}>{c.name}</span>
+                                                        <div className="flex items-center gap-2.5 min-w-0">
+                                                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{backgroundColor: c.color}}></span>
+                                                            <span className={`truncate ${isActive ? 'text-[#1B3B6A] font-extrabold' : 'text-gray-700'}`}>{c.name}</span>
+                                                        </div>
+                                                        {isSelected && (
+                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-[#1B3B6A] shrink-0"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>
+                                                        )}
                                                     </button>
                                                 );
                                             })}
@@ -615,83 +763,116 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                 <input
                                     ref={searchInputRef}
                                     type="text"
-                                    placeholder={showFKeys ? "Search... (F1)" : "Search..."}
-                                    className="w-full pl-9 pr-3 py-2.5 rounded-md bg-white border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] transition-all outline-none text-base font-semibold disabled:bg-slate-100/50 disabled:cursor-not-allowed disabled:text-slate-400"
+                                    placeholder={showFKeys ? "Search or scan barcode... (F2)" : "Search or scan barcode..."}
+                                    className="w-full pl-9 pr-3 h-[42px] rounded-xl bg-white border border-gray-200 focus:bg-white focus:ring-2 focus:ring-[#1B3B6A]/20 focus:border-[#1B3B6A] transition-all outline-none text-xs font-semibold text-gray-900 placeholder:text-gray-400 shadow-2xs disabled:bg-gray-50 disabled:cursor-not-allowed"
                                     value={searchQuery}
                                     onChange={(e) => { setSearchQuery(e.target.value); window.dispatchEvent(new CustomEvent('reset-cart-nav')); }}
                                     onKeyDown={handleSearchKeyDown}
                                     disabled={isAnyModalOpen}
                                 />
-                                <svg className="w-5 h-5 text-slate-400 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                <svg className="w-4 h-4 text-gray-400 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                             </div>
                         </div>
 
-                        {/* Row 2: Wholesale Toggle, Results Only Toggle & View Toggle */}
-                        <div className="flex items-center justify-between w-full pt-1">
-                            <div className="flex items-center gap-4">
-                                <label className="flex items-center cursor-pointer select-none">
-                                    <div className="relative">
-                                        <input
-                                            type="checkbox"
-                                            checked={isWholesaleActive}
-                                            onChange={() => !isAnyModalOpen && setIsWholesaleActive(!isWholesaleActive)}
-                                            disabled={isAnyModalOpen}
-                                            className="sr-only"
-                                        />
-                                        <div className={`w-9 h-5 rounded-full transition-colors ${isWholesaleActive ? 'bg-[#1B3B6A]' : 'bg-slate-200'}`}></div>
-                                        <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${isWholesaleActive ? 'transform translate-x-4' : ''}`}></div>
-                                    </div>
-                                    <span className="ml-2 text-xs font-black uppercase tracking-wider text-slate-600 font-mono">{showFKeys ? "Wholesale Mode (F2)" : "Wholesale Mode"}</span>
-                                </label>
+                        {/* Row 2: Wholesale Toggle & Action/View Controls */}
+                        <div className="flex items-center justify-between w-full gap-2 flex-nowrap overflow-x-auto custom-scrollbar-none">
+                            <label className="flex items-center cursor-pointer select-none shrink-0 py-0.5">
+                                <div className="relative shrink-0 flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={isWholesaleActive}
+                                        onChange={() => !isAnyModalOpen && setIsWholesaleActive(!isWholesaleActive)}
+                                        disabled={isAnyModalOpen}
+                                        className="sr-only"
+                                    />
+                                    <div className={`rounded-full transition-colors ${isWholesaleActive ? 'bg-[#1B3B6A]' : 'bg-gray-300'} w-[32px] h-[18px] sm:w-[36px] sm:h-[20px]`}></div>
+                                    <div className={`absolute left-[2px] top-[2px] bg-white w-[14px] h-[14px] sm:w-[16px] sm:h-[16px] rounded-full transition-transform shadow-2xs ${isWholesaleActive ? 'transform translate-x-[14px] sm:translate-x-[16px]' : ''}`}></div>
+                                </div>
+                                <span className="ml-1.5 sm:ml-2 text-xs font-bold text-gray-700 whitespace-nowrap">
+                                    <span className="hidden xl:inline">{showFKeys ? "Wholesale (F3)" : "Wholesale"}</span>
+                                    <span className="xl:hidden">Wholesale</span>
+                                </span>
+                            </label>
 
-                                <label className="flex items-center cursor-pointer select-none">
-                                    <div className="relative">
-                                        <input
-                                            type="checkbox"
-                                            checked={showResultsOnly}
-                                            onChange={() => !isAnyModalOpen && setShowResultsOnly(!showResultsOnly)}
-                                            disabled={isAnyModalOpen}
-                                            className="sr-only"
-                                        />
-                                        <div className={`w-9 h-5 rounded-full transition-colors ${showResultsOnly ? 'bg-[#1B3B6A]' : 'bg-slate-200'}`}></div>
-                                        <div className={`absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${showResultsOnly ? 'transform translate-x-4' : ''}`}></div>
-                                    </div>
-                                    <span className="ml-2 text-xs font-black uppercase tracking-wider text-slate-600 font-mono">{showFKeys ? "Results Only (F3)" : "Results Only"}</span>
-                                </label>
-                            </div>
+                            {/* Spaced Action Buttons & View Switch */}
+                            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-nowrap">
+                                {/* Cash In/Out (F4) */}
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCashMovementModal(true)}
+                                    disabled={isAnyModalOpen || !shiftData?.has_active_shift}
+                                    className={`flex items-center gap-1.5 px-2.5 xl:px-3 h-[34px] rounded-xl border border-gray-200 bg-white text-gray-700 font-bold text-xs transition-all shadow-2xs shrink-0 whitespace-nowrap active:scale-95 ${
+                                        !shiftData?.has_active_shift
+                                            ? 'opacity-40 cursor-not-allowed'
+                                            : 'hover:bg-gray-50 hover:border-gray-300 cursor-pointer'
+                                    }`}
+                                    title={!shiftData?.has_active_shift ? "Shift is closed (Open shift first)" : showFKeys ? "Cash In / Cash Out (F4)" : "Cash In / Cash Out"}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 text-gray-500 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
+                                    <span className="hidden xl:inline">{showFKeys ? "Cash In/Out (F4)" : "Cash"}</span>
+                                </button>
 
-                            {/* Card / List View Toggle */}
-                            <div className="flex items-center rounded-md border border-slate-200 overflow-hidden shadow-sm" title={showFKeys ? "Toggle View (F4)" : "Toggle View"}>
-                                <button
-                                    onClick={() => { setProductView('list'); localStorage.setItem('pos_product_view', 'list'); }}
-                                    disabled={isAnyModalOpen}
-                                    className={`flex items-center gap-1.5 px-2.5 h-[34px] text-xs font-black uppercase tracking-wider transition-all disabled:cursor-not-allowed
-                                        ${productView === 'list' ? 'bg-[#1B3B6A] text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
-                                    title="List View"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" /></svg>
-                                    <span className="hidden lg:inline">{showFKeys ? 'List (F4)' : 'List'}</span>
-                                </button>
-                                <button
-                                    onClick={() => { setProductView('card'); localStorage.setItem('pos_product_view', 'card'); }}
-                                    disabled={isAnyModalOpen}
-                                    className={`flex items-center gap-1.5 px-2.5 h-[34px] text-xs font-black uppercase tracking-wider transition-all disabled:cursor-not-allowed border-l border-slate-200
-                                        ${productView === 'card' ? 'bg-[#1B3B6A] text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
-                                    title="Card View"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
-                                    <span className="hidden lg:inline">Card</span>
-                                </button>
+                                {/* Close / Open Shift (F5) */}
+                                {shiftData?.has_active_shift ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCloseShiftModal(true)}
+                                        disabled={isAnyModalOpen}
+                                        className="flex items-center gap-1.5 px-2.5 xl:px-3 h-[34px] rounded-xl border border-[#CBD7E6] bg-[#EFF4F9] hover:bg-[#E2ECF6] text-[#1B3B6A] font-bold text-xs transition-all shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 whitespace-nowrap"
+                                        title={showFKeys ? "Close Shift & Z-Read (F5)" : "Close Shift"}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 text-[#1B3B6A] shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+                                        <span className="hidden xl:inline">{showFKeys ? "Close Shift (F5)" : "Close Shift"}</span>
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowOpenShiftModal(true)}
+                                        disabled={isAnyModalOpen}
+                                        className="flex items-center gap-1.5 px-2.5 xl:px-3 h-[34px] rounded-xl border border-[#CBD7E6] bg-[#EFF4F9] hover:bg-[#E2ECF6] text-[#1B3B6A] font-bold text-xs transition-all shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 whitespace-nowrap"
+                                        title={showFKeys ? "Open Shift (F5)" : "Open Shift"}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 text-[#1B3B6A] shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+                                        <span className="hidden xl:inline">{showFKeys ? "Open Shift (F5)" : "Open Shift"}</span>
+                                    </button>
+                                )}
+
+                                {/* List / Card View Toggle Group (F6) */}
+                                <div className="flex items-center rounded-xl border border-gray-200 overflow-hidden shadow-2xs bg-gray-100 p-0.5 shrink-0">
+                                    <button
+                                        onClick={() => { setProductView('list'); localStorage.setItem('pos_product_view', 'list'); }}
+                                        disabled={isAnyModalOpen}
+                                        className={`flex items-center gap-1 px-2.5 h-[26px] rounded-lg text-xs font-bold transition-all disabled:cursor-not-allowed cursor-pointer shrink-0 whitespace-nowrap ${
+                                            productView === 'list' ? 'bg-[#1B3B6A] text-white shadow-2xs' : 'text-gray-600 hover:bg-white/80'
+                                        }`}
+                                        title={showFKeys ? "List View (F6)" : "List View"}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" /></svg>
+                                        <span className="hidden xl:inline">{showFKeys ? 'List (F6)' : 'List'}</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => { setProductView('card'); localStorage.setItem('pos_product_view', 'card'); }}
+                                        disabled={isAnyModalOpen}
+                                        className={`flex items-center gap-1 px-2.5 h-[26px] rounded-lg text-xs font-bold transition-all disabled:cursor-not-allowed cursor-pointer shrink-0 whitespace-nowrap ${
+                                            productView === 'card' ? 'bg-[#1B3B6A] text-white shadow-2xs' : 'text-gray-600 hover:bg-white/80'
+                                        }`}
+                                        title="Card View"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                                        <span className="hidden xl:inline">Card</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* PRODUCT LIST COLUMN HEADERS — desktop only, list view only */}
                     {productView === 'list' && (
-                        <div className="px-3 py-2 bg-white border-b border-slate-200 lg:border-b-2 lg:border-slate-300 shrink-0 hidden lg:block">
-                            <div className="grid grid-cols-[140px_1fr_100px_110px] gap-2 text-xs font-black uppercase tracking-wider text-slate-500 font-mono">
-                                <div className="pl-2">SKU / Barcode</div>
-                                <div className="pl-2">Product Name / Category</div>
+                        <div className="px-4 py-2.5 bg-slate-100 border-b border-slate-200 shrink-0 hidden lg:block">
+                            <div className="grid grid-cols-[130px_1fr_90px_100px] gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
+                                <div>Barcode</div>
+                                <div>Product Name / Category</div>
                                 <div className="text-right">Stock</div>
                                 <div className="text-right">Price</div>
                             </div>
@@ -702,36 +883,38 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                     <div
                         ref={catalogContainerRef}
                         className={`flex-1 overflow-y-auto custom-scrollbar bg-white ${
-                            productView === 'list' ? 'divide-y divide-slate-100' : 'p-3'
+                            productView === 'list' ? 'divide-y divide-gray-100/80' : 'p-3.5'
                         }`}
                     >
                         {isLoading ? (
                             <div className={productView === 'card' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3' : 'p-3 space-y-2'}>
                                 {Array.from({ length: productView === 'card' ? 8 : 6 }).map((_, i) => (
                                     productView === 'card' ? (
-                                        <div key={i} className="bg-white rounded-lg border border-slate-200 p-3 animate-pulse">
-                                            <div className="h-20 bg-slate-100 rounded-md mb-2"></div>
-                                            <div className="h-3 bg-slate-200 rounded w-3/4 mb-1.5"></div>
-                                            <div className="h-2 bg-slate-100 rounded w-1/2"></div>
+                                        <div key={i} className="bg-white rounded-2xl border border-gray-200/80 p-3.5 animate-pulse shadow-2xs">
+                                            <div className="h-24 bg-gray-100 rounded-xl mb-2.5"></div>
+                                            <div className="h-3.5 bg-gray-200 rounded w-3/4 mb-2"></div>
+                                            <div className="h-2.5 bg-gray-100 rounded w-1/2"></div>
                                         </div>
                                     ) : (
-                                        <div key={i} className="bg-white p-3.5 rounded-md border border-slate-200 animate-pulse flex justify-between items-center">
+                                        <div key={i} className="bg-white p-3.5 rounded-xl border border-gray-200/80 animate-pulse flex justify-between items-center shadow-2xs">
                                             <div className="space-y-2 w-2/3">
-                                                <div className="h-3 bg-slate-200 rounded w-3/4"></div>
-                                                <div className="h-2 bg-slate-150 rounded w-1/2"></div>
+                                                <div className="h-3.5 bg-gray-200 rounded w-3/4"></div>
+                                                <div className="h-2.5 bg-gray-100 rounded w-1/2"></div>
                                             </div>
-                                            <div className="h-5 bg-slate-200 rounded w-12 text-right"></div>
+                                            <div className="h-5 bg-gray-200 rounded w-16 text-right"></div>
                                         </div>
                                     )
                                 ))}
                             </div>
                         ) : filteredProducts.length === 0 ? (
-                            <div className="flex flex-col justify-center items-center h-full text-slate-300 py-10">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 mb-2 opacity-20"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" /></svg>
-                                <p className="text-xs font-bold text-slate-400">
+                            <div className="flex flex-col justify-center items-center h-full text-gray-300 py-12 space-y-2">
+                                <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" /></svg>
+                                </div>
+                                <p className="text-xs font-bold text-gray-500">
                                     {showResultsOnly && !searchQuery.trim()
                                         ? "Scan barcode or search to display products"
-                                        : "No products found"}
+                                        : "No products matched your search"}
                                 </p>
                             </div>
                         ) : productView === 'card' ? (
@@ -750,51 +933,51 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                             key={p.id}
                                             onClick={() => !isSoldOut && triggerQtyModal(p)}
                                             data-catalog-item-index={index}
-                                            className={`bg-white rounded-lg border flex flex-col transition-all ${
+                                            className={`bg-white rounded-2xl border transition-all p-3 flex flex-col justify-between group relative overflow-hidden shadow-2xs ${
                                                 isSoldOut
-                                                    ? 'opacity-50 cursor-not-allowed border-slate-200'
+                                                    ? 'opacity-50 cursor-not-allowed border-gray-200 bg-gray-50/50'
                                                     : isHighlighted
                                                         ? 'ring-2 ring-[#1B3B6A] border-[#1B3B6A] cursor-pointer shadow-md'
-                                                        : 'border-slate-200 cursor-pointer hover:shadow-md hover:border-[#1B3B6A]'
+                                                        : 'border-gray-200/80 cursor-pointer hover:shadow-xs hover:border-[#1B3B6A]'
                                             }`}
                                         >
                                             {/* Image / Placeholder */}
-                                            <div className="h-20 bg-slate-50 rounded-t-lg flex items-center justify-center overflow-hidden relative border-b border-slate-100">
+                                            <div className="h-24 bg-gray-50 rounded-xl flex items-center justify-center overflow-hidden relative border border-gray-100 mb-2">
                                                 {p.image_path ? (
                                                     <img src={p.image_path} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
                                                 ) : (
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7 text-slate-300">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7 text-gray-300">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                                                     </svg>
                                                 )}
                                                 {/* Stock badge */}
-                                                <div className={`absolute top-1 right-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase shadow-sm border ${
+                                                <div className={`absolute top-1.5 right-1.5 px-2 py-0.5 rounded-md text-[9px] font-black uppercase shadow-2xs border ${
                                                     isSoldOut
                                                         ? 'bg-slate-900 text-white border-transparent'
                                                         : isLowStock
-                                                            ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                                            : 'bg-slate-50 text-slate-600 border-slate-200'
+                                                            ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                                            : 'bg-white/90 text-gray-700 border-gray-200'
                                                 }`}>
-                                                    {isSoldOut ? 'Sold Out' : `${remainingStock}`}
+                                                    {isSoldOut ? 'Sold Out' : `${remainingStock} in stock`}
                                                 </div>
                                             </div>
 
                                             {/* Card Body */}
-                                            <div className="p-2.5 flex flex-col flex-1 justify-between">
+                                            <div className="flex flex-col flex-1 justify-between">
                                                 <div>
-                                                    <h3 className="font-extrabold text-slate-900 text-xs leading-tight line-clamp-2" title={p.name}>{p.name}</h3>
+                                                    <h3 className="font-bold text-gray-900 text-xs sm:text-sm leading-tight line-clamp-2" title={p.name}>{p.name}</h3>
                                                     {p.category && (
-                                                        <span className="inline-flex mt-0.5 items-center px-1 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-gray-100 text-[#1B3B6A] border border-gray-200">
+                                                        <span className="inline-flex mt-1 items-center px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6]">
                                                             {p.category.name}
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="mt-2 flex justify-between items-center">
-                                                    <span className="font-extrabold font-mono text-[#1B3B6A] text-sm">
+                                                <div className="mt-2.5 pt-2 border-t border-gray-100 flex justify-between items-center">
+                                                    <span className="font-black font-mono text-[#1B3B6A] text-sm sm:text-base">
                                                         ₱{(appliedPrice / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </span>
                                                     {!isSoldOut && (
-                                                        <div className="w-5 h-5 bg-gray-100 text-[#1B3B6A] rounded-full flex items-center justify-center text-base font-extrabold hover:bg-[#1B3B6A] hover:text-white transition-colors shadow-sm">
+                                                        <div className="w-6 h-6 bg-[#EFF4F9] text-[#1B3B6A] rounded-lg flex items-center justify-center text-xs font-black group-hover:bg-[#1B3B6A] group-hover:text-white transition-colors shadow-2xs">
                                                             +
                                                         </div>
                                                     )}
@@ -806,7 +989,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             </div>
                         ) : (
                             /* ── LIST VIEW ── */
-                            <div className="flex flex-col divide-y divide-slate-100">
+                            <div className="flex flex-col divide-y divide-gray-100/80">
                                 {filteredProducts.map((p, index) => {
                                     const inCart = cart.find(item => item.id === p.id);
                                     const remainingStock = p.stock_quantity - (inCart ? inCart.quantity : 0);
@@ -819,22 +1002,22 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                             key={p.id}
                                             onClick={() => !isSoldOut && triggerQtyModal(p)}
                                             data-catalog-item-index={index}
-                                            className={`px-3 py-3.5 grid grid-cols-[1fr_90px] lg:grid-cols-[140px_1fr_100px_110px] gap-2 items-center cursor-pointer transition-colors hover:bg-gray-50 ${isHighlighted ? 'ring-2 ring-inset ring-[#1B3B6A] bg-gray-50' : ''} ${isSoldOut ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
+                                            className={`px-4 py-2.5 grid grid-cols-[1fr_90px] lg:grid-cols-[130px_1fr_90px_100px] gap-2 items-center cursor-pointer transition-colors hover:bg-gray-50/80 ${isHighlighted ? 'ring-2 ring-inset ring-[#1B3B6A] bg-gray-50' : ''} ${isSoldOut ? 'opacity-50 cursor-not-allowed bg-gray-50/50' : ''}`}
                                         >
                                             {/* Barcode Column */}
-                                            <div className="min-w-0 font-mono text-base font-black text-slate-900 select-all hidden lg:block truncate pl-2">
+                                            <div className="min-w-0 font-mono text-xs font-bold text-gray-500 select-all hidden lg:block truncate">
                                                 {p.sku || '—'}
                                             </div>
 
                                             {/* Name Column */}
-                                            <div className="min-w-0 pl-2">
-                                                <div className="font-extrabold text-slate-900 text-base truncate">{p.name}</div>
+                                            <div className="min-w-0">
+                                                <div className="font-bold text-gray-900 text-xs sm:text-sm truncate">{p.name}</div>
                                                 <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                                                     {p.sku && (
-                                                        <span className="lg:hidden font-mono text-sm font-black text-slate-500">{p.sku}</span>
+                                                        <span className="lg:hidden font-mono text-xs font-bold text-gray-400">{p.sku}</span>
                                                     )}
                                                     {p.category && (
-                                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider whitespace-nowrap bg-gray-100 text-[#1B3B6A] border border-gray-200">
+                                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider whitespace-nowrap bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6]">
                                                             {p.category.name}
                                                         </span>
                                                     )}
@@ -843,17 +1026,17 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
                                             {/* Stock Column */}
                                             <div className="text-right hidden lg:block">
-                                                <span className={`text-sm font-bold ${isSoldOut ? 'text-rose-600' : remainingStock < 10 ? 'text-amber-600' : 'text-slate-600'}`}>
+                                                <span className={`text-xs font-bold ${isSoldOut ? 'text-rose-600 font-black' : remainingStock < 10 ? 'text-amber-600' : 'text-gray-600'}`}>
                                                     {isSoldOut ? 'Sold Out' : `${remainingStock}`}
                                                 </span>
                                             </div>
 
                                             {/* Price Column */}
                                             <div className="text-right">
-                                                <div className="font-black text-slate-900 text-base font-mono">
-                                                    {(appliedPrice / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                <div className="font-black text-gray-900 text-xs sm:text-sm font-mono">
+                                                    ₱{(appliedPrice / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </div>
-                                                <div className={`lg:hidden text-xs font-bold mt-0.5 ${isSoldOut ? 'text-rose-600' : remainingStock < 10 ? 'text-amber-600' : 'text-slate-600'}`}>
+                                                <div className={`lg:hidden text-[10px] font-bold mt-0.5 ${isSoldOut ? 'text-rose-600 font-black' : remainingStock < 10 ? 'text-amber-600' : 'text-gray-500'}`}>
                                                     {isSoldOut ? 'Sold Out' : `${remainingStock} left`}
                                                 </div>
                                             </div>
@@ -867,9 +1050,9 @@ export default function PosTerminal({ auth, store_settings, settings }) {
 
                 {/* MOBILE VIEW ACTIONS */}
                 {!isMobileCartOpen && (
-                    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 z-40 flex justify-between items-center shadow-2xl">
-                        <div className="flex flex-col"><span className="text-[10px] text-slate-500 font-bold uppercase">{cart.length} Items</span><span className="text-lg font-black text-[#1B3B6A] font-mono">{(total/100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
-                        <button onClick={() => setIsMobileCartOpen(true)} className="bg-[#1B3B6A] text-white px-6 py-2.5 rounded-lg font-bold active:scale-95 transition-all shadow-lg text-sm">View Order</button>
+                    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 z-40 flex justify-between items-center shadow-2xl">
+                        <div className="flex flex-col"><span className="text-[10px] text-gray-500 font-bold uppercase">{cart.length} Items</span><span className="text-lg font-black text-[#1B3B6A] font-mono">₱{(total/100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                        <button onClick={() => setIsMobileCartOpen(true)} className="bg-[#1B3B6A] text-white px-6 py-2.5 rounded-xl font-bold active:scale-95 transition-all shadow-md text-xs cursor-pointer">View Current Order</button>
                     </div>
                 )}
 
@@ -877,12 +1060,16 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                     <div className="md:hidden fixed inset-0 z-50 bg-white flex flex-col animate-slide-up">
                         <CartSidebar
                             settings={activeSettings}
+                            shiftData={shiftData}
+                            onOpenShift={() => setShowOpenShiftModal(true)}
+                            onCloseShift={() => setShowCloseShiftModal(true)}
                             showPaymentModal={showPaymentModal}
                             setShowPaymentModal={setShowPaymentModal}
                             onClose={() => setIsMobileCartOpen(false)}
                             onPrintReceipt={handlePrintReceipt}
                             onRecallClick={fetchHeldOrders}
                             onEditItemQty={(item) => triggerQtyModal(item, true)}
+                            onCheckoutSuccess={() => fetchCurrentShift()}
                             disabled={isAnyModalOpen}
                             showFKeys={showFKeys}
                             enableShortcuts={shortcutsEnabled}
@@ -894,26 +1081,36 @@ export default function PosTerminal({ auth, store_settings, settings }) {
             {/* HELD ORDERS MODAL */}
             {showHeldOrdersModal && (
                 <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[100] p-0 sm:p-4 backdrop-blur-sm transition-opacity">
-                    <div className="bg-white w-full max-w-md h-auto max-h-[85vh] sm:max-h-[90vh] rounded-t-lg sm:rounded-lg shadow-2xl flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in">
+                    <div className="bg-white w-full max-w-md h-auto max-h-[85vh] sm:max-h-[90vh] rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-200/90 flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in">
                         {/* Header */}
-                        <div className="bg-white px-4 py-4 border-b border-gray-200 flex justify-between items-center shrink-0">
-                            <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight">Recall Saved Order</h2>
+                        <div className="bg-white px-5 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-xl bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                </div>
+                                <div>
+                                    <h2 className="text-base font-black text-gray-900 tracking-tight">Recall Saved Order</h2>
+                                    <p className="text-[11px] font-semibold text-gray-400">Select order to resume checkout</p>
+                                </div>
+                            </div>
                             <button
                                 onClick={() => { setShowHeldOrdersModal(false); setHeldOrdersNavIndex(-1); }}
-                                className="p-1.5 bg-gray-100 rounded-full text-slate-600 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm"
+                                className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-xl transition-colors shadow-2xs cursor-pointer"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
                         {/* Scrollable list */}
-                        <div className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar bg-white flex flex-col gap-3">
+                        <div className="flex-1 overflow-y-auto p-4 sm:p-5 custom-scrollbar bg-white flex flex-col gap-2.5">
                             {heldOrders.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-slate-300 mb-2"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
-                                    <p className="font-bold text-sm text-slate-500">No saved orders found</p>
+                                <div className="flex flex-col items-center justify-center py-12 text-gray-400 space-y-2">
+                                    <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+                                    </div>
+                                    <p className="font-bold text-xs text-gray-500">No saved orders found</p>
                                 </div>
                             ) : (
-                                <div className="flex flex-col gap-3">
+                                <div className="flex flex-col gap-2.5">
                                     {heldOrders.map((order, index) => {
                                         const isSelected = heldOrdersNavIndex === index;
                                         const itemCount = order.cart_data.reduce((acc, item) => acc + item.quantity, 0);
@@ -923,24 +1120,24 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                                 key={order.id}
                                                 data-held-order-index={index}
                                                 onClick={() => setHeldOrdersNavIndex(index)}
-                                                className={`bg-white rounded-lg border transition-all p-3.5 flex flex-col gap-2.5 cursor-pointer group shadow-sm hover:bg-gray-50
-                                                    ${isSelected ? 'ring-2 ring-inset ring-[#1B3B6A] border-[#1B3B6A] bg-gray-50' : 'border-gray-200'}`}
+                                                className={`bg-white rounded-2xl border transition-all p-3.5 flex flex-col gap-2.5 cursor-pointer group shadow-2xs hover:bg-gray-50
+                                                    ${isSelected ? 'ring-2 ring-inset ring-[#1B3B6A] border-[#1B3B6A] bg-gray-50' : 'border-gray-200/80'}`}
                                             >
                                                 {/* Top Row: Note & Price */}
                                                 <div className="flex justify-between items-start gap-3">
-                                                    <span className="font-black text-slate-900 text-sm md:text-base tracking-tight truncate flex-1">
+                                                    <span className="font-bold text-gray-900 text-xs sm:text-sm tracking-tight truncate flex-1">
                                                         {order.reference_note || 'Untitled Saved Order'}
                                                     </span>
-                                                    <span className="font-mono font-extrabold text-[#1B3B6A] text-sm md:text-base shrink-0">
+                                                    <span className="font-mono font-black text-[#1B3B6A] text-xs sm:text-sm shrink-0">
                                                         ₱{(orderTotal / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </span>
                                                 </div>
 
                                                 {/* Bottom Row: Info & Actions */}
-                                                <div className="flex justify-between items-center gap-2">
+                                                <div className="flex justify-between items-center gap-2 pt-1 border-t border-gray-100">
                                                     {/* Info */}
-                                                    <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 text-slate-400 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
+                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 text-gray-400 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
                                                         <span>{new Date(order.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                                                         <span>•</span>
                                                         <span>{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
@@ -950,14 +1147,14 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                                     <div className="flex items-center gap-1 shrink-0 select-none">
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleDiscardHeldOrder(order); }}
-                                                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors"
+                                                            className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
                                                             title="Discard (Backspace)"
                                                         >
-                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
                                                         </button>
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleRecallOrder(order); }}
-                                                            className="px-3 py-1.5 bg-[#1B3B6A] hover:bg-[#142d52] text-white font-bold rounded-lg text-xs transition-all hover:shadow-md active:scale-95 flex items-center gap-1"
+                                                            className="px-3 py-1.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold rounded-xl text-xs transition-all shadow-2xs active:scale-95 flex items-center gap-1 cursor-pointer"
                                                             title="Recall (Enter)"
                                                         >
                                                             Recall
@@ -971,11 +1168,11 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                             )}
                         </div>
                         {/* Footer Action */}
-                        <div className="p-4 border-t border-gray-200 bg-white shrink-0">
+                        <div className="p-4 border-t border-gray-100 bg-white shrink-0">
                             <button
                                 type="button"
                                 onClick={() => { setShowHeldOrdersModal(false); setHeldOrdersNavIndex(-1); }}
-                                className="w-full py-3 bg-white text-slate-700 border border-gray-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-gray-100 hover:text-slate-900 transition-all active:scale-[0.98]"
+                                className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-gray-50 transition-all active:scale-95 shadow-2xs cursor-pointer"
                             >
                                 Cancel<span className="hidden md:inline"> (Esc)</span>
                             </button>
@@ -987,29 +1184,37 @@ export default function PosTerminal({ auth, store_settings, settings }) {
             {/* QUANTITY INPUT MODAL */}
             {showQtyModal && qtyModalProduct && (
                 <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 transition-opacity">
-                    <div className="bg-white w-full max-w-sm h-auto max-h-[85vh] sm:max-h-[90vh] rounded-t-lg sm:rounded-lg shadow-2xl flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in">
-                        <div className="bg-white px-4 py-4 border-b border-gray-200 flex justify-between items-center shrink-0">
-                            <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight">Enter Quantity</h2>
+                    <div className="bg-white w-full max-w-sm h-auto max-h-[85vh] sm:max-h-[90vh] rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-200/90 flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in">
+                        <div className="bg-white px-5 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-xl bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                </div>
+                                <div>
+                                    <h2 className="text-base font-black text-gray-900 tracking-tight">Enter Item Quantity</h2>
+                                    <p className="text-[11px] font-semibold text-gray-400">Set units to add to cart</p>
+                                </div>
+                            </div>
                             <button
                                 onClick={closeQtyModal}
-                                className="p-1.5 bg-gray-100 rounded-full text-slate-600 hover:bg-rose-100 hover:text-rose-600 transition-colors shadow-sm"
+                                className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-xl transition-colors shadow-2xs cursor-pointer"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
-                        <form onSubmit={handleConfirmQty} className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar flex flex-col">
+                        <form onSubmit={handleConfirmQty} className="flex-1 overflow-y-auto p-5 custom-scrollbar flex flex-col">
                             {/* Product Info Summary */}
-                            <div className="text-center mb-5 shrink-0">
-                                <div className="text-[10px] text-slate-400 uppercase tracking-widest font-black mb-1">Item Details</div>
-                                <div className="text-lg md:text-xl font-black text-slate-900 tracking-tight truncate px-2">{qtyModalProduct.name}</div>
-                                <div className="text-2xl md:text-3xl font-black text-[#1B3B6A] tracking-tighter mt-1 font-mono">
-                                    {(((isWholesaleActive && qtyModalProduct.wholesale_price !== null) ? qtyModalProduct.wholesale_price : qtyModalProduct.price) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <div className="text-center mb-4 p-3.5 rounded-2xl bg-[#EFF4F9] border border-[#CBD7E6] shrink-0">
+                                <div className="text-[10px] text-gray-400 uppercase tracking-widest font-black mb-0.5">Item Selected</div>
+                                <div className="text-sm sm:text-base font-black text-gray-900 tracking-tight truncate px-2">{qtyModalProduct.name}</div>
+                                <div className="text-xl font-black text-[#1B3B6A] tracking-tight mt-0.5 font-mono">
+                                    ₱{(((isWholesaleActive && qtyModalProduct.wholesale_price !== null) ? qtyModalProduct.wholesale_price : qtyModalProduct.price) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </div>
                             </div>
 
                             {/* Quantity Input Wrapper */}
-                            <div className="bg-white p-4 rounded-lg border border-gray-200 flex-1 flex flex-col justify-center">
-                                <label className="block text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-widest mb-2 text-left">Quantity</label>
+                            <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-2xs flex-1 flex flex-col justify-center">
+                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 text-left">Quantity Count</label>
                                 <input
                                     type="number"
                                     required
@@ -1017,7 +1222,7 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     max={qtyModalProduct.stock_quantity}
                                     value={qtyModalInput}
                                     onChange={(e) => setQtyModalInput(e.target.value)}
-                                    className="w-full px-4 py-3 text-center text-3xl font-black text-slate-900 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] shadow-sm font-mono"
+                                    className="w-full px-4 py-2.5 text-center text-3xl font-black text-gray-900 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1B3B6A]/20 focus:border-[#1B3B6A] shadow-2xs font-mono transition-all"
                                     placeholder="0"
                                     autoFocus
                                     onFocus={(e) => e.target.select()}
@@ -1029,24 +1234,24 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                                     }}
                                 />
                                 {qtyModalProduct.stock_quantity < 99999 && (
-                                    <div className="mt-2.5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                        Available Stock: <span className="text-slate-700 font-black">{qtyModalProduct.stock_quantity}</span>
+                                    <div className="mt-2.5 text-center text-[11px] font-bold text-gray-400">
+                                        Available in stock: <span className="text-gray-700 font-black">{qtyModalProduct.stock_quantity}</span>
                                     </div>
                                 )}
                             </div>
 
                             {/* Submit & Cancel Buttons */}
-                             <div className="flex flex-col gap-2 mt-5 pb-2 shrink-0">
+                             <div className="flex flex-col gap-2 mt-5 pb-1 shrink-0">
                                 <button
                                     type="submit"
-                                    className="w-full py-4 bg-[#1B3B6A] hover:bg-[#142d52] text-white font-black text-sm uppercase tracking-widest rounded-lg shadow-md transition-all active:scale-[0.98]"
+                                    className="w-full py-3.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
                                 >
                                     Add to Cart<span className="hidden md:inline"> (Enter)</span>
                                 </button>
                                 <button
                                     type="button"
                                     onClick={closeQtyModal}
-                                    className="w-full py-3 bg-white text-slate-700 border border-gray-300 font-black text-sm uppercase tracking-widest rounded-lg hover:bg-gray-100 hover:text-slate-900 transition-all active:scale-[0.98]"
+                                    className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-gray-50 transition-all active:scale-95 shadow-2xs cursor-pointer"
                                 >
                                     Cancel<span className="hidden md:inline"> (Esc)</span>
                                 </button>
@@ -1055,6 +1260,39 @@ export default function PosTerminal({ auth, store_settings, settings }) {
                     </div>
                 </div>
             )}
+
+            {/* OPEN SHIFT MODAL */}
+            <OpenShiftModal
+                isOpen={showOpenShiftModal}
+                shiftInfo={shiftData}
+                terminal={currentTerminal}
+                onClose={() => setShowOpenShiftModal(false)}
+                onShiftOpened={(newShift) => {
+                    setShowOpenShiftModal(false);
+                    fetchCurrentShift();
+                }}
+            />
+
+            {/* CASH MOVEMENT MODAL (Cash In / Out / Owner Draw / Safe Drop) */}
+            <CashMovementModal
+                isOpen={showCashMovementModal}
+                settings={activeSettings}
+                user={auth.user}
+                onClose={() => setShowCashMovementModal(false)}
+                onMovementRecorded={() => {
+                    fetchCurrentShift();
+                }}
+            />
+
+            {/* CLOSE SHIFT & Z-READ MODAL */}
+            <ShiftModal
+                isOpen={showCloseShiftModal}
+                settings={activeSettings}
+                onClose={() => setShowCloseShiftModal(false)}
+                onShiftCompleted={() => {
+                    fetchCurrentShift();
+                }}
+            />
 
         </AuthenticatedLayout>
     );

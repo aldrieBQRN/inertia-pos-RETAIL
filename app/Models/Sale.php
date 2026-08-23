@@ -25,6 +25,7 @@ class Sale extends Model
     protected $fillable = [
         'invoice_number',
         'cashier_id',
+        'terminal_id',
         'total_amount',
         'discount_amount',
         'payment_method',
@@ -45,7 +46,7 @@ class Sale extends Model
      */
     protected $casts = [
         'is_senior' => 'boolean',
-        'created_at' => 'datetime',
+        'transaction_date' => 'datetime',
     ];
 
     /**
@@ -66,5 +67,10 @@ class Sale extends Model
     public function cashier()
     {
         return $this->belongsTo(User::class, 'cashier_id');
+    }
+
+    public function terminal()
+    {
+        return $this->belongsTo(Terminal::class);
     }
 }

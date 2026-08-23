@@ -82,34 +82,41 @@ export default function UpdatePasswordForm({ isOpen, onClose }) {
     );
 
     // Premium Input Component styling
-    const inputClasses = "w-full border-gray-200 bg-gray-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 pl-4 pr-12 text-sm font-semibold text-gray-900 shadow-sm placeholder:text-gray-400 [&::-ms-reveal]:hidden";
-    const labelClasses = "block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-0.5";
-    const errorClasses = "text-red-500 text-[10px] font-bold mt-1.5 ml-1 uppercase tracking-wide";
+    const inputClasses = "w-full border border-gray-200 bg-gray-50/50 rounded-xl focus:ring-2 focus:ring-[#1B3B6A]/20 focus:border-[#1B3B6A] focus:bg-white transition-all py-3 pl-4 pr-12 text-sm font-bold text-gray-900 shadow-2xs placeholder:text-gray-400 [&::-ms-reveal]:hidden";
+    const labelClasses = "block text-[11px] font-black text-gray-600 uppercase tracking-wider mb-1.5 ml-0.5";
+    const errorClasses = "text-rose-500 text-[10px] font-black mt-1.5 ml-1 uppercase tracking-wide";
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm sm:p-4 transition-opacity">
-            {/* MOBILE: Full width/height, rounded-none, slides up from bottom.
-                DESKTOP: max-w-md, rounded-2xl, centers and zooms in.
-            */}
-            <div className="bg-white w-full h-full sm:h-auto sm:max-w-md sm:rounded-2xl sm:shadow-2xl overflow-hidden flex flex-col sm:max-h-[90vh] animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
 
-                {/* Header (Sticky on Mobile) */}
-                <div className="bg-white border-b border-gray-100 px-6 sm:px-10 py-5 sm:py-6 flex justify-between items-center shrink-0 sticky top-0 z-50">
-                    <div>
-                        <h2 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">Security Settings</h2>
-                        <p className="text-[11px] sm:text-xs font-medium text-gray-500 mt-0.5 sm:mt-1">Ensure your account is using a secure password.</p>
+                {/* Standard App Modal Navy Header */}
+                <div className="px-6 py-4 bg-[#1B3B6A] text-white flex justify-between items-center shrink-0 shadow-md">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 text-white">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 className="font-black text-base tracking-tight text-white">Change Password</h3>
+                            <p className="text-xs text-white/80 font-medium mt-0.5">Ensure your account is using a secure password</p>
+                        </div>
                     </div>
                     <button
+                        type="button"
                         onClick={onClose}
-                        className="bg-gray-50 hover:bg-gray-100 p-2 sm:p-2.5 rounded-full text-gray-500 hover:text-gray-900 transition-colors active:scale-95 shrink-0 ml-4"
+                        className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer"
                     >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </button>
                 </div>
 
                 {/* Scrollable Form Body */}
-                <div className="flex-1 overflow-y-auto p-6 sm:p-10 custom-scrollbar relative">
-                    <form id="password-update-form" onSubmit={updatePassword} className="space-y-6">
+                <div className="flex-1 overflow-y-auto p-5 sm:p-6 custom-scrollbar relative">
+                    <form id="password-update-form" onSubmit={updatePassword} className="space-y-4">
 
                         <div>
                             <label className={labelClasses}>Current Password</label>
@@ -122,13 +129,14 @@ export default function UpdatePasswordForm({ isOpen, onClose }) {
                                     autoComplete="current-password"
                                     className={inputClasses}
                                     placeholder="Enter current password"
+                                    required
                                 />
                                 <EyeToggle isVisible={showCurrentPassword} toggleVisibility={() => setShowCurrentPassword(!showCurrentPassword)} />
                             </div>
                             {errors.current_password && <p className={errorClasses}>{errors.current_password}</p>}
                         </div>
 
-                        <div className="pt-2">
+                        <div>
                             <label className={labelClasses}>New Password</label>
                             <div className="relative">
                                 <input
@@ -139,6 +147,7 @@ export default function UpdatePasswordForm({ isOpen, onClose }) {
                                     autoComplete="new-password"
                                     className={inputClasses}
                                     placeholder="Enter new password"
+                                    required
                                 />
                                 <EyeToggle isVisible={showNewPassword} toggleVisibility={() => setShowNewPassword(!showNewPassword)} />
                             </div>
@@ -155,6 +164,7 @@ export default function UpdatePasswordForm({ isOpen, onClose }) {
                                     autoComplete="new-password"
                                     className={inputClasses}
                                     placeholder="Confirm new password"
+                                    required
                                 />
                                 <EyeToggle isVisible={showConfirmPassword} toggleVisibility={() => setShowConfirmPassword(!showConfirmPassword)} />
                             </div>
@@ -163,12 +173,12 @@ export default function UpdatePasswordForm({ isOpen, onClose }) {
                     </form>
                 </div>
 
-                {/* Footer Actions (Sticky bottom on mobile) */}
-                <div className="bg-white sm:bg-gray-50/80 px-6 sm:px-10 py-5 border-t border-gray-100 flex flex-col sm:flex-row justify-end gap-3 shrink-0">
+                {/* Standard App Modal Footer */}
+                <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5 shrink-0">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="order-2 sm:order-1 w-full sm:w-auto px-6 py-3.5 sm:py-3 text-[#1B3B6A] font-bold bg-white border border-[#CBD7E6] hover:bg-[#EFF4F9] rounded-xl text-sm transition-all active:scale-[0.98] shadow-xs"
+                        className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-100 active:scale-95 transition-all cursor-pointer"
                     >
                         Cancel
                     </button>
@@ -176,14 +186,16 @@ export default function UpdatePasswordForm({ isOpen, onClose }) {
                         type="submit"
                         form="password-update-form"
                         disabled={processing}
-                        className="order-1 sm:order-2 w-full sm:w-auto px-8 py-3.5 sm:py-3 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold rounded-xl shadow-md text-sm transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="px-5 py-2.5 rounded-xl bg-[#1B3B6A] hover:bg-[#142E54] text-white text-xs font-bold shadow-sm active:scale-95 transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
                     >
                         {processing ? (
                             <>
-                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                Updating...
+                                <svg className="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <span>Updating...</span>
                             </>
-                        ) : 'Update Password'}
+                        ) : (
+                            <span>Update Password</span>
+                        )}
                     </button>
                 </div>
 

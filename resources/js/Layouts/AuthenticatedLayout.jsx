@@ -74,7 +74,7 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
 
             {/* Nav remains z-40 so it stays above page content, but below modals (z-50) */}
             <nav className={`border-b bg-white sticky top-0 z-40 ${isPosTerminal ? 'border-gray-100 md:border-b-2 md:border-gray-300' : 'border-gray-100'}`}>
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="w-full px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
                         <div className="flex">
                             <div className="flex shrink-0 items-center">
@@ -291,7 +291,7 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
             {/* REMOVED: relative z-20. The header will now sit behind fixed modals correctly. */}
             {header && (
                 <header className="bg-white shadow-sm border-b border-gray-100">
-                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{header}</div>
+                    <div className="w-full px-4 py-6 sm:px-6 lg:px-8">{header}</div>
                 </header>
             )}
 

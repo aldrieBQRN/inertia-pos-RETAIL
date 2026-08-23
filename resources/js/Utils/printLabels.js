@@ -50,7 +50,7 @@ export const printLabels = (product, storeName = 'POS STORE', quantity = 1, mode
             <div class="label">
                 <div class="store-name">${storeName}</div>
                 <div class="product-name">${safeName}</div>
-                <div class="price">PHP ${priceVal}</div>
+                <div class="price">${priceVal}</div>
                 <img class="barcode" src="${barcodeDataUrl}" />
             </div>
         `;
@@ -97,37 +97,39 @@ export const printLabels = (product, storeName = 'POS STORE', quantity = 1, mode
         <head>
             <style>
                 body { padding: 0; font-family: Arial, sans-serif; background: white; color: black; }
-
-                ${mode === 'thermal' ? thermalCss : a4Css}
-
-                /* Universal Typography for 40x20mm */
-                .store-name { font-size: 6pt; font-weight: bold; text-align: center; margin-bottom: 1px; letter-spacing: 0.5px; }
-                .product-name { font-size: 6pt; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 95%; margin-bottom: 1px; }
-                .price { font-size: 8pt; font-weight: 900; text-align: center; margin-bottom: 1px; }
-                .barcode { max-width: 100%; max-height: 8mm; }
+                .store-name { font-size: 8px; font-weight: bold; text-transform: uppercase; line-height: 1.1; max-width: 38mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+                .product-name { font-size: 7.5px; line-height: 1.1; margin: 0.5mm 0; max-width: 38mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+                .price { font-size: 9px; font-weight: 900; margin-bottom: 0.5mm; text-align: center; }
+                .barcode { width: 36mm; height: 9mm; object-fit: contain; }
+                ${mode === 'a4' ? a4Css : thermalCss}
             </style>
         </head>
         <body>
             <div class="page-container">
                 ${labelsHtml}
             </div>
-            <script>
-                window.onload = function() {
-                    setTimeout(() => { window.print(); }, 500);
-                };
-            </script>
         </body>
         </html>
     `;
 
-    const doc = iframe.contentWindow.document;
+    const iframeDoc = iframe.contentWindow || iframe.contentDocument;
+    const doc = iframeDoc.document || iframeDoc;
     doc.open();
     doc.write(htmlContent);
     doc.close();
 
+    // Give images and DOM time to render before invoking print dialog
     setTimeout(() => {
-        if (document.body.contains(iframe)) document.body.removeChild(iframe);
-    }, 15000);
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+
+        // Remove iframe after print dialog completes
+        setTimeout(() => {
+            if (document.body.contains(iframe)) {
+                document.body.removeChild(iframe);
+            }
+        }, 3000);
+    }, 500);
 };
 
 /**
@@ -158,7 +160,7 @@ export const downloadLabelImage = (product, storeName = 'POS STORE') => {
     ctx.fillText(safeName, 200, 50);
 
     ctx.font = 'bold 20px Arial';
-    ctx.fillText(`PHP ${priceVal}`, 200, 75);
+    ctx.fillText(priceVal, 200, 75);
 
     const barcodeCanvas = document.createElement('canvas');
     try {
@@ -179,14 +181,16 @@ export const downloadLabelImage = (product, storeName = 'POS STORE') => {
         const imgData = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.href = imgData;
-        link.download = `${safeName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_barcode.png`;
+        const storePrefix = (storeName || 'POS').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const productPrefix = safeName.replace(/[^a-zA-Z0-9_-]/g, '_');
+        link.download = `${storePrefix}_${productPrefix}_barcode.png`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
 
-        Swal.fire({ icon: 'success', title: 'Saved!', text: 'Image downloaded successfully.', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+        Swal.fire({ icon: 'success', title: 'Saved!', text: 'Barcode image downloaded successfully.', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
 
-    } catch(e) {
+    } catch (e) {
         console.error("Barcode image generation failed", e);
         Swal.fire('Error', 'Could not generate barcode image.', 'error');
     }

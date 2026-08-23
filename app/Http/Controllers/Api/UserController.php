@@ -25,15 +25,50 @@ class UserController extends Controller
     {
         $storeId = Auth::user()->store_id;
 
-        // Automatically fetches all columns, including the new 'terms_accepted_at'
         $users = User::where('store_id', $storeId)
             ->where('role', '!=', 'super_admin')
+            ->with(['activeShift.terminal'])
+            ->withCount(['sales', 'shifts'])
+            ->withSum('sales', 'total_amount')
             ->orderBy('name')
             ->get();
 
+        $store = Auth::user()->store;
+
         return Inertia::render('User', [
-            'users' => $users
+            'users' => $users,
+            'settings' => $store
         ]);
+    }
+
+    /**
+     * Resend the setup/password creation invitation to a staff member.
+     */
+    public function resendInvite(User $user)
+    {
+        if ($user->store_id !== Auth::user()->store_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $setupUrl = URL::temporarySignedRoute(
+            'staff.setup',
+            now()->addHours(24),
+            ['user' => $user->id]
+        );
+
+        Mail::to($user->email)->send(new StaffInvite($user, $setupUrl));
+
+        ActivityService::logSecurityAction(
+            'staff_invite_resent',
+            "Resent setup invitation to: {$user->name} ({$user->email})",
+            [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                '_actor_user_id' => Auth::id(),
+            ]
+        );
+
+        return redirect()->back()->with('success', "Setup invitation resent to {$user->email}.");
     }
 
     /**
