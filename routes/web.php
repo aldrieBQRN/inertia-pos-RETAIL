@@ -135,12 +135,14 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
 
         $shiftRes = app(\App\Http\Controllers\Api\ShiftController::class)->current($request);
         $shiftData = $shiftRes instanceof \Illuminate\Http\JsonResponse ? $shiftRes->getData(true) : $shiftRes;
+        $heldOrders = \App\Models\HeldOrder::orderBy('created_at', 'desc')->get();
 
         return Inertia::render('PosTerminal', [
             'initial_shift_data' => $shiftData,
             'initial_terminals' => $terminals,
             'initial_categories' => $categories,
             'initial_products' => $products,
+            'initial_held_orders' => $heldOrders,
         ]);
     })->name('pos');
 

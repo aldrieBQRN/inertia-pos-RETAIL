@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Swal from 'sweetalert2';
 
 /**
@@ -16,14 +16,34 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
     const [reference, setReference] = useState('');
     const [change, setChange] = useState(0);
 
+    const modalRef = useRef(null);
+    const cashInputRef = useRef(null);
+    const referenceInputRef = useRef(null);
+
     /**
      * Handle category switching and reset sub-methods safely
      */
     const handleCategorySelect = (newCategory) => {
         setCategory(newCategory);
-        if (newCategory === 'cash') setMethod('cash');
-        if (newCategory === 'ewallet') setMethod('gcash'); // Default e-wallet
-        if (newCategory === 'card') setMethod('credit_card'); // Default card
+        if (newCategory === 'cash') {
+            setMethod('cash');
+            setTimeout(() => {
+                cashInputRef.current?.focus();
+                cashInputRef.current?.select();
+            }, 50);
+        } else if (newCategory === 'ewallet') {
+            setMethod('gcash');
+            setTimeout(() => {
+                referenceInputRef.current?.focus();
+                referenceInputRef.current?.select();
+            }, 50);
+        } else if (newCategory === 'card') {
+            setMethod('credit_card');
+            setTimeout(() => {
+                referenceInputRef.current?.focus();
+                referenceInputRef.current?.select();
+            }, 50);
+        }
     };
 
     /**
@@ -35,6 +55,23 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
             setChange(cleanGiven - total);
         }
     }, [cashGiven, total, category]);
+
+    // Initial mount: blur background and focus active input
+    useEffect(() => {
+        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+        }
+        const timer = setTimeout(() => {
+            if (category === 'cash') {
+                cashInputRef.current?.focus();
+                cashInputRef.current?.select();
+            } else {
+                referenceInputRef.current?.focus();
+                referenceInputRef.current?.select();
+            }
+        }, 60);
+        return () => clearTimeout(timer);
+    }, []);
 
     // Global KeyDown listener active only when PaymentModal is mounted (open)
     useEffect(() => {
@@ -49,37 +86,82 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
 
             if (e.key === 'F1') {
                 e.preventDefault();
+                e.stopPropagation();
                 handleCategorySelect('cash');
+                return;
             } else if (e.key === 'F2') {
                 e.preventDefault();
+                e.stopPropagation();
                 handleCategorySelect('ewallet');
+                return;
             } else if (e.key === 'F7') {
                 e.preventDefault();
+                e.stopPropagation();
                 handleCategorySelect('card');
+                return;
             } else if (e.key === 'F3' && category === 'ewallet') {
                 e.preventDefault();
+                e.stopPropagation();
                 setMethod('gcash');
+                referenceInputRef.current?.focus();
+                return;
             } else if (e.key === 'F4' && category === 'ewallet') {
                 e.preventDefault();
+                e.stopPropagation();
                 setMethod('maya');
+                referenceInputRef.current?.focus();
+                return;
             } else if (e.key === 'F8' && category === 'card') {
                 e.preventDefault();
+                e.stopPropagation();
                 setMethod('credit_card');
+                referenceInputRef.current?.focus();
+                return;
             } else if (e.key === 'F9' && category === 'card') {
                 e.preventDefault();
+                e.stopPropagation();
                 setMethod('debit_card');
+                referenceInputRef.current?.focus();
+                return;
             } else if (e.key === 'Escape') {
                 e.preventDefault();
+                e.stopPropagation();
                 onClose();
+                return;
             } else if (e.key === 'Enter') {
                 e.preventDefault();
+                e.stopPropagation();
                 handleManualSubmit();
+                return;
+            }
+
+            // Tab focus trapping
+            if (e.key === 'Tab' && modalRef.current) {
+                const focusable = modalRef.current.querySelectorAll(
+                    'input:not([disabled]), textarea:not([disabled]), button:not([disabled])'
+                );
+                if (focusable.length > 0) {
+                    const first = focusable[0];
+                    const last = focusable[focusable.length - 1];
+
+                    if (e.shiftKey) {
+                        if (document.activeElement === first || !modalRef.current.contains(document.activeElement)) {
+                            e.preventDefault();
+                            last.focus();
+                        }
+                    } else {
+                        if (document.activeElement === last || !modalRef.current.contains(document.activeElement)) {
+                            e.preventDefault();
+                            first.focus();
+                        }
+                    }
+                }
             }
         };
 
-        window.addEventListener('keydown', handleModalKeyDown);
+        window.addEventListener('keydown', handleModalKeyDown, true);
         return () => {
-            window.removeEventListener('keydown', handleModalKeyDown);
+            window.removeEventListener('keydown', handleModalKeyDown, true);
         };
     }, [category, method, cashGiven, reference, total, onClose, onConfirm, enableShortcuts]);
 
@@ -103,37 +185,41 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
         setCashGiven(formattedVal);
     };
 
-
+    const cleanCashGiven = parseFloat(String(cashGiven).replace(/,/g, '')) || 0;
+    const hasCashGiven = String(cashGiven).trim() !== '' && !isNaN(cleanCashGiven);
+    const isCashValid = category === 'cash' && hasCashGiven && cleanCashGiven >= total;
+    const isRefValid = (category === 'ewallet' || category === 'card') && reference.trim().length > 0;
+    const isFormValid = category === 'cash' ? isCashValid : isRefValid;
+    const isSubmitDisabled = isProcessing || !isFormValid;
 
     /**
      * Validates input details based on the selected payment method
      */
     const handleManualSubmit = () => {
-        if (category === 'cash') {
-            const cleanGivenString = String(cashGiven).replace(/,/g, '');
-            const given = parseFloat(cleanGivenString);
-            if (isNaN(given) || !cleanGivenString) {
-                Swal.fire({ icon: 'warning', title: 'Enter Cash Amount', text: 'Please enter the amount received.', timer: 2000, showConfirmButton: false });
-                return;
-            }
-            if (given < total) {
-                Swal.fire({ icon: 'error', title: 'Insufficient Cash', text: `Additional ${Math.abs(change).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} is required.`, timer: 2000, showConfirmButton: false });
-                return;
-            }
-        }
-
-        if (category === 'ewallet' || category === 'card') {
-            if (!reference.trim()) {
-                Swal.fire({ icon: 'warning', title: 'Missing Reference', text: 'Please enter the payment or terminal reference number.', timer: 2000, showConfirmButton: false });
-                return;
-            }
-        }
+        if (!isFormValid || isProcessing) return;
 
         onConfirm({
             method: method,
             cashGiven: category === 'cash' ? parseFloat(String(cashGiven).replace(/,/g, '')) : null,
             reference: category !== 'cash' ? reference : null
         });
+    };
+
+    // Prevent non-interactive background clicks inside the modal from stealing input focus
+    const handleModalMouseDown = (e) => {
+        const isInteractive = e.target.closest('input, textarea, button, a, [role="button"]');
+        if (!isInteractive) {
+            e.preventDefault();
+            if (category === 'cash') {
+                if (document.activeElement !== cashInputRef.current) {
+                    cashInputRef.current?.focus();
+                }
+            } else {
+                if (document.activeElement !== referenceInputRef.current) {
+                    referenceInputRef.current?.focus();
+                }
+            }
+        }
     };
 
     // Helper to format the placeholder text nicely
@@ -144,8 +230,32 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 transition-opacity">
-            <div className="bg-white w-full max-w-sm h-auto max-h-[85vh] sm:max-h-[90vh] rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-200/90 flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in">
+        <div 
+            className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 transition-opacity select-none"
+            onClick={(e) => {
+                e.stopPropagation();
+                // Do not close on backdrop click, keep focus on input
+                if (category === 'cash') {
+                    cashInputRef.current?.focus();
+                } else {
+                    referenceInputRef.current?.focus();
+                }
+            }}
+            onMouseDown={(e) => {
+                e.preventDefault();
+                if (category === 'cash') {
+                    cashInputRef.current?.focus();
+                } else {
+                    referenceInputRef.current?.focus();
+                }
+            }}
+        >
+            <div 
+                ref={modalRef}
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={handleModalMouseDown}
+                className="bg-white w-full max-w-sm h-auto max-h-[85vh] sm:max-h-[90vh] rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-200/90 flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in"
+            >
 
                 {/* Modal Header */}
                 <div className="bg-white px-5 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
@@ -162,7 +272,8 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-xl transition-colors shadow-2xs"
+                        className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-xl transition-colors shadow-2xs cursor-pointer"
+                        title="Close (Esc)"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
@@ -174,7 +285,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                     {/* Grand Total Display */}
                     <div className="text-center mb-5 p-4 rounded-2xl bg-[#EFF4F9] border border-[#CBD7E6] shrink-0">
                         <div className="text-[10px] text-[#1B3B6A] uppercase tracking-widest font-black mb-0.5">Total Amount Due</div>
-                        <div className="text-3xl sm:text-4xl font-black text-[#1B3B6A] tracking-tight font-mono">₱{total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        <div className="text-3xl sm:text-4xl font-black text-[#1B3B6A] tracking-tight font-mono">{total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                     </div>
 
                     {/* PRIMARY CATEGORY BUTTONS */}
@@ -184,39 +295,39 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                         <button
                             type="button"
                             onClick={() => handleCategorySelect('cash')}
-                            className={`flex flex-col items-center justify-center py-3 rounded-xl border transition-all duration-200 gap-1.5 shadow-2xs cursor-pointer active:scale-95
-                                ${category === 'cash' ? 'border-[#1B3B6A] bg-[#EFF4F9] text-[#1B3B6A] font-black ring-1 ring-[#1B3B6A]' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}`}
+                            className={`flex flex-col items-center justify-center py-3 rounded-xl border transition-all gap-1.5 shadow-2xs cursor-pointer active:scale-95
+                                ${category === 'cash' ? 'border-[#CBD7E6] bg-[#EFF4F9] text-[#1B3B6A] font-extrabold ring-1 ring-[#1B3B6A]' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-bold'}`}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span className="font-bold text-[10px] sm:text-xs uppercase tracking-wider">{showFKeys ? "Cash (F1)" : "Cash"}</span>
+                            <span className="font-bold text-xs uppercase tracking-wider">{showFKeys ? "Cash (F1)" : "Cash"}</span>
                         </button>
 
                         {/* E-Wallet Button */}
                         <button
                             type="button"
                             onClick={() => handleCategorySelect('ewallet')}
-                            className={`flex flex-col items-center justify-center py-3 rounded-xl border transition-all duration-200 gap-1.5 shadow-2xs cursor-pointer active:scale-95
-                                ${category === 'ewallet' ? 'border-[#1B3B6A] bg-[#EFF4F9] text-[#1B3B6A] font-black ring-1 ring-[#1B3B6A]' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}`}
+                            className={`flex flex-col items-center justify-center py-3 rounded-xl border transition-all gap-1.5 shadow-2xs cursor-pointer active:scale-95
+                                ${category === 'ewallet' ? 'border-[#CBD7E6] bg-[#EFF4F9] text-[#1B3B6A] font-extrabold ring-1 ring-[#1B3B6A]' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-bold'}`}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
                             </svg>
-                            <span className="font-bold text-[10px] sm:text-xs uppercase tracking-wider">{showFKeys ? "E-Wallet (F2)" : "E-Wallet"}</span>
+                            <span className="font-bold text-xs uppercase tracking-wider">{showFKeys ? "E-Wallet (F2)" : "E-Wallet"}</span>
                         </button>
 
                         {/* Card Button */}
                         <button
                             type="button"
                             onClick={() => handleCategorySelect('card')}
-                            className={`flex flex-col items-center justify-center py-3 rounded-xl border transition-all duration-200 gap-1.5 shadow-2xs cursor-pointer active:scale-95
-                                ${category === 'card' ? 'border-[#1B3B6A] bg-[#EFF4F9] text-[#1B3B6A] font-black ring-1 ring-[#1B3B6A]' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}`}
+                            className={`flex flex-col items-center justify-center py-3 rounded-xl border transition-all gap-1.5 shadow-2xs cursor-pointer active:scale-95
+                                ${category === 'card' ? 'border-[#CBD7E6] bg-[#EFF4F9] text-[#1B3B6A] font-extrabold ring-1 ring-[#1B3B6A]' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-bold'}`}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                             </svg>
-                            <span className="font-bold text-[10px] sm:text-xs uppercase tracking-wider">{showFKeys ? "Card (F7)" : "Card"}</span>
+                            <span className="font-bold text-xs uppercase tracking-wider">{showFKeys ? "Card (F7)" : "Card"}</span>
                         </button>
                     </div>
 
@@ -225,19 +336,25 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                         <div className="grid grid-cols-2 gap-2.5 mb-4 animate-in slide-in-from-top-2 duration-200">
                             <button
                                 type="button"
-                                onClick={() => setMethod('gcash')}
-                                className={`flex flex-col items-center justify-center py-2.5 rounded-xl border transition-all duration-200 gap-1 shadow-2xs cursor-pointer active:scale-95
-                                    ${method === 'gcash' ? 'border-blue-600 bg-blue-50 text-blue-700 font-black' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}`}
+                                onClick={() => {
+                                    setMethod('gcash');
+                                    referenceInputRef.current?.focus();
+                                }}
+                                className={`flex flex-col items-center justify-center py-2.5 rounded-xl border transition-all gap-1 shadow-2xs cursor-pointer active:scale-95
+                                    ${method === 'gcash' ? 'border-blue-300 bg-blue-50 text-blue-700 font-extrabold' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-bold'}`}
                             >
-                                <span className="font-black text-xs uppercase tracking-wider">{showFKeys ? "GCash (F3)" : "GCash"}</span>
+                                <span className="text-xs uppercase tracking-wider">{showFKeys ? "GCash (F3)" : "GCash"}</span>
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setMethod('maya')}
-                                className={`flex flex-col items-center justify-center py-2.5 rounded-xl border transition-all duration-200 gap-1 shadow-2xs cursor-pointer active:scale-95
-                                    ${method === 'maya' ? 'border-teal-600 bg-teal-50 text-teal-800 font-black' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}`}
+                                onClick={() => {
+                                    setMethod('maya');
+                                    referenceInputRef.current?.focus();
+                                }}
+                                className={`flex flex-col items-center justify-center py-2.5 rounded-xl border transition-all gap-1 shadow-2xs cursor-pointer active:scale-95
+                                    ${method === 'maya' ? 'border-teal-300 bg-teal-50 text-teal-800 font-extrabold' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-bold'}`}
                             >
-                                <span className="font-black text-xs uppercase tracking-wider">{showFKeys ? "Maya (F4)" : "Maya"}</span>
+                                <span className="text-xs uppercase tracking-wider">{showFKeys ? "Maya (F4)" : "Maya"}</span>
                             </button>
                         </div>
                     )}
@@ -247,19 +364,25 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                         <div className="grid grid-cols-2 gap-2.5 mb-4 animate-in slide-in-from-top-2 duration-200">
                             <button
                                 type="button"
-                                onClick={() => setMethod('credit_card')}
-                                className={`flex flex-col items-center justify-center py-2.5 rounded-xl border transition-all duration-200 gap-1 shadow-2xs cursor-pointer active:scale-95
-                                    ${method === 'credit_card' ? 'border-purple-600 bg-purple-50 text-purple-700 font-black' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}`}
+                                onClick={() => {
+                                    setMethod('credit_card');
+                                    referenceInputRef.current?.focus();
+                                }}
+                                className={`flex flex-col items-center justify-center py-2.5 rounded-xl border transition-all gap-1 shadow-2xs cursor-pointer active:scale-95
+                                    ${method === 'credit_card' ? 'border-purple-300 bg-purple-50 text-purple-700 font-extrabold' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-bold'}`}
                             >
-                                <span className="font-black text-xs uppercase tracking-wider">{showFKeys ? "Credit (F8)" : "Credit Card"}</span>
+                                <span className="text-xs uppercase tracking-wider">{showFKeys ? "Credit (F8)" : "Credit Card"}</span>
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setMethod('debit_card')}
-                                className={`flex flex-col items-center justify-center py-2.5 rounded-xl border transition-all duration-200 gap-1 shadow-2xs cursor-pointer active:scale-95
-                                    ${method === 'debit_card' ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-black' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}`}
+                                onClick={() => {
+                                    setMethod('debit_card');
+                                    referenceInputRef.current?.focus();
+                                }}
+                                className={`flex flex-col items-center justify-center py-2.5 rounded-xl border transition-all gap-1 shadow-2xs cursor-pointer active:scale-95
+                                    ${method === 'debit_card' ? 'border-indigo-300 bg-indigo-50 text-indigo-700 font-extrabold' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 font-bold'}`}
                             >
-                                <span className="font-black text-xs uppercase tracking-wider">{showFKeys ? "Debit (F9)" : "Debit Card"}</span>
+                                <span className="text-xs uppercase tracking-wider">{showFKeys ? "Debit (F9)" : "Debit Card"}</span>
                             </button>
                         </div>
                     )}
@@ -268,14 +391,15 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                     <div className="space-y-3 shrink-0">
                         {category === 'cash' ? (
                             <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-2xs">
-                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Cash Received (₱)</label>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Cash Received</label>
                                 <div className="relative flex items-center">
                                     <input
+                                        ref={cashInputRef}
                                         type="text"
                                         inputMode="decimal"
                                         autoFocus
                                         onFocus={(e) => e.target.select()}
-                                        className="w-full px-4 py-2.5 text-xl font-black text-gray-900 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1B3B6A]/20 focus:border-[#1B3B6A] shadow-2xs font-mono transition-all"
+                                        className="w-full px-4 py-2.5 text-xl font-black text-gray-900 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1B3B6A]/20 focus:border-[#1B3B6A] shadow-2xs font-mono transition-all outline-none"
                                         value={cashGiven}
                                         onChange={handleCashChange}
                                         placeholder="0.00"
@@ -283,7 +407,7 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                                 </div>
                                 <div className={`mt-3 p-3 rounded-xl flex justify-between items-center shadow-2xs border ${change >= 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-700'}`}>
                                     <span className="font-black text-[10px] uppercase tracking-wider">{change >= 0 ? 'Change Due' : 'Shortage'}</span>
-                                    <span className="text-xl font-black font-mono">₱{change >= 0 ? change.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : Math.abs(change).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    <span className="text-xl font-black font-mono">{change >= 0 ? change.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : Math.abs(change).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                             </div>
                         ) : (
@@ -292,10 +416,12 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                                     {category === 'card' ? 'Terminal Reference / Auth Code' : 'Payment Reference Number'}
                                 </label>
                                 <input
+                                    ref={referenceInputRef}
                                     type="text"
                                     inputMode="numeric"
                                     autoFocus
-                                    className="w-full px-4 py-2.5 text-sm font-black text-gray-900 font-mono tracking-wider border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1B3B6A]/20 focus:border-[#1B3B6A] shadow-2xs transition-all"
+                                    onFocus={(e) => e.target.select()}
+                                    className="w-full px-4 py-2.5 text-sm font-black text-gray-900 font-mono tracking-wider border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1B3B6A]/20 focus:border-[#1B3B6A] shadow-2xs transition-all outline-none"
                                     value={reference}
                                     onChange={(e) => setReference(e.target.value)}
                                     placeholder={getReferencePlaceholder()}
@@ -309,19 +435,22 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
                         <button
                             type="button"
                             onClick={handleManualSubmit}
-                            disabled={isProcessing}
-                            className={`w-full py-3.5 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer
-                                ${isProcessing ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none' : 'bg-[#1B3B6A] hover:bg-[#142E54]'}`}
+                            disabled={isSubmitDisabled}
+                            className={`w-full py-3.5 text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl shadow-md flex items-center justify-center gap-2 transition-all ${
+                                isSubmitDisabled 
+                                    ? 'bg-gray-300 text-gray-400 cursor-not-allowed shadow-none' 
+                                    : 'bg-[#1B3B6A] hover:bg-[#142E54] active:scale-95 cursor-pointer'
+                            }`}
                         >
-                            {isProcessing ? <>Processing Payment...</> : <>Confirm Settlement<span className="hidden md:inline"> (Enter)</span></>}
+                            {isProcessing ? <>Processing Payment...</> : <>Confirm Settlement<span className="hidden sm:inline"> (Enter)</span></>}
                         </button>
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={isProcessing}
-                            className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-gray-50 transition-all active:scale-95 shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer"
+                            className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl hover:bg-gray-50 transition-all active:scale-95 shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer text-center"
                         >
-                            Cancel<span className="hidden md:inline"> (Esc)</span>
+                            Cancel<span className="hidden sm:inline"> (Esc)</span>
                         </button>
                     </div>
 

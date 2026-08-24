@@ -4,34 +4,28 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import usePrinterStore from '@/Stores/usePrinterStore';
 
-export default function CashMovementModal({ isOpen, onClose, onMovementRecorded, settings, user }) {
+export default function CashMovementModal({ isOpen, onClose, onMovementRecorded, settings, user, shiftData = null }) {
     const [movementType, setMovementType] = useState('cash_out');
     const [amount, setAmount] = useState('');
     const [reason, setReason] = useState('');
+    const [activeField, setActiveField] = useState('type'); // 'type' | 'amount' | 'reason'
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const [selectedTarget, setSelectedTarget] = useState(''); // 'shift:123' | 'terminal:1'
     const [activeShifts, setActiveShifts] = useState([]);
     const [terminals, setTerminals] = useState([]);
-    const [cashierShift, setCashierShift] = useState(null);
+    const [cashierShift, setCashierShift] = useState(shiftData);
     const [loadingTargets, setLoadingTargets] = useState(false);
     const [loading, setLoading] = useState(false);
     const { printCashMovementSlip } = usePrinterStore();
 
-    const scrollContainerRef = useRef(null);
+    const modalRef = useRef(null);
+    const firstTypeBtnRef = useRef(null);
+    const amountInputRef = useRef(null);
+    const reasonInputRef = useRef(null);
     const reasonContainerRef = useRef(null);
+    const scrollContainerRef = useRef(null);
     const highlightedItemRef = useRef(null);
-
-    useEffect(() => {
-        if (showSuggestions && scrollContainerRef.current) {
-            setTimeout(() => {
-                scrollContainerRef.current?.scrollTo({
-                    top: scrollContainerRef.current.scrollHeight,
-                    behavior: 'smooth'
-                });
-            }, 60);
-        }
-    }, [showSuggestions]);
 
     useEffect(() => {
         if (highlightedIndex >= 0 && highlightedItemRef.current) {
@@ -44,6 +38,27 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
 
     useEffect(() => {
         if (isOpen) {
+            // Blur any active background elements
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+            }
+
+            setAmount('');
+            setReason('');
+            setActiveField('type');
+            setShowSuggestions(false);
+            setHighlightedIndex(-1);
+
+            const timer = setTimeout(() => {
+                if (firstTypeBtnRef.current) {
+                    firstTypeBtnRef.current.focus();
+                }
+            }, 60);
+
+            if (shiftData) {
+                setCashierShift(shiftData);
+            }
+
             if (user?.is_admin) {
                 setLoadingTargets(true);
                 Promise.all([
@@ -78,12 +93,10 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                     })
                     .catch(console.error);
             }
+
+            return () => clearTimeout(timer);
         }
-    }, [isOpen, user?.is_admin]);
-
-    if (!isOpen || typeof document === 'undefined') return null;
-
-    const enteredAmount = parseFloat(amount) || 0;
+    }, [isOpen, user?.is_admin, shiftData]);
 
     const formatCurrency = (val) => {
         return Number(val || 0).toLocaleString('en-US', {
@@ -91,6 +104,8 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
             maximumFractionDigits: 2
         });
     };
+
+    const enteredAmount = parseFloat(amount) || 0;
 
     // Determine current available balance based on selected target
     let availableDrawerBalance = 0;
@@ -111,14 +126,20 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                 availableDrawerBalance = parseFloat(matchedTerm.current_drawer_cash ?? 0);
                 targetLabel = `${matchedTerm.name} Drawer`;
             }
+        } else if (shiftData?.has_active_shift) {
+            availableDrawerBalance = parseFloat(shiftData.running_expected_cash ?? shiftData.starting_cash ?? 0);
+            targetLabel = 'Your Active Cash Drawer';
         }
     } else {
-        availableDrawerBalance = parseFloat(cashierShift?.running_expected_cash ?? cashierShift?.starting_cash ?? 0);
+        const activeSource = cashierShift || shiftData;
+        availableDrawerBalance = parseFloat(activeSource?.running_expected_cash ?? activeSource?.starting_cash ?? 0);
         targetLabel = 'Your Active Cash Drawer';
     }
 
     const isDeduction = ['cash_out', 'owner_draw', 'safe_drop', 'expense'].includes(movementType);
     const isOverLimit = isDeduction && enteredAmount > availableDrawerBalance;
+    const isFormValid = enteredAmount > 0 && reason.trim().length > 0 && !isOverLimit;
+    const isSubmitDisabled = loading || !isFormValid;
 
     const typeOptions = [
         { id: 'cash_out', label: 'Cash Out / Expense', desc: 'Petty cash for store supplies or operating expenses' },
@@ -155,7 +176,7 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
         ],
         safe_drop: [
             'Mid-day Excess Cash Drop',
-            'High Denomination Bill Pull (₱1000/₱500)',
+            'High Denomination Bill Pull (1000/500)',
             'Peak Hour Register De-clutter',
             'Shift Handover Safe Drop',
             'End-of-Day Register Sweep'
@@ -169,8 +190,8 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
             'Returned Delivery Cash Advance'
         ],
         float_topup: [
-            'Added ₱1, ₱5, ₱10, ₱20 Coin Rolls',
-            'Added ₱20, ₱50, ₱100 Small Bills',
+            'Added 1, 5, 10, 20 Coin Rolls',
+            'Added 20, 50, 100 Small Bills',
             'Emergency Coin Change Fund Refill',
             'Register Float Replenishment',
             'Weekend Change Buffer Fund'
@@ -212,61 +233,169 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
         } else if (e.key === 'Escape') {
             setShowSuggestions(false);
             setHighlightedIndex(-1);
+            e.preventDefault();
         }
     };
 
+    // Keyboard Shortcuts & Focus Trap (F1, F2, F3, Esc, Enter, Tab)
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                if (showSuggestions) {
+                    setShowSuggestions(false);
+                    setHighlightedIndex(-1);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                onClose();
+                return;
+            }
+
+            if (e.key === 'F1') {
+                e.preventDefault();
+                e.stopPropagation();
+                setActiveField('type');
+                if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                    document.activeElement.blur();
+                }
+                // Cycle movement types on F1
+                setMovementType(prev => {
+                    const currentIndex = typeOptions.findIndex(t => t.id === prev);
+                    const nextIndex = (currentIndex + 1) % typeOptions.length;
+                    return typeOptions[nextIndex].id;
+                });
+                setReason('');
+                setTimeout(() => {
+                    firstTypeBtnRef.current?.focus();
+                }, 30);
+                return;
+            }
+
+            if (e.key === 'F2') {
+                e.preventDefault();
+                e.stopPropagation();
+                setActiveField('amount');
+                if (amountInputRef.current) {
+                    amountInputRef.current.focus();
+                    amountInputRef.current.select();
+                }
+                return;
+            }
+
+            if (e.key === 'F3') {
+                e.preventDefault();
+                e.stopPropagation();
+                setActiveField('reason');
+                if (reasonInputRef.current) {
+                    reasonInputRef.current.focus();
+                    reasonInputRef.current.select();
+                }
+                setTimeout(() => {
+                    if (scrollContainerRef.current) {
+                        scrollContainerRef.current.scrollTo({
+                            top: scrollContainerRef.current.scrollHeight,
+                            behavior: 'smooth'
+                        });
+                    }
+                }, 100);
+                return;
+            }
+
+            if (e.key === 'Enter') {
+                if (showSuggestions && highlightedIndex >= 0 && highlightedIndex < filteredSuggestions.length) {
+                    // Handled inside handleReasonKeyDown
+                    return;
+                }
+                if (isFormValid && !loading) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSubmit(e);
+                }
+            }
+
+            // Tab focus trapping
+            if (e.key === 'Tab' && modalRef.current) {
+                const focusable = modalRef.current.querySelectorAll(
+                    'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])'
+                );
+                if (focusable.length > 0) {
+                    const first = focusable[0];
+                    const last = focusable[focusable.length - 1];
+
+                    if (e.shiftKey) {
+                        if (document.activeElement === first || !modalRef.current.contains(document.activeElement)) {
+                            e.preventDefault();
+                            last.focus();
+                        }
+                    } else {
+                        if (document.activeElement === last || !modalRef.current.contains(document.activeElement)) {
+                            e.preventDefault();
+                            first.focus();
+                        }
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown, true);
+        return () => window.removeEventListener('keydown', handleKeyDown, true);
+    }, [isOpen, showSuggestions, highlightedIndex, filteredSuggestions, isFormValid, loading, movementType, amount, reason, isOverLimit, activeField]);
+
+    if (!isOpen || typeof document === 'undefined') return null;
+
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
+        if (!isFormValid || loading) return;
+
         if (enteredAmount <= 0) {
-            Swal.fire('Invalid Amount', 'Please enter an amount greater than zero.', 'warning');
+            Swal.fire('Invalid Amount', 'Please enter an amount greater than 0.', 'warning');
             return;
         }
 
         if (isOverLimit) {
             Swal.fire({
-                icon: 'warning',
+                icon: 'error',
                 title: 'Insufficient Drawer Funds',
-                text: `Cannot deduct ₱${formatCurrency(enteredAmount)}. Current available cash in ${targetLabel} is only ₱${formatCurrency(availableDrawerBalance)}.`
+                text: `Cannot deduct ${formatCurrency(enteredAmount)}. Only ${formatCurrency(availableDrawerBalance)} is currently in ${targetLabel}.`,
             });
             return;
         }
 
         if (!reason.trim()) {
-            Swal.fire('Reason Required', 'Please provide a reason or description for this cash movement.', 'warning');
+            Swal.fire('Missing Reason', 'Please specify a reason or purpose for this movement.', 'warning');
             return;
         }
 
         setLoading(true);
-
-        let targetShiftId = null;
-        let targetTerminalId = null;
-
-        if (user?.is_admin) {
-            if (selectedTarget.startsWith('shift:')) {
-                targetShiftId = selectedTarget.replace('shift:', '');
-            } else if (selectedTarget.startsWith('terminal:')) {
-                targetTerminalId = selectedTarget.replace('terminal:', '');
-            }
-        }
-
         try {
-            const response = await axios.post('/api/shift/cash-movement', {
+            let payload = {
                 type: movementType,
                 amount: enteredAmount,
                 reason: reason.trim(),
-                shift_id: targetShiftId,
-                terminal_id: targetTerminalId
-            });
+            };
 
+            if (user?.is_admin) {
+                if (selectedTarget.startsWith('shift:')) {
+                    payload.shift_id = parseInt(selectedTarget.replace('shift:', ''));
+                } else if (selectedTarget.startsWith('terminal:')) {
+                    payload.terminal_id = parseInt(selectedTarget.replace('terminal:', ''));
+                }
+            }
+
+            const response = await axios.post('/api/cash-movements', payload);
             const savedMovement = response.data.movement;
 
             Swal.fire({
                 icon: 'success',
-                title: 'Movement Recorded',
-                text: `₱${formatCurrency(enteredAmount)} successfully logged.`,
+                title: 'Cash Movement Logged',
+                text: `${typeOptions.find(t => t.id === movementType)?.label} of ${formatCurrency(enteredAmount)} recorded.`,
                 showCancelButton: true,
-                confirmButtonColor: '#1B3B6A',
-                confirmButtonText: 'Print Voucher Slip',
+                confirmButtonText: 'Print Slip',
                 cancelButtonText: 'Done',
                 timer: 4000
             }).then((res) => {
@@ -289,36 +418,70 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
         }
     };
 
-    return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 transition-opacity animate-in fade-in duration-200">
-            <div className="fixed inset-0" onClick={onClose}></div>
+    const refocusActiveField = () => {
+        if (activeField === 'amount') {
+            amountInputRef.current?.focus();
+        } else if (activeField === 'reason') {
+            reasonInputRef.current?.focus();
+        } else {
+            firstTypeBtnRef.current?.focus();
+        }
+    };
 
-            <div className="relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] z-10 border border-gray-100 animate-in zoom-in-95 duration-200">
-                
-                {/* Mobile Pull Bar */}
-                <div className="sm:hidden flex justify-center pt-3 pb-1 bg-[#1B3B6A] w-full shrink-0 cursor-pointer" onClick={onClose}>
-                    <div className="w-12 h-1.5 bg-white/30 rounded-full"></div>
-                </div>
+    // Prevent non-interactive background clicks inside the modal from stealing input focus
+    const handleModalMouseDown = (e) => {
+        const isInteractive = e.target.closest('input, select, textarea, button, a, [role="button"]');
+        if (!isInteractive) {
+            e.preventDefault();
+            refocusActiveField();
+        }
+        e.stopPropagation();
+    };
+
+    return createPortal(
+        <div 
+            className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 transition-opacity animate-in fade-in duration-200 select-none"
+            onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                    e.stopPropagation();
+                    refocusActiveField();
+                }
+            }}
+            onMouseDown={(e) => {
+                if (e.target === e.currentTarget) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    refocusActiveField();
+                }
+            }}
+        >
+            <div 
+                ref={modalRef}
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={handleModalMouseDown}
+                className="relative bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[90vh] z-10 border border-gray-200/90 animate-slide-up sm:animate-fade-in"
+            >
 
                 {/* Header */}
-                <div className="px-6 py-4 bg-[#1B3B6A] text-white flex justify-between items-center shrink-0 shadow-md">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="w-5 h-5">
+                <div className="bg-white px-5 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
                             </svg>
                         </div>
                         <div>
-                            <h3 className="font-black text-base tracking-tight text-white">Cash In / Cash Out</h3>
-                            <p className="text-xs text-white/80 font-medium mt-0.5">Record non-sales drawer adjustments</p>
+                            <h2 className="text-base font-black text-gray-900 tracking-tight">Cash In / Cash Out</h2>
+                            <p className="text-[11px] font-semibold text-gray-400">Record non-sales drawer adjustments</p>
                         </div>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                        className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-xl transition-colors shadow-2xs cursor-pointer"
+                        title="Close (Esc)"
                     >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
@@ -327,10 +490,10 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                 {/* Form with Fixed Sticky Footer */}
                 <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
                     
-                    {/* Scrollable Form Body with Auto-adjusting padding for suggestions */}
+                    {/* Scrollable Form Body */}
                     <div 
                         ref={scrollContainerRef}
-                        className={`flex-1 p-5 sm:p-6 overflow-y-auto custom-scrollbar space-y-4 transition-all duration-200 ${showSuggestions && filteredSuggestions.length > 0 ? 'pb-56' : 'pb-6'}`}
+                        className="flex-1 p-5 sm:p-6 overflow-y-auto custom-scrollbar space-y-4 pb-44"
                     >
                         
                         {/* Admin Target Shift / Terminal Selector */}
@@ -340,20 +503,20 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                                     <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider">
                                         Target Cashier / Register
                                     </label>
-                                    <span className="text-[11px] font-bold text-[#1B3B6A] bg-[#EFF4F9] border border-[#CBD7E6]/60 px-2 py-0.5 rounded-lg">
-                                        Available: ₱{formatCurrency(availableDrawerBalance)}
+                                    <span className="text-[11px] font-bold text-[#1B3B6A] bg-[#EFF4F9] border border-[#CBD7E6]/60 px-2 py-0.5 rounded-lg font-mono">
+                                        Available: {formatCurrency(availableDrawerBalance)}
                                     </span>
                                 </div>
                                 <select
                                     value={selectedTarget}
                                     onChange={(e) => setSelectedTarget(e.target.value)}
-                                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 transition-all cursor-pointer"
+                                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 transition-all cursor-pointer outline-none"
                                 >
                                     {activeShifts.length > 0 && (
                                         <optgroup label="Active Cashier Shifts">
                                             {activeShifts.map((shift) => (
                                                 <option key={`shift-${shift.id}`} value={`shift:${shift.id}`}>
-                                                    Active: {shift.user?.name || 'Cashier'} {shift.terminal ? `(${shift.terminal.name})` : ''} · Shift #{shift.id} (Drawer: ₱{formatCurrency(shift.current_drawer_cash ?? shift.starting_cash)})
+                                                    Active: {shift.user?.name || 'Cashier'} {shift.terminal ? `(${shift.terminal.name})` : ''} · Shift #{shift.id} (Drawer: {formatCurrency(shift.current_drawer_cash ?? shift.starting_cash)})
                                                 </option>
                                             ))}
                                         </optgroup>
@@ -363,7 +526,7 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                                         <optgroup label="Physical Registers (Between Shifts)">
                                             {terminals.map((term) => (
                                                 <option key={`term-${term.id}`} value={`terminal:${term.id}`}>
-                                                    {term.name} {term.code ? `(${term.code})` : ''} — Register Drawer (Drawer: ₱{formatCurrency(term.current_drawer_cash)})
+                                                    {term.name} {term.code ? `(${term.code})` : ''} — Register Drawer (Drawer: {formatCurrency(term.current_drawer_cash)})
                                                 </option>
                                             ))}
                                         </optgroup>
@@ -379,21 +542,30 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
 
                         {/* Movement Type Selector */}
                         <div className="space-y-1.5">
-                            <label className="block text-xs font-black text-gray-700 uppercase tracking-wider">
-                                Movement Type
-                            </label>
+                            <div className="flex items-center justify-between">
+                                <label className="block text-xs font-black text-gray-700 uppercase tracking-wider">
+                                    Movement Type
+                                </label>
+                                <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
+                                    F1
+                                </span>
+                            </div>
                             <div className="grid grid-cols-1 gap-2">
                                 {typeOptions.map((t) => (
                                     <button
                                         key={t.id}
+                                        ref={t.id === movementType ? firstTypeBtnRef : null}
                                         type="button"
-                                        onClick={() => {
+                                        onFocus={() => setActiveField('type')}
+                                        onClick={(e) => {
+                                            setActiveField('type');
                                             setMovementType(t.id);
                                             setReason('');
+                                            e.currentTarget.focus();
                                         }}
-                                        className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                                        className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between outline-none focus:ring-2 focus:ring-[#1B3B6A]/30 ${
                                             movementType === t.id
-                                                ? 'border-[#1B3B6A] bg-[#EFF4F9] shadow-xs'
+                                                ? 'border-[#1B3B6A] bg-[#EFF4F9] shadow-xs ring-1 ring-[#1B3B6A]/30'
                                                 : 'border-gray-200 bg-white hover:bg-gray-50'
                                         }`}
                                     >
@@ -418,28 +590,37 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                         {/* Amount Input with Drawer Balance Check */}
                         <div className="space-y-1.5">
                             <div className="flex items-center justify-between">
-                                <label className="block text-xs font-black text-gray-700 uppercase tracking-wider">
-                                    Amount <span className="text-rose-500">*</span>
-                                </label>
-                                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-lg border ${
+                                <div className="flex items-center gap-1.5">
+                                    <label className="block text-xs font-black text-gray-700 uppercase tracking-wider">
+                                        Amount <span className="text-rose-500">*</span>
+                                    </label>
+                                    <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
+                                        F2
+                                    </span>
+                                </div>
+                                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-lg border font-mono ${
                                     isOverLimit 
                                         ? 'bg-rose-50 border-rose-200 text-rose-700' 
                                         : 'bg-emerald-50 border-emerald-200 text-emerald-700'
                                 }`}>
-                                    Available in Drawer: ₱{formatCurrency(availableDrawerBalance)}
+                                    Available in Drawer: {formatCurrency(availableDrawerBalance)}
                                 </span>
                             </div>
                             <div className="relative">
-                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 font-black text-base">₱</span>
                                 <input
+                                    ref={amountInputRef}
                                     type="number"
                                     step="0.01"
                                     min="0.01"
                                     required
+                                    onFocus={(e) => {
+                                        setActiveField('amount');
+                                        e.target.select();
+                                    }}
                                     value={amount}
                                     onChange={(e) => setAmount(e.target.value)}
                                     placeholder="0.00"
-                                    className={`w-full pl-8 pr-4 py-3 bg-white border-2 rounded-2xl font-black text-lg transition-all outline-none ${
+                                    className={`w-full px-4 py-3 bg-white border-2 rounded-2xl font-black text-lg transition-all outline-none font-mono ${
                                         isOverLimit
                                             ? 'border-rose-400 text-rose-900 focus:border-rose-500 focus:ring-2 focus:ring-rose-200'
                                             : 'border-gray-200 text-gray-900 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/20'
@@ -456,7 +637,7 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                                     <div>
                                         <span className="font-bold block">Insufficient Drawer Funds</span>
                                         <span className="text-[11px] text-rose-700 leading-tight block mt-0.5">
-                                            Cannot deduct ₱{formatCurrency(enteredAmount)}. {targetLabel} has only ₱{formatCurrency(availableDrawerBalance)} available.
+                                            Cannot deduct {formatCurrency(enteredAmount)}. {targetLabel} has only {formatCurrency(availableDrawerBalance)} available.
                                         </span>
                                     </div>
                                 </div>
@@ -466,11 +647,16 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                         {/* Reason Input with Interactive Autocomplete Suggestions */}
                         <div className="space-y-1.5 relative">
                             <div className="flex items-center justify-between">
-                                <label className="block text-xs font-black text-gray-700 uppercase tracking-wider">
-                                    Reason / Description <span className="text-rose-500">*</span>
-                                </label>
+                                <div className="flex items-center gap-1.5">
+                                    <label className="block text-xs font-black text-gray-700 uppercase tracking-wider">
+                                        Reason / Description <span className="text-rose-500">*</span>
+                                    </label>
+                                    <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
+                                        F3
+                                    </span>
+                                </div>
                                 {showSuggestions && filteredSuggestions.length > 0 && (
-                                    <span className="text-[10px] text-slate-400 font-medium">
+                                    <span className="hidden lg:inline text-[10px] text-slate-400 font-medium">
                                         Use <kbd className="px-1 py-0.5 bg-slate-100 border border-slate-300 rounded text-[9px] font-mono">↑</kbd> <kbd className="px-1 py-0.5 bg-slate-100 border border-slate-300 rounded text-[9px] font-mono">↓</kbd> + <kbd className="px-1 py-0.5 bg-slate-100 border border-slate-300 rounded text-[9px] font-mono">Enter</kbd>
                                     </span>
                                 )}
@@ -478,10 +664,22 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                             
                             <div className="relative">
                                 <input
+                                    ref={reasonInputRef}
                                     type="text"
                                     required
                                     value={reason}
-                                    onFocus={() => setShowSuggestions(true)}
+                                    onFocus={() => {
+                                        setActiveField('reason');
+                                        setShowSuggestions(true);
+                                        setTimeout(() => {
+                                            if (scrollContainerRef.current) {
+                                                scrollContainerRef.current.scrollTo({
+                                                    top: scrollContainerRef.current.scrollHeight,
+                                                    behavior: 'smooth'
+                                                });
+                                            }
+                                        }, 60);
+                                    }}
                                     onBlur={() => setTimeout(() => setShowSuggestions(false), 250)}
                                     onKeyDown={handleReasonKeyDown}
                                     onChange={(e) => {
@@ -499,7 +697,7 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                                     <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-30 max-h-48 overflow-y-auto custom-scrollbar divide-y divide-slate-100 animate-in fade-in zoom-in-95 duration-150">
                                         <div className="px-3 py-1.5 bg-slate-50 text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center justify-between">
                                             <span>Suggestions ({filteredSuggestions.length})</span>
-                                            <span className="text-[9px] font-normal text-slate-400">Arrow keys to select</span>
+                                            <span className="hidden lg:inline text-[9px] font-normal text-slate-400">Arrow keys to select</span>
                                         </div>
                                         {filteredSuggestions.map((item, idx) => {
                                             const isHighlighted = highlightedIndex === idx;
@@ -522,7 +720,7 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                                                     }`}
                                                 >
                                                     <span>{item}</span>
-                                                    <span className={`text-[10px] ${isHighlighted ? 'text-[#1B3B6A] font-bold' : 'text-slate-400 group-hover:text-slate-600'} font-medium`}>
+                                                    <span className={`hidden lg:inline text-[10px] ${isHighlighted ? 'text-[#1B3B6A] font-bold' : 'text-slate-400 group-hover:text-slate-600'} font-medium`}>
                                                         {isHighlighted ? 'Press Enter' : 'Select'}
                                                     </span>
                                                 </button>
@@ -536,33 +734,37 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                     </div>
 
                     {/* Fixed Sticky Bottom Action Footer */}
-                    <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200/80 flex items-center justify-end gap-2 shrink-0 shadow-2xs">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-3 border border-slate-300 text-xs font-bold text-slate-700 hover:bg-white rounded-xl transition-all cursor-pointer"
-                        >
-                            Cancel
-                        </button>
+                    <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200/80 flex flex-col gap-2 shrink-0 shadow-2xs">
                         <button
                             type="submit"
-                            disabled={loading || isOverLimit}
-                            className={`flex-1 py-3 font-black text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 ${
-                                isOverLimit
-                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
-                                    : 'bg-[#1B3B6A] hover:bg-[#142E54] active:scale-[0.98] text-white cursor-pointer disabled:opacity-50'
+                            disabled={isSubmitDisabled}
+                            className={`w-full py-3.5 font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center gap-2 ${
+                                isSubmitDisabled
+                                    ? 'bg-gray-300 text-gray-400 cursor-not-allowed shadow-none'
+                                    : 'bg-[#1B3B6A] hover:bg-[#142E54] active:scale-95 text-white cursor-pointer'
                             }`}
                         >
                             {loading ? (
-                                <>
+                                <div className="flex items-center justify-center gap-2">
                                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
                                     <span>Recording Movement...</span>
-                                </>
+                                </div>
                             ) : isOverLimit ? (
                                 <span>Insufficient Drawer Balance</span>
                             ) : (
-                                <span>Record {typeOptions.find(t => t.id === movementType)?.label}</span>
+                                <>
+                                    Record<span className="hidden sm:inline"> (Enter)</span>
+                                </>
                             )}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={loading}
+                            className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl hover:bg-gray-50 transition-all active:scale-95 shadow-2xs cursor-pointer disabled:opacity-50 text-center"
+                        >
+                            Cancel<span className="hidden sm:inline"> (Esc)</span>
                         </button>
                     </div>
 
