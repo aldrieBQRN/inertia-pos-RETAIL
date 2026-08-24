@@ -15,17 +15,23 @@ class SubscriptionSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->command->info('Creating MASSIVE Finance & User Data to test Pagination and Filters...');
+        $this->command->info('Configuring single store billing & subscription history...');
 
         // 0. Ensure a Super Admin exists for the Developer Panel
-        User::firstOrCreate(
-            ['email' => 'superadmin@developer.com'],
+        User::updateOrCreate(
+            ['email' => 'dev@email.com'],
             [
                 'name' => 'System Developer',
                 'password' => Hash::make('password'),
                 'role' => 'super_admin',
                 'is_admin' => true,
                 'store_id' => null,
+                'account_number' => 'DEV-001',
+                'phone_number' => '+63 917 123 4567',
+                'address' => '456 Developer Ave, Makati',
+                'city' => 'Makati',
+                'province' => 'NCR',
+                'country' => 'Philippines',
                 'email_verified_at' => now(),
             ]
         );
@@ -36,112 +42,56 @@ class SubscriptionSeeder extends Seeder
             return;
         }
 
-        // SCENARIO 1: UPCOMING RENEWALS (15 Stores expiring in the next 1-30 days)
-        for ($i = 1; $i <= 15; $i++) {
-            $plan = $plans->random();
-            $store = Store::create([
-                'name' => "Upcoming Store {$i}",
-                'address' => "Future Ave {$i}",
-                'status' => true,
-                'plan_id' => $plan->id,
-                'subscription_ends_at' => Carbon::now()->addDays(rand(1, 30)),
-            ]);
-            $this->createUserForStore($store, "upcoming{$i}@store.com", "Admin Upcoming {$i}", 'admin');
-        }
+        $activePlan = Plan::where('name', 'Monthly Starter')->first() ?? $plans->first();
 
-        // SCENARIO 2: OVERDUE COLLECTIONS (15 Stores expired 1-45 days ago)
-        for ($i = 1; $i <= 15; $i++) {
-            $plan = $plans->random();
-            $isGracePeriod = rand(1, 10) > 5; // 50% chance to be in grace period (active) or suspended (false)
-
-            $store = Store::create([
-                'name' => "Overdue Mart {$i}",
-                'address' => "Past St {$i}",
-                'status' => $isGracePeriod,
-                'plan_id' => $plan->id,
-                'subscription_ends_at' => Carbon::now()->subDays(rand(1, 45)),
-            ]);
-            $this->createUserForStore($store, "overdue{$i}@store.com", "Admin Overdue {$i}", 'admin');
-        }
-
-        // SCENARIO 3: PENDING APPROVALS (15 Stores that just uploaded a receipt)
-        for ($i = 1; $i <= 15; $i++) {
-            $plan = $plans->random();
-            $store = Store::create([
-                'name' => "Pending Shop {$i}",
-                'address' => "Waitline Blvd {$i}",
-                'status' => false,
-                'plan_id' => $plan->id,
-                'subscription_ends_at' => Carbon::now()->subDays(rand(1, 10)),
-            ]);
-            $user = $this->createUserForStore($store, "pending{$i}@store.com", "Admin Pending {$i}", 'admin');
-
-            // Create the Pending Payment in the queue
-            $this->createPayment($store, $user, $plan, Carbon::now()->subMinutes(rand(5, 500)), 'pending');
-        }
-
-        // SCENARIO 4: TRANSACTION HISTORY (30 Historical Records - Approved & Rejected)
-        for ($i = 1; $i <= 30; $i++) {
-            $plan = $plans->random();
-            $store = Store::create([
-                'name' => "History Cafe {$i}",
-                'address' => "Memory Lane {$i}",
-                'status' => true,
-                'plan_id' => $plan->id,
-                'subscription_ends_at' => Carbon::now()->addDays(rand(30, 365)),
-            ]);
-            $user = $this->createUserForStore($store, "history{$i}@store.com", "Admin History {$i}", 'admin');
-
-            $status = rand(1, 10) > 3 ? 'approved' : 'rejected'; // 70% approved, 30% rejected
-            $date = Carbon::now()->subDays(rand(1, 60)); // Spread out over the last 2 months for Date Filters
-
-            $this->createPayment($store, $user, $plan, $date, $status);
-        }
-
-        // SCENARIO 5: STAFF & CASHIERS (Generate 30 random cashiers to populate the User Management grid)
-        for ($i = 1; $i <= 30; $i++) {
-            $store = Store::inRandomOrder()->first();
-            if ($store) {
-                $this->createUserForStore($store, "cashier{$i}@store.com", "Cashier Staff {$i}", 'cashier');
-            }
-        }
-
-        $this->command->info('✅ Generated 15 Upcoming, 15 Overdue, 15 Pending, 30 History records, and 30 Cashiers!');
-    }
-
-    /**
-     * Helper to quickly create a user for a store with a dynamic role
-     */
-    private function createUserForStore($store, $email, $name, $role = 'admin')
-    {
-        return User::firstOrCreate(
-            ['email' => $email],
+        // Single Primary Store (Metro Retail Hub)
+        $store = Store::firstOrCreate(
+            ['name' => 'Metro Retail Hub'],
             [
-                'name' => $name,
+                'address' => '456 Commercial Avenue, BGC, Taguig City, Philippines',
+                'phone' => '+63 2 8765 4321',
+                'status' => true,
+                'logo_path' => null,
+                'plan_id' => $activePlan->id,
+                'subscription_ends_at' => Carbon::now()->addMonths(6),
+            ]
+        );
+
+        // Ensure Store Admin exists
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@email.com'],
+            [
+                'name' => 'Store Manager (Admin)',
                 'password' => Hash::make('password'),
-                'role' => $role,
-                'is_admin' => in_array($role, ['super_admin', 'admin']), // Dynamically set admin flag
+                'role' => 'admin',
+                'is_admin' => true,
                 'store_id' => $store->id,
+                'account_number' => 'ADM-001',
+                'phone_number' => '+63 917 234 5678',
+                'address' => '123 Main Street',
+                'city' => 'Manila',
+                'province' => 'NCR',
+                'country' => 'Philippines',
                 'email_verified_at' => now(),
             ]
         );
-    }
 
-    /**
-     * Helper to create a SubscriptionPayment record
-     */
-    private function createPayment($store, $user, $plan, $date, $status)
-    {
-        SubscriptionPayment::create([
-            'store_id' => $store->id,
-            'plan_id' => $plan->id,
-            'full_name' => $user->name,
-            'amount' => $plan->price,
-            'reference_number' => 'REF-' . strtoupper(Str::random(8)),
-            'receipt_path' => 'receipts/dummy-receipt.png', // Dummy path to bypass database constraints
-            'status' => $status,
-            'created_at' => $date,
-            'updated_at' => $date,
-        ]);
+        // Seed 10 realistic historical subscription billing payments for this store
+        for ($i = 10; $i >= 1; $i--) {
+            $paymentDate = Carbon::now()->subMonths($i);
+            SubscriptionPayment::create([
+                'store_id' => $store->id,
+                'plan_id' => $activePlan->id,
+                'full_name' => $admin->name,
+                'amount' => $activePlan->price,
+                'reference_number' => 'REF-' . strtoupper(Str::random(8)),
+                'receipt_path' => 'receipts/dummy-receipt.png',
+                'status' => 'approved',
+                'created_at' => $paymentDate,
+                'updated_at' => $paymentDate,
+            ]);
+        }
+
+        $this->command->info('✅ Single store subscription billing records created.');
     }
 }
