@@ -20,7 +20,7 @@ export default function OpenShiftModal({ isOpen, onClose, onShiftOpened, shiftIn
         }
     }, [isOpen, expectedCash]);
 
-    if (!isOpen) return null;
+    if (!isOpen || typeof document === 'undefined') return null;
 
     const enteredAmount = parseFloat(startingCash) || 0;
     const discrepancy = enteredAmount - expectedCash;

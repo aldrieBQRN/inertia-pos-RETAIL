@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import axios from 'axios';
 import useCartStore from '@/Stores/useCartStore';
 import usePrinterStore from '@/Stores/usePrinterStore';
@@ -46,11 +45,16 @@ export default function CartSidebar({
     const [hoveredItemId, setHoveredItemId] = useState(null);
     const [focusedIndex, setFocusedIndex] = useState(-1);
     const [successDetails, setSuccessDetails] = useState(null);
-
     const cartBottomRef = useRef(null);
     const sidebarRef = useRef(null);
     const scrollContainerRef = useRef(null);
     const prevCartLengthRef = useRef(cart.length);
+
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     useEffect(() => {
         // Only scroll to bottom when a NEW item is added (length increases),
@@ -737,8 +741,8 @@ export default function CartSidebar({
                 </div>
             </div>
 
-            {/* PAYMENT MODAL PORTAL */}
-            {showPaymentModal && typeof document !== 'undefined' && createPortal(
+            {/* PAYMENT MODAL */}
+            {showPaymentModal && (
                 <PaymentModal
                     total={total / 100}
                     onClose={() => setShowPaymentModal(false)}
@@ -746,12 +750,11 @@ export default function CartSidebar({
                     isProcessing={isProcessing}
                     showFKeys={showFKeys}
                     enableShortcuts={enableShortcuts}
-                />,
-                document.body
+                />
             )}
 
-            {/* SUCCESS MODAL PORTAL */}
-            {showSuccessModal && typeof document !== 'undefined' && createPortal(
+            {/* SUCCESS MODAL */}
+            {showSuccessModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
                     <div className="bg-white rounded-2xl shadow-2xl border border-gray-200/90 w-full max-w-sm overflow-hidden text-center p-6 flex flex-col items-center">
                         <div className="w-14 h-14 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-2xl flex items-center justify-center mb-3.5 shadow-2xs">

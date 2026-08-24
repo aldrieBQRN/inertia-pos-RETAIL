@@ -64,15 +64,18 @@ self.addEventListener('fetch', (event) => {
   // Cache-first for static assets (images, build files, CSS, JS)
   event.respondWith(
     caches.match(request).then((response) => {
-      return response || fetch(request).then((response) => {
-        if (!response || response.status !== 200 || response.type === 'error') {
-          return response;
+      return response || fetch(request).then((networkResponse) => {
+        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'error') {
+          return networkResponse;
         }
-        const responseToCache = response.clone();
+        const responseToCache = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(request, responseToCache);
         });
-        return response;
+        return networkResponse;
+      }).catch((err) => {
+        console.warn('Service worker asset fetch failed:', err);
+        return new Response('', { status: 404, statusText: 'Not Found' });
       });
     })
   );

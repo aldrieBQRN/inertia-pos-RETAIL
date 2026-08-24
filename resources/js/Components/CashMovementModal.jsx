@@ -81,7 +81,7 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
         }
     }, [isOpen, user?.is_admin]);
 
-    if (!isOpen) return null;
+    if (!isOpen || typeof document === 'undefined') return null;
 
     const enteredAmount = parseFloat(amount) || 0;
 

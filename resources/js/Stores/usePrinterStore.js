@@ -53,7 +53,11 @@ const usePrinterStore = create(
 
                 // Default to interface 0 if not found
                 const targetInterface = foundIfaceNumber !== null ? foundIfaceNumber : 0;
-                await device.claimInterface(targetInterface);
+                try {
+                    await device.claimInterface(targetInterface);
+                } catch (claimErr) {
+                    console.warn("USB interface claim skipped or protected:", claimErr.message);
+                }
                 return targetInterface;
             },
 

@@ -1699,7 +1699,7 @@ export default function User({ auth, users, settings }) {
             {/* ========================================================================= */}
             {/* 3. SLIDE-OVER STAFF DETAILS DRAWER (PORTALED)                              */}
             {/* ========================================================================= */}
-            {showDetails && selectedStaff && typeof document !== 'undefined' && createPortal(
+            {showDetails && selectedStaff && typeof document !== 'undefined' && document.body && createPortal(
                 <div className="fixed inset-0 z-[100] overflow-hidden">
                     <div
                         onClick={handleCloseDetails}
@@ -1874,7 +1874,7 @@ export default function User({ auth, users, settings }) {
             {/* ========================================================================= */}
             {/* 4. ADD / EDIT STAFF MODAL (PORTALED - MATCHING INVENTORY.JSX LABEL SIZES)   */}
             {/* ========================================================================= */}
-            {showModal && typeof document !== 'undefined' && createPortal(
+            {showModal && typeof document !== 'undefined' && document.body && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
                     <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden my-8">
                         

@@ -63,6 +63,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 
+// Explicit route for Web App Manifest to ensure correct application/manifest+json Content-Type
+Route::get('/manifest.webmanifest', function () {
+    $path = public_path('manifest.webmanifest');
+    if (file_exists($path)) {
+        return response()->file($path, [
+            'Content-Type' => 'application/manifest+json; charset=utf-8',
+            'Cache-Control' => 'public, max-age=3600'
+        ]);
+    }
+    return response()->json(['name' => 'Inertia POS', 'short_name' => 'POS', 'start_url' => '/'], 200, [
+        'Content-Type' => 'application/manifest+json; charset=utf-8'
+    ]);
+});
+
 /**
  * ROOT REDIRECT LOGIC
  */
