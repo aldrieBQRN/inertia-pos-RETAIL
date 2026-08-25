@@ -27,8 +27,8 @@ class DatabaseSeeder extends Seeder
         // 4. Subscriptions, Tenant Stores, and Billing History
         $this->call(SubscriptionSeeder::class);
 
-        // 5. Populate complete demo store (Metro Retail Hub), Terminals, Multi-Cashier shifts, Inventory & Transactions
-        $this->call(DemoSeeder::class);
+        // 5. Populate complete live products (with photos), Terminals, Multi-Cashier shifts, Inventory & Transactions
+        $this->call(ApiProductSeeder::class);
 
         $this->command->info('✅ All seeders executed successfully! Your app is ready to test.');
     }
