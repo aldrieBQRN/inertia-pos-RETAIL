@@ -2180,18 +2180,18 @@ export default function Inventory({ auth, initial_products, initial_categories, 
         }>
             <Head title="Inventory Management" />
 
-            <div className="py-3 sm:py-8 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
-                <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="py-3 sm:py-6 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
+                <div className="w-full max-w-full px-3.5 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
 
                     {/* 1. EXECUTIVE INVENTORY HEALTH KPI STRIP */}
                     <div className={`grid ${auth.user.is_admin ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3 lg:grid-cols-3'} gap-2.5 sm:gap-4`}>
                         {/* KPI 1: Inventory Valuation (Admin Only) */}
                         {auth.user.is_admin && (
-                            <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/70 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300">
-                                <div className="flex justify-between items-start">
-                                    <div className="space-y-0.5 sm:space-y-1">
-                                        <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider">Retail Value</p>
-                                        <h3 className="text-base sm:text-2xl font-black text-gray-900 tracking-tight">{formatCurrency(stats.totalRetailValue)}</h3>
+                            <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                                <div className="flex justify-between items-start gap-2">
+                                    <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                        <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider truncate">Retail Value</p>
+                                        <h3 className="text-base sm:text-2xl font-black text-gray-900 tracking-tight truncate">{formatCurrency(stats.totalRetailValue)}</h3>
                                     </div>
                                     <div className="p-2 sm:p-2.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-xl ring-1 ring-[#CBD7E6] shrink-0">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
@@ -2199,19 +2199,19 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                         </svg>
                                     </div>
                                 </div>
-                                <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold">
-                                    <span>Total Cost</span>
-                                    <span className="font-bold text-gray-700">{formatCurrency(stats.totalInventoryCost)}</span>
+                                <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold gap-1">
+                                    <span className="truncate">Total Cost</span>
+                                    <span className="font-bold text-gray-700 truncate shrink-0">{formatCurrency(stats.totalInventoryCost)}</span>
                                 </div>
                             </div>
                         )}
 
                         {/* KPI 2: Stock Units Volume */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/70 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300">
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider">Total In Stock</p>
-                                    <h3 className="text-base sm:text-2xl font-black text-gray-900 tracking-tight">{stats.totalStockUnits.toLocaleString()} <span className="text-xs font-semibold text-gray-400">units</span></h3>
+                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider truncate">Total In Stock</p>
+                                    <h3 className="text-base sm:text-2xl font-black text-gray-900 tracking-tight truncate">{stats.totalStockUnits.toLocaleString()} <span className="text-xs font-semibold text-gray-400">units</span></h3>
                                 </div>
                                 <div className="p-2 sm:p-2.5 bg-blue-50 text-blue-600 rounded-xl ring-1 ring-blue-100 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
@@ -2219,25 +2219,18 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold">
-                                <span>Active Products</span>
-                                <span className="font-bold text-gray-700">{stats.activeCount} items</span>
+                            <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold gap-1">
+                                <span className="truncate">Active Products</span>
+                                <span className="font-bold text-gray-700 truncate shrink-0">{stats.activeCount} items</span>
                             </div>
                         </div>
 
                         {/* KPI 3: Low Stock Warning */}
-                        <button 
-                            onClick={() => handleStockTabChange(stockTab === 'low_stock' ? 'all' : 'low_stock')}
-                            className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group active:scale-[0.98] ${
-                                stockTab === 'low_stock' 
-                                    ? 'bg-amber-50/80 border-amber-300 ring-2 ring-amber-400 shadow-sm' 
-                                    : 'bg-white border-gray-200/70 shadow-2xs hover:border-amber-200 hover:shadow-md'
-                            }`}
-                        >
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-[11px] font-black text-amber-700 uppercase tracking-wider">Low Stock</p>
-                                    <h3 className="text-base sm:text-2xl font-black text-amber-900 tracking-tight">{stats.lowStockCount} <span className="text-xs font-semibold text-amber-600">items</span></h3>
+                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-amber-700 uppercase tracking-wider truncate">Low Stock</p>
+                                    <h3 className="text-base sm:text-2xl font-black text-amber-900 tracking-tight truncate">{stats.lowStockCount} <span className="text-xs font-semibold text-amber-600">items</span></h3>
                                 </div>
                                 <div className="p-2 sm:p-2.5 bg-amber-100/70 text-amber-700 rounded-xl ring-1 ring-amber-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
@@ -2245,25 +2238,18 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-amber-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-amber-700">
-                                <span>≤ 10 units</span>
-                                <span className="font-bold underline text-[10px] sm:text-[11px]">{stockTab === 'low_stock' ? 'Filtered' : 'Filter'}</span>
+                            <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-amber-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-amber-700 gap-1">
+                                <span className="truncate">Warning Level</span>
+                                <span className="font-bold text-amber-800 truncate shrink-0">≤ 10 units</span>
                             </div>
-                        </button>
+                        </div>
 
                         {/* KPI 4: Out of Stock */}
-                        <button 
-                            onClick={() => handleStockTabChange(stockTab === 'out_of_stock' ? 'all' : 'out_of_stock')}
-                            className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group active:scale-[0.98] ${
-                                stockTab === 'out_of_stock' 
-                                    ? 'bg-rose-50/80 border-rose-300 ring-2 ring-rose-400 shadow-sm' 
-                                    : 'bg-white border-gray-200/70 shadow-2xs hover:border-rose-200 hover:shadow-md'
-                            }`}
-                        >
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-[11px] font-black text-rose-700 uppercase tracking-wider">Out of Stock</p>
-                                    <h3 className="text-base sm:text-2xl font-black text-rose-900 tracking-tight">{stats.outOfStockCount} <span className="text-xs font-semibold text-rose-600">items</span></h3>
+                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-rose-700 uppercase tracking-wider truncate">Out of Stock</p>
+                                    <h3 className="text-base sm:text-2xl font-black text-rose-900 tracking-tight truncate">{stats.outOfStockCount} <span className="text-xs font-semibold text-rose-600">items</span></h3>
                                 </div>
                                 <div className="p-2 sm:p-2.5 bg-rose-100/70 text-rose-700 rounded-xl ring-1 ring-rose-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
@@ -2271,11 +2257,11 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-rose-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-rose-700">
-                                <span>0 units</span>
-                                <span className="font-bold underline text-[10px] sm:text-[11px]">{stockTab === 'out_of_stock' ? 'Filtered' : 'Filter'}</span>
+                            <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-rose-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-rose-700 gap-1">
+                                <span className="truncate">Depleted</span>
+                                <span className="font-bold text-rose-800 truncate shrink-0">0 units</span>
                             </div>
-                        </button>
+                        </div>
                     </div>
 
                     {/* 2. INVENTORY WORKSPACE: CONNECTED TABS + MAIN CONTENT CARD */}

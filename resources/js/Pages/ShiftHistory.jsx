@@ -1092,8 +1092,8 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
         >
             <Head title="Shift History" />
 
-            <div className="py-3 sm:py-8 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
-                <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="py-3 sm:py-6 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
+                <div className="w-full max-w-full px-3.5 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
 
                     {/* ========================================================================= */}
                     {/* 1. EXECUTIVE SHIFT HEALTH KPI STRIP (Continuous Store Master Overview)      */}
@@ -1101,13 +1101,13 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
 
                         {/* KPI 1: Total Shift Sales */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/70 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300">
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider truncate">
                                         {auth.user?.is_admin ? 'Total Shift Sales' : 'My Shift Sales'}
                                     </p>
-                                    <h3 className="text-base sm:text-2xl font-black text-gray-900 tracking-tight">
+                                    <h3 className="text-base sm:text-2xl font-black text-gray-900 tracking-tight truncate">
                                         {formatCurrency(kpiMetrics.totalCashSales)}
                                     </h3>
                                 </div>
@@ -1117,20 +1117,20 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold">
-                                <span>Total Sessions</span>
-                                <span className="font-bold text-gray-700">{kpiMetrics.totalShifts} shifts</span>
+                            <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold gap-1">
+                                <span className="truncate">Total Sessions</span>
+                                <span className="font-bold text-gray-700 truncate shrink-0">{kpiMetrics.totalShifts} shifts</span>
                             </div>
                         </div>
 
                         {/* KPI 2: Actual Cash Collected */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/70 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300">
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-[11px] font-black text-emerald-700 uppercase tracking-wider">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-emerald-700 uppercase tracking-wider truncate">
                                         {auth.user?.is_admin ? 'Cash Collected' : 'My Cash Collected'}
                                     </p>
-                                    <h3 className="text-base sm:text-2xl font-black text-emerald-900 tracking-tight">
+                                    <h3 className="text-base sm:text-2xl font-black text-emerald-900 tracking-tight truncate">
                                         {formatCurrency(kpiMetrics.totalActualCash)}
                                     </h3>
                                 </div>
@@ -1140,27 +1140,20 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-emerald-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-emerald-700">
-                                <span>Starting Float Total</span>
-                                <span className="font-bold text-emerald-800">{formatCurrency(kpiMetrics.totalStartingCash)}</span>
+                            <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-emerald-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-emerald-700 gap-1">
+                                <span className="truncate">Starting Float Total</span>
+                                <span className="font-bold text-emerald-800 truncate shrink-0">{formatCurrency(kpiMetrics.totalStartingCash)}</span>
                             </div>
                         </div>
 
                         {/* KPI 3: Net Cash Variance (Short / Over) */}
-                        <button
-                            onClick={() => handleStatusTabChange(statusTab === 'shortage' ? 'all' : 'shortage')}
-                            className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group active:scale-[0.98] ${
-                                statusTab === 'shortage' || statusTab === 'overage'
-                                    ? 'bg-rose-50/80 border-rose-300 ring-2 ring-rose-400 shadow-sm'
-                                    : 'bg-white border-gray-200/70 shadow-2xs hover:border-rose-200 hover:shadow-md'
-                            }`}
-                        >
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className={`text-[10px] sm:text-[11px] font-black uppercase tracking-wider ${kpiMetrics.totalVariance < -0.01 ? 'text-rose-700' : 'text-slate-700'}`}>
+                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                    <p className={`text-[10px] sm:text-[11px] font-black uppercase tracking-wider truncate ${kpiMetrics.totalVariance < -0.01 ? 'text-rose-700' : 'text-slate-700'}`}>
                                         Net Variance
                                     </p>
-                                    <h3 className={`text-base sm:text-2xl font-black tracking-tight ${kpiMetrics.totalVariance < -0.01 ? 'text-rose-900' : (kpiMetrics.totalVariance > 0.01 ? 'text-emerald-800' : 'text-slate-800')}`}>
+                                    <h3 className={`text-base sm:text-2xl font-black tracking-tight truncate ${kpiMetrics.totalVariance < -0.01 ? 'text-rose-900' : (kpiMetrics.totalVariance > 0.01 ? 'text-emerald-800' : 'text-slate-800')}`}>
                                         {kpiMetrics.totalVariance > 0.01 ? '+' : ''}{formatCurrency(kpiMetrics.totalVariance)}
                                     </h3>
                                 </div>
@@ -1170,25 +1163,18 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-gray-600">
-                                <span>{kpiMetrics.shortageCount} Short · {kpiMetrics.overageCount} Over</span>
-                                <span className="font-bold underline text-[10px] sm:text-[11px]">{statusTab === 'shortage' ? 'Filtered' : 'Filter'}</span>
+                            <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-gray-600 gap-1">
+                                <span className="truncate">{kpiMetrics.shortageCount} Short · {kpiMetrics.overageCount} Over</span>
+                                <span className="font-bold text-gray-700 truncate shrink-0">Variance Summary</span>
                             </div>
-                        </button>
+                        </div>
 
                         {/* KPI 4: Operational Sessions & Balanced Count */}
-                        <button
-                            onClick={() => handleStatusTabChange(statusTab === 'balanced' ? 'all' : 'balanced')}
-                            className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group active:scale-[0.98] ${
-                                statusTab === 'balanced'
-                                    ? 'bg-blue-50/80 border-blue-300 ring-2 ring-blue-400 shadow-sm'
-                                    : 'bg-white border-gray-200/70 shadow-2xs hover:border-blue-200 hover:shadow-md'
-                            }`}
-                        >
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-[11px] font-black text-blue-700 uppercase tracking-wider">Balanced Shifts</p>
-                                    <h3 className="text-base sm:text-2xl font-black text-blue-900 tracking-tight">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-blue-700 uppercase tracking-wider truncate">Balanced Shifts</p>
+                                    <h3 className="text-base sm:text-2xl font-black text-blue-900 tracking-tight truncate">
                                         {kpiMetrics.balancedCount} <span className="text-xs font-semibold text-blue-600">sessions</span>
                                     </h3>
                                 </div>
@@ -1198,11 +1184,11 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-blue-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-blue-700">
-                                <span>Zero Variance</span>
-                                <span className="font-bold underline text-[10px] sm:text-[11px]">{statusTab === 'balanced' ? 'Filtered' : 'Filter'}</span>
+                            <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-blue-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-blue-700 gap-1">
+                                <span className="truncate">Audit Status</span>
+                                <span className="font-bold text-blue-800 truncate shrink-0">Zero Variance</span>
                             </div>
-                        </button>
+                        </div>
                     </div>
 
                     {/* ========================================================================= */}

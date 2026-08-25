@@ -888,8 +888,8 @@ export default function User({ auth, users, settings }) {
         >
             <Head title="Staff Management" />
 
-            <div className="py-3 sm:py-8 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
-                <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="py-3 sm:py-6 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
+                <div className="w-full max-w-full px-3.5 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
 
                     {/* ========================================================================= */}
                     {/* 1. EXECUTIVE STAFF & SHIFT KPI METRIC STRIP (4 CARDS)                     */}
@@ -897,10 +897,10 @@ export default function User({ auth, users, settings }) {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                         
                         {/* KPI 1: Total Staff */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/70 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300">
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider">Total Staff</p>
+                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider truncate">Total Staff</p>
                                     <h3 className="text-base sm:text-2xl font-black text-gray-900 tracking-tight">{kpiMetrics.total}</h3>
                                 </div>
                                 <div className="p-2 sm:p-2.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-xl ring-1 ring-[#CBD7E6] shrink-0">
@@ -909,24 +909,17 @@ export default function User({ auth, users, settings }) {
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold">
-                                <span>Team Composition</span>
-                                <span className="font-bold text-gray-700">{kpiMetrics.cashiers} Cashiers · {kpiMetrics.admins} Admins</span>
+                            <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold gap-1">
+                                <span className="truncate">Team</span>
+                                <span className="font-bold text-gray-700 truncate shrink-0">{kpiMetrics.cashiers} Cash · {kpiMetrics.admins} Adm</span>
                             </div>
                         </div>
 
-                        {/* KPI 2: Currently On Shift (Clickable filter) */}
-                        <button
-                            onClick={() => handleStatusTabChange(statusTab === 'on_shift' ? 'all' : 'on_shift')}
-                            className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group active:scale-[0.98] ${
-                                statusTab === 'on_shift'
-                                    ? 'bg-emerald-50/80 border-emerald-300 ring-2 ring-emerald-400 shadow-sm'
-                                    : 'bg-white border-gray-200/70 shadow-2xs hover:border-emerald-200 hover:shadow-md'
-                            }`}
-                        >
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-[11px] font-black text-emerald-700 uppercase tracking-wider">Currently On Shift</p>
+                        {/* KPI 2: Currently On Shift */}
+                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-emerald-700 uppercase tracking-wider truncate">On Shift</p>
                                     <h3 className="text-base sm:text-2xl font-black text-emerald-900 tracking-tight">{kpiMetrics.onShift}</h3>
                                 </div>
                                 <div className="p-2 sm:p-2.5 bg-emerald-100/70 text-emerald-700 rounded-xl ring-1 ring-emerald-200 shrink-0">
@@ -935,24 +928,17 @@ export default function User({ auth, users, settings }) {
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-emerald-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-emerald-700">
-                                <span>Active floor selling</span>
-                                <span className="font-bold underline text-[10px] sm:text-[11px]">{statusTab === 'on_shift' ? 'Filtered' : 'Filter'}</span>
+                            <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-emerald-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-emerald-700 gap-1">
+                                <span className="truncate">Active floor</span>
+                                <span className="font-bold text-emerald-800 truncate shrink-0">{kpiMetrics.onShift} Active</span>
                             </div>
-                        </button>
+                        </div>
 
-                        {/* KPI 3: Cashiers (Clickable filter) */}
-                        <button
-                            onClick={() => handleStatusTabChange(statusTab === 'cashiers' ? 'all' : 'cashiers')}
-                            className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group active:scale-[0.98] ${
-                                statusTab === 'cashiers'
-                                    ? 'bg-blue-50/80 border-blue-300 ring-2 ring-blue-400 shadow-sm'
-                                    : 'bg-white border-gray-200/70 shadow-2xs hover:border-blue-200 hover:shadow-md'
-                            }`}
-                        >
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-[11px] font-black text-blue-700 uppercase tracking-wider">Cashier Team</p>
+                        {/* KPI 3: Cashiers */}
+                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-blue-700 uppercase tracking-wider truncate">Cashiers</p>
                                     <h3 className="text-base sm:text-2xl font-black text-blue-900 tracking-tight">{kpiMetrics.cashiers}</h3>
                                 </div>
                                 <div className="p-2 sm:p-2.5 bg-blue-100/70 text-blue-700 rounded-xl ring-1 ring-blue-200 shrink-0">
@@ -961,24 +947,17 @@ export default function User({ auth, users, settings }) {
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-blue-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-blue-700">
-                                <span>Frontline register staff</span>
-                                <span className="font-bold underline text-[10px] sm:text-[11px]">{statusTab === 'cashiers' ? 'Filtered' : 'Filter'}</span>
+                            <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-blue-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-blue-700 gap-1">
+                                <span className="truncate">Registers</span>
+                                <span className="font-bold text-blue-800 truncate shrink-0">{kpiMetrics.cashiers} Staff</span>
                             </div>
-                        </button>
+                        </div>
 
-                        {/* KPI 4: Store Administrators (Clickable filter) */}
-                        <button
-                            onClick={() => handleStatusTabChange(statusTab === 'admins' ? 'all' : 'admins')}
-                            className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group active:scale-[0.98] ${
-                                statusTab === 'admins'
-                                    ? 'bg-purple-50/80 border-purple-300 ring-2 ring-purple-400 shadow-sm'
-                                    : 'bg-white border-gray-200/70 shadow-2xs hover:border-purple-200 hover:shadow-md'
-                            }`}
-                        >
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-[11px] font-black text-purple-700 uppercase tracking-wider">Store Administrators</p>
+                        {/* KPI 4: Store Administrators */}
+                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-purple-700 uppercase tracking-wider truncate">Admins</p>
                                     <h3 className="text-base sm:text-2xl font-black text-purple-900 tracking-tight">{kpiMetrics.admins}</h3>
                                 </div>
                                 <div className="p-2 sm:p-2.5 bg-purple-100/70 text-purple-700 rounded-xl ring-1 ring-purple-200 shrink-0">
@@ -987,11 +966,11 @@ export default function User({ auth, users, settings }) {
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-purple-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-purple-700">
-                                <span>Management & Controls</span>
-                                <span className="font-bold underline text-[10px] sm:text-[11px]">{statusTab === 'admins' ? 'Filtered' : 'Filter'}</span>
+                            <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-purple-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-purple-700 gap-1">
+                                <span className="truncate">Management</span>
+                                <span className="font-bold text-purple-800 truncate shrink-0">{kpiMetrics.admins} Admins</span>
                             </div>
-                        </button>
+                        </div>
                     </div>
 
                     {/* ========================================================================= */}
@@ -1001,13 +980,13 @@ export default function User({ auth, users, settings }) {
                         
                         {/* Interactive Pipeline Status Tabs (With Inverted Scoop Radiuses) */}
                         <div className="w-full max-w-full overflow-x-auto overflow-y-hidden no-scrollbar scroll-smooth -mb-px relative z-20 pt-1">
-                            <div ref={pipelineTabsRef} className="flex flex-nowrap items-end gap-1 sm:gap-1.5 px-3 w-max min-w-full">
+                            <div ref={pipelineTabsRef} className="flex flex-nowrap items-end gap-1 sm:gap-1.5 px-2 sm:px-3 w-max min-w-full">
                                 
                                 {/* Tab 1: All Staff */}
                                 <button
                                     data-tab="all"
                                     onClick={() => handleStatusTabChange('all')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         statusTab === 'all'
                                             ? 'bg-white text-[#1B3B6A] font-black border-t-[#1B3B6A] border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
@@ -1043,7 +1022,7 @@ export default function User({ auth, users, settings }) {
                                 <button
                                     data-tab="on_shift"
                                     onClick={() => handleStatusTabChange('on_shift')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         statusTab === 'on_shift'
                                             ? 'bg-white text-emerald-800 font-black border-t-emerald-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
@@ -1079,7 +1058,7 @@ export default function User({ auth, users, settings }) {
                                 <button
                                     data-tab="cashiers"
                                     onClick={() => handleStatusTabChange('cashiers')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         statusTab === 'cashiers'
                                             ? 'bg-white text-blue-800 font-black border-t-blue-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
@@ -1115,7 +1094,7 @@ export default function User({ auth, users, settings }) {
                                 <button
                                     data-tab="admins"
                                     onClick={() => handleStatusTabChange('admins')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         statusTab === 'admins'
                                             ? 'bg-white text-purple-800 font-black border-t-purple-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
@@ -1151,7 +1130,7 @@ export default function User({ auth, users, settings }) {
                                 <button
                                     data-tab="inactive"
                                     onClick={() => handleStatusTabChange('inactive')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         statusTab === 'inactive'
                                             ? 'bg-white text-rose-900 font-black border-t-rose-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
@@ -1188,80 +1167,82 @@ export default function User({ auth, users, settings }) {
                         {/* ========================================================================= */}
                         {/* MAIN WHITE CARD CONTAINER                                                 */}
                         {/* ========================================================================= */}
-                        <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs relative z-10 overflow-hidden flex flex-col">
+                        <div className="bg-white rounded-b-2xl sm:rounded-tr-2xl border border-gray-200/80 shadow-sm overflow-hidden flex flex-col relative z-10">
                             
                             {/* UNIFIED TOOLBAR: Search, Filters & View Switcher */}
-                            <div className="p-3 sm:p-4 border-b border-gray-100 bg-white space-y-3">
+                            <div className="p-3.5 sm:p-4 border-b border-gray-100 bg-white space-y-3 relative z-10">
                                 
                                 {/* Tier 1: Search & Filter Controls (1:1 with Inventory.jsx) */}
-                                <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-stretch sm:items-center justify-between">
-                                    
-                                    {/* Search Bar */}
-                                    <div className="relative flex-1 min-w-0">
-                                        <input
-                                            type="text"
-                                            placeholder="Search by name, email, phone, or account #..."
-                                            value={searchFilter}
-                                            onChange={(e) => { setSearchFilter(e.target.value); setCurrentPage(1); }}
-                                            className="w-full pl-11 pr-10 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm font-medium text-gray-800 focus:bg-white focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 transition-all shadow-2xs"
-                                        />
-                                        <svg className="w-5 h-5 text-gray-400 absolute left-3.5 top-3 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                        </svg>
-                                        {searchFilter && (
-                                            <button onClick={() => setSearchFilter('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 p-0.5">
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    {/* View Mode Toggle (Placed right after search bar, with List and Cards labels 1:1 with Inventory.jsx) */}
-                                    <div className="hidden lg:inline-flex rounded-xl bg-gray-100 p-1 border border-gray-200 shrink-0 self-start sm:self-auto">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleViewModeChange('table')}
-                                            className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'table' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
-                                            title="List View"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
-                                            <span className="hidden sm:inline">List</span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleViewModeChange('grid')}
-                                            className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'grid' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
-                                            title="Card View"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
-                                            <span className="hidden sm:inline">Cards</span>
-                                        </button>
-                                    </div>
-
-                                    {/* Dropdowns (Single row with Search in Desktop/Tablet; 2nd row in Mobile) */}
-                                    <div className="grid grid-cols-2 sm:flex sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto shrink-0">
+                                <div className="overflow-x-auto no-scrollbar pb-0.5">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:flex-nowrap gap-2.5 min-w-full sm:min-w-max lg:min-w-0">
                                         
-                                        {/* Role Dropdown */}
-                                        <select
-                                            value={roleFilter}
-                                            onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }}
-                                            className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[150px] lg:w-[165px] shrink-0"
-                                        >
-                                            <option value="">All Roles</option>
-                                            <option value="cashier">Cashiers</option>
-                                            <option value="admin">Store Admins</option>
-                                        </select>
+                                        {/* Search Bar */}
+                                        <div className="relative flex-1 min-w-full sm:min-w-[220px] lg:min-w-[240px]">
+                                            <input
+                                                type="text"
+                                                placeholder="Search by name, email, phone, or account #..."
+                                                value={searchFilter}
+                                                onChange={(e) => { setSearchFilter(e.target.value); setCurrentPage(1); }}
+                                                className="w-full pl-11 pr-10 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-xs sm:text-sm font-medium text-gray-800 focus:bg-white focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 transition-all shadow-2xs placeholder:text-gray-400"
+                                            />
+                                            <svg className="w-5 h-5 text-gray-400 absolute left-3.5 top-3 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                            {searchFilter && (
+                                                <button onClick={() => { setSearchFilter(''); setCurrentPage(1); }} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 p-0.5 cursor-pointer">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+                                                </button>
+                                            )}
+                                        </div>
 
-                                        {/* Status Dropdown */}
-                                        <select
-                                            value={accountStatusFilter}
-                                            onChange={(e) => { setAccountStatusFilter(e.target.value); setCurrentPage(1); }}
-                                            className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[150px] lg:w-[165px] shrink-0"
-                                        >
-                                            <option value="">All Statuses</option>
-                                            <option value="active">Active Accounts</option>
-                                            <option value="pending">Pending Setup</option>
-                                            <option value="inactive">Revoked Access</option>
-                                        </select>
+                                        {/* View Mode Toggle (Placed right after search bar, with List and Cards labels 1:1 with Inventory.jsx) */}
+                                        <div className="hidden lg:inline-flex rounded-xl bg-gray-100 p-1 border border-gray-200 shrink-0 self-start sm:self-auto">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleViewModeChange('table')}
+                                                className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'table' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                                title="List View"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+                                                <span className="hidden sm:inline">List</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleViewModeChange('grid')}
+                                                className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'grid' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                                title="Card View"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                                                <span className="hidden sm:inline">Cards</span>
+                                            </button>
+                                        </div>
+
+                                        {/* Dropdowns (Single row with Search in Desktop/Tablet; 2nd row in Mobile) */}
+                                        <div className="grid grid-cols-2 sm:flex sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto shrink-0">
+                                            
+                                            {/* Role Dropdown */}
+                                            <select
+                                                value={roleFilter}
+                                                onChange={(e) => { setRoleFilter(e.target.value); setCurrentPage(1); }}
+                                                className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[150px] lg:w-[165px] shrink-0 cursor-pointer truncate"
+                                            >
+                                                <option value="">All Roles</option>
+                                                <option value="cashier">Cashiers</option>
+                                                <option value="admin">Store Admins</option>
+                                            </select>
+
+                                            {/* Status Dropdown */}
+                                            <select
+                                                value={accountStatusFilter}
+                                                onChange={(e) => { setAccountStatusFilter(e.target.value); setCurrentPage(1); }}
+                                                className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[150px] lg:w-[165px] shrink-0 cursor-pointer truncate"
+                                            >
+                                                <option value="">All Statuses</option>
+                                                <option value="active">Active Accounts</option>
+                                                <option value="pending">Pending Setup</option>
+                                                <option value="inactive">Revoked Access</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1356,18 +1337,18 @@ export default function User({ auth, users, settings }) {
                                     {/* --- 1. DESKTOP TABLE VIEW (Visible on >= lg when viewMode === 'table') --- */}
                                     {viewMode === 'table' && (
                                         <div className="hidden lg:block overflow-x-auto custom-scrollbar">
-                                            <table className="w-full text-left text-xs">
+                                            <table className="w-full text-left text-xs min-w-[950px]">
                                                 <thead className="bg-gray-50/90 border-b border-gray-200/80 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-500">
                                                     <tr>
-                                                        <th className="p-3.5 sm:p-4">Staff Member</th>
-                                                        <th className="p-3.5 sm:p-4">Role & Permissions</th>
-                                                        <th className="p-3.5 sm:p-4">Workstation Shift</th>
-                                                        <th className="p-3.5 sm:p-4">Contact Info</th>
-                                                        <th className="p-3.5 sm:p-4">Account Status</th>
-                                                        <th className="p-3.5 sm:p-4 text-center">Actions</th>
+                                                        <th className="p-3.5 sm:p-4 min-w-[200px]">Staff Member</th>
+                                                        <th className="p-3.5 sm:p-4 min-w-[130px]">Role & Permissions</th>
+                                                        <th className="p-3.5 sm:p-4 min-w-[180px]">Workstation Shift</th>
+                                                        <th className="p-3.5 sm:p-4 min-w-[200px]">Contact Info</th>
+                                                        <th className="p-3.5 sm:p-4 min-w-[120px]">Account Status</th>
+                                                        <th className="p-3.5 sm:p-4 text-center min-w-[140px]">Actions</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-gray-100">
+                                                <tbody className="divide-y divide-gray-100 whitespace-nowrap">
                                                     {paginatedUsers.map((u) => {
                                                         const isOnShift = !!u.active_shift;
                                                         return (
@@ -1410,7 +1391,7 @@ export default function User({ auth, users, settings }) {
                                                                     )}
                                                                 </td>
 
-                                                                {/* Workstation Shift (Clean, without glowing bullet) */}
+                                                                {/* Workstation Shift */}
                                                                 <td className="p-3.5 sm:p-4">
                                                                     {isOnShift ? (
                                                                         <div className="inline-flex flex-col">
@@ -1455,7 +1436,7 @@ export default function User({ auth, users, settings }) {
                                                                     )}
                                                                 </td>
 
-                                                                {/* Action Buttons (1:1 with Inventory.jsx - clean transparent buttons with hover bg) */}
+                                                                {/* Action Buttons */}
                                                                 <td className="p-3.5 sm:p-4 text-center" onClick={(e) => e.stopPropagation()}>
                                                                     <div className="flex items-center justify-center gap-1">
                                                                         <button
@@ -1524,40 +1505,40 @@ export default function User({ auth, users, settings }) {
                                                     <div
                                                         key={u.id}
                                                         onClick={() => handleViewDetails(u)}
-                                                        className="bg-white rounded-2xl border border-gray-200/80 shadow-2xs hover:border-[#1B3B6A]/30 hover:shadow-md transition-all p-4 sm:p-5 flex flex-col justify-between cursor-pointer group"
+                                                        className="bg-white rounded-2xl border border-gray-200/80 shadow-2xs hover:border-[#1B3B6A]/30 hover:shadow-md transition-all p-3.5 sm:p-5 flex flex-col justify-between cursor-pointer group"
                                                     >
                                                         <div>
-                                                            <div className="flex items-center justify-between gap-2 mb-3.5">
+                                                            <div className="flex items-center justify-between gap-2 mb-3">
                                                                 {u.role === 'admin' ? (
-                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200/70">
+                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200/70 shadow-2xs">
                                                                         Store Admin
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#1B3B6A]/10 text-[#1B3B6A] border border-[#1B3B6A]/20">
+                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#1B3B6A]/10 text-[#1B3B6A] border border-[#1B3B6A]/20 shadow-2xs">
                                                                         Cashier
                                                                     </span>
                                                                 )}
 
                                                                 {u.is_active === false ? (
-                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs">
                                                                         Revoked
                                                                     </span>
                                                                 ) : u.terms_accepted_at ? (
-                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
                                                                         Active
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
+                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
                                                                         Pending Setup
                                                                     </span>
                                                                 )}
                                                             </div>
 
-                                                            <div className="flex items-center gap-3.5 mb-3.5">
+                                                            <div className="flex items-center gap-3 mb-3">
                                                                 {u.avatar_path ? (
-                                                                    <img src={getAvatarUrl(u.avatar_path)} alt={u.name} className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 shadow-2xs shrink-0" />
+                                                                    <img src={getAvatarUrl(u.avatar_path)} alt={u.name} className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-gray-200 shadow-2xs shrink-0" />
                                                                 ) : (
-                                                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-lg border-2 border-gray-200 shrink-0 uppercase shadow-2xs">
+                                                                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-base sm:text-lg border-2 border-gray-200 shrink-0 uppercase shadow-2xs">
                                                                         {u.name.charAt(0)}
                                                                     </div>
                                                                 )}
@@ -1567,13 +1548,13 @@ export default function User({ auth, users, settings }) {
                                                                 </div>
                                                             </div>
 
-                                                            <div className={`p-2.5 rounded-xl border mb-3.5 text-xs ${
+                                                            <div className={`p-2.5 rounded-xl border mb-3 text-xs ${
                                                                 isOnShift
                                                                     ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900'
                                                                     : 'bg-gray-50 border-gray-200/70 text-gray-600'
                                                             }`}>
                                                                 <div className="flex items-center justify-between">
-                                                                    <div className="font-bold">
+                                                                    <div className="font-bold truncate pr-1">
                                                                         {isOnShift ? (
                                                                             <span>On Shift ({u.active_shift.terminal?.name || 'POS'})</span>
                                                                         ) : (
@@ -1581,14 +1562,14 @@ export default function User({ auth, users, settings }) {
                                                                         )}
                                                                     </div>
                                                                     {isOnShift && (
-                                                                        <span className="font-mono font-black text-emerald-700">
+                                                                        <span className="font-mono font-black text-emerald-700 shrink-0">
                                                                             ₱{formatCurrency(u.active_shift.starting_cash)}
                                                                         </span>
                                                                     )}
                                                                 </div>
                                                             </div>
 
-                                                            <div className="space-y-1 text-xs text-gray-600 mb-3.5 font-medium">
+                                                            <div className="space-y-1 text-xs text-gray-600 mb-3 font-medium">
                                                                 <div className="flex items-center gap-2 truncate">
                                                                     <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
                                                                     <span className="truncate">{u.email}</span>
@@ -1601,14 +1582,14 @@ export default function User({ auth, users, settings }) {
                                                         </div>
 
                                                         {/* Staff Card Actions */}
-                                                        <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
+                                                        <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-1.5 sm:gap-2" onClick={(e) => e.stopPropagation()}>
                                                             <button
                                                                 onClick={() => handleViewDetails(u)}
-                                                                className="flex-1 py-2 px-3 text-xs font-bold text-[#1B3B6A] bg-[#EFF4F9] hover:bg-[#E2ECF6] rounded-xl border border-[#CBD7E6] flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                                                className="flex-1 py-2 px-2.5 sm:px-3 text-xs font-bold text-[#1B3B6A] bg-[#EFF4F9] hover:bg-[#E2ECF6] rounded-xl border border-[#CBD7E6] flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer shadow-2xs truncate"
                                                                 title="View Details"
                                                             >
-                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                                                <span>View Details</span>
+                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                                                <span className="truncate">View Details</span>
                                                             </button>
 
                                                             <div className="flex items-center gap-1 shrink-0">
@@ -1668,7 +1649,7 @@ export default function User({ auth, users, settings }) {
                             {/* PAGINATION FOOTER */}
                             {totalPages > 1 && (
                                 <div className="p-3.5 sm:p-4 border-t border-gray-200/80 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
-                                    <div className="text-xs text-gray-500 font-semibold">
+                                    <div className="text-xs text-gray-500 font-semibold text-center sm:text-left">
                                         Showing <span className="font-bold text-gray-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-gray-900">{Math.min(currentPage * itemsPerPage, filteredUsers.length)}</span> of <span className="font-bold text-gray-900">{filteredUsers.length}</span> staff members
                                     </div>
 
@@ -1676,7 +1657,7 @@ export default function User({ auth, users, settings }) {
                                         <button
                                             onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
                                             disabled={currentPage === 1}
-                                            className="px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-xs font-bold text-gray-700 transition-colors shadow-2xs"
+                                            className="px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-xs font-bold text-gray-700 transition-colors shadow-2xs cursor-pointer"
                                         >
                                             Previous
                                         </button>
@@ -1686,7 +1667,7 @@ export default function User({ auth, users, settings }) {
                                         <button
                                             onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
                                             disabled={currentPage === totalPages}
-                                            className="px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-xs font-bold text-gray-700 transition-colors shadow-2xs"
+                                            className="px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-xs font-bold text-gray-700 transition-colors shadow-2xs cursor-pointer"
                                         >
                                             Next
                                         </button>
@@ -1710,38 +1691,38 @@ export default function User({ auth, users, settings }) {
                         className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
                     />
 
-                    <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+                    <div className="fixed inset-y-0 right-0 max-w-full flex pl-3 sm:pl-10">
                         <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between border-l border-gray-200 animate-in slide-in-from-right duration-200">
                             
                             {/* Drawer Header */}
-                            <div className="p-6 bg-[#1B3B6A] text-white flex items-start justify-between shrink-0 shadow-md">
-                                <div className="flex items-center gap-3.5">
+                            <div className="p-4 sm:p-6 bg-[#1B3B6A] text-white flex items-start justify-between shrink-0 shadow-md">
+                                <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
                                     {selectedStaff.avatar_path ? (
-                                        <img src={getAvatarUrl(selectedStaff.avatar_path)} alt={selectedStaff.name} className="w-14 h-14 rounded-full object-cover border-2 border-white/30 shadow-md shrink-0" />
+                                        <img src={getAvatarUrl(selectedStaff.avatar_path)} alt={selectedStaff.name} className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-white/30 shadow-md shrink-0" />
                                     ) : (
-                                        <div className="w-14 h-14 rounded-full bg-white/10 text-white flex items-center justify-center font-black text-xl border-2 border-white/20 shrink-0 uppercase shadow-md">
+                                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/10 text-white flex items-center justify-center font-black text-lg sm:text-xl border-2 border-white/20 shrink-0 uppercase shadow-md">
                                             {selectedStaff.name.charAt(0)}
                                         </div>
                                     )}
-                                    <div>
-                                        <h2 className="text-lg font-black text-white leading-tight">{selectedStaff.name}</h2>
-                                        <p className="text-xs text-white/80 font-mono mt-0.5">
+                                    <div className="min-w-0">
+                                        <h2 className="text-base sm:text-lg font-black text-white leading-tight truncate">{selectedStaff.name}</h2>
+                                        <p className="text-xs text-white/80 font-mono mt-0.5 truncate">
                                             {selectedStaff.account_number ? `#${selectedStaff.account_number}` : `ID: #${selectedStaff.id}`}
                                         </p>
-                                        <div className="flex items-center gap-2 mt-2">
-                                            <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-white/20 text-white">
+                                        <div className="flex items-center gap-1.5 sm:gap-2 mt-2">
+                                            <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-white/20 text-white shrink-0">
                                                 {selectedStaff.role === 'admin' ? 'Store Admin' : 'Cashier'}
                                             </span>
                                             {selectedStaff.is_active === false ? (
-                                                <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-500 text-white">
+                                                <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-rose-500 text-white shrink-0">
                                                     Revoked
                                                 </span>
                                             ) : selectedStaff.terms_accepted_at ? (
-                                                <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-white">
+                                                <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-white shrink-0">
                                                     Active
                                                 </span>
                                             ) : (
-                                                <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-900">
+                                                <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-900 shrink-0">
                                                     Pending Setup
                                                 </span>
                                             )}
@@ -1751,18 +1732,18 @@ export default function User({ auth, users, settings }) {
 
                                 <button
                                     onClick={handleCloseDetails}
-                                    className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors cursor-pointer"
+                                    className="p-1.5 sm:p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors cursor-pointer shrink-0 ml-2"
                                 >
                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
                             </div>
 
                             {/* Drawer Body */}
-                            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6 bg-gray-50/50">
+                            <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4 sm:space-y-6 bg-gray-50/50">
 
                                 {/* Live Shift Card if on duty */}
                                 {selectedStaff.active_shift ? (
-                                    <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-4 shadow-2xs">
+                                    <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-3.5 sm:p-4 shadow-2xs">
                                         <div className="flex items-center justify-between mb-2.5">
                                             <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
                                                 Currently on Active Shift
@@ -1772,13 +1753,13 @@ export default function User({ auth, users, settings }) {
                                             </span>
                                         </div>
                                         <div className="grid grid-cols-2 gap-2 text-xs">
-                                            <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
-                                                <div className="text-[10px] font-bold text-gray-500 uppercase">Workstation</div>
-                                                <div className="font-black text-gray-900 mt-0.5">{selectedStaff.active_shift.terminal?.name || 'Register 1'}</div>
+                                            <div className="bg-white p-2.5 rounded-xl border border-emerald-100 flex flex-col justify-between h-full min-h-[58px]">
+                                                <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Workstation</div>
+                                                <div className="font-black text-gray-900 mt-1 truncate">{selectedStaff.active_shift.terminal?.name || 'Register 1'}</div>
                                             </div>
-                                            <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
-                                                <div className="text-[10px] font-bold text-gray-500 uppercase">Opening Float</div>
-                                                <div className="font-black text-emerald-700 mt-0.5 font-mono">₱{formatCurrency(selectedStaff.active_shift.starting_cash)}</div>
+                                            <div className="bg-white p-2.5 rounded-xl border border-emerald-100 flex flex-col justify-between h-full min-h-[58px]">
+                                                <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Opening Float</div>
+                                                <div className="font-black text-emerald-700 mt-1 font-mono truncate">₱{formatCurrency(selectedStaff.active_shift.starting_cash)}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -1791,27 +1772,25 @@ export default function User({ auth, users, settings }) {
                                 {/* Performance & Activity Stats */}
                                 <div>
                                     <h4 className="text-[11px] font-black uppercase tracking-wider text-gray-500 mb-2.5">Staff POS Activity</h4>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="bg-white p-3.5 rounded-2xl border border-gray-200/80 shadow-2xs">
-                                            <div className="text-[10px] font-bold text-gray-400 uppercase">Total Shifts Worked</div>
-                                            <div className="text-xl font-black text-gray-900 font-mono mt-1">{selectedStaff.shifts_count || 0}</div>
+                                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                                        <div className="bg-white p-3 sm:p-3.5 rounded-2xl border border-gray-200/80 shadow-2xs flex flex-col justify-between h-full min-h-[76px]">
+                                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-tight">Total Shifts</div>
+                                            <div className="text-lg sm:text-xl font-black text-gray-900 font-mono mt-1">{selectedStaff.shifts_count || 0}</div>
                                         </div>
-                                        <div className="bg-white p-3.5 rounded-2xl border border-gray-200/80 shadow-2xs">
-                                            <div className="text-[10px] font-bold text-gray-400 uppercase">Sales Completed</div>
-                                            <div className="text-xl font-black text-gray-900 font-mono mt-1">{selectedStaff.sales_count || 0}</div>
+                                        <div className="bg-white p-3 sm:p-3.5 rounded-2xl border border-gray-200/80 shadow-2xs flex flex-col justify-between h-full min-h-[76px]">
+                                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-tight">Completed Sales</div>
+                                            <div className="text-lg sm:text-xl font-black text-gray-900 font-mono mt-1">{selectedStaff.sales_count || 0}</div>
                                         </div>
                                     </div>
                                 </div>
 
-
-
                                 {/* Contact & Profile Details */}
-                                <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-2xs space-y-3">
+                                <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-gray-200/80 shadow-2xs space-y-3">
                                     <h4 className="text-[11px] font-black uppercase tracking-wider text-gray-500 mb-2">Account Profile Details</h4>
                                     
                                     <div className="text-xs">
                                         <span className="text-gray-400 font-bold block text-[10px] uppercase">Email Address</span>
-                                        <span className="font-extrabold text-gray-800">{selectedStaff.email}</span>
+                                        <span className="font-extrabold text-gray-800 break-all">{selectedStaff.email}</span>
                                     </div>
 
                                     <div className="text-xs">
@@ -1837,10 +1816,10 @@ export default function User({ auth, users, settings }) {
                             </div>
 
                             {/* Drawer Footer */}
-                            <div className="p-4 bg-white border-t border-gray-200 flex items-center gap-2 shrink-0">
+                            <div className="p-3.5 sm:p-4 bg-white border-t border-gray-200 flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0">
                                 <button
                                     onClick={() => { handleCloseDetails(); openEditModal(selectedStaff); }}
-                                    className="flex-1 py-2.5 bg-[#1B3B6A] hover:bg-[#142D52] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
+                                    className="flex-1 min-w-[120px] py-2.5 bg-[#1B3B6A] hover:bg-[#142D52] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-white">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
@@ -1851,7 +1830,7 @@ export default function User({ auth, users, settings }) {
                                 {!selectedStaff.terms_accepted_at && (
                                     <button
                                         onClick={() => handleResendInvite(selectedStaff)}
-                                        className="px-3 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl font-bold text-xs transition-colors cursor-pointer"
+                                        className="px-3 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl font-bold text-xs transition-colors cursor-pointer shrink-0"
                                     >
                                         Resend Invite
                                     </button>
@@ -1859,7 +1838,7 @@ export default function User({ auth, users, settings }) {
 
                                 <button
                                     onClick={() => handleToggleActive(selectedStaff)}
-                                    className={`px-3 py-2.5 rounded-xl font-bold text-xs transition-colors cursor-pointer ${
+                                    className={`px-3 py-2.5 rounded-xl font-bold text-xs transition-colors cursor-pointer shrink-0 ${
                                         selectedStaff.is_active !== false
                                             ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
                                             : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
@@ -1880,15 +1859,15 @@ export default function User({ auth, users, settings }) {
             {/* ========================================================================= */}
             {showModal && typeof document !== 'undefined' && document.body && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
-                    <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden my-8">
+                    <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden my-auto sm:my-8">
                         
                         {/* Header */}
-                        <div className="px-6 py-4 bg-[#1B3B6A] text-white flex justify-between items-center">
+                        <div className="px-4 sm:px-6 py-3.5 sm:py-4 bg-[#1B3B6A] text-white flex justify-between items-center">
                             <div>
-                                <h3 className="text-base font-black text-white">
+                                <h3 className="text-sm sm:text-base font-black text-white">
                                     {editMode ? 'Edit Staff Member' : 'Register New Staff Member'}
                                 </h3>
-                                <p className="text-xs text-white/70 font-medium mt-0.5">
+                                <p className="text-[11px] sm:text-xs text-white/70 font-medium mt-0.5">
                                     {editMode ? 'Update employee identity, contact, and system role' : 'Create account & send secure 24-hour setup invite'}
                                 </p>
                             </div>
@@ -1901,10 +1880,10 @@ export default function User({ auth, users, settings }) {
                         </div>
 
                         {/* Form */}
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
+                        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-3.5 sm:space-y-4 max-h-[85vh] overflow-y-auto custom-scrollbar">
                             
                             {/* Employee ID & Role */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div>
                                     <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5">
                                         Account / Employee #
@@ -1914,7 +1893,7 @@ export default function User({ auth, users, settings }) {
                                         value={data.account_number}
                                         disabled={editMode}
                                         onChange={(e) => setData('account_number', e.target.value)}
-                                        className="w-full px-3.5 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-sm font-mono font-bold text-gray-700 disabled:opacity-75"
+                                        className="w-full px-3.5 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-xs sm:text-sm font-mono font-bold text-gray-700 disabled:opacity-75"
                                         placeholder="10000001"
                                     />
                                     {errors.account_number && <div className="text-rose-500 text-xs mt-1">{errors.account_number}</div>}
@@ -1927,7 +1906,7 @@ export default function User({ auth, users, settings }) {
                                     <select
                                         value={data.role}
                                         onChange={(e) => setData('role', e.target.value)}
-                                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10"
+                                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 cursor-pointer"
                                     >
                                         <option value="cashier">Cashier</option>
                                         <option value="admin">Store Administrator</option>
@@ -1945,7 +1924,7 @@ export default function User({ auth, users, settings }) {
                                     required
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
-                                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10"
+                                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10"
                                     placeholder="e.g. Maria Santos"
                                 />
                                 {errors.name && <div className="text-rose-500 text-xs mt-1">{errors.name}</div>}
@@ -1961,7 +1940,7 @@ export default function User({ auth, users, settings }) {
                                     required
                                     value={data.email}
                                     onChange={(e) => setData('email', e.target.value)}
-                                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10"
+                                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10"
                                     placeholder="employee@store.com"
                                 />
                                 {errors.email && <div className="text-rose-500 text-xs mt-1">{errors.email}</div>}
@@ -1976,20 +1955,20 @@ export default function User({ auth, users, settings }) {
                                     type="tel"
                                     value={data.phone_number}
                                     onChange={handlePhoneChange}
-                                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10"
+                                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10"
                                     placeholder="09171234567"
                                 />
                             </div>
 
                             {/* Address Details */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div>
                                     <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5">City</label>
                                     <input
                                         type="text"
                                         value={data.city}
                                         onChange={(e) => setData('city', e.target.value)}
-                                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A]"
+                                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A]"
                                         placeholder="Manila"
                                     />
                                 </div>
@@ -1999,7 +1978,7 @@ export default function User({ auth, users, settings }) {
                                         type="text"
                                         value={data.province}
                                         onChange={(e) => setData('province', e.target.value)}
-                                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A]"
+                                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A]"
                                         placeholder="Metro Manila"
                                     />
                                 </div>
@@ -2015,7 +1994,7 @@ export default function User({ auth, users, settings }) {
                                         type="password"
                                         value={data.password}
                                         onChange={(e) => setData('password', e.target.value)}
-                                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A]"
+                                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-bold text-gray-800 focus:bg-white focus:border-[#1B3B6A]"
                                         placeholder="••••••••"
                                         minLength={8}
                                     />
@@ -2038,18 +2017,18 @@ export default function User({ auth, users, settings }) {
                             )}
 
                             {/* Footer Actions */}
-                            <div className="pt-4 border-t border-gray-200 flex justify-end gap-2.5">
+                            <div className="pt-3.5 sm:pt-4 border-t border-gray-200 flex justify-end gap-2 sm:gap-2.5">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-sm transition-colors cursor-pointer"
+                                    className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-xs sm:text-sm transition-colors cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isSaving || isSendingOtp || processing}
-                                    className="px-6 py-2.5 bg-[#1B3B6A] hover:bg-[#142D52] text-white rounded-xl font-black text-sm shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                    className="px-5 sm:px-6 py-2.5 bg-[#1B3B6A] hover:bg-[#142D52] text-white rounded-xl font-black text-xs sm:text-sm shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
                                 >
                                     {isSaving || isSendingOtp ? 'Saving...' : (editMode ? 'Save Changes' : 'Send Invite')}
                                 </button>

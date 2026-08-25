@@ -1108,9 +1108,8 @@ export default function Transactions({ auth, initial_transactions, initial_setti
             }
         >
             <Head title="Sales & Transactions" />
-
-            <div className="py-3 sm:py-8 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
-                <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="py-3 sm:py-6 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
+                <div className="w-full max-w-full px-3.5 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
 
                     {/* ========================================================================= */}
                     {/* 1. EXECUTIVE CASH DRAWER & FINANCIAL BALANCING STRIP                      */}
@@ -1118,13 +1117,13 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                         
                         {/* KPI 1: Gross Sales (Admin) vs My Shift Sales (Cashier) */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/70 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300">
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider truncate">
                                         {auth.user?.is_admin ? 'Gross Sales' : 'My Shift Sales'}
                                     </p>
-                                    <h3 className="text-base sm:text-2xl font-black text-gray-900 tracking-tight">{formatCurrency(kpiMetrics.totalValidRevenue)}</h3>
+                                    <h3 className="text-base sm:text-2xl font-black text-gray-900 tracking-tight truncate">{formatCurrency(kpiMetrics.totalValidRevenue)}</h3>
                                 </div>
                                 <div className="p-2 sm:p-2.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-xl ring-1 ring-[#CBD7E6] shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
@@ -1132,27 +1131,20 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold">
-                                <span>{auth.user?.is_admin ? 'Completed Orders' : 'My Orders'}</span>
-                                <span className="font-bold text-gray-700">{kpiMetrics.validTransactionsCount} checkouts</span>
+                            <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold gap-1">
+                                <span className="truncate">{auth.user?.is_admin ? 'Completed Orders' : 'My Orders'}</span>
+                                <span className="font-bold text-gray-700 truncate shrink-0">{kpiMetrics.validTransactionsCount} orders</span>
                             </div>
                         </div>
 
-                        {/* KPI 2: Cash in Drawer (Clickable filter) */}
-                        <button
-                            onClick={() => handleStatusTabChange(statusTab === 'cash' ? 'all' : 'cash')}
-                            className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group active:scale-[0.98] ${
-                                statusTab === 'cash'
-                                    ? 'bg-emerald-50/80 border-emerald-300 ring-2 ring-emerald-400 shadow-sm'
-                                    : 'bg-white border-gray-200/70 shadow-2xs hover:border-emerald-200 hover:shadow-md'
-                            }`}
-                        >
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-[11px] font-black text-emerald-700 uppercase tracking-wider">
-                                        {auth.user?.is_admin ? 'Cash in Drawer' : 'My Cash in Drawer'}
+                        {/* KPI 2: Cash in Drawer */}
+                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-emerald-700 uppercase tracking-wider truncate">
+                                        {auth.user?.is_admin ? 'Cash in Drawer' : 'My Cash Float'}
                                     </p>
-                                    <h3 className="text-base sm:text-2xl font-black text-emerald-900 tracking-tight">{formatCurrency(kpiMetrics.cashRevenue)}</h3>
+                                    <h3 className="text-base sm:text-2xl font-black text-emerald-900 tracking-tight truncate">{formatCurrency(kpiMetrics.cashRevenue)}</h3>
                                 </div>
                                 <div className="p-2 sm:p-2.5 bg-emerald-100/70 text-emerald-700 rounded-xl ring-1 ring-emerald-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
@@ -1160,27 +1152,20 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-emerald-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-emerald-700">
-                                <span>{kpiMetrics.cashCount} cash sales</span>
-                                <span className="font-bold underline text-[10px] sm:text-[11px]">{statusTab === 'cash' ? 'Filtered' : 'Filter'}</span>
+                            <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-emerald-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-emerald-700 gap-1">
+                                <span className="truncate">Cash Register</span>
+                                <span className="font-bold text-emerald-800 truncate shrink-0">{kpiMetrics.cashCount} sales</span>
                             </div>
-                        </button>
+                        </div>
 
-                        {/* KPI 3: Digital & E-Wallets (Clickable filter) */}
-                        <button
-                            onClick={() => handleStatusTabChange(statusTab === 'digital' ? 'all' : 'digital')}
-                            className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group active:scale-[0.98] ${
-                                statusTab === 'digital'
-                                    ? 'bg-indigo-50/80 border-indigo-300 ring-2 ring-indigo-400 shadow-sm'
-                                    : 'bg-white border-gray-200/70 shadow-2xs hover:border-indigo-200 hover:shadow-md'
-                            }`}
-                        >
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-[11px] font-black text-indigo-700 uppercase tracking-wider">
-                                        {auth.user?.is_admin ? 'Digital & Cards' : 'My Digital & Cards'}
+                        {/* KPI 3: Digital & E-Wallets */}
+                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                    <p className="text-[10px] sm:text-[11px] font-black text-indigo-700 uppercase tracking-wider truncate">
+                                        {auth.user?.is_admin ? 'Digital & Cards' : 'My Digital Sales'}
                                     </p>
-                                    <h3 className="text-base sm:text-2xl font-black text-indigo-900 tracking-tight">{formatCurrency(kpiMetrics.digitalRevenue)}</h3>
+                                    <h3 className="text-base sm:text-2xl font-black text-indigo-900 tracking-tight truncate">{formatCurrency(kpiMetrics.digitalRevenue)}</h3>
                                 </div>
                                 <div className="p-2 sm:p-2.5 bg-indigo-100/70 text-indigo-700 rounded-xl ring-1 ring-indigo-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
@@ -1188,26 +1173,19 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-indigo-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-indigo-700">
-                                <span>{kpiMetrics.digitalCount} digital orders</span>
-                                <span className="font-bold underline text-[10px] sm:text-[11px]">{statusTab === 'digital' ? 'Filtered' : 'Filter'}</span>
+                            <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-indigo-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-indigo-700 gap-1">
+                                <span className="truncate">E-Wallets & Card</span>
+                                <span className="font-bold text-indigo-800 truncate shrink-0">{kpiMetrics.digitalCount} orders</span>
                             </div>
-                        </button>
+                        </div>
 
                         {/* KPI 4: Voided Losses (Admin) vs Units Sold & Avg Ticket (Cashier) */}
                         {auth.user?.is_admin ? (
-                            <button
-                                onClick={() => handleStatusTabChange(statusTab === 'void' ? 'all' : 'void')}
-                                className={`p-3.5 sm:p-5 rounded-2xl border text-left transition-all duration-300 relative overflow-hidden group active:scale-[0.98] ${
-                                    statusTab === 'void'
-                                        ? 'bg-rose-50/80 border-rose-300 ring-2 ring-rose-400 shadow-sm'
-                                        : 'bg-white border-gray-200/70 shadow-2xs hover:border-rose-200 hover:shadow-md'
-                                }`}
-                            >
-                                <div className="flex justify-between items-start">
-                                    <div className="space-y-0.5 sm:space-y-1">
-                                        <p className="text-[10px] sm:text-[11px] font-black text-rose-700 uppercase tracking-wider">Voided Losses</p>
-                                        <h3 className="text-base sm:text-2xl font-black text-rose-900 tracking-tight">{formatCurrency(kpiMetrics.totalVoidedRevenue)}</h3>
+                            <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                                <div className="flex justify-between items-start gap-2">
+                                    <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                        <p className="text-[10px] sm:text-[11px] font-black text-rose-700 uppercase tracking-wider truncate">Voided Losses</p>
+                                        <h3 className="text-base sm:text-2xl font-black text-rose-900 tracking-tight truncate">{formatCurrency(kpiMetrics.totalVoidedRevenue)}</h3>
                                     </div>
                                     <div className="p-2 sm:p-2.5 bg-rose-100/70 text-rose-700 rounded-xl ring-1 ring-rose-200 shrink-0">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
@@ -1215,17 +1193,17 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                         </svg>
                                     </div>
                                 </div>
-                                <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-rose-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-rose-700">
-                                    <span>{kpiMetrics.voidedTransactionsCount} voids</span>
-                                    <span className="font-bold underline text-[10px] sm:text-[11px]">{statusTab === 'void' ? 'Filtered' : 'Filter'}</span>
+                                <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-rose-100 flex items-center justify-between text-[10px] sm:text-xs font-semibold text-rose-700 gap-1">
+                                    <span className="truncate">Cancelled</span>
+                                    <span className="font-bold text-rose-800 truncate shrink-0">{kpiMetrics.voidedTransactionsCount} voids</span>
                                 </div>
-                            </button>
+                            </div>
                         ) : (
-                            <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/70 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300">
-                                <div className="flex justify-between items-start">
-                                    <div className="space-y-0.5 sm:space-y-1">
-                                        <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider">Units Sold</p>
-                                        <h3 className="text-base sm:text-2xl font-black text-gray-900 tracking-tight">{kpiMetrics.totalItemsSold.toLocaleString()} <span className="text-xs font-semibold text-gray-400">pcs</span></h3>
+                            <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                                <div className="flex justify-between items-start gap-2">
+                                    <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                                        <p className="text-[10px] sm:text-[11px] font-black text-blue-700 uppercase tracking-wider truncate">Units Sold</p>
+                                        <h3 className="text-base sm:text-2xl font-black text-blue-900 tracking-tight truncate">{kpiMetrics.totalItemsSold.toLocaleString()} <span className="text-xs font-semibold text-gray-400">pcs</span></h3>
                                     </div>
                                     <div className="p-2 sm:p-2.5 bg-blue-50 text-blue-600 rounded-xl ring-1 ring-blue-100 shrink-0">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
@@ -1233,9 +1211,9 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                         </svg>
                                     </div>
                                 </div>
-                                <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold">
-                                    <span>Avg Ticket</span>
-                                    <span className="font-bold text-gray-700">{formatCurrency(kpiMetrics.aov)}</span>
+                                <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold gap-1">
+                                    <span className="truncate">Sold Volume</span>
+                                    <span className="font-bold text-gray-700 truncate shrink-0">{kpiMetrics.totalItemsSold} items</span>
                                 </div>
                             </div>
                         )}

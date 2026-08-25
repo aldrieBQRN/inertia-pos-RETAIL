@@ -42,6 +42,7 @@ export default function Reports({ auth, initial_report_data }) {
 
     // 1. Core State
     const [loading, setLoading] = useState(() => !initial_report_data);
+    const [isFiltering, setIsFiltering] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
     const [showDataMenu, setShowDataMenu] = useState(false);
     const [activeTab, setActiveTab] = useState('sales'); // 'sales' | 'products' | 'inventory' | 'shifts' | 'staff'
@@ -57,7 +58,15 @@ export default function Reports({ auth, initial_report_data }) {
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 12;
+    const [itemsPerPage, setItemsPerPage] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const savedMode = localStorage.getItem('pos_reports_view_mode');
+            if (savedMode === 'grid') {
+                return window.innerWidth >= 1280 ? 9 : 10;
+            }
+        }
+        return 10;
+    });
 
     // Filter States
     const [searchTerm, setSearchTerm] = useState('');
@@ -100,30 +109,19 @@ export default function Reports({ auth, initial_report_data }) {
             inventory_cost_value: 0,
             inventory_retail_value: 0,
             inventory_unrealized_profit: 0,
-            healthy_stock_count: 0,
-            low_stock_count: 0,
-            out_of_stock_count: 0,
-            shifts_count: 0,
-            net_cash_discrepancy: 0,
-            total_cash_overage: 0,
-            total_cash_shortage: 0,
         },
         sales_report: {
             daily_breakdown: [],
+            hourly_breakdown: [],
             payment_methods: [],
-            hourly_velocity: [],
         },
         product_report: {
             products: [],
-            categories: [],
+            top_selling: [],
+            category_breakdown: [],
         },
         inventory_report: {
-            items: [],
-            total_skus: 0,
-            total_units: 0,
-            total_cost_value: 0,
-            total_retail_value: 0,
-            healthy_count: 0,
+            inventory: [],
             low_stock_count: 0,
             out_of_stock_count: 0,
         },
@@ -149,17 +147,17 @@ export default function Reports({ auth, initial_report_data }) {
     const pipelineTabsRef = useRef(null);
     const workspaceSectionRef = useRef(null);
 
-    // Fetch Reports from Backend
-    const fetchReports = async (showLoading = true) => {
-        if (showLoading) setLoading(true);
+    // Fetch Reports from Backend (showLoading only on initial mount or full manual reload)
+    const fetchReports = async (sDate = startDate, eDate = endDate, showLoading = false) => {
+        if (showLoading) {
+            setLoading(true);
+        } else {
+            setIsFiltering(true);
+        }
         try {
             const params = {
-                start_date: startDate,
-                end_date: endDate,
-                user_id: selectedCashier || undefined,
-                category_id: selectedCategory || undefined,
-                payment_method: selectedPaymentMethod || undefined,
-                search: searchTerm || undefined,
+                start_date: sDate,
+                end_date: eDate,
             };
             const response = await axios.get('/api/reports', { params });
             setReportData(response.data);
@@ -168,24 +166,21 @@ export default function Reports({ auth, initial_report_data }) {
             Swal.fire('Error', 'Failed to retrieve reports data.', 'error');
         } finally {
             if (showLoading) setLoading(false);
+            setIsFiltering(false);
         }
     };
 
     const isFirstMountRef = useRef(true);
 
+    // Initial preloaded data check
     useEffect(() => {
         if (isFirstMountRef.current) {
             isFirstMountRef.current = false;
-            if (initial_report_data) {
-                return; // Use preloaded data on initial mount
+            if (!initial_report_data) {
+                fetchReports(startDate, endDate, true);
             }
         }
-
-        const timer = setTimeout(() => {
-            fetchReports(true);
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [startDate, endDate, selectedCashier, selectedCategory, selectedPaymentMethod, searchTerm]);
+    }, []);
 
     // Handle Outside Click for Data Menu
     useEffect(() => {
@@ -201,6 +196,7 @@ export default function Reports({ auth, initial_report_data }) {
     // Quick Date Presets Handler
     const handlePresetChange = (preset) => {
         setActivePreset(preset);
+        setCurrentPage(1);
         const today = new Date();
         let start = '';
         let end = formatDate(today);
@@ -251,24 +247,68 @@ export default function Reports({ auth, initial_report_data }) {
 
         setStartDate(start);
         setEndDate(end);
+        fetchReports(start, end, false);
     };
 
-    // Tab Change with Inverted Scoop Smooth Scroll
+    // Smoothly center the active tab in the visible area
+    useEffect(() => {
+        if (pipelineTabsRef.current) {
+            const activeBtn = pipelineTabsRef.current.querySelector(`[data-tab="${activeTab}"]`);
+            if (activeBtn) {
+                activeBtn.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'center'
+                });
+            }
+        }
+    }, [activeTab]);
+
+    const scrollToWorkspace = (tabKey) => {
+        requestAnimationFrame(() => {
+            if (workspaceSectionRef.current) {
+                const isMobile = window.innerWidth < 640;
+                const isTablet = window.innerWidth < 1024;
+                const offset = isMobile ? 68 : (isTablet ? 76 : 85);
+
+                const bodyRect = document.body.getBoundingClientRect().top;
+                const elementRect = workspaceSectionRef.current.getBoundingClientRect().top;
+                const elementPosition = elementRect - bodyRect;
+                const offsetPosition = elementPosition - offset;
+
+                const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+                const maxScroll = Math.max(0, scrollHeight - window.innerHeight);
+
+                if (maxScroll > 0) {
+                    const targetScroll = Math.min(maxScroll, Math.max(0, offsetPosition));
+                    if (Math.abs(window.scrollY - targetScroll) > 6) {
+                        window.scrollTo({
+                            top: targetScroll,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            }
+
+            if (tabKey && pipelineTabsRef.current) {
+                const tabEl = pipelineTabsRef.current.querySelector(`[data-tab="${tabKey}"]`);
+                if (tabEl) {
+                    tabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }
+        });
+    };
+
+    // Tab Change with Smooth Workspace & Tab Alignment (Same as Inventory Management)
     const handleTabChange = (tabKey) => {
         setActiveTab(tabKey);
         setCurrentPage(1);
-        if (typeof window !== 'undefined') {
-            requestAnimationFrame(() => {
-                const targetTab = pipelineTabsRef.current?.querySelector(`[data-tab="${tabKey}"]`);
-                if (targetTab && pipelineTabsRef.current) {
-                    targetTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                }
-            });
-        }
+        scrollToWorkspace(tabKey);
     };
 
     // Sort Handler
     const handleSort = (field) => {
+        setCurrentPage(1);
         if (sortField === field) {
             setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
         } else {
@@ -277,15 +317,35 @@ export default function Reports({ auth, initial_report_data }) {
         }
     };
 
-    // View Mode Toggle
+    // View Mode Toggle (9 cards for 3-column grid, 10 cards for 2-column grid, 10 items for list)
     const handleViewModeChange = (mode) => {
         setViewMode(mode);
-        try {
+        if (typeof window !== 'undefined') {
             localStorage.setItem('pos_reports_view_mode', mode);
-        } catch {}
+        }
+        setCurrentPage(1);
+        if (mode === 'grid') {
+            const balancedCount = typeof window !== 'undefined' && window.innerWidth >= 1280 ? 9 : 10;
+            setItemsPerPage(balancedCount);
+        } else {
+            setItemsPerPage(10);
+        }
     };
 
-    // Active Dataset based on Active Tab
+    // Dynamically balance cards per page on screen resize (9 cards for 3-column xl+, 10 cards for 2-column)
+    useEffect(() => {
+        if (viewMode !== 'grid') return;
+
+        const handleResize = () => {
+            const balancedCount = window.innerWidth >= 1280 ? 9 : 10;
+            setItemsPerPage((prev) => (prev !== balancedCount ? balancedCount : prev));
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [viewMode]);
+
+    // Active Dataset based on Active Tab with Instant Zero-Latency Filtering & Sorting
     const currentDataset = useMemo(() => {
         let list = [];
         if (activeTab === 'sales') {
@@ -300,7 +360,60 @@ export default function Reports({ auth, initial_report_data }) {
             list = reportData.staff_report.staff || [];
         }
 
-        // Sort
+        // 1. Instant In-Memory Search Filtering (0ms delay)
+        if (searchTerm && searchTerm.trim()) {
+            const query = searchTerm.toLowerCase().trim();
+            list = list.filter(item => {
+                if (activeTab === 'sales') {
+                    return (item.date && item.date.toLowerCase().includes(query));
+                } else if (activeTab === 'products') {
+                    return (
+                        (item.name && item.name.toLowerCase().includes(query)) ||
+                        (item.sku && item.sku.toLowerCase().includes(query)) ||
+                        (item.category_name && item.category_name.toLowerCase().includes(query))
+                    );
+                } else if (activeTab === 'inventory') {
+                    return (
+                        (item.name && item.name.toLowerCase().includes(query)) ||
+                        (item.sku && item.sku.toLowerCase().includes(query)) ||
+                        (item.category_name && item.category_name.toLowerCase().includes(query))
+                    );
+                } else if (activeTab === 'shifts') {
+                    return (
+                        (item.cashier_name && item.cashier_name.toLowerCase().includes(query)) ||
+                        (String(item.id).includes(query))
+                    );
+                } else if (activeTab === 'staff') {
+                    return (
+                        (item.name && item.name.toLowerCase().includes(query)) ||
+                        (item.email && item.email.toLowerCase().includes(query)) ||
+                        (item.role && item.role.toLowerCase().includes(query))
+                    );
+                }
+                return true;
+            });
+        }
+
+        // 2. Instant In-Memory Category Filtering (0ms delay)
+        if (selectedCategory && ['products', 'inventory'].includes(activeTab)) {
+            list = list.filter(item => String(item.category_id) === String(selectedCategory));
+        }
+
+        // 3. Instant In-Memory Cashier / Staff Filtering (0ms delay)
+        if (selectedCashier && ['shifts', 'staff'].includes(activeTab)) {
+            list = list.filter(item => String(item.user_id || item.id) === String(selectedCashier));
+        }
+
+        // 4. Instant In-Memory Payment Method Filtering (Sales)
+        if (selectedPaymentMethod && activeTab === 'sales') {
+            if (selectedPaymentMethod === 'cash') {
+                list = list.filter(item => Number(item.cash_sales || 0) > 0);
+            } else if (['gcash', 'maya', 'credit_card', 'debit_card'].includes(selectedPaymentMethod)) {
+                list = list.filter(item => Number(item.digital_sales || 0) > 0);
+            }
+        }
+
+        // 5. Sorting
         return [...list].sort((a, b) => {
             let valA = a[sortField];
             let valB = b[sortField];
@@ -310,13 +423,13 @@ export default function Reports({ auth, initial_report_data }) {
             }
             return sortOrder === 'asc' ? valA - valB : valB - valA;
         });
-    }, [activeTab, reportData, sortField, sortOrder]);
+    }, [activeTab, reportData, searchTerm, selectedCategory, selectedCashier, selectedPaymentMethod, sortField, sortOrder]);
 
-    const totalPages = Math.ceil(currentDataset.length / itemsPerPage);
+    const totalPages = Math.ceil(currentDataset.length / itemsPerPage) || 1;
     const paginatedData = useMemo(() => {
         const start = (currentPage - 1) * itemsPerPage;
         return currentDataset.slice(start, start + itemsPerPage);
-    }, [currentDataset, currentPage]);
+    }, [currentDataset, currentPage, itemsPerPage]);
 
     // Open Drill-down Drawer
     const handleRowClick = (item, type) => {
@@ -828,8 +941,8 @@ export default function Reports({ auth, initial_report_data }) {
             header={
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="font-bold text-lg sm:text-xl text-gray-900 tracking-tight">Audit & Reports Center</h2>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <h2 className="font-black text-xl text-gray-900 tracking-tight">Audit & Reports Center</h2>
+                        <p className="text-xs font-semibold text-gray-500 mt-0.5">
                             In-depth operational audit, multi-criteria filtering, stock valuation, shift reconciliation, and official exports
                         </p>
                     </div>
@@ -838,96 +951,96 @@ export default function Reports({ auth, initial_report_data }) {
         >
             <Head title="Reports & Auditing" />
 
-            <div className="py-3 sm:py-6 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
-                <div className="w-full max-w-full px-3 sm:px-6 lg:px-8 space-y-5">
+            <div className="py-3 sm:py-8 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
+                <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 space-y-6">
 
                     {/* ========================================================================= */}
                     {/* 1. EXECUTIVE KPI SUMMARY METRIC STRIP (4 CARDS)                           */}
                     {/* ========================================================================= */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                         
                         {/* KPI 1: Net Sales Revenue */}
-                        <div className="p-3.5 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs">
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider">Net Sales Revenue</p>
-                                    <h3 className="text-base sm:text-2xl font-bold text-gray-900 tracking-tight">
+                        <div className="p-3 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs flex flex-col justify-between">
+                            <div className="flex justify-between items-start gap-1 sm:gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
+                                    <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider truncate">Net Sales Revenue</p>
+                                    <h3 className="text-sm sm:text-2xl font-bold text-gray-900 tracking-tight font-mono truncate">
                                         ₱{formatCurrency(reportData.summary.total_sales)}
                                     </h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-blue-50 text-blue-700 rounded-xl ring-1 ring-blue-100 shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
+                                <div className="p-1.5 sm:p-2.5 bg-blue-50 text-blue-700 rounded-xl ring-1 ring-blue-100 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500">
-                                <span>{formatNumber(reportData.summary.total_orders)} Transactions</span>
-                                <span className="font-semibold text-gray-800">Avg: ₱{formatCurrency(reportData.summary.average_order_value)}</span>
+                            <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-0 text-[10px] sm:text-xs text-gray-500 font-medium">
+                                <span className="truncate">{formatNumber(reportData.summary.total_orders)} Orders</span>
+                                <span className="font-semibold text-gray-800 font-mono truncate">Avg: ₱{formatCurrency(reportData.summary.average_order_value)}</span>
                             </div>
                         </div>
 
                         {/* KPI 2: Gross Profit & Margin */}
-                        <div className="p-3.5 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs">
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-xs font-bold text-emerald-700 uppercase tracking-wider">Gross Profit</p>
-                                    <h3 className="text-base sm:text-2xl font-bold text-emerald-900 tracking-tight">
+                        <div className="p-3 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs flex flex-col justify-between">
+                            <div className="flex justify-between items-start gap-1 sm:gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
+                                    <p className="text-[10px] sm:text-xs font-bold text-emerald-700 uppercase tracking-wider truncate">Gross Profit</p>
+                                    <h3 className="text-sm sm:text-2xl font-bold text-emerald-900 tracking-tight font-mono truncate">
                                         ₱{formatCurrency(reportData.summary.total_gross_profit)}
                                     </h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-emerald-50 text-emerald-700 rounded-xl ring-1 ring-emerald-100 shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
+                                <div className="p-1.5 sm:p-2.5 bg-emerald-50 text-emerald-700 rounded-xl ring-1 ring-emerald-100 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-emerald-50 flex items-center justify-between text-[10px] sm:text-xs text-emerald-700">
+                            <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-emerald-50 flex items-center justify-between text-[10px] sm:text-xs text-emerald-700 font-medium">
                                 <span>Gross Margin</span>
-                                <span className="font-bold text-emerald-800">{reportData.summary.gross_margin_percent}%</span>
+                                <span className="font-bold text-emerald-800 font-mono">{reportData.summary.gross_margin_percent}%</span>
                             </div>
                         </div>
 
                         {/* KPI 3: Units Sold & Discounts */}
-                        <div className="p-3.5 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs">
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-xs font-bold text-amber-700 uppercase tracking-wider">Volume & Markdown</p>
-                                    <h3 className="text-base sm:text-2xl font-bold text-gray-900 tracking-tight">
-                                        {formatNumber(reportData.summary.total_units_sold)} <span className="text-xs sm:text-sm font-semibold text-gray-400">Units</span>
+                        <div className="p-3 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs flex flex-col justify-between">
+                            <div className="flex justify-between items-start gap-1 sm:gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
+                                    <p className="text-[10px] sm:text-xs font-bold text-amber-700 uppercase tracking-wider truncate">Volume & Disc.</p>
+                                    <h3 className="text-sm sm:text-2xl font-bold text-gray-900 tracking-tight font-mono truncate">
+                                        {formatNumber(reportData.summary.total_units_sold)} <span className="text-[10px] sm:text-sm font-semibold text-gray-400 font-sans">Units</span>
                                     </h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-amber-50 text-amber-700 rounded-xl ring-1 ring-amber-100 shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
+                                <div className="p-1.5 sm:p-2.5 bg-amber-50 text-amber-700 rounded-xl ring-1 ring-amber-100 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-amber-50 flex items-center justify-between text-[10px] sm:text-xs text-gray-500">
-                                <span>Discounts Granted</span>
-                                <span className="font-semibold text-amber-700">₱{formatCurrency(reportData.summary.total_discounts)}</span>
+                            <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-amber-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-0 text-[10px] sm:text-xs text-gray-500 font-medium">
+                                <span className="truncate">Discounts</span>
+                                <span className="font-semibold text-amber-700 font-mono truncate">₱{formatCurrency(reportData.summary.total_discounts)}</span>
                             </div>
                         </div>
 
                         {/* KPI 4: Stock Valuation & Discrepancies */}
-                        <div className="p-3.5 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs">
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-0.5 sm:space-y-1">
-                                    <p className="text-[10px] sm:text-xs font-bold text-purple-700 uppercase tracking-wider">Inventory Valuation</p>
-                                    <h3 className="text-base sm:text-2xl font-bold text-purple-900 tracking-tight">
+                        <div className="p-3 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs flex flex-col justify-between">
+                            <div className="flex justify-between items-start gap-1 sm:gap-2">
+                                <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
+                                    <p className="text-[10px] sm:text-xs font-bold text-purple-700 uppercase tracking-wider truncate">Inventory Value</p>
+                                    <h3 className="text-sm sm:text-2xl font-bold text-purple-900 tracking-tight font-mono truncate">
                                         ₱{formatCurrency(reportData.summary.inventory_retail_value)}
                                     </h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-purple-50 text-purple-700 rounded-xl ring-1 ring-purple-100 shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
+                                <div className="p-1.5 sm:p-2.5 bg-purple-50 text-purple-700 rounded-xl ring-1 ring-purple-100 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                                     </svg>
                                 </div>
                             </div>
-                            <div className="mt-2.5 sm:mt-3 pt-2.5 sm:pt-3 border-t border-purple-50 flex items-center justify-between text-[10px] sm:text-xs text-gray-500">
-                                <span>Cost Value: ₱{formatCurrency(reportData.summary.inventory_cost_value)}</span>
-                                <span className="font-semibold text-purple-700">{formatNumber(reportData.summary.inventory_skus)} SKUs</span>
+                            <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-purple-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-0 text-[10px] sm:text-xs text-gray-500 font-medium">
+                                <span className="truncate">Cost: ₱{formatCurrency(reportData.summary.inventory_cost_value)}</span>
+                                <span className="font-semibold text-purple-700 font-mono shrink-0">{formatNumber(reportData.summary.inventory_skus)} SKUs</span>
                             </div>
                         </div>
                     </div>
@@ -1136,13 +1249,13 @@ export default function Reports({ auth, initial_report_data }) {
                                                 }
                                                 className="pl-11 pr-10 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl w-full focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 focus:bg-white text-xs sm:text-sm font-medium transition-all shadow-2xs placeholder:text-gray-400"
                                                 value={searchTerm}
-                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                                             />
                                             <svg className="w-5 h-5 text-gray-400 absolute left-3.5 top-3 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                             </svg>
                                             {searchTerm && (
-                                                <button onClick={() => setSearchTerm('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 p-0.5 cursor-pointer">
+                                                <button onClick={() => { setSearchTerm(''); setCurrentPage(1); }} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 p-0.5 cursor-pointer">
                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                                                     </svg>
@@ -1173,13 +1286,13 @@ export default function Reports({ auth, initial_report_data }) {
                                         </div>
 
                                         {/* Contextual Dropdowns */}
-                                        <div className="grid grid-cols-2 sm:flex sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto shrink-0">
+                                        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto shrink-0">
                                             {/* Cashier Filter (Sales, Shifts, Staff tabs) */}
                                             {['sales', 'shifts', 'staff'].includes(activeTab) && (
                                                 <select
                                                     value={selectedCashier}
-                                                    onChange={(e) => setSelectedCashier(e.target.value)}
-                                                    className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[160px] lg:w-[175px] shrink-0 cursor-pointer"
+                                                    onChange={(e) => { setSelectedCashier(e.target.value); setCurrentPage(1); }}
+                                                    className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs flex-1 sm:flex-none sm:w-[160px] lg:w-[175px] shrink-0 cursor-pointer truncate"
                                                 >
                                                     <option value="">All Cashiers & Staff</option>
                                                     {reportData.meta.cashiers.map(c => (
@@ -1192,8 +1305,8 @@ export default function Reports({ auth, initial_report_data }) {
                                             {['sales', 'products', 'inventory'].includes(activeTab) && (
                                                 <select
                                                     value={selectedCategory}
-                                                    onChange={(e) => setSelectedCategory(e.target.value)}
-                                                    className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[160px] lg:w-[175px] shrink-0 cursor-pointer"
+                                                    onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
+                                                    className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs flex-1 sm:flex-none sm:w-[160px] lg:w-[175px] shrink-0 cursor-pointer truncate"
                                                 >
                                                     <option value="">All Categories</option>
                                                     {reportData.meta.categories.map(cat => (
@@ -1206,8 +1319,8 @@ export default function Reports({ auth, initial_report_data }) {
                                             {activeTab === 'sales' && (
                                                 <select
                                                     value={selectedPaymentMethod}
-                                                    onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-                                                    className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[160px] lg:w-[175px] shrink-0 cursor-pointer"
+                                                    onChange={(e) => { setSelectedPaymentMethod(e.target.value); setCurrentPage(1); }}
+                                                    className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs flex-1 sm:flex-none sm:w-[160px] lg:w-[175px] shrink-0 cursor-pointer truncate"
                                                 >
                                                     <option value="">All Payment Methods</option>
                                                     <option value="cash">Cash Only</option>
@@ -1240,7 +1353,13 @@ export default function Reports({ auth, initial_report_data }) {
                                                     type="date"
                                                     className="w-full bg-transparent border-none p-0 text-xs font-semibold text-gray-700 focus:ring-0 cursor-pointer"
                                                     value={startDate}
-                                                    onChange={(e) => { setStartDate(e.target.value); setActivePreset(''); }}
+                                                    onChange={(e) => {
+                                                        const newS = e.target.value;
+                                                        setStartDate(newS);
+                                                        setActivePreset('');
+                                                        setCurrentPage(1);
+                                                        fetchReports(newS, endDate, false);
+                                                    }}
                                                 />
                                             </div>
 
@@ -1251,7 +1370,13 @@ export default function Reports({ auth, initial_report_data }) {
                                                     type="date"
                                                     className="w-full bg-transparent border-none p-0 text-xs font-semibold text-gray-700 focus:ring-0 cursor-pointer"
                                                     value={endDate}
-                                                    onChange={(e) => { setEndDate(e.target.value); setActivePreset(''); }}
+                                                    onChange={(e) => {
+                                                        const newE = e.target.value;
+                                                        setEndDate(newE);
+                                                        setActivePreset('');
+                                                        setCurrentPage(1);
+                                                        fetchReports(startDate, newE, false);
+                                                    }}
                                                 />
                                             </div>
 
@@ -1899,76 +2024,85 @@ export default function Reports({ auth, initial_report_data }) {
                                     {viewMode === 'table' && (
                                         <div className="hidden lg:block bg-white overflow-hidden">
                                             <div className="overflow-x-auto custom-scrollbar">
-                                                <table className="w-full text-left min-w-[900px]">
+                                                <table className="w-full text-left min-w-[1050px]">
                                                     <thead className="bg-gray-50/80 border-b border-gray-200/80 text-gray-500 uppercase text-[10px] font-black tracking-wider whitespace-nowrap">
                                                         {activeTab === 'sales' && (
                                                             <tr>
-                                                                <th className="p-3.5 sm:p-4 cursor-pointer" onClick={() => handleSort('date')}>Date</th>
+                                                                <th className="p-3.5 sm:p-4 cursor-pointer min-w-[130px]" onClick={() => handleSort('date')}>Date</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('orders_count')}>Orders</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('gross_sales')}>Gross Sales</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('discounts')}>Discounts</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('net_sales')}>Net Sales</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('aov')}>Avg Basket</th>
-                                                                <th className="p-3.5 sm:p-4 text-right">Cash / Digital</th>
-                                                                <th className="p-3.5 sm:p-4 text-center">Voids</th>
-                                                                <th className="p-3.5 sm:p-4 text-center">Action</th>
+                                                                <th className="p-3.5 sm:p-4 text-right min-w-[170px]">Cash / Digital</th>
+                                                                <th className="p-3.5 sm:p-4 text-center min-w-[90px]">Voids</th>
                                                             </tr>
                                                         )}
 
                                                         {activeTab === 'products' && (
                                                             <tr>
-                                                                <th className="p-3.5 sm:p-4 cursor-pointer" onClick={() => handleSort('name')}>Product / SKU</th>
-                                                                <th className="p-3.5 sm:p-4">Category</th>
+                                                                <th className="p-3.5 sm:p-4 cursor-pointer min-w-[220px]" onClick={() => handleSort('name')}>Product / SKU</th>
+                                                                <th className="p-3.5 sm:p-4 min-w-[140px]">Category</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('units_sold')}>Units Sold</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('total_revenue')}>Total Revenue</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('total_profit')}>Gross Profit</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('margin_percent')}>Margin</th>
-                                                                <th className="p-3.5 sm:p-4 text-center">Velocity</th>
+                                                                <th className="p-3.5 sm:p-4 text-center min-w-[110px]">Velocity</th>
                                                             </tr>
                                                         )}
 
                                                         {activeTab === 'inventory' && (
                                                             <tr>
-                                                                <th className="p-3.5 sm:p-4 cursor-pointer" onClick={() => handleSort('name')}>Item Details / SKU</th>
-                                                                <th className="p-3.5 sm:p-4">Category</th>
+                                                                <th className="p-3.5 sm:p-4 cursor-pointer min-w-[220px]" onClick={() => handleSort('name')}>Item Details / SKU</th>
+                                                                <th className="p-3.5 sm:p-4 min-w-[140px]">Category</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('stock_quantity')}>In Stock</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('total_cost_value')}>Cost Value</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('total_retail_value')}>Retail Value</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('potential_profit')}>Unrealized Profit</th>
-                                                                <th className="p-3.5 sm:p-4 text-center">Health Status</th>
+                                                                <th className="p-3.5 sm:p-4 text-center min-w-[120px]">Health Status</th>
                                                             </tr>
                                                         )}
 
                                                         {activeTab === 'shifts' && (
                                                             <tr>
-                                                                <th className="p-3.5 sm:p-4">Shift ID / Date</th>
-                                                                <th className="p-3.5 sm:p-4">Cashier</th>
-                                                                <th className="p-3.5 sm:p-4">Opening Time / End</th>
+                                                                <th className="p-3.5 sm:p-4 min-w-[140px]">Shift ID / Date</th>
+                                                                <th className="p-3.5 sm:p-4 min-w-[150px]">Cashier</th>
+                                                                <th className="p-3.5 sm:p-4 min-w-[160px]">Opening Time / End</th>
                                                                 <th className="p-3.5 sm:p-4 text-right">Start Float</th>
                                                                 <th className="p-3.5 sm:p-4 text-right">Cash Sales</th>
                                                                 <th className="p-3.5 sm:p-4 text-right">Expected Drawer</th>
                                                                 <th className="p-3.5 sm:p-4 text-right">Actual Counted</th>
-                                                                <th className="p-3.5 sm:p-4 text-center">Variance (O/S)</th>
+                                                                <th className="p-3.5 sm:p-4 text-center min-w-[140px]">Variance (O/S)</th>
                                                             </tr>
                                                         )}
 
                                                         {activeTab === 'staff' && (
                                                             <tr>
-                                                                <th className="p-3.5 sm:p-4 cursor-pointer" onClick={() => handleSort('name')}>Staff Member</th>
-                                                                <th className="p-3.5 sm:p-4">Role</th>
+                                                                <th className="p-3.5 sm:p-4 cursor-pointer min-w-[200px]" onClick={() => handleSort('name')}>Staff Member</th>
+                                                                <th className="p-3.5 sm:p-4 min-w-[130px]">Role</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('shifts_count')}>Shifts Worked</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('transactions_count')}>Orders Closed</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('total_sales')}>Total Sales</th>
                                                                 <th className="p-3.5 sm:p-4 text-right cursor-pointer" onClick={() => handleSort('average_basket')}>Avg Ticket</th>
                                                                 <th className="p-3.5 sm:p-4 text-right">Discounts Issued</th>
-                                                                <th className="p-3.5 sm:p-4 text-center">Voids Logged</th>
-                                                                <th className="p-3.5 sm:p-4 text-center">Status</th>
+                                                                <th className="p-3.5 sm:p-4 text-center min-w-[100px]">Voids Logged</th>
+                                                                <th className="p-3.5 sm:p-4 text-center min-w-[100px]">Status</th>
                                                             </tr>
                                                         )}
                                                     </thead>
-                                                    <tbody className="divide-y divide-gray-100">
+                                                    <tbody className="divide-y divide-gray-100 whitespace-nowrap">
                                                         {paginatedData.map((item, idx) => (
-                                                            <tr key={idx} className="hover:bg-gray-50/80 transition-colors">
+                                                            <tr 
+                                                                key={idx} 
+                                                                onClick={() => {
+                                                                    if (activeTab === 'sales') handleRowClick(item, 'date');
+                                                                    else if (activeTab === 'products') handleRowClick(item, 'product');
+                                                                    else if (activeTab === 'inventory') handleRowClick(item, 'inventory');
+                                                                    else if (activeTab === 'shifts') handleRowClick(item, 'shift');
+                                                                    else if (activeTab === 'staff') handleRowClick(item, 'staff');
+                                                                }}
+                                                                className="hover:bg-gray-50/80 transition-colors cursor-pointer"
+                                                            >
                                                                 {/* Sales Row */}
                                                                 {activeTab === 'sales' && (
                                                                     <>
@@ -1984,17 +2118,9 @@ export default function Reports({ auth, initial_report_data }) {
                                                                             <span className="text-indigo-700 font-bold">₱{formatCurrency(item.digital_sales)}</span>
                                                                         </td>
                                                                         <td className="p-3.5 sm:p-4 text-center">
-                                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${item.voids_count > 0 ? 'bg-rose-50 text-rose-700' : 'bg-gray-50 text-gray-500'}`}>
-                                                                                {item.voids_count}
+                                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${(item.void_count || item.voids_count || 0) > 0 ? 'bg-rose-50 text-rose-700' : 'bg-gray-50 text-gray-500'}`}>
+                                                                                {item.void_count ?? item.voids_count ?? 0}
                                                                             </span>
-                                                                        </td>
-                                                                        <td className="p-3.5 sm:p-4 text-center">
-                                                                            <button
-                                                                                onClick={() => handleRowClick(item, 'date')}
-                                                                                className="px-3 py-1.5 rounded-xl text-xs font-bold text-[#1B3A69] bg-[#EFF4F9] hover:bg-[#E2ECF6] border border-[#CBD7E6] shadow-xs active:scale-95 transition-all cursor-pointer"
-                                                                            >
-                                                                                Drill-down
-                                                                            </button>
                                                                         </td>
                                                                     </>
                                                                 )}
@@ -2127,7 +2253,7 @@ export default function Reports({ auth, initial_report_data }) {
 
                                     {/* 2. CARD GRID VIEW (Shown on Mobile always, or on Desktop when viewMode === 'grid') */}
                                     <div className={`${viewMode === 'table' ? 'lg:hidden' : 'block'} p-3.5 sm:p-4 bg-gray-50/40 border-t lg:border-t-0 border-gray-100`}>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                                             {paginatedData.map((item, idx) => (
                                                 <div key={idx} className="bg-white rounded-2xl border border-gray-200/80 shadow-2xs p-3.5 sm:p-4 flex flex-col justify-between gap-3 hover:shadow-md hover:border-[#1B3A69]/40 transition-all">
                                                     
@@ -2143,7 +2269,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         {item.date}
                                                                     </h4>
                                                                 </div>
-                                                                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#EFF4F9] text-[#1B3A69] border border-[#CBD7E6] shrink-0">
+                                                                <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-[#EFF4F9] text-[#1B3A69] border border-[#CBD7E6] shrink-0 leading-normal inline-flex items-center justify-center">
                                                                     {formatNumber(item.orders_count)} Orders
                                                                 </span>
                                                             </div>
@@ -2151,40 +2277,40 @@ export default function Reports({ auth, initial_report_data }) {
                                                             <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-gray-100 text-xs">
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">GROSS SALES</span>
-                                                                    <span className="font-semibold text-gray-800 text-xs sm:text-sm">
+                                                                    <span className="font-semibold text-gray-800 text-xs sm:text-sm font-mono">
                                                                         ₱{formatCurrency(item.gross_sales)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">NET REVENUE</span>
-                                                                    <span className="font-bold text-[#1B3A69] text-xs sm:text-sm">
+                                                                    <span className="font-bold text-[#1B3A69] text-xs sm:text-sm font-mono">
                                                                         ₱{formatCurrency(item.net_sales)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">DISCOUNTS</span>
-                                                                    <span className="font-semibold text-amber-700 text-xs">
+                                                                    <span className="font-semibold text-amber-700 text-xs font-mono">
                                                                         ₱{formatCurrency(item.discounts)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">AVG TICKET</span>
-                                                                    <span className="font-medium text-gray-600 text-xs">
+                                                                    <span className="font-medium text-gray-600 text-xs font-mono">
                                                                         ₱{formatCurrency(item.aov)}
                                                                     </span>
                                                                 </div>
                                                             </div>
 
                                                             <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between gap-2 text-xs">
-                                                                <div className="text-[11px] font-semibold text-gray-600">
+                                                                <div className="text-[11px] font-semibold text-gray-600 font-mono">
                                                                     <span className="text-emerald-700 font-bold">₱{formatCurrency(item.cash_sales)}</span>
                                                                     <span className="text-gray-300 mx-1">/</span>
                                                                     <span className="text-indigo-700 font-bold">₱{formatCurrency(item.digital_sales)}</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-1.5 shrink-0">
-                                                                    {item.voids_count > 0 && (
-                                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700">
-                                                                            {item.voids_count} void
+                                                                    {(item.void_count || item.voids_count || 0) > 0 && (
+                                                                        <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shrink-0 leading-normal inline-flex items-center justify-center">
+                                                                            {item.void_count ?? item.voids_count} void
                                                                         </span>
                                                                     )}
                                                                     <Link
@@ -2205,7 +2331,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                         <>
                                                             <div className="flex items-start justify-between gap-2">
                                                                 <div className="min-w-0">
-                                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">
+                                                                    <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 shrink-0 leading-normal inline-flex items-center justify-center">
                                                                         {item.category_name}
                                                                     </span>
                                                                     <h4 className="font-bold text-sm sm:text-base text-gray-900 leading-tight tracking-tight mt-1 truncate" title={item.name}>
@@ -2213,9 +2339,9 @@ export default function Reports({ auth, initial_report_data }) {
                                                                     </h4>
                                                                     <p className="text-[11px] text-gray-400 font-mono mt-0.5">{item.sku || 'SKU-NONE'}</p>
                                                                 </div>
-                                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 ${
+                                                                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider shrink-0 leading-normal inline-flex items-center justify-center ${
                                                                     item.units_sold > 50 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                                                                    item.units_sold > 15 ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-gray-100 text-gray-600'
+                                                                    item.units_sold > 15 ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-gray-100 text-gray-600 border border-gray-200'
                                                                 }`}>
                                                                     {item.units_sold > 50 ? 'Fast Mover' : item.units_sold > 15 ? 'Moderate' : 'Slow'}
                                                                 </span>
@@ -2224,25 +2350,25 @@ export default function Reports({ auth, initial_report_data }) {
                                                             <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-gray-100 text-xs">
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">UNITS SOLD</span>
-                                                                    <span className="font-bold text-gray-900 text-xs sm:text-sm">
+                                                                    <span className="font-bold text-gray-900 text-xs sm:text-sm font-mono">
                                                                         {formatNumber(item.units_sold)} pcs
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">TOTAL REVENUE</span>
-                                                                    <span className="font-bold text-[#1B3A69] text-xs sm:text-sm">
+                                                                    <span className="font-bold text-[#1B3A69] text-xs sm:text-sm font-mono">
                                                                         ₱{formatCurrency(item.total_revenue)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">GROSS PROFIT</span>
-                                                                    <span className="font-bold text-emerald-700 text-xs sm:text-sm">
+                                                                    <span className="font-bold text-emerald-700 text-xs sm:text-sm font-mono">
                                                                         ₱{formatCurrency(item.total_profit)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">PROFIT MARGIN</span>
-                                                                    <span className="font-bold text-gray-700 text-xs sm:text-sm">
+                                                                    <span className="font-bold text-gray-700 text-xs sm:text-sm font-mono">
                                                                         {item.margin_percent}%
                                                                     </span>
                                                                 </div>
@@ -2257,7 +2383,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                         <>
                                                             <div className="flex items-start justify-between gap-2">
                                                                 <div className="min-w-0">
-                                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700">
+                                                                    <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 shrink-0 leading-normal inline-flex items-center justify-center">
                                                                         {item.category_name}
                                                                     </span>
                                                                     <h4 className="font-bold text-sm sm:text-base text-gray-900 leading-tight tracking-tight mt-1 truncate" title={item.name}>
@@ -2265,7 +2391,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                     </h4>
                                                                     <p className="text-[11px] text-gray-400 font-mono mt-0.5">{item.sku || 'SKU-NONE'}</p>
                                                                 </div>
-                                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 ${
+                                                                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider shrink-0 leading-normal inline-flex items-center justify-center ${
                                                                     item.status === 'out_of_stock' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
                                                                     item.status === 'low_stock' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                                                 }`}>
@@ -2276,25 +2402,25 @@ export default function Reports({ auth, initial_report_data }) {
                                                             <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-gray-100 text-xs">
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">CURRENT STOCK</span>
-                                                                    <span className="font-bold text-gray-900 text-xs sm:text-sm">
+                                                                    <span className="font-bold text-gray-900 text-xs sm:text-sm font-mono">
                                                                         {formatNumber(item.stock_quantity)} in stock
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">COST VALUE</span>
-                                                                    <span className="font-semibold text-gray-600 text-xs sm:text-sm">
+                                                                    <span className="font-semibold text-gray-600 text-xs sm:text-sm font-mono">
                                                                         ₱{formatCurrency(item.total_cost_value)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">RETAIL VALUE</span>
-                                                                    <span className="font-bold text-[#1B3A69] text-xs sm:text-sm">
+                                                                    <span className="font-bold text-[#1B3A69] text-xs sm:text-sm font-mono">
                                                                         ₱{formatCurrency(item.total_retail_value)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">POTENTIAL PROFIT</span>
-                                                                    <span className="font-bold text-emerald-700 text-xs sm:text-sm">
+                                                                    <span className="font-bold text-emerald-700 text-xs sm:text-sm font-mono">
                                                                         ₱{formatCurrency(item.potential_profit)}
                                                                     </span>
                                                                 </div>
@@ -2321,42 +2447,42 @@ export default function Reports({ auth, initial_report_data }) {
                                                                 </div>
                                                                 <div className="shrink-0 text-right">
                                                                     {Number(item.difference || 0) > 0.01 ? (
-                                                                        <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full text-xs font-bold border border-emerald-200 block">
+                                                                        <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 leading-normal inline-flex items-center justify-center">
                                                                             +₱{Number(item.difference).toFixed(2)} (Over)
                                                                         </span>
                                                                     ) : Number(item.difference || 0) < -0.01 ? (
-                                                                        <span className="text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full text-xs font-bold border border-rose-200 block">
+                                                                        <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 leading-normal inline-flex items-center justify-center">
                                                                             -₱{Math.abs(Number(item.difference)).toFixed(2)} (Short)
                                                                         </span>
                                                                     ) : (
-                                                                        <span className="text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full text-xs font-bold block">
+                                                                        <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-gray-100 text-gray-500 border border-gray-200 leading-normal inline-flex items-center justify-center">
                                                                             Exact ₱0.00
                                                                         </span>
                                                                     )}
                                                                 </div>
                                                             </div>
 
-                                                            <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-gray-100 text-xs">
+                                                            <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-gray-100 text-xs font-mono">
                                                                 <div>
-                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">START FLOAT</span>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block font-sans">START FLOAT</span>
                                                                     <span className="font-semibold text-gray-600 text-xs">
                                                                         ₱{Number(item.starting_cash || item.opening_float || 0).toFixed(2)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
-                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">CASH SALES</span>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block font-sans">CASH SALES</span>
                                                                     <span className="font-bold text-[#1B3A69] text-xs sm:text-sm">
                                                                         ₱{Number(item.cash_sales || 0).toFixed(2)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
-                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">EXPECTED CASH</span>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block font-sans">EXPECTED CASH</span>
                                                                     <span className="font-semibold text-gray-800 text-xs">
                                                                         ₱{Number(item.expected_cash || item.expected_drawer || 0).toFixed(2)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
-                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">ACTUAL COUNTED</span>
+                                                                    <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block font-sans">ACTUAL COUNTED</span>
                                                                     <span className="font-bold text-emerald-700 text-xs sm:text-sm">
                                                                         {item.actual_cash !== null && item.actual_cash !== undefined ? `₱${Number(item.actual_cash).toFixed(2)}` : (item.actual_counted !== null && item.actual_counted !== undefined ? `₱${Number(item.actual_counted).toFixed(2)}` : 'N/A')}
                                                                     </span>
@@ -2376,16 +2502,16 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         <h4 className="font-bold text-sm sm:text-base text-gray-900 leading-tight tracking-tight truncate">
                                                                             {item.name}
                                                                         </h4>
-                                                                        <span className={`px-2 py-0.2 rounded-full text-[10px] font-bold ${
-                                                                            item.role === 'admin' ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'
+                                                                        <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider shrink-0 leading-normal inline-flex items-center justify-center ${
+                                                                            item.role === 'admin' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-blue-50 text-blue-700 border border-blue-200'
                                                                         }`}>
                                                                             {item.role === 'admin' ? 'Admin' : 'Cashier'}
                                                                         </span>
                                                                     </div>
                                                                     <p className="text-xs text-gray-400 truncate mt-0.5">{item.email}</p>
                                                                 </div>
-                                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
-                                                                    item.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                                                                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider shrink-0 leading-normal inline-flex items-center justify-center ${
+                                                                    item.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
                                                                 }`}>
                                                                     {item.is_active ? 'Active' : 'Revoked'}
                                                                 </span>
@@ -2394,26 +2520,26 @@ export default function Reports({ auth, initial_report_data }) {
                                                             <div className="grid grid-cols-2 gap-2 pt-2.5 border-t border-gray-100 text-xs">
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">SHIFTS / ORDERS</span>
-                                                                    <span className="font-semibold text-gray-800 text-xs">
-                                                                        {item.shifts_count} shifts ({formatNumber(item.transactions_count)} orders)
+                                                                    <span className="font-semibold text-gray-800 text-xs font-mono">
+                                                                        {item.shifts_count}s ({formatNumber(item.transactions_count)}o)
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">TOTAL SALES</span>
-                                                                    <span className="font-bold text-[#1B3A69] text-xs sm:text-sm">
+                                                                    <span className="font-bold text-[#1B3A69] text-xs sm:text-sm font-mono">
                                                                         ₱{formatCurrency(item.total_sales)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">AVG TICKET</span>
-                                                                    <span className="font-medium text-gray-600 text-xs">
+                                                                    <span className="font-medium text-gray-600 text-xs font-mono">
                                                                         ₱{formatCurrency(item.average_basket)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">DISCOUNTS / VOIDS</span>
-                                                                    <span className="font-semibold text-amber-700 text-xs">
-                                                                        ₱{formatCurrency(item.discounts_given)} ({item.voids_count} voids)
+                                                                    <span className="font-semibold text-amber-700 text-xs font-mono">
+                                                                        ₱{formatCurrency(item.discounts_given)} ({item.voids_count}v)
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -2423,35 +2549,89 @@ export default function Reports({ auth, initial_report_data }) {
                                             ))}
                                         </div>
                                     </div>
-
-                                    {/* PAGINATION */}
-                                    {totalPages > 1 && (
-                                        <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
-                                            <span className="text-xs text-gray-500 font-semibold">
-                                                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, currentDataset.length)} of {currentDataset.length} records
-                                            </span>
-                                            <div className="flex items-center gap-1.5">
-                                                <button
-                                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                                    disabled={currentPage === 1}
-                                                    className="px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 disabled:opacity-40 hover:bg-gray-50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:cursor-not-allowed"
-                                                >
-                                                    Previous
-                                                </button>
-                                                <span className="px-2 text-xs font-bold text-gray-700">{currentPage} / {totalPages}</span>
-                                                <button
-                                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                                    disabled={currentPage === totalPages}
-                                                    className="px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 disabled:opacity-40 hover:bg-gray-50 shadow-xs transition-all active:scale-95 cursor-pointer disabled:cursor-not-allowed"
-                                                >
-                                                    Next
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
                                 </>
                             )}
                         </div>
+
+                        {/* SMOOTH HORIZONTAL PAGINATION WITH SMART PAGE DISPLAY (SEPARATED BELOW MAIN CARD) */}
+                        {!loading && totalPages > 1 && (() => {
+                            const getPageNumbers = () => {
+                                const pages = [];
+                                const delta = 1;
+                                const left = Math.max(2, currentPage - delta);
+                                const right = Math.min(totalPages - 1, currentPage + delta);
+
+                                pages.push(1);
+                                if (left > 2) pages.push('...');
+                                for (let i = left; i <= right; i++) {
+                                    if (i !== 1 && i !== totalPages) pages.push(i);
+                                }
+                                if (right < totalPages - 1) pages.push('...');
+                                if (totalPages > 1) pages.push(totalPages);
+
+                                return pages;
+                            };
+
+                            const scrollToWorkspace = () => {
+                                if (workspaceSectionRef.current) {
+                                    workspaceSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+                                } else {
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }
+                            };
+
+                            return (
+                                <div className="py-4 flex flex-col sm:flex-row justify-between items-center gap-4 pb-10 sm:pb-4 w-full overflow-visible">
+                                    <span className="text-xs text-gray-500 font-bold uppercase tracking-wider shrink-0">
+                                        Page <span className="text-gray-900 font-black">{currentPage}</span> of {totalPages}
+                                    </span>
+
+                                    <div className="w-full sm:w-auto overflow-x-auto no-scrollbar pb-2 sm:pb-0">
+                                        <div className="flex gap-1.5 flex-nowrap w-max mx-auto sm:mx-0 px-1">
+                                            <button
+                                                disabled={currentPage === 1}
+                                                onClick={() => {
+                                                    setCurrentPage(p => Math.max(p - 1, 1));
+                                                    scrollToWorkspace();
+                                                }}
+                                                className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap flex items-center shadow-2xs cursor-pointer"
+                                            >
+                                                &laquo; Prev
+                                            </button>
+
+                                            {getPageNumbers().map((num, idx) => (
+                                                num === '...' ? (
+                                                    <span key={`ellipsis-${idx}`} className="px-2 py-2 min-h-9 text-gray-400 font-bold flex items-center">...</span>
+                                                ) : (
+                                                    <button
+                                                        key={num}
+                                                        onClick={() => {
+                                                            setCurrentPage(num);
+                                                            scrollToWorkspace();
+                                                        }}
+                                                        className={`shrink-0 px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all flex items-center justify-center shadow-2xs font-mono cursor-pointer
+                                                            ${currentPage === num ? 'bg-[#1B3A69] text-white border-[#1B3A69] shadow-sm font-extrabold' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                                                    >
+                                                        {num}
+                                                    </button>
+                                                )
+                                            ))}
+
+                                            <button
+                                                disabled={currentPage === totalPages}
+                                                onClick={() => {
+                                                    setCurrentPage(p => Math.min(p + 1, totalPages));
+                                                    scrollToWorkspace();
+                                                }}
+                                                className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap flex items-center shadow-2xs cursor-pointer"
+                                            >
+                                                Next &raquo;
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     {/* ========================================================================= */}
@@ -2459,9 +2639,9 @@ export default function Reports({ auth, initial_report_data }) {
                     {/* ========================================================================= */}
                     {showDrawer && drawerItem && (
                         <div className="fixed inset-0 z-50 overflow-hidden">
-                            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setShowDrawer(false)}></div>
-                            <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-                                <div className="w-screen max-w-md bg-white shadow-2xl p-6 flex flex-col justify-between">
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity" onClick={() => setShowDrawer(false)}></div>
+                            <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
+                                <div className="w-screen max-w-md bg-white shadow-2xl p-4 sm:p-6 flex flex-col justify-between overflow-y-auto">
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                                             <div>
@@ -2486,20 +2666,20 @@ export default function Reports({ auth, initial_report_data }) {
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-gray-500 font-medium">Gross Volume / Sales:</span>
-                                                    <span className="font-bold text-[#1B3A69]">
+                                                    <span className="font-bold text-[#1B3A69] font-mono">
                                                         ₱{formatCurrency(drawerItem.gross_sales || drawerItem.total_revenue || drawerItem.total_sales || (drawerItem.cash_sales * 100))}
                                                     </span>
                                                 </div>
                                                 {drawerItem.discounts !== undefined && (
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-500 font-medium">Discounts Given:</span>
-                                                        <span className="font-semibold text-amber-700">₱{formatCurrency(drawerItem.discounts)}</span>
+                                                        <span className="font-semibold text-amber-700 font-mono">₱{formatCurrency(drawerItem.discounts)}</span>
                                                     </div>
                                                 )}
                                                 {drawerItem.aov !== undefined && (
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-500 font-medium">Average Order Value:</span>
-                                                        <span className="font-semibold text-gray-700">₱{formatCurrency(drawerItem.aov)}</span>
+                                                        <span className="font-semibold text-gray-700 font-mono">₱{formatCurrency(drawerItem.aov)}</span>
                                                     </div>
                                                 )}
                                             </div>
