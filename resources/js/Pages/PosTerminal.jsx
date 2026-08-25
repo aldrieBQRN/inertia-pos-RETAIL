@@ -656,19 +656,124 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
     };
 
     const handleRecallOrder = async (order) => {
-        const result = await Swal.fire({ title: 'Recall Order?', text: `Replace current cart with "${order.reference_note || 'Untitled'}"?`, icon: 'question', showCancelButton: true });
-        if (result.isConfirmed) {
-            setCart(order.cart_data);
-            setHeldOrders(prev => prev.filter(o => o.id !== order.id));
-            setShowHeldOrdersModal(false);
-            setHeldOrdersNavIndex(-1);
-            if (window.innerWidth < 768) setIsMobileCartOpen(true);
-            try {
-                await axios.delete(`/api/held-orders/${order.id}`);
-            } catch (err) {
-                console.error("Failed to delete held order after recall:", err);
-                loadHeldOrders();
+        const result = await Swal.fire({
+            title: 'Recall Order?',
+            text: `Replace current cart with "${order.reference_note || 'Untitled'}"?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, recall',
+            cancelButtonText: 'Cancel'
+        });
+
+        if (!result.isConfirmed) return;
+
+        // Fetch fresh product catalog to check live stock levels
+        let currentProducts = products;
+        try {
+            const res = await axios.get('/api/products', { params: { all: true } });
+            if (Array.isArray(res.data)) {
+                currentProducts = res.data;
+                setProducts(res.data);
+            } else if (res.data?.data && Array.isArray(res.data.data)) {
+                currentProducts = res.data.data;
+                setProducts(res.data.data);
             }
+        } catch (e) {
+            console.warn("Could not fetch latest products for recall, using local state:", e);
+        }
+
+        const validCart = [];
+        const soldOutItems = [];
+        const adjustedItems = [];
+
+        (order.cart_data || []).forEach(item => {
+            // Custom items (by weight / manual) have no catalog stock constraint
+            if (!item.id || item.is_custom) {
+                validCart.push(item);
+                return;
+            }
+
+            const liveProduct = currentProducts.find(p => p.id === item.id);
+
+            // If product was deleted or currently has 0 stock
+            if (!liveProduct || (liveProduct.stock_quantity ?? 0) <= 0) {
+                soldOutItems.push(item.name || 'Unknown Product');
+                return;
+            }
+
+            // If available stock is less than saved quantity, adjust quantity to max available
+            if (liveProduct.stock_quantity < item.quantity) {
+                adjustedItems.push(`${item.name || 'Product'} (reduced from ${item.quantity} to ${liveProduct.stock_quantity})`);
+                validCart.push({
+                    ...item,
+                    stock_quantity: liveProduct.stock_quantity,
+                    quantity: liveProduct.stock_quantity,
+                    price: liveProduct.price ?? item.price
+                });
+            } else {
+                // Fully in stock
+                validCart.push({
+                    ...item,
+                    stock_quantity: liveProduct.stock_quantity,
+                    price: liveProduct.price ?? item.price
+                });
+            }
+        });
+
+        // If all items in the saved order are now sold out
+        if (validCart.length === 0) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Order Items Sold Out',
+                html: `All items in this saved order are currently out of stock:<br><br><div class="text-left bg-red-50 p-3 rounded-lg border border-red-200 text-xs text-red-700 font-semibold space-y-1">${soldOutItems.map(name => `• ${name} (Sold Out)`).join('<br>')}</div><br>The order cannot be restored to the cart.`,
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: 'Understood'
+            });
+            return;
+        }
+
+        // Apply available items to cart
+        setCart(validCart);
+        setHeldOrders(prev => prev.filter(o => o.id !== order.id));
+        setShowHeldOrdersModal(false);
+        setHeldOrdersNavIndex(-1);
+        if (window.innerWidth < 768) setIsMobileCartOpen(true);
+
+        // Delete from held orders in DB
+        try {
+            await axios.delete(`/api/held-orders/${order.id}`);
+        } catch (err) {
+            console.error("Failed to delete held order after recall:", err);
+            loadHeldOrders();
+        }
+
+        // Alert user if some items were sold out or adjusted
+        if (soldOutItems.length > 0 || adjustedItems.length > 0) {
+            let alertHtml = '';
+            if (soldOutItems.length > 0) {
+                alertHtml += `<div class="text-left bg-red-50 p-2.5 rounded-lg border border-red-200 text-xs text-red-700 font-medium space-y-1 mb-2"><strong>Sold out items removed from cart:</strong><br>${soldOutItems.map(n => `• ${n}`).join('<br>')}</div>`;
+            }
+            if (adjustedItems.length > 0) {
+                alertHtml += `<div class="text-left bg-amber-50 p-2.5 rounded-lg border border-amber-200 text-xs text-amber-800 font-medium space-y-1"><strong>Quantities adjusted to available stock:</strong><br>${adjustedItems.map(n => `• ${n}`).join('<br>')}</div>`;
+            }
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Some Items Are Sold Out',
+                html: alertHtml,
+                confirmButtonColor: '#1B3A69',
+                confirmButtonText: 'Continue with Available Items'
+            });
+        } else {
+            Swal.fire({
+                icon: 'success',
+                title: 'Order Recalled',
+                text: `"${order.reference_note || 'Saved Order'}" restored to cart.`,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
         }
     };
 
