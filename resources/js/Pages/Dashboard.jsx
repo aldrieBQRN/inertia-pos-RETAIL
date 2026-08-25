@@ -15,11 +15,11 @@ import {
     Cell
 } from 'recharts';
 
-export default function Dashboard({ auth }) {
+export default function Dashboard({ auth, initial_stats }) {
     const user = auth?.user;
 
     const [period, setPeriod] = useState('today_hourly');
-    const [stats, setStats] = useState({
+    const [stats, setStats] = useState(() => initial_stats || {
         kpi: {
             today_sales: 0,
             sales_growth: null,
@@ -51,8 +51,8 @@ export default function Dashboard({ auth }) {
         }
     });
 
-    const [loading, setLoading] = useState(true);
-    const [hasLoaded, setHasLoaded] = useState(false);
+    const [loading, setLoading] = useState(() => !initial_stats);
+    const [hasLoaded, setHasLoaded] = useState(() => Boolean(initial_stats));
     const [isRefreshing, setIsRefreshing] = useState(false);
     const isPolling = useRef(false);
 
@@ -74,8 +74,16 @@ export default function Dashboard({ auth }) {
         }
     };
 
+    const isFirstMountRef = useRef(true);
+
     // Initial Load & Period change
     useEffect(() => {
+        if (isFirstMountRef.current) {
+            isFirstMountRef.current = false;
+            if (initial_stats && period === 'today_hourly') {
+                return; // Initial stats are already preloaded!
+            }
+        }
         fetchStats(period);
     }, [period]);
 

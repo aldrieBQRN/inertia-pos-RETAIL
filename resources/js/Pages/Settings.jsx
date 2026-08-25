@@ -14,7 +14,7 @@ import usePrinterStore from '@/Stores/usePrinterStore';
  * - Admin: Store Profile, POS Registers/Lanes, Receipt Customization & Mockup, Operational Rules, Legal Policies.
  * - Cashier: Workstation Hardware, Active Shift Drawer & Z-Read, My Profile & Security, Staff Policies.
  */
-export default function Settings({ auth }) {
+export default function Settings({ auth, initial_settings, initial_terminals }) {
     const user = auth?.user;
     const isAdmin = Boolean(user?.is_admin);
 
@@ -23,7 +23,7 @@ export default function Settings({ auth }) {
     const mobileTabsRef = useRef(null);
 
     // Settings Data State
-    const [settings, setSettings] = useState({
+    const [settings, setSettings] = useState(() => initial_settings || {
         store_name: '',
         address: '',
         phone: '',
@@ -34,17 +34,22 @@ export default function Settings({ auth }) {
         active_shift: null,
     });
 
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(() => !initial_settings);
     const [saving, setSaving] = useState(false);
 
     // Store Profile Form State (Admin)
-    const [storeForm, setStoreForm] = useState({
-        store_name: '',
-        address: '',
-        phone: '',
-    });
+    const [storeForm, setStoreForm] = useState(() => ({
+        store_name: initial_settings?.store_name || '',
+        address: initial_settings?.address || '',
+        phone: initial_settings?.phone || '',
+    }));
     const [logoFile, setLogoFile] = useState(null);
-    const [preview, setPreview] = useState('/logo.png');
+    const [preview, setPreview] = useState(() => {
+        if (initial_settings?.logo_path) {
+            return `${initial_settings.logo_path}?t=${new Date().getTime()}`;
+        }
+        return '/logo.png';
+    });
 
     // Receipt Customization State
     const [receiptHeaderTagline, setReceiptHeaderTagline] = useState(() => {
@@ -55,7 +60,7 @@ export default function Settings({ auth }) {
     });
 
     // POS Terminals / Registers State
-    const [terminals, setTerminals] = useState([]);
+    const [terminals, setTerminals] = useState(() => initial_terminals || []);
     const [loadingTerminals, setLoadingTerminals] = useState(false);
     const [showTerminalModal, setShowTerminalModal] = useState(false);
     const [editingTerminal, setEditingTerminal] = useState(null);
@@ -110,6 +115,8 @@ export default function Settings({ auth }) {
         }
     }, [activeTab]);
 
+    const isFirstMountRef = useRef(true);
+
     // Initial Data Fetch
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -135,7 +142,12 @@ export default function Settings({ auth }) {
             }
         };
 
-        fetchInitialData();
+        if (isFirstMountRef.current) {
+            isFirstMountRef.current = false;
+            if (!initial_settings) {
+                fetchInitialData();
+            }
+        }
 
         let pollingInterval;
         if (!isAdmin) {

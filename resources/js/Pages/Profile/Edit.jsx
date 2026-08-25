@@ -14,14 +14,9 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
 
     // Initial loading animation
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     const isAdmin = Boolean(user?.is_admin || user?.role === 'admin' || user?.role === 'super_admin');
-
-    useEffect(() => {
-        const timer = setTimeout(() => setLoading(false), 300);
-        return () => clearTimeout(timer);
-    }, []);
 
     const getInitials = (name) => {
         if (!name) return '??';

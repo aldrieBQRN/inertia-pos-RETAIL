@@ -37,11 +37,11 @@ const formatPaymentName = (method) => {
     return method.charAt(0).toUpperCase() + method.slice(1);
 };
 
-export default function Reports({ auth }) {
+export default function Reports({ auth, initial_report_data }) {
     const user = auth?.user;
 
     // 1. Core State
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(() => !initial_report_data);
     const [isExporting, setIsExporting] = useState(false);
     const [showDataMenu, setShowDataMenu] = useState(false);
     const [activeTab, setActiveTab] = useState('sales'); // 'sales' | 'products' | 'inventory' | 'shifts' | 'staff'
@@ -82,8 +82,8 @@ export default function Reports({ auth }) {
     const [drawerType, setDrawerType] = useState(null); // 'date' | 'product' | 'shift' | 'staff'
     const [showDrawer, setShowDrawer] = useState(false);
 
-    // Data Store from API
-    const [reportData, setReportData] = useState({
+    // Data Store from API / Preloaded
+    const [reportData, setReportData] = useState(() => initial_report_data || {
         summary: {
             total_sales: 0,
             total_orders: 0,
@@ -171,7 +171,16 @@ export default function Reports({ auth }) {
         }
     };
 
+    const isFirstMountRef = useRef(true);
+
     useEffect(() => {
+        if (isFirstMountRef.current) {
+            isFirstMountRef.current = false;
+            if (initial_report_data) {
+                return; // Use preloaded data on initial mount
+            }
+        }
+
         const timer = setTimeout(() => {
             fetchReports(true);
         }, 300);

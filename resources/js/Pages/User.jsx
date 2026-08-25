@@ -11,7 +11,7 @@ import { saveAs } from 'file-saver';
 
 export default function User({ auth, users, settings }) {
     // 1. Core Data States
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(() => !users || (Array.isArray(users) ? users.length === 0 : false));
     const [isSaving, setIsSaving] = useState(false);
     const [isSendingOtp, setIsSendingOtp] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
@@ -254,9 +254,13 @@ export default function User({ auth, users, settings }) {
     }, [filteredUsers, currentPage, itemsPerPage]);
 
     useEffect(() => {
-        const timer = setTimeout(() => setLoading(false), 200);
-        return () => clearTimeout(timer);
-    }, []);
+        if (users && (Array.isArray(users) ? users.length > 0 : true)) {
+            setLoading(false);
+        } else {
+            const timer = setTimeout(() => setLoading(false), 200);
+            return () => clearTimeout(timer);
+        }
+    }, [users]);
 
     // Auto-reload data periodically
     useEffect(() => {

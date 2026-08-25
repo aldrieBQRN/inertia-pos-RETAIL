@@ -4,16 +4,33 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import usePrinterStore from '@/Stores/usePrinterStore';
 
-export default function CashMovementModal({ isOpen, onClose, onMovementRecorded, settings, user, shiftData = null }) {
+export default function CashMovementModal({ 
+    isOpen, 
+    onClose, 
+    onMovementRecorded, 
+    settings, 
+    user, 
+    shiftData = null,
+    initialActiveShifts = [],
+    initialTerminals = []
+}) {
     const [movementType, setMovementType] = useState('cash_out');
     const [amount, setAmount] = useState('');
     const [reason, setReason] = useState('');
     const [activeField, setActiveField] = useState('type'); // 'type' | 'amount' | 'reason'
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
-    const [selectedTarget, setSelectedTarget] = useState(''); // 'shift:123' | 'terminal:1'
-    const [activeShifts, setActiveShifts] = useState([]);
-    const [terminals, setTerminals] = useState([]);
+    const [activeShifts, setActiveShifts] = useState(() => initialActiveShifts || []);
+    const [terminals, setTerminals] = useState(() => initialTerminals || []);
+    const [selectedTarget, setSelectedTarget] = useState(() => {
+        if (initialActiveShifts && initialActiveShifts.length > 0) {
+            return `shift:${initialActiveShifts[0].id}`;
+        }
+        if (initialTerminals && initialTerminals.length > 0) {
+            return `terminal:${initialTerminals[0].id}`;
+        }
+        return '';
+    });
     const [cashierShift, setCashierShift] = useState(shiftData);
     const [loadingTargets, setLoadingTargets] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -26,6 +43,11 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
     const reasonContainerRef = useRef(null);
     const scrollContainerRef = useRef(null);
     const highlightedItemRef = useRef(null);
+
+    useEffect(() => {
+        if (initialActiveShifts?.length > 0) setActiveShifts(initialActiveShifts);
+        if (initialTerminals?.length > 0) setTerminals(initialTerminals);
+    }, [initialActiveShifts, initialTerminals]);
 
     useEffect(() => {
         if (highlightedIndex >= 0 && highlightedItemRef.current) {
@@ -60,7 +82,11 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
             }
 
             if (user?.is_admin) {
-                setLoadingTargets(true);
+                const hasPreloadedTargets = activeShifts.length > 0 || terminals.length > 0;
+                if (!hasPreloadedTargets) {
+                    setLoadingTargets(true);
+                }
+                
                 Promise.all([
                     axios.get('/api/shifts/active'),
                     axios.get('/api/terminals')
@@ -71,10 +97,12 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                         setActiveShifts(shifts);
                         setTerminals(terms);
 
-                        if (shifts.length > 0) {
-                            setSelectedTarget(`shift:${shifts[0].id}`);
-                        } else if (terms.length > 0) {
-                            setSelectedTarget(`terminal:${terms[0].id}`);
+                        if (!selectedTarget) {
+                            if (shifts.length > 0) {
+                                setSelectedTarget(`shift:${shifts[0].id}`);
+                            } else if (terms.length > 0) {
+                                setSelectedTarget(`terminal:${terms[0].id}`);
+                            }
                         }
                     })
                     .catch((err) => {
@@ -237,7 +265,7 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
         }
     };
 
-    // Keyboard Shortcuts & Focus Trap (F1, F2, F3, Esc, Enter, Tab)
+    // Keyboard Shortcuts & Focus Trap (Esc, Enter, Tab, and F1-F3 for cashier only)
     useEffect(() => {
         if (!isOpen) return;
 
@@ -256,54 +284,57 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                 return;
             }
 
-            if (e.key === 'F1') {
-                e.preventDefault();
-                e.stopPropagation();
-                setActiveField('type');
-                if (document.activeElement && typeof document.activeElement.blur === 'function') {
-                    document.activeElement.blur();
-                }
-                // Cycle movement types on F1
-                setMovementType(prev => {
-                    const currentIndex = typeOptions.findIndex(t => t.id === prev);
-                    const nextIndex = (currentIndex + 1) % typeOptions.length;
-                    return typeOptions[nextIndex].id;
-                });
-                setReason('');
-                setTimeout(() => {
-                    firstTypeBtnRef.current?.focus();
-                }, 30);
-                return;
-            }
-
-            if (e.key === 'F2') {
-                e.preventDefault();
-                e.stopPropagation();
-                setActiveField('amount');
-                if (amountInputRef.current) {
-                    amountInputRef.current.focus();
-                    amountInputRef.current.select();
-                }
-                return;
-            }
-
-            if (e.key === 'F3') {
-                e.preventDefault();
-                e.stopPropagation();
-                setActiveField('reason');
-                if (reasonInputRef.current) {
-                    reasonInputRef.current.focus();
-                    reasonInputRef.current.select();
-                }
-                setTimeout(() => {
-                    if (scrollContainerRef.current) {
-                        scrollContainerRef.current.scrollTo({
-                            top: scrollContainerRef.current.scrollHeight,
-                            behavior: 'smooth'
-                        });
+            // Only cashiers use POS F-key shortcuts; Admins use standard mouse/form navigation
+            if (!user?.is_admin) {
+                if (e.key === 'F1') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setActiveField('type');
+                    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                        document.activeElement.blur();
                     }
-                }, 100);
-                return;
+                    // Cycle movement types on F1
+                    setMovementType(prev => {
+                        const currentIndex = typeOptions.findIndex(t => t.id === prev);
+                        const nextIndex = (currentIndex + 1) % typeOptions.length;
+                        return typeOptions[nextIndex].id;
+                    });
+                    setReason('');
+                    setTimeout(() => {
+                        firstTypeBtnRef.current?.focus();
+                    }, 30);
+                    return;
+                }
+
+                if (e.key === 'F2') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setActiveField('amount');
+                    if (amountInputRef.current) {
+                        amountInputRef.current.focus();
+                        amountInputRef.current.select();
+                    }
+                    return;
+                }
+
+                if (e.key === 'F3') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setActiveField('reason');
+                    if (reasonInputRef.current) {
+                        reasonInputRef.current.focus();
+                        reasonInputRef.current.select();
+                    }
+                    setTimeout(() => {
+                        if (scrollContainerRef.current) {
+                            scrollContainerRef.current.scrollTo({
+                                top: scrollContainerRef.current.scrollHeight,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }, 100);
+                    return;
+                }
             }
 
             if (e.key === 'Enter') {
@@ -546,9 +577,11 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                                 <label className="block text-xs font-black text-gray-700 uppercase tracking-wider">
                                     Movement Type
                                 </label>
-                                <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
-                                    F1
-                                </span>
+                                {!user?.is_admin && (
+                                    <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
+                                        F1
+                                    </span>
+                                )}
                             </div>
                             <div className="grid grid-cols-1 gap-2">
                                 {typeOptions.map((t) => (
@@ -594,9 +627,11 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                                     <label className="block text-xs font-black text-gray-700 uppercase tracking-wider">
                                         Amount <span className="text-rose-500">*</span>
                                     </label>
-                                    <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
-                                        F2
-                                    </span>
+                                    {!user?.is_admin && (
+                                        <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
+                                            F2
+                                        </span>
+                                    )}
                                 </div>
                                 <span className={`text-[11px] font-bold px-2 py-0.5 rounded-lg border font-mono ${
                                     isOverLimit 
@@ -651,9 +686,11 @@ export default function CashMovementModal({ isOpen, onClose, onMovementRecorded,
                                     <label className="block text-xs font-black text-gray-700 uppercase tracking-wider">
                                         Reason / Description <span className="text-rose-500">*</span>
                                     </label>
-                                    <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
-                                        F3
-                                    </span>
+                                    {!user?.is_admin && (
+                                        <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
+                                            F3
+                                        </span>
+                                    )}
                                 </div>
                                 {showSuggestions && filteredSuggestions.length > 0 && (
                                     <span className="hidden lg:inline text-[10px] text-slate-400 font-medium">

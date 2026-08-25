@@ -10,21 +10,23 @@ import { saveAs } from 'file-saver';
 import usePrinterStore from '@/Stores/usePrinterStore';
 import CashMovementModal from '@/Components/CashMovementModal';
 
-export default function ShiftHistory({ auth }) {
+export default function ShiftHistory({ auth, initial_shifts, initial_terminals, initial_settings, initial_active_shifts, initial_shift_details }) {
     // 1. Data States
-    const [allShifts, setAllShifts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [settings, setSettings] = useState(null);
+    const [allShifts, setAllShifts] = useState(() => initial_shifts || []);
+    const [loading, setLoading] = useState(() => !initial_shifts || initial_shifts.length === 0);
+    const [settings, setSettings] = useState(() => initial_settings || null);
+    const [activeShifts, setActiveShifts] = useState(() => initial_active_shifts || []);
     const [isExporting, setIsExporting] = useState(false);
     const [showDataMenu, setShowDataMenu] = useState(false);
 
-    // Modal States
+    // Modal States & Instant Details Cache
+    const shiftDetailsCacheRef = useRef(initial_shift_details || {});
     const [showDetails, setShowDetails] = useState(false);
     const [selectedShiftData, setSelectedShiftData] = useState(null);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
     const [modalTab, setModalTab] = useState('summary'); // 'summary' | 'movements'
     const [showCashMovementModal, setShowCashMovementModal] = useState(false);
-    const [terminals, setTerminals] = useState([]);
+    const [terminals, setTerminals] = useState(() => initial_terminals || []);
     const [terminalFilter, setTerminalFilter] = useState('all');
 
     // View Mode & Responsive Pagination
@@ -194,8 +196,13 @@ export default function ShiftHistory({ auth }) {
 
     // Initial Load & Background Polling Setup
     useEffect(() => {
-        fetchSettings();
-        loadAllShifts(true);
+        const hasInitialData = Boolean(initial_shifts && initial_shifts.length > 0);
+        if (!hasInitialData) {
+            fetchSettings();
+            loadAllShifts(true);
+        } else if (!initial_settings || !initial_terminals) {
+            fetchSettings();
+        }
 
         const interval = setInterval(() => {
             loadAllShifts(false);
@@ -283,17 +290,30 @@ export default function ShiftHistory({ auth }) {
 
     // View Details / Z-Read Audit Modal
     const handleViewDetails = async (shift) => {
-        setIsLoadingDetails(true);
+        const cachedDetails = shiftDetailsCacheRef.current[shift.id];
+        
         setShowDetails(true);
-        setSelectedShiftData(null);
         setModalTab('summary');
+
+        if (cachedDetails) {
+            setSelectedShiftData(cachedDetails);
+            setIsLoadingDetails(false);
+        } else {
+            setIsLoadingDetails(true);
+            setSelectedShiftData(null);
+        }
+
         try {
             const res = await axios.get(`/api/pos/shift/data/${shift.id}`);
-            setSelectedShiftData({ ...res.data, id: shift.id, shift_record: shift });
+            const freshData = { ...res.data, id: shift.id, shift_record: shift };
+            shiftDetailsCacheRef.current[shift.id] = freshData;
+            setSelectedShiftData(freshData);
         } catch (err) {
             console.error("Failed to load shift details:", err);
-            Swal.fire("Error", "Failed to load shift details.", "error");
-            setShowDetails(false);
+            if (!cachedDetails) {
+                Swal.fire("Error", "Failed to load shift details.", "error");
+                setShowDetails(false);
+            }
         } finally {
             setIsLoadingDetails(false);
         }
@@ -2325,6 +2345,8 @@ export default function ShiftHistory({ auth }) {
                 isOpen={showCashMovementModal}
                 settings={settings}
                 user={auth.user}
+                initialActiveShifts={activeShifts}
+                initialTerminals={terminals}
                 onClose={() => setShowCashMovementModal(false)}
                 onMovementRecorded={() => {
                     loadAllShifts(false);

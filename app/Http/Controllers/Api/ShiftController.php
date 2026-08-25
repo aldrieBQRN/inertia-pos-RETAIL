@@ -22,7 +22,7 @@ class ShiftController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Shift::with(['user', 'terminal', 'cashMovements.user'])->orderBy('created_at', 'desc');
+        $query = Shift::with(['user', 'terminal', 'cashMovements.user'])->orderBy('id', 'desc');
 
         if ($request->filled('start_date')) {
             $query->whereDate('start_time', '>=', $request->start_date);

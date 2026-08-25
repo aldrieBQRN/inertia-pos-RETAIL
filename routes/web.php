@@ -102,7 +102,13 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
         $user = $request->user();
         if ($user->role === 'super_admin') return redirect()->route('developer.index');
         if (!$user->is_admin) return redirect()->route('pos');
-        return Inertia::render('Dashboard');
+
+        $statsRes = app(\App\Http\Controllers\Api\DashboardController::class)->index($request);
+        $stats = $statsRes instanceof \Illuminate\Http\JsonResponse ? $statsRes->getData(true) : $statsRes;
+
+        return Inertia::render('Dashboard', [
+            'initial_stats' => $stats,
+        ]);
     })->name('dashboard');
 
     // NEW: Analytics & Reports: Restricted to Store Admins only
@@ -110,7 +116,13 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
         $user = $request->user();
         if ($user->role === 'super_admin') return redirect()->route('developer.index');
         if (!$user->is_admin) return redirect()->route('pos');
-        return Inertia::render('Reports');
+
+        $reportsRes = app(\App\Http\Controllers\Api\ReportController::class)->index($request);
+        $reportData = $reportsRes instanceof \Illuminate\Http\JsonResponse ? $reportsRes->getData(true) : $reportsRes;
+
+        return Inertia::render('Reports', [
+            'initial_report_data' => $reportData,
+        ]);
     })->name('reports');
 
     // POS Terminal
@@ -370,14 +382,75 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
 
     // Shift Records (Z-Read History) - Admin Restricted
     Route::get('/shifts', function (Request $request) {
-        if ($request->user()->role === 'super_admin') return redirect()->route('developer.index');
-        return Inertia::render('ShiftHistory');
+        $user = $request->user();
+        if ($user->role === 'super_admin') return redirect()->route('developer.index');
+
+        $shifts = \App\Models\Shift::where('store_id', $user->store_id)
+            ->with(['user', 'terminal', 'cashMovements.user'])
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $terminals = \App\Models\Terminal::where('store_id', $user->store_id)->get();
+        $settingsRes = app(\App\Http\Controllers\Api\SettingController::class)->index($request);
+        $settings = $settingsRes instanceof \Illuminate\Http\JsonResponse ? $settingsRes->getData(true) : $settingsRes;
+
+        $activeShiftsRes = app(\App\Http\Controllers\Api\ShiftController::class)->activeShifts($request);
+        $activeShifts = $activeShiftsRes instanceof \Illuminate\Http\JsonResponse ? $activeShiftsRes->getData(true) : $activeShiftsRes;
+
+        // Precompute detailed breakdown data for all shifts for instant modal preview with 0ms delay
+        $shiftDetails = [];
+        foreach ($shifts as $shift) {
+            $shiftDetails[$shift->id] = [
+                'id'                    => $shift->id,
+                'staff_name'            => $shift->user?->name ?? 'Staff',
+                'start_time'            => $shift->start_time,
+                'end_time'              => $shift->end_time,
+                'start'                 => $shift->start_time ? $shift->start_time->format('m/d/Y h:i A') : '—',
+                'end'                   => $shift->end_time ? $shift->end_time->format('m/d/Y h:i A') : 'ACTIVE',
+                'printed_at'            => now()->format('m/d/Y h:i A'),
+                'expected_opening_cash' => (float) $shift->expected_opening_cash,
+                'starting_cash'         => (float) $shift->starting_cash,
+                'opening_discrepancy'   => (float) $shift->opening_discrepancy,
+                'opening_notes'         => $shift->opening_notes,
+                'closing_notes'         => $shift->closing_notes,
+                'cash_sales'            => (float) $shift->cash_sales,
+                'cash_in'               => (float) $shift->cash_in,
+                'cash_out'              => (float) $shift->cash_out,
+                'expenses'              => (float) ($shift->expenses ?? 0),
+                'expected_cash'         => (float) $shift->expected_cash,
+                'actual_cash'           => (float) $shift->actual_cash,
+                'difference'            => (float) $shift->difference,
+                'status'                => $shift->status,
+                'total_sales'           => (float) $shift->cash_sales,
+                'cash_movements'        => $shift->cashMovements,
+                'shift_record'          => $shift
+            ];
+        }
+
+        return Inertia::render('ShiftHistory', [
+            'initial_shifts'        => $shifts,
+            'initial_terminals'     => $terminals,
+            'initial_settings'      => $settings,
+            'initial_active_shifts' => $activeShifts,
+            'initial_shift_details' => $shiftDetails,
+        ]);
     })->name('shifts.index')->middleware('admin');
 
     // Store Settings
     Route::get('/settings', function (Request $request) {
-        if ($request->user()->role === 'super_admin') return redirect()->route('developer.index');
-        return Inertia::render('Settings');
+        $user = $request->user();
+        if ($user->role === 'super_admin') return redirect()->route('developer.index');
+
+        $settingsRes = app(\App\Http\Controllers\Api\SettingController::class)->index($request);
+        $settings = $settingsRes instanceof \Illuminate\Http\JsonResponse ? $settingsRes->getData(true) : $settingsRes;
+
+        $terminalsRes = app(\App\Http\Controllers\Api\TerminalController::class)->index($request);
+        $terminals = $terminalsRes instanceof \Illuminate\Http\JsonResponse ? $terminalsRes->getData(true) : $terminalsRes;
+
+        return Inertia::render('Settings', [
+            'initial_settings'  => $settings,
+            'initial_terminals' => $terminals,
+        ]);
     })->name('settings');
 
     // User/Staff Management

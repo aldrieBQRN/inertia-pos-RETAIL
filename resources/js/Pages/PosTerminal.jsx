@@ -1531,6 +1531,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                 settings={activeSettings}
                 user={auth.user}
                 shiftData={shiftData}
+                initialTerminals={terminals}
                 onClose={() => setShowCashMovementModal(false)}
                 onMovementRecorded={() => {
                     fetchCurrentShift();
