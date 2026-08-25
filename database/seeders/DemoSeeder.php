@@ -41,7 +41,7 @@ class DemoSeeder extends Seeder
 
         // ========== 2. CREATE OR RETRIEVE STORE ==========
         $store = Store::firstOrCreate(
-            ['name' => 'Metro Retail Hub'],
+            ['name' => 'Inertia POS'],
             [
                 'address' => '456 Commercial Avenue, BGC, Taguig City, Philippines',
                 'phone' => '+63 2 8765 4321',

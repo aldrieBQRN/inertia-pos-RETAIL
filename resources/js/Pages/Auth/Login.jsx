@@ -45,7 +45,7 @@ export default function Login({ status, canResetPassword, settings = {} }) {
     };
 
     // Shared Styling Constants
-    const inputClasses = "appearance-none block w-full px-4 py-3.5 border border-gray-200 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] sm:text-sm font-bold text-gray-900 bg-gray-50/50 transition-all";
+    const inputClasses = "appearance-none block w-full px-5 py-3.5 border border-gray-200 rounded-3xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] sm:text-sm font-bold text-gray-900 bg-gray-50/50 transition-all";
     const labelClasses = "block text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1 mb-1.5";
     const errorClasses = "mt-1.5 ml-1 text-[10px] font-bold text-red-500 uppercase tracking-wide";
 
@@ -71,20 +71,20 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                 </div>
 
                 {/* Top: Branding Header */}
-                <div className="relative z-10 flex items-center gap-4">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-xl flex items-center justify-center overflow-hidden shrink-0">
+                <div className="relative z-10 flex items-center gap-3 sm:gap-4">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/10 backdrop-blur-md rounded-full border border-white/20 shadow-xl flex items-center justify-center overflow-hidden shrink-0">
                         {settings?.logo_path ? (
                             <img 
                                 src={`/storage/${settings.logo_path}`} 
                                 alt="Logo" 
-                                className="w-full h-full object-cover" 
+                                className="w-full h-full object-cover rounded-full" 
                                 onError={(e) => {
                                     e.target.onerror = null;
                                     e.target.src = '/logo.png';
                                 }}
                             />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-white/10 text-white font-black text-xl sm:text-2xl">
+                            <div className="w-full h-full flex items-center justify-center bg-white/10 text-white font-black text-xl sm:text-2xl rounded-full">
                                 {settings?.app_name?.charAt(0) || 'S'}
                             </div>
                         )}
@@ -93,23 +93,22 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                         <h1 className="text-base sm:text-lg font-black tracking-widest uppercase text-white drop-shadow-sm">
                             {settings?.app_name || 'InertiaPos'}
                         </h1>
-                        <p className="text-[11px] font-semibold text-blue-200 uppercase tracking-widest">
+                        <p className="text-[10px] sm:text-[11px] font-semibold text-blue-200 uppercase tracking-widest">
                             Retail & Inventory POS Platform
                         </p>
                     </div>
                 </div>
 
                 {/* Center: System Value Proposition */}
-                <div className="relative z-10 my-6 lg:my-8 space-y-4 lg:space-y-8 animate-in fade-in slide-in-from-left-6 duration-700">
+                <div className="relative z-10 my-4 sm:my-6 lg:my-8 space-y-3 sm:space-y-4 lg:space-y-8 animate-in fade-in slide-in-from-left-6 duration-700">
                     <div className="space-y-2 sm:space-y-3">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-blue-200 text-xs font-semibold backdrop-blur-sm">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                             Smart Retail POS Solution
                         </div>
-                        <h2 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-extrabold tracking-tight leading-tight text-white">
+                        <h2 className="text-lg sm:text-2xl lg:text-3xl xl:text-4xl font-extrabold tracking-tight leading-tight text-white">
                             Streamline retail checkout & manage inventory stock effortlessly.
                         </h2>
-                        <p className="text-xs sm:text-sm text-blue-100/80 leading-relaxed max-w-md">
+                        <p className="text-xs sm:text-sm text-blue-100/80 leading-relaxed max-w-md hidden sm:block">
                             Empower cashiers with rapid barcode checkout, real-time stock sync, drawer cash reconciliations, and comprehensive sales reporting.
                         </p>
                     </div>
