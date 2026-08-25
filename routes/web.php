@@ -160,16 +160,212 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Preload recent activity feed for instant zero-delay modal opening
+        $storeId = $user->store_id;
+        $logs = \App\Models\ActivityLog::where('store_id', $storeId)
+            ->where(function ($q) {
+                $q->whereIn('model_type', ['Product', 'Inventory', 'Category'])
+                  ->orWhere('action', 'like', '%stock%')
+                  ->orWhere('action', 'like', '%product%')
+                  ->orWhere('action', 'like', '%category%');
+            })
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->limit(50)
+            ->get()
+            ->map(function ($log) {
+                return [
+                    'id' => 'log-' . $log->id,
+                    'action' => $log->action,
+                    'model_type' => $log->model_type,
+                    'model_id' => $log->model_id,
+                    'reference_no' => 'LOG-' . str_pad($log->id, 5, '0', STR_PAD_LEFT),
+                    'description' => $log->description,
+                    'user_name' => $log->user ? $log->user->name : 'System',
+                    'old_values' => $log->old_values,
+                    'new_values' => $log->new_values,
+                    'created_at' => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
+                ];
+            });
+
+        $sales = \App\Models\SaleItem::whereHas('sale', fn($q) => $q->where('store_id', $storeId))
+            ->with(['sale.cashier', 'product'])
+            ->orderBy('created_at', 'desc')
+            ->limit(30)
+            ->get()
+            ->map(function ($item) {
+                $prodName = $item->product ? $item->product->name : ($item->custom_name ?: 'Product Item');
+                $invoice = $item->sale ? $item->sale->invoice_number : '';
+                return [
+                    'id' => 'sale-' . $item->id,
+                    'action' => 'stock.sale',
+                    'model_type' => 'Product',
+                    'model_id' => $item->product_id,
+                    'invoice_number' => $invoice,
+                    'reference_no' => $invoice ?: ('SALE-' . str_pad($item->sale_id ?: $item->id, 5, '0', STR_PAD_LEFT)),
+                    'sku' => $item->product ? $item->product->sku : null,
+                    'description' => "Sold {$item->quantity}x {$prodName} via POS" . ($invoice ? " (Inv: {$invoice})" : ""),
+                    'user_name' => $item->sale && $item->sale->cashier ? $item->sale->cashier->name : 'Cashier',
+                    'created_at' => $item->created_at ? $item->created_at->toIso8601String() : now()->toIso8601String(),
+                ];
+            });
+
+        $recentProducts = \App\Models\Product::where('store_id', $storeId)
+            ->orderBy('created_at', 'desc')
+            ->limit(15)
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'id' => 'prod-reg-' . $p->id,
+                    'action' => 'created',
+                    'model_type' => 'Product',
+                    'model_id' => $p->id,
+                    'sku' => $p->sku,
+                    'reference_no' => $p->sku ? ('SKU: ' . $p->sku) : ('PRD-' . str_pad($p->id, 5, '0', STR_PAD_LEFT)),
+                    'description' => "Registered new product: {$p->name} (SKU: {$p->sku}) with {$p->stock_quantity} units",
+                    'user_name' => 'Store Admin',
+                    'created_at' => $p->created_at ? $p->created_at->toIso8601String() : now()->toIso8601String(),
+                ];
+            });
+
+        $initialActivity = $logs->concat($sales)->concat($recentProducts)->sortByDesc('created_at')->values()->take(50)->all();
+
+        // Preload complete stock history for products so the modal opens with all movements immediately
+        $allSaleItems = \App\Models\SaleItem::whereHas('sale', fn($q) => $q->where('store_id', $storeId))
+            ->with(['sale.cashier'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('product_id');
+
+        $allProductLogs = \App\Models\ActivityLog::where('store_id', $storeId)
+            ->whereIn('model_type', ['Product', 'Inventory'])
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('model_id');
+
+        $stockHistories = [];
+        foreach ($products as $p) {
+            $prodSales = ($allSaleItems->get($p->id) ?? collect())->map(function ($item) {
+                $inv = $item->sale && $item->sale->invoice_number 
+                    ? $item->sale->invoice_number 
+                    : ('POS-' . str_pad($item->sale_id ?? $item->id, 5, '0', STR_PAD_LEFT));
+
+                return [
+                    'id' => 'sale-' . $item->id,
+                    'type' => 'sale',
+                    'quantity_change' => -$item->quantity,
+                    'quantity' => $item->quantity,
+                    'unit_price' => $item->unit_price / 100,
+                    'subtotal' => $item->subtotal / 100,
+                    'invoice_number' => $inv,
+                    'reference_no' => $inv,
+                    'user_name' => $item->sale && $item->sale->cashier ? $item->sale->cashier->name : 'POS Cashier',
+                    'description' => "Sold {$item->quantity} unit(s) via POS (₱" . number_format($item->subtotal / 100, 2) . ")",
+                    'created_at' => $item->created_at ? $item->created_at->toIso8601String() : now()->toIso8601String(),
+                ];
+            });
+
+            $prodLogs = ($allProductLogs->get($p->id) ?? collect())->map(function ($log) {
+                $type = 'adjustment';
+                $quantityChange = 0;
+
+                if ($log->action === 'stock.adjusted' || str_contains(strtolower($log->action), 'stock')) {
+                    $type = 'restock';
+                    $quantityChange = (int) ($log->new_values['quantity_added'] ?? $log->new_values['quantity'] ?? 0);
+                    if ($quantityChange === 0 && isset($log->new_values['stock_quantity'], $log->old_values['stock_quantity'])) {
+                        $quantityChange = (int)$log->new_values['stock_quantity'] - (int)$log->old_values['stock_quantity'];
+                    }
+                } elseif ($log->action === 'created') {
+                    $type = 'creation';
+                    $quantityChange = (int) ($log->new_values['stock'] ?? $log->new_values['stock_quantity'] ?? 0);
+                }
+
+                $refNo = 'LOG-' . str_pad($log->id, 5, '0', STR_PAD_LEFT);
+
+                return [
+                    'id' => 'log-' . $log->id,
+                    'type' => $type,
+                    'action' => $log->action,
+                    'quantity_change' => $quantityChange,
+                    'reference_no' => $refNo,
+                    'invoice_number' => $refNo,
+                    'old_values' => $log->old_values,
+                    'new_values' => $log->new_values,
+                    'user_name' => $log->user ? $log->user->name : 'Store Admin',
+                    'description' => $log->description ?: "Stock updated for product",
+                    'created_at' => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
+                ];
+            });
+
+            $timeline = $prodSales->concat($prodLogs)->all();
+            $hasCreation = collect($timeline)->contains(fn($t) => $t['type'] === 'creation');
+            if (!$hasCreation && $p->created_at) {
+                $skuRef = $p->sku ?: ('PRD-' . str_pad($p->id, 5, '0', STR_PAD_LEFT));
+                $timeline[] = [
+                    'id' => 'initial-reg-' . $p->id,
+                    'type' => 'creation',
+                    'action' => 'created',
+                    'quantity_change' => $p->stock_quantity,
+                    'reference_no' => $skuRef,
+                    'invoice_number' => $skuRef,
+                    'user_name' => 'Store Admin',
+                    'description' => "Initial catalog registration for {$p->name} (SKU: {$p->sku})",
+                    'created_at' => $p->created_at->toIso8601String(),
+                ];
+            }
+
+            usort($timeline, fn($a, $b) => strcmp($b['created_at'], $a['created_at']));
+
+            $soldUnits = (int) ($allSaleItems->get($p->id) ?? collect())->sum('quantity');
+            $addedUnits = (int) ($allProductLogs->get($p->id) ?? collect())
+                ->filter(fn($l) => $l->action === 'stock.adjusted' || str_contains(strtolower($l->action), 'stock'))
+                ->sum(fn($l) => (int) ($l->new_values['quantity_added'] ?? $l->new_values['quantity'] ?? 0));
+
+            $stockHistories[$p->id] = [
+                'product' => [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'sku' => $p->sku,
+                    'stock_quantity' => $p->stock_quantity,
+                    'category_name' => $p->category ? $p->category->name : 'General'
+                ],
+                'timeline' => $timeline,
+                'stats' => [
+                    'total_sold_units' => $soldUnits,
+                    'total_added_units' => $addedUnits,
+                    'current_stock' => $p->stock_quantity,
+                    'total_revenue' => (int) ($allSaleItems->get($p->id) ?? collect())->sum('subtotal'),
+                    'transaction_count' => ($allSaleItems->get($p->id) ?? collect())->count()
+                ]
+            ];
+        }
+
         return Inertia::render('Inventory', [
             'initial_products' => $products,
             'initial_categories' => $categories,
+            'initial_recent_activity' => $initialActivity,
+            'initial_stock_histories' => $stockHistories,
         ]);
     })->name('inventory.index');
 
     // Transaction History
     Route::get('/transactions', function (Request $request) {
-        if ($request->user()->role === 'super_admin') return redirect()->route('developer.index');
-        return Inertia::render('Transactions');
+        $user = $request->user();
+        if ($user->role === 'super_admin') return redirect()->route('developer.index');
+
+        $transactions = \App\Models\Sale::where('store_id', $user->store_id)
+            ->with(['items.product', 'cashier'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $settingsRes = app(\App\Http\Controllers\Api\SettingController::class)->index($request);
+        $settings = $settingsRes instanceof \Illuminate\Http\JsonResponse ? $settingsRes->getData(true) : $settingsRes;
+
+        return Inertia::render('Transactions', [
+            'initial_transactions' => $transactions,
+            'initial_settings' => $settings,
+        ]);
     })->name('transactions.index');
 
     // Shift Records (Z-Read History) - Admin Restricted

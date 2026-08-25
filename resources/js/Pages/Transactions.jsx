@@ -9,11 +9,11 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import usePrinterStore from '@/Stores/usePrinterStore';
 
-export default function Transactions({ auth }) {
+export default function Transactions({ auth, initial_transactions, initial_settings }) {
     // 1. Core Data States
-    const [allTransactions, setAllTransactions] = useState([]);
-    const [settings, setSettings] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [allTransactions, setAllTransactions] = useState(() => initial_transactions || []);
+    const [settings, setSettings] = useState(() => initial_settings || null);
+    const [loading, setLoading] = useState(() => !initial_transactions || initial_transactions.length === 0);
     const [isExporting, setIsExporting] = useState(false);
     const [showDataMenu, setShowDataMenu] = useState(false);
 
@@ -201,8 +201,13 @@ export default function Transactions({ auth }) {
 
     // Initial Load & Background Polling
     useEffect(() => {
-        fetchSettings();
-        loadAllTransactions(true);
+        const hasInitialData = Boolean(initial_transactions && initial_transactions.length > 0);
+        if (!hasInitialData) {
+            loadAllTransactions(true);
+        }
+        if (!initial_settings) {
+            fetchSettings();
+        }
 
         const interval = setInterval(() => {
             loadAllTransactions(false);

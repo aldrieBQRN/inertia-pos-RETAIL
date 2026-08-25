@@ -9,13 +9,14 @@ import Swal from 'sweetalert2';
  * * Uses SweetAlert2 for interactive confirmations and feedback.
  * * Role-based: Admins can manage, Staff can only view.
  */
-export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
-    const [categories, setCategories] = useState([]);
+export default function CategoryManager({ onClose, onUpdate, isAdmin, initialCategories = [] }) {
+    const [categories, setCategories] = useState(() => initialCategories || []);
     const [newCategory, setNewCategory] = useState('');
     const [loading, setLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(false);
 
     useEffect(() => {
+        // Fetch fresh categories silently in background
         fetchCategories();
     }, []);
 
@@ -23,8 +24,10 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin }) {
      * Retrieves the latest list of categories from the backend API.
      */
     const fetchCategories = async () => {
-        try {
+        if (!categories || categories.length === 0) {
             setIsFetching(true);
+        }
+        try {
             const res = await axios.get('/api/categories');
             setCategories(res.data);
         } catch (error) {

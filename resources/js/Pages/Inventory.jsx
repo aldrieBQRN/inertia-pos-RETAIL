@@ -13,7 +13,7 @@ import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
-export default function Inventory({ auth, initial_products, initial_categories }) {
+export default function Inventory({ auth, initial_products, initial_categories, initial_recent_activity, initial_stock_histories }) {
     const [products, setProducts] = useState(() => initial_products || []);
     const [categories, setCategories] = useState(() => initial_categories || []);
     const [settings, setSettings] = useState(null);
@@ -37,6 +37,7 @@ export default function Inventory({ auth, initial_products, initial_categories }
     // Stock Movement History & Global Activity States
     const historyTimelineRef = useRef(null);
     const workspaceSectionRef = useRef(null);
+    const historyCacheRef = useRef(initial_stock_histories || {}); // Instant preloaded stock movement ledger per product ID
     const [historyModal, setHistoryModal] = useState({
         isOpen: false,
         product: null,
@@ -49,7 +50,7 @@ export default function Inventory({ auth, initial_products, initial_categories }
     const [activityDrawer, setActivityDrawer] = useState({
         isOpen: false,
         loading: false,
-        logs: [],
+        logs: initial_recent_activity || [],
         filter: 'all', // 'all', 'restocks', 'created', 'updated'
         search: ''
     });
@@ -202,19 +203,45 @@ export default function Inventory({ auth, initial_products, initial_categories }
     };
 
     const openStockHistory = async (product, showLoading = true) => {
-        if (showLoading) {
-            setHistoryModal({
-                isOpen: true,
-                product,
-                loading: true,
-                data: null,
-                filter: 'all',
-                search: ''
-            });
-        }
+        const cached = historyCacheRef.current[product.id];
+        
+        // If we have cached data or can synthesize instant initial registration data, show immediately!
+        const initialData = cached || {
+            product: product,
+            timeline: [
+                {
+                    id: 'initial-reg-' + product.id,
+                    type: 'creation',
+                    action: 'created',
+                    quantity_change: product.stock_quantity,
+                    reference_no: product.sku || ('PRD-' + String(product.id).padStart(5, '0')),
+                    invoice_number: product.sku || ('PRD-' + String(product.id).padStart(5, '0')),
+                    user_name: 'Store Admin',
+                    description: `Initial catalog registration for ${product.name} (SKU: ${product.sku || 'N/A'})`,
+                    created_at: product.created_at || new Date().toISOString()
+                }
+            ],
+            stats: {
+                total_sold_units: 0,
+                total_added_units: product.stock_quantity,
+                current_stock: product.stock_quantity,
+                total_revenue: 0,
+                transaction_count: 0
+            }
+        };
+
+        setHistoryModal({
+            isOpen: true,
+            product,
+            loading: !cached, // If cached, NO loading skeleton!
+            data: initialData,
+            filter: 'all',
+            search: ''
+        });
 
         try {
             const response = await axios.get(`/api/products/${product.id}/history`);
+            historyCacheRef.current[product.id] = response.data; // Cache for next instant open
             setHistoryModal(prev => ({
                 ...prev,
                 isOpen: true,
@@ -230,7 +257,7 @@ export default function Inventory({ auth, initial_products, initial_categories }
                 }
             }, 80);
         } catch (e) {
-            if (showLoading) {
+            if (!cached) {
                 Swal.fire('Error', 'Failed to load stock movement history.', 'error');
                 setHistoryModal(prev => ({ ...prev, loading: false }));
             }
@@ -472,7 +499,7 @@ export default function Inventory({ auth, initial_products, initial_categories }
     };
 
     const loadRecentActivity = async (showLoading = false) => {
-        if (showLoading) {
+        if (showLoading && (!activityDrawer.logs || activityDrawer.logs.length === 0)) {
             setActivityDrawer(prev => ({ ...prev, loading: true }));
         }
         try {
@@ -483,20 +510,21 @@ export default function Inventory({ auth, initial_products, initial_categories }
                 logs: response.data.data || []
             }));
         } catch (e) {
-            if (showLoading) {
+            if (showLoading && (!activityDrawer.logs || activityDrawer.logs.length === 0)) {
                 Swal.fire('Error', 'Failed to load inventory activity logs.', 'error');
-                setActivityDrawer(prev => ({ ...prev, loading: false }));
             }
+            setActivityDrawer(prev => ({ ...prev, loading: false }));
         }
     };
 
     const openRecentActivity = () => {
+        const hasExistingLogs = Boolean(activityDrawer.logs && activityDrawer.logs.length > 0);
         setActivityDrawer(prev => ({
             ...prev,
             isOpen: true,
-            loading: true
+            loading: !hasExistingLogs
         }));
-        loadRecentActivity(true);
+        loadRecentActivity(!hasExistingLogs);
     };
 
     // Background auto-refresh for activity feed while modal is open (silent poll every 5s)
@@ -810,13 +838,16 @@ export default function Inventory({ auth, initial_products, initial_categories }
     };
 
     useEffect(() => {
-        loadCategories();
+        const hasInitialData = Boolean(initial_products && initial_products.length > 0);
+        if (!hasInitialData) {
+            loadCategories();
+            loadAllProducts(true);
+        }
         fetchSettings();
-        loadAllProducts(true);
 
         const interval = setInterval(() => {
             loadAllProducts(false);
-        }, 5000);
+        }, 6000);
 
         const handleOutsideClick = (e) => {
             if (!e.target.closest('.action-dropdown-container')) {
@@ -3405,7 +3436,7 @@ export default function Inventory({ auth, initial_products, initial_categories }
             )}
 
             {/* AUXILIARY UI COMPONENTS */}
-            {showCategoryManager && <CategoryManager onClose={() => setShowCategoryManager(false)} onUpdate={handleCategoryUpdate} isAdmin={auth.user.is_admin} />}
+            {showCategoryManager && <CategoryManager onClose={() => setShowCategoryManager(false)} onUpdate={handleCategoryUpdate} isAdmin={auth.user.is_admin} initialCategories={categories} />}
 
             {/* FULL SCREEN MOBILE SCANNER PORTAL */}
             {showScanner && typeof document !== 'undefined' && createPortal(
@@ -3547,7 +3578,7 @@ export default function Inventory({ auth, initial_products, initial_categories }
 
                         {/* Movement Timeline Table (Desktop) & Cards (Mobile) */}
                         <div ref={historyTimelineRef} className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar bg-slate-50/30">
-                            {historyModal.loading ? (
+                            {historyModal.loading && (!historyModal.data || !historyModal.data.timeline) ? (
                                 <div className="py-20 flex flex-col items-center justify-center gap-3">
                                     <svg className="animate-spin h-9 w-9 text-[#1B3B6A]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                     <span className="text-xs font-bold text-slate-500">Loading stock movement ledger...</span>
@@ -3929,7 +3960,7 @@ export default function Inventory({ auth, initial_products, initial_categories }
 
                         {/* Chronologically Grouped Timeline Feed Stream */}
                         <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 custom-scrollbar bg-slate-50/40">
-                            {activityDrawer.loading ? (
+                            {activityDrawer.loading && (!activityDrawer.logs || activityDrawer.logs.length === 0) ? (
                                 <div className="py-20 flex flex-col items-center justify-center gap-3">
                                     <svg className="animate-spin h-9 w-9 text-[#1B3B6A]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                     <span className="text-xs font-bold text-gray-500">Streaming store audit movements...</span>
