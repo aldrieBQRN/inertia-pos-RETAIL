@@ -13,9 +13,9 @@ import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
-export default function Inventory({ auth }) {
-    const [products, setProducts] = useState([]);
-    const [categories, setCategories] = useState([]);
+export default function Inventory({ auth, initial_products, initial_categories }) {
+    const [products, setProducts] = useState(() => initial_products || []);
+    const [categories, setCategories] = useState(() => initial_categories || []);
     const [settings, setSettings] = useState(null);
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -61,7 +61,7 @@ export default function Inventory({ auth }) {
     const [showCategoryManager, setShowCategoryManager] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(() => !initial_products || initial_products.length === 0);
     const [isCheckingSku, setIsCheckingSku] = useState(false);
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -2722,7 +2722,7 @@ export default function Inventory({ auth }) {
                                                                 <div className="flex items-center gap-3 whitespace-nowrap">
                                                                     <div className="w-11 h-11 bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
                                                                         {p.image_path ? (
-                                                                            <img src={p.image_path} className="w-full h-full object-cover" loading="lazy" alt={p.name} />
+                                                                            <img src={p.image_path} className="w-full h-full object-cover" loading="lazy" decoding="async" alt={p.name} />
                                                                         ) : (
                                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-400"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
                                                                         )}

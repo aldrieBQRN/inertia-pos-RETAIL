@@ -148,8 +148,22 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
 
     // Inventory Management
     Route::get('/inventory', function (Request $request) {
-        if ($request->user()->role === 'super_admin') return redirect()->route('developer.index');
-        return Inertia::render('Inventory');
+        $user = $request->user();
+        if ($user->role === 'super_admin') return redirect()->route('developer.index');
+
+        $categories = \App\Models\Category::where('store_id', $user->store_id)
+            ->orderBy('name', 'asc')
+            ->get();
+
+        $products = \App\Models\Product::where('store_id', $user->store_id)
+            ->with('category')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return Inertia::render('Inventory', [
+            'initial_products' => $products,
+            'initial_categories' => $categories,
+        ]);
     })->name('inventory.index');
 
     // Transaction History
