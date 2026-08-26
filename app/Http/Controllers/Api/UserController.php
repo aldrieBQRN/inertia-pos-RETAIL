@@ -37,7 +37,12 @@ class UserController extends Controller
 
         return Inertia::render('User', [
             'users' => $users,
-            'settings' => $store
+            'settings' => [
+                'store_name' => $store?->name,
+                'store_logo_path' => $store?->logo_path,
+                'address' => $store?->address,
+                'phone' => $store?->phone,
+            ]
         ]);
     }
 

@@ -28,11 +28,11 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
     const isSuperAdmin = user.role === 'super_admin';
     const appName = isSuperAdmin 
         ? (settings?.app_name || 'System Control Panel')
-        : (settings?.store_name || 'Smart Retail POS');
+        : (settings?.store_name || settings?.app_name || 'Smart Retail POS');
 
     const logoUrl = isSuperAdmin
         ? (settings?.logo_path ? `/storage/${settings.logo_path}` : null)
-        : (settings?.store_logo_path || null);
+        : (settings?.store_logo_path || settings?.logo_path || null);
 
     // Reset logoError if the logo URL changes (e.g. settings updated)
     useEffect(() => {
@@ -44,6 +44,7 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
         return (
             <Link
                 href={href}
+                prefetch
                 className={`group relative flex items-center justify-center h-10 px-3 sm:px-3.5 rounded-lg transition-all duration-300 ease-in-out select-none
                     ${active 
                         ? 'bg-indigo-50 text-indigo-600' 
