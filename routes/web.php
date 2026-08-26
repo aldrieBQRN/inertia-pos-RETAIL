@@ -455,6 +455,57 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
 
     // User/Staff Management
     Route::get('/users', [UserController::class, 'index'])->name('users.index')->middleware('admin');
+
+    // System Activity Logs - Store Admin Restricted
+    Route::get('/activity-logs', function (Request $request) {
+        $user = $request->user();
+        if ($user->role === 'super_admin') return redirect()->route('developer.activity-logs');
+        if (!$user->is_admin) return redirect()->route('pos');
+
+        $storeId = $user->store_id;
+
+        // Fetch store activity logs with user relationship
+        $rawLogs = \App\Models\ActivityLog::where('store_id', $storeId)
+            ->with(['user:id,name,role,email,account_number'])
+            ->orderBy('created_at', 'desc')
+            ->limit(500)
+            ->get();
+
+        $logs = $rawLogs->map(function ($log) {
+            $cat = \App\Models\ActivityLog::resolveCategory($log->action, $log->model_type);
+            return [
+                'id' => $log->id,
+                'action' => $log->action,
+                'category' => $cat,
+                'model_type' => $log->model_type,
+                'model_id' => $log->model_id,
+                'description' => $log->description,
+                'old_values' => $log->old_values,
+                'new_values' => $log->new_values,
+                'ip_address' => $log->ip_address,
+                'user_agent' => $log->user_agent,
+                'user_id' => $log->user_id,
+                'user_name' => $log->user ? $log->user->name : 'System / Auto',
+                'user_role' => $log->user ? $log->user->role : 'system',
+                'created_at' => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
+            ];
+        });
+
+        // Precompute staff members for filter dropdown
+        $staffMembers = \App\Models\User::where('store_id', $storeId)
+            ->select('id', 'name', 'role', 'email')
+            ->orderBy('name')
+            ->get();
+
+        $settingsRes = app(\App\Http\Controllers\Api\SettingController::class)->index($request);
+        $settings = $settingsRes instanceof \Illuminate\Http\JsonResponse ? $settingsRes->getData(true) : $settingsRes;
+
+        return Inertia::render('ActivityLogs', [
+            'initial_logs' => $logs,
+            'staff_members' => $staffMembers,
+            'initial_settings' => $settings,
+        ]);
+    })->name('activity-logs.index')->middleware('admin');
 });
 
 
@@ -516,6 +567,42 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class, 'throt
 
         // Shift History API for Admins
         Route::get('/api/shifts', [ShiftController::class, 'index']);
+
+        // Store Activity Logs API
+        Route::get('/api/activity-logs', function (Request $request) {
+            $user = $request->user();
+            $storeId = $user->store_id;
+            $rawLogs = \App\Models\ActivityLog::where('store_id', $storeId)
+                ->with(['user:id,name,role,email,account_number'])
+                ->orderBy('created_at', 'desc')
+                ->limit(500)
+                ->get();
+
+            $logs = $rawLogs->map(function ($log) {
+                $cat = \App\Models\ActivityLog::resolveCategory($log->action, $log->model_type);
+                return [
+                    'id' => $log->id,
+                    'action' => $log->action,
+                    'category' => $cat,
+                    'model_type' => $log->model_type,
+                    'model_id' => $log->model_id,
+                    'description' => $log->description,
+                    'old_values' => $log->old_values,
+                    'new_values' => $log->new_values,
+                    'ip_address' => $log->ip_address,
+                    'user_agent' => $log->user_agent,
+                    'user_id' => $log->user_id,
+                    'user_name' => $log->user ? $log->user->name : 'System / Auto',
+                    'user_role' => $log->user ? $log->user->role : 'system',
+                    'created_at' => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'logs' => $logs
+            ]);
+        });
     });
 
     // API: Shift Lifecycle & Cash Management (Terminal Operations)
