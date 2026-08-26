@@ -219,16 +219,52 @@ jobs:
 
 ---
 
-## 🛠 Troubleshooting & Gotchas
+---
 
-1. **`403 - Invalid or Missing Migration Token`**:
-   - Ensure the `token` parameter in your URL matches `MIGRATION_TOKEN` inside `inertia-pos-core/env.php`.
-2. **Database Connection Error**:
-   - InfinityFree database hosts are usually `sqlXXX.infinityfree.com` (not `localhost` or `127.0.0.1`). Verify host, database name, and password.
-3. **Uploaded Images Giving 404**:
-   - Run `/artisan-migrate?token=YOUR_TOKEN&storage=1` to ensure local storage links are active.
-4. **Vite Bundle Not Loading**:
-   - Check if `public/build/manifest.json` was deployed to `/htdocs/build/manifest.json`.
+## 🛡️ Preventing Attacks & DDoS Protection (Cloudflare Setup)
+
+To protect your site from bot attacks, brute-force attempts, scrapers, and DDoS floods (such as adding a **"Checking if you are human" / Turnstile challenge** when users first visit), you should route your domain through **Cloudflare (Free Tier)**.
+
+### 1. How Cloudflare Bot Fight Mode & Turnstile Challenge Works
+When Cloudflare is enabled:
+- Every incoming visitor passes through Cloudflare’s global edge servers before reaching your InfinityFree hosting.
+- Suspicious traffic (bots, scrapers, automated attacks) is blocked or prompted with a **"Verify you are human" / Turnstile checkbox**.
+- Genuine users pass seamlessly without slow load times.
+
+---
+
+### 2. Step-by-Step Setup Guide
+
+#### Step 1: Create a Free Cloudflare Account
+1. Go to [Cloudflare Signup](https://dash.cloudflare.com/sign-up) and create an account.
+2. Click **Add a Site** and enter your domain name (e.g., `yourdomain.com`).
+3. Select the **Free Plan** ($0/month).
+
+#### Step 2: Update DNS Nameservers
+1. Cloudflare will provide 2 Custom Nameservers (e.g., `ns1.cloudflare.com` & `ns2.cloudflare.com`).
+2. Log in to your domain registrar (Namecheap, GoDaddy, Cloudflare Registrar, etc.).
+3. Replace your existing nameservers with the Cloudflare nameservers.
+4. Wait 5–15 minutes for DNS propagation.
+
+#### Step 3: Enable Security & Bot Challenge Settings
+In your Cloudflare Dashboard:
+1. **Under Security → WAF (Web Application Firewall)**:
+   - Go to **Bots** tab $\rightarrow$ Enable **Bot Fight Mode**.
+2. **Under Security → Settings**:
+   - Set **Security Level** to **Medium** or **High**.
+   - Enable **Challenge Passage** to **`7 Days`** or **`1 Year`** (so cashiers verify once at shift start and never get prompted again during daily operations).
+3. **Under Security → WAF → Custom Rules (Cashier Zero-Interruption Rule)**:
+   - Create a rule: `URI Path starts with /pos` $\rightarrow$ Action: **Bypass WAF / Security Level**.
+   - *Result*: POS terminal cashiers scanning items will **NEVER** face a bot challenge or checkout delay.
+4. **Under SSL/TLS → Overview**:
+   - Set SSL/TLS encryption mode to **Full** or **Full (Strict)** to ensure end-to-end HTTPS encryption.
+
+---
+
+### 3. Benefits for Shared Hosting (InfinityFree)
+- 🔒 **DDoS Protection**: Absorbs malicious traffic spikes at Cloudflare's edge so your InfinityFree account never hits bandwidth / resource limits.
+- 🤖 **Automated Bot Blocking**: Stops malicious login brute-force attempts on `/login` and `/artisan-migrate`.
+- ⚡ **Global CDN Caching**: Accelerates CSS/JS asset delivery, making page transitions even faster worldwide.
 
 ---
 

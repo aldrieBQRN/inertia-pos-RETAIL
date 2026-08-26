@@ -480,6 +480,18 @@ chmod -R 775 storage/app/public
 
 ---
 
+## 🚀 Performance & Security Architecture
+
+### ⚡ **Instant Page Prefetching**
+- **0ms Navigation**: All navigation links (`NavItem`, `NavLink`, `ResponsiveNavLink`, and `Dropdown.Link`) utilize Inertia.js link prefetching for instant, zero-delay transitions across both Admin and Cashier pages.
+
+### 🛡️ **DDoS & Bot Security (Cloudflare Integration)**
+- **Automated Bot Shield**: Routes through Cloudflare’s global edge network to block malicious brute-force login attempts and scrapers.
+- **Cashier Zero-Interruption**: Configured with extended **Challenge Passage** (or Store IP Whitelisting) so store cashiers verify once at shift start (or bypass completely) without any disruption to live sales checkouts.
+- **Detailed Setup Guide**: Refer to [`INFINITY_DEPLOYMENT_GUIDE.md`](file:///c:/laragon/www/inertia-pos-RETAIL/INFINITY_DEPLOYMENT_GUIDE.md) for full Cloudflare WAF setup instructions.
+
+---
+
 ## 🐛 Known Limitations
 
 - Barcode scanning works best with USB scanners or good camera quality
