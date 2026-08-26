@@ -627,9 +627,9 @@ export default function Reports({ auth, initial_report_data }) {
                 const summaryRow = worksheet.getRow(summaryStartRow + 2);
                 summaryRow.getCell(1).value = `Days / Records: ${currentDataset.length}`;
                 summaryRow.getCell(2).value = `Total Orders: ${formatNumber(totalOrders)}`;
-                summaryRow.getCell(3).value = `Gross: ₱${formatCurrency(totalGross)}`;
-                summaryRow.getCell(4).value = `Discounts: ₱${formatCurrency(totalDiscounts)}`;
-                summaryRow.getCell(5).value = `Net Sales: ₱${formatCurrency(totalNet)}`;
+                summaryRow.getCell(3).value = `Gross: ${formatCurrency(totalGross)}`;
+                summaryRow.getCell(4).value = `Discounts: ${formatCurrency(totalDiscounts)}`;
+                summaryRow.getCell(5).value = `Net Sales: ${formatCurrency(totalNet)}`;
                 summaryRow.getCell(7).value = `Total Voids: ${totalVoids}`;
 
                 for (let c = 1; c <= colCount; c++) {
@@ -648,8 +648,8 @@ export default function Reports({ auth, initial_report_data }) {
                 const summaryRow = worksheet.getRow(summaryStartRow + 2);
                 summaryRow.getCell(1).value = `Products: ${currentDataset.length}`;
                 summaryRow.getCell(3).value = `Total Units Sold: ${formatNumber(totalUnits)}`;
-                summaryRow.getCell(6).value = `Total Revenue: ₱${formatCurrency(totalRev)}`;
-                summaryRow.getCell(8).value = `Total Profit: ₱${formatCurrency(totalProf)}`;
+                summaryRow.getCell(6).value = `Total Revenue: ${formatCurrency(totalRev)}`;
+                summaryRow.getCell(8).value = `Total Profit: ${formatCurrency(totalProf)}`;
                 summaryRow.getCell(9).value = `Avg Margin: ${avgMargin}%`;
 
                 for (let c = 1; c <= colCount; c++) {
@@ -668,9 +668,9 @@ export default function Reports({ auth, initial_report_data }) {
                 const summaryRow = worksheet.getRow(summaryStartRow + 2);
                 summaryRow.getCell(1).value = `Total SKUs: ${currentDataset.length}`;
                 summaryRow.getCell(4).value = `Total Units: ${formatNumber(totalStock)}`;
-                summaryRow.getCell(6).value = `Cost Valuation: ₱${formatCurrency(totalCost)}`;
-                summaryRow.getCell(7).value = `Retail Valuation: ₱${formatCurrency(totalRetail)}`;
-                summaryRow.getCell(8).value = `Projected Profit: ₱${formatCurrency(projectedProfit)}`;
+                summaryRow.getCell(6).value = `Cost Valuation: ${formatCurrency(totalCost)}`;
+                summaryRow.getCell(7).value = `Retail Valuation: ${formatCurrency(totalRetail)}`;
+                summaryRow.getCell(8).value = `Projected Profit: ${formatCurrency(projectedProfit)}`;
 
                 for (let c = 1; c <= colCount; c++) {
                     const cell = summaryRow.getCell(c);
@@ -687,10 +687,10 @@ export default function Reports({ auth, initial_report_data }) {
 
                 const summaryRow = worksheet.getRow(summaryStartRow + 2);
                 summaryRow.getCell(1).value = `Total Shifts: ${currentDataset.length}`;
-                summaryRow.getCell(4).value = `Total Starting Float: ₱${formatCurrency(totalStarting * 100)}`;
-                summaryRow.getCell(6).value = `Total Cash Sales: ₱${formatCurrency(totalCashSales * 100)}`;
-                summaryRow.getCell(8).value = `Total Expected: ₱${formatCurrency(totalExpected * 100)}`;
-                summaryRow.getCell(10).value = `Net Variance: ₱${formatCurrency(totalDiff * 100)}`;
+                summaryRow.getCell(4).value = `Total Starting Float: ${formatCurrency(totalStarting * 100)}`;
+                summaryRow.getCell(6).value = `Total Cash Sales: ${formatCurrency(totalCashSales * 100)}`;
+                summaryRow.getCell(8).value = `Total Expected: ${formatCurrency(totalExpected * 100)}`;
+                summaryRow.getCell(10).value = `Net Variance: ${formatCurrency(totalDiff * 100)}`;
 
                 for (let c = 1; c <= colCount; c++) {
                     const cell = summaryRow.getCell(c);
@@ -710,8 +710,8 @@ export default function Reports({ auth, initial_report_data }) {
                 summaryRow.getCell(1).value = `Staff Count: ${currentDataset.length}`;
                 summaryRow.getCell(3).value = `Total Shifts: ${totalShifts}`;
                 summaryRow.getCell(5).value = `Total Txns: ${formatNumber(totalTxns)}`;
-                summaryRow.getCell(6).value = `Total Sales: ₱${formatCurrency(totalSales)}`;
-                summaryRow.getCell(8).value = `Total Discounts: ₱${formatCurrency(totalDiscounts)}`;
+                summaryRow.getCell(6).value = `Total Sales: ${formatCurrency(totalSales)}`;
+                summaryRow.getCell(8).value = `Total Discounts: ${formatCurrency(totalDiscounts)}`;
                 summaryRow.getCell(9).value = `Total Voids: ${totalVoids}`;
 
                 for (let c = 1; c <= colCount; c++) {
@@ -965,7 +965,7 @@ export default function Reports({ auth, initial_report_data }) {
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
                                     <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider truncate">Net Sales Revenue</p>
                                     <h3 className="text-sm sm:text-2xl font-bold text-gray-900 tracking-tight font-mono truncate">
-                                        ₱{formatCurrency(reportData.summary.total_sales)}
+                                        {formatCurrency(reportData.summary.total_sales)}
                                     </h3>
                                 </div>
                                 <div className="p-1.5 sm:p-2.5 bg-blue-50 text-blue-700 rounded-xl ring-1 ring-blue-100 shrink-0">
@@ -976,7 +976,7 @@ export default function Reports({ auth, initial_report_data }) {
                             </div>
                             <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-0 text-[10px] sm:text-xs text-gray-500 font-medium">
                                 <span className="truncate">{formatNumber(reportData.summary.total_orders)} Orders</span>
-                                <span className="font-semibold text-gray-800 font-mono truncate">Avg: ₱{formatCurrency(reportData.summary.average_order_value)}</span>
+                                <span className="font-semibold text-gray-800 font-mono truncate">Avg: {formatCurrency(reportData.summary.average_order_value)}</span>
                             </div>
                         </div>
 
@@ -986,7 +986,7 @@ export default function Reports({ auth, initial_report_data }) {
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
                                     <p className="text-[10px] sm:text-xs font-bold text-emerald-700 uppercase tracking-wider truncate">Gross Profit</p>
                                     <h3 className="text-sm sm:text-2xl font-bold text-emerald-900 tracking-tight font-mono truncate">
-                                        ₱{formatCurrency(reportData.summary.total_gross_profit)}
+                                        {formatCurrency(reportData.summary.total_gross_profit)}
                                     </h3>
                                 </div>
                                 <div className="p-1.5 sm:p-2.5 bg-emerald-50 text-emerald-700 rounded-xl ring-1 ring-emerald-100 shrink-0">
@@ -1019,7 +1019,7 @@ export default function Reports({ auth, initial_report_data }) {
                             </div>
                             <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-amber-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-0 text-[10px] sm:text-xs text-gray-500 font-medium">
                                 <span className="truncate">Discounts</span>
-                                <span className="font-semibold text-amber-700 font-mono truncate">₱{formatCurrency(reportData.summary.total_discounts)}</span>
+                                <span className="font-semibold text-amber-700 font-mono truncate">{formatCurrency(reportData.summary.total_discounts)}</span>
                             </div>
                         </div>
 
@@ -1029,7 +1029,7 @@ export default function Reports({ auth, initial_report_data }) {
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
                                     <p className="text-[10px] sm:text-xs font-bold text-purple-700 uppercase tracking-wider truncate">Inventory Value</p>
                                     <h3 className="text-sm sm:text-2xl font-bold text-purple-900 tracking-tight font-mono truncate">
-                                        ₱{formatCurrency(reportData.summary.inventory_retail_value)}
+                                        {formatCurrency(reportData.summary.inventory_retail_value)}
                                     </h3>
                                 </div>
                                 <div className="p-1.5 sm:p-2.5 bg-purple-50 text-purple-700 rounded-xl ring-1 ring-purple-100 shrink-0">
@@ -1039,7 +1039,7 @@ export default function Reports({ auth, initial_report_data }) {
                                 </div>
                             </div>
                             <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-purple-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-0 text-[10px] sm:text-xs text-gray-500 font-medium">
-                                <span className="truncate">Cost: ₱{formatCurrency(reportData.summary.inventory_cost_value)}</span>
+                                <span className="truncate">Cost: {formatCurrency(reportData.summary.inventory_cost_value)}</span>
                                 <span className="font-semibold text-purple-700 font-mono shrink-0">{formatNumber(reportData.summary.inventory_skus)} SKUs</span>
                             </div>
                         </div>
@@ -1497,7 +1497,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                     </defs>
                                                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                                                                     <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#64748B' }} tickLine={false} axisLine={false} />
-                                                                    <YAxis tick={{ fontSize: 10, fill: '#64748B' }} tickLine={false} axisLine={false} tickFormatter={(v) => `₱${v >= 1000 ? (v/1000).toFixed(0) + 'k' : v}`} />
+                                                                    <YAxis tick={{ fontSize: 10, fill: '#64748B' }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v >= 1000 ? (v/1000).toFixed(0) + 'k' : v}`} />
                                                                     <Tooltip
                                                                         content={({ active, payload, label }) => {
                                                                             if (active && payload && payload.length) {
@@ -1506,10 +1506,10 @@ export default function Reports({ auth, initial_report_data }) {
                                                                                     <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
                                                                                         <p className="font-bold text-gray-900">{label}</p>
                                                                                         <div className="space-y-0.5 pt-1 border-t border-gray-100 text-xs">
-                                                                                            <p className="text-[#1B3A69] font-bold">Gross Sales: ₱{formatCurrency(d.gross_sales)}</p>
-                                                                                            <p className="text-emerald-700 font-semibold">Cash: ₱{formatCurrency(d.cash_sales)}</p>
-                                                                                            <p className="text-blue-700 font-semibold">Digital: ₱{formatCurrency(d.digital_sales)}</p>
-                                                                                            <p className="text-amber-700 font-semibold">Discounts: ₱{formatCurrency(d.discounts)}</p>
+                                                                                            <p className="text-[#1B3A69] font-bold">Gross Sales: {formatCurrency(d.gross_sales)}</p>
+                                                                                            <p className="text-emerald-700 font-semibold">Cash: {formatCurrency(d.cash_sales)}</p>
+                                                                                            <p className="text-blue-700 font-semibold">Digital: {formatCurrency(d.digital_sales)}</p>
+                                                                                            <p className="text-amber-700 font-semibold">Discounts: {formatCurrency(d.discounts)}</p>
                                                                                             <p className="text-gray-500">{d.orders_count} transactions</p>
                                                                                         </div>
                                                                                     </div>
@@ -1560,7 +1560,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                                 return (
                                                                                     <div className="bg-white p-2.5 rounded-xl shadow-xl border border-gray-100 text-xs z-50">
                                                                                         <p className="font-bold text-gray-900">{formatPaymentName(d.method)}</p>
-                                                                                        <p className="text-[#1B3A69] font-bold">₱{formatCurrency(d.total_amount)}</p>
+                                                                                        <p className="text-[#1B3A69] font-bold">{formatCurrency(d.total_amount)}</p>
                                                                                         <p className="text-gray-400 text-[10px]">{d.percentage}% of revenue ({d.count} orders)</p>
                                                                                     </div>
                                                                                 );
@@ -1634,8 +1634,8 @@ export default function Reports({ auth, initial_report_data }) {
                                                                                 <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
                                                                                     <p className="font-bold text-gray-900">{d.name}</p>
                                                                                     <p className="text-[#1B3A69] font-bold">{d.units_sold} Units Sold</p>
-                                                                                    <p className="text-gray-700 font-semibold">Revenue: ₱{formatCurrency(d.total_revenue)}</p>
-                                                                                    <p className="text-emerald-700 font-semibold">Profit: ₱{formatCurrency(d.total_profit)} ({d.margin_percent}%)</p>
+                                                                                    <p className="text-gray-700 font-semibold">Revenue: {formatCurrency(d.total_revenue)}</p>
+                                                                                    <p className="text-emerald-700 font-semibold">Profit: {formatCurrency(d.total_profit)} ({d.margin_percent}%)</p>
                                                                                 </div>
                                                                             );
                                                                         }
@@ -1668,7 +1668,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                             <BarChart data={reportData.product_report.categories.slice(0, 5)}>
                                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                                                                 <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#64748B' }} axisLine={false} tickLine={false} />
-                                                                <YAxis tick={{ fontSize: 9, fill: '#64748B' }} axisLine={false} tickLine={false} tickFormatter={(v) => `₱${(v/100000).toFixed(0)}k`} />
+                                                                <YAxis tick={{ fontSize: 9, fill: '#64748B' }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v/100000).toFixed(0)}k`} />
                                                                 <Tooltip
                                                                     content={({ active, payload }) => {
                                                                         if (active && payload && payload.length) {
@@ -1676,8 +1676,8 @@ export default function Reports({ auth, initial_report_data }) {
                                                                             return (
                                                                                 <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
                                                                                     <p className="font-bold text-gray-900">{d.name}</p>
-                                                                                    <p className="text-purple-700 font-bold">Revenue: ₱{formatCurrency(d.total_revenue)}</p>
-                                                                                    <p className="text-emerald-700 font-semibold">Profit: ₱{formatCurrency(d.total_profit)}</p>
+                                                                                    <p className="text-purple-700 font-bold">Revenue: {formatCurrency(d.total_revenue)}</p>
+                                                                                    <p className="text-emerald-700 font-semibold">Profit: {formatCurrency(d.total_profit)}</p>
                                                                                     <p className="text-gray-400 text-xs">{d.revenue_share}% revenue share</p>
                                                                                 </div>
                                                                             );
@@ -1774,17 +1774,17 @@ export default function Reports({ auth, initial_report_data }) {
                                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                                     <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 space-y-1">
                                                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Cost Invested</span>
-                                                        <p className="text-lg sm:text-xl font-bold text-gray-900">₱{formatCurrency(reportData.inventory_report.total_cost_value)}</p>
+                                                        <p className="text-lg sm:text-xl font-bold text-gray-900">{formatCurrency(reportData.inventory_report.total_cost_value)}</p>
                                                         <p className="text-xs text-gray-400">Total acquisition cost</p>
                                                     </div>
                                                     <div className="p-4 rounded-xl bg-[#EFF4F9] border border-[#CBD7E6] space-y-1">
                                                         <span className="text-xs font-bold text-[#1B3A69] uppercase tracking-wider">Retail Valuation</span>
-                                                        <p className="text-lg sm:text-xl font-bold text-gray-900">₱{formatCurrency(reportData.inventory_report.total_retail_value)}</p>
+                                                        <p className="text-lg sm:text-xl font-bold text-gray-900">{formatCurrency(reportData.inventory_report.total_retail_value)}</p>
                                                         <p className="text-xs text-gray-500">Gross market potential</p>
                                                     </div>
                                                     <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100 space-y-1">
                                                         <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Expected Profit</span>
-                                                        <p className="text-lg sm:text-xl font-bold text-emerald-700">₱{formatCurrency(reportData.inventory_report.potential_profit)}</p>
+                                                        <p className="text-lg sm:text-xl font-bold text-emerald-700">{formatCurrency(reportData.inventory_report.potential_profit)}</p>
                                                         <p className="text-xs text-emerald-600 font-semibold">{reportData.inventory_report.potential_margin}% Projected Margin</p>
                                                     </div>
                                                 </div>
@@ -1832,7 +1832,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                             <BarChart data={[...reportData.shift_report.shifts].slice(0, 8)}>
                                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                                                                 <XAxis dataKey="cashier_name" tick={{ fontSize: 9, fill: '#64748B' }} axisLine={false} tickLine={false} />
-                                                                <YAxis tick={{ fontSize: 9, fill: '#64748B' }} axisLine={false} tickLine={false} tickFormatter={(v) => `₱${v}`} />
+                                                                <YAxis tick={{ fontSize: 9, fill: '#64748B' }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}`} />
                                                                 <Tooltip
                                                                     content={({ active, payload }) => {
                                                                         if (active && payload && payload.length) {
@@ -1840,10 +1840,10 @@ export default function Reports({ auth, initial_report_data }) {
                                                                             return (
                                                                                 <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
                                                                                     <p className="font-bold text-gray-900">{d.cashier_name} (Shift #{d.id})</p>
-                                                                                    <p className="text-emerald-700 font-bold">Actual: ₱{d.actual_cash !== null && d.actual_cash !== undefined ? Number(d.actual_cash).toFixed(2) : '—'}</p>
-                                                                                    <p className="text-gray-500 font-semibold">Expected: ₱{Number(d.expected_cash || 0).toFixed(2)}</p>
+                                                                                    <p className="text-emerald-700 font-bold">Actual: {d.actual_cash !== null && d.actual_cash !== undefined ? Number(d.actual_cash).toFixed(2) : '—'}</p>
+                                                                                    <p className="text-gray-500 font-semibold">Expected: {Number(d.expected_cash || 0).toFixed(2)}</p>
                                                                                     <p className={`font-bold ${(d.difference || 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                                                                                        Variance: {(d.difference || 0) >= 0 ? '+' : ''}₱{Number(d.difference || 0).toFixed(2)}
+                                                                                        Variance: {(d.difference || 0) >= 0 ? '+' : ''}{Number(d.difference || 0).toFixed(2)}
                                                                                     </p>
                                                                                 </div>
                                                                             );
@@ -1873,7 +1873,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                         <div>
                                                             <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">Total Shift Cash Sales</span>
                                                             <p className="text-base font-bold text-emerald-950">
-                                                                ₱{((reportData.shift_report.cash_movements?.total_cash_sales || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                                                {((reportData.shift_report.cash_movements?.total_cash_sales || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                                             </p>
                                                         </div>
                                                         <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold">Sales</span>
@@ -1883,7 +1883,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                         <div>
                                                             <span className="text-xs font-bold uppercase tracking-wider text-blue-800">Drawer Cash-In (Adds)</span>
                                                             <p className="text-base font-bold text-blue-950">
-                                                                ₱{((reportData.shift_report.cash_movements?.total_cash_in || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                                                {((reportData.shift_report.cash_movements?.total_cash_in || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                                             </p>
                                                         </div>
                                                         <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">Topup</span>
@@ -1893,7 +1893,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                         <div>
                                                             <span className="text-xs font-bold uppercase tracking-wider text-rose-800">Drawer Cash-Out (Drops / Payouts)</span>
                                                             <p className="text-base font-bold text-rose-950">
-                                                                ₱{((reportData.shift_report.cash_movements?.total_cash_out || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                                                {((reportData.shift_report.cash_movements?.total_cash_out || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                                             </p>
                                                         </div>
                                                         <span className="px-2.5 py-0.5 bg-rose-100 text-rose-800 rounded-full text-xs font-bold">Drops</span>
@@ -1931,7 +1931,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                             <BarChart data={reportData.staff_report.staff}>
                                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                                                                 <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false} />
-                                                                <YAxis tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false} tickFormatter={(v) => `₱${(v/100000).toFixed(0)}k`} />
+                                                                <YAxis tick={{ fontSize: 10, fill: '#64748B' }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v/100000).toFixed(0)}k`} />
                                                                 <Tooltip
                                                                     content={({ active, payload }) => {
                                                                         if (active && payload && payload.length) {
@@ -1939,9 +1939,9 @@ export default function Reports({ auth, initial_report_data }) {
                                                                             return (
                                                                                 <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
                                                                                     <p className="font-bold text-gray-900">{d.name} ({d.role})</p>
-                                                                                    <p className="text-indigo-700 font-bold">Sales: ₱{formatCurrency(d.total_sales)}</p>
-                                                                                    <p className="text-gray-600 font-semibold">{d.transactions_count} transactions (AOV: ₱{formatCurrency(d.average_basket)})</p>
-                                                                                    <p className="text-amber-700 font-semibold">Discounts: ₱{formatCurrency(d.discounts_given)}</p>
+                                                                                    <p className="text-indigo-700 font-bold">Sales: {formatCurrency(d.total_sales)}</p>
+                                                                                    <p className="text-gray-600 font-semibold">{d.transactions_count} transactions (AOV: {formatCurrency(d.average_basket)})</p>
+                                                                                    <p className="text-amber-700 font-semibold">Discounts: {formatCurrency(d.discounts_given)}</p>
                                                                                 </div>
                                                                             );
                                                                         }
@@ -1982,8 +1982,8 @@ export default function Reports({ auth, initial_report_data }) {
                                                                             return (
                                                                                 <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
                                                                                     <p className="font-bold text-gray-900">{d.name}</p>
-                                                                                    <p className="text-amber-700 font-bold">Discounts Granted: ₱{formatCurrency(d.discounts_given)}</p>
-                                                                                    <p className="text-rose-700 font-bold">Voided Receipts: {d.voids_count} (₱{formatCurrency(d.void_amount)})</p>
+                                                                                    <p className="text-amber-700 font-bold">Discounts Granted: {formatCurrency(d.discounts_given)}</p>
+                                                                                    <p className="text-rose-700 font-bold">Voided Receipts: {d.voids_count} ({formatCurrency(d.void_amount)})</p>
                                                                                 </div>
                                                                             );
                                                                         }
@@ -2108,14 +2108,14 @@ export default function Reports({ auth, initial_report_data }) {
                                                                     <>
                                                                         <td className="p-3.5 sm:p-4 font-bold text-gray-900 text-xs sm:text-sm">{item.date}</td>
                                                                         <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-gray-700">{formatNumber(item.orders_count)}</td>
-                                                                        <td className="p-3.5 sm:p-4 text-right font-semibold text-xs sm:text-sm text-gray-800">₱{formatCurrency(item.gross_sales)}</td>
-                                                                        <td className="p-3.5 sm:p-4 text-right text-xs sm:text-sm font-semibold text-amber-700">₱{formatCurrency(item.discounts)}</td>
-                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">₱{formatCurrency(item.net_sales)}</td>
-                                                                        <td className="p-3.5 sm:p-4 text-right text-xs sm:text-sm font-medium text-gray-600">₱{formatCurrency(item.aov)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-semibold text-xs sm:text-sm text-gray-800">{formatCurrency(item.gross_sales)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right text-xs sm:text-sm font-semibold text-amber-700">{formatCurrency(item.discounts)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">{formatCurrency(item.net_sales)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right text-xs sm:text-sm font-medium text-gray-600">{formatCurrency(item.aov)}</td>
                                                                         <td className="p-3.5 sm:p-4 text-right text-xs">
-                                                                            <span className="text-emerald-700 font-bold">₱{formatCurrency(item.cash_sales)}</span>
+                                                                            <span className="text-emerald-700 font-bold">{formatCurrency(item.cash_sales)}</span>
                                                                             <span className="text-gray-400 font-bold mx-1">/</span>
-                                                                            <span className="text-indigo-700 font-bold">₱{formatCurrency(item.digital_sales)}</span>
+                                                                            <span className="text-indigo-700 font-bold">{formatCurrency(item.digital_sales)}</span>
                                                                         </td>
                                                                         <td className="p-3.5 sm:p-4 text-center">
                                                                             <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${(item.void_count || item.voids_count || 0) > 0 ? 'bg-rose-50 text-rose-700' : 'bg-gray-50 text-gray-500'}`}>
@@ -2138,8 +2138,8 @@ export default function Reports({ auth, initial_report_data }) {
                                                                             </span>
                                                                         </td>
                                                                         <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-gray-900">{formatNumber(item.units_sold)}</td>
-                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">₱{formatCurrency(item.total_revenue)}</td>
-                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-emerald-700">₱{formatCurrency(item.total_profit)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">{formatCurrency(item.total_revenue)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-emerald-700">{formatCurrency(item.total_profit)}</td>
                                                                         <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-gray-700">{item.margin_percent}%</td>
                                                                         <td className="p-3.5 sm:p-4 text-center">
                                                                             <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
@@ -2165,9 +2165,9 @@ export default function Reports({ auth, initial_report_data }) {
                                                                             </span>
                                                                         </td>
                                                                         <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-gray-900">{formatNumber(item.stock_quantity)}</td>
-                                                                        <td className="p-3.5 sm:p-4 text-right text-xs sm:text-sm text-gray-600">₱{formatCurrency(item.total_cost_value)}</td>
-                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">₱{formatCurrency(item.total_retail_value)}</td>
-                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-emerald-700">₱{formatCurrency(item.potential_profit)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right text-xs sm:text-sm text-gray-600">{formatCurrency(item.total_cost_value)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">{formatCurrency(item.total_retail_value)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-emerald-700">{formatCurrency(item.potential_profit)}</td>
                                                                         <td className="p-3.5 sm:p-4 text-center">
                                                                             <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                                                                                 item.status === 'out_of_stock' ? 'bg-rose-50 text-rose-700' :
@@ -2192,23 +2192,23 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         <td className="p-3.5 sm:p-4 text-xs text-gray-500">
                                                                             {item.end_time ? new Date(item.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (item.closed_at || 'Currently Active')}
                                                                         </td>
-                                                                        <td className="p-3.5 sm:p-4 text-right text-xs sm:text-sm text-gray-600">₱{Number(item.starting_cash || item.opening_float || 0).toFixed(2)}</td>
-                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">₱{Number(item.cash_sales || 0).toFixed(2)}</td>
-                                                                        <td className="p-3.5 sm:p-4 text-right font-semibold text-xs sm:text-sm text-gray-800">₱{Number(item.expected_cash || item.expected_drawer || 0).toFixed(2)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right text-xs sm:text-sm text-gray-600">{Number(item.starting_cash || item.opening_float || 0).toFixed(2)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">{Number(item.cash_sales || 0).toFixed(2)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-semibold text-xs sm:text-sm text-gray-800">{Number(item.expected_cash || item.expected_drawer || 0).toFixed(2)}</td>
                                                                         <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-emerald-700">
-                                                                            {item.actual_cash !== null && item.actual_cash !== undefined ? `₱${Number(item.actual_cash).toFixed(2)}` : (item.actual_counted !== null && item.actual_counted !== undefined ? `₱${Number(item.actual_counted).toFixed(2)}` : 'N/A')}
+                                                                            {item.actual_cash !== null && item.actual_cash !== undefined ? `${Number(item.actual_cash).toFixed(2)}` : (item.actual_counted !== null && item.actual_counted !== undefined ? `${Number(item.actual_counted).toFixed(2)}` : 'N/A')}
                                                                         </td>
                                                                         <td className="p-3.5 sm:p-4 text-center">
                                                                             {Number(item.difference || 0) > 0.01 ? (
                                                                                 <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full text-xs font-bold">
-                                                                                    +₱{Number(item.difference).toFixed(2)} (Over)
+                                                                                    +{Number(item.difference).toFixed(2)} (Over)
                                                                                 </span>
                                                                             ) : Number(item.difference || 0) < -0.01 ? (
                                                                                 <span className="text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full text-xs font-bold">
-                                                                                    -₱{Math.abs(Number(item.difference)).toFixed(2)} (Short)
+                                                                                    -{Math.abs(Number(item.difference)).toFixed(2)} (Short)
                                                                                 </span>
                                                                             ) : (
-                                                                                <span className="text-gray-400 font-semibold">Exact ₱0.00</span>
+                                                                                <span className="text-gray-400 font-semibold">Exact 0.00</span>
                                                                             )}
                                                                         </td>
                                                                     </>
@@ -2230,9 +2230,9 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         </td>
                                                                         <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-gray-700">{item.shifts_count}</td>
                                                                         <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-gray-900">{formatNumber(item.transactions_count)}</td>
-                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">₱{formatCurrency(item.total_sales)}</td>
-                                                                        <td className="p-3.5 sm:p-4 text-right text-gray-600 text-xs sm:text-sm">₱{formatCurrency(item.average_basket)}</td>
-                                                                        <td className="p-3.5 sm:p-4 text-right text-amber-700 font-semibold text-xs sm:text-sm">₱{formatCurrency(item.discounts_given)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">{formatCurrency(item.total_sales)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right text-gray-600 text-xs sm:text-sm">{formatCurrency(item.average_basket)}</td>
+                                                                        <td className="p-3.5 sm:p-4 text-right text-amber-700 font-semibold text-xs sm:text-sm">{formatCurrency(item.discounts_given)}</td>
                                                                         <td className="p-3.5 sm:p-4 text-center font-bold text-xs sm:text-sm text-rose-700">{item.voids_count}</td>
                                                                         <td className="p-3.5 sm:p-4 text-center">
                                                                             <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
@@ -2278,34 +2278,34 @@ export default function Reports({ auth, initial_report_data }) {
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">GROSS SALES</span>
                                                                     <span className="font-semibold text-gray-800 text-xs sm:text-sm font-mono">
-                                                                        ₱{formatCurrency(item.gross_sales)}
+                                                                        {formatCurrency(item.gross_sales)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">NET REVENUE</span>
                                                                     <span className="font-bold text-[#1B3A69] text-xs sm:text-sm font-mono">
-                                                                        ₱{formatCurrency(item.net_sales)}
+                                                                        {formatCurrency(item.net_sales)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">DISCOUNTS</span>
                                                                     <span className="font-semibold text-amber-700 text-xs font-mono">
-                                                                        ₱{formatCurrency(item.discounts)}
+                                                                        {formatCurrency(item.discounts)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">AVG TICKET</span>
                                                                     <span className="font-medium text-gray-600 text-xs font-mono">
-                                                                        ₱{formatCurrency(item.aov)}
+                                                                        {formatCurrency(item.aov)}
                                                                     </span>
                                                                 </div>
                                                             </div>
 
                                                             <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between gap-2 text-xs">
                                                                 <div className="text-[11px] font-semibold text-gray-600 font-mono">
-                                                                    <span className="text-emerald-700 font-bold">₱{formatCurrency(item.cash_sales)}</span>
+                                                                    <span className="text-emerald-700 font-bold">{formatCurrency(item.cash_sales)}</span>
                                                                     <span className="text-gray-300 mx-1">/</span>
-                                                                    <span className="text-indigo-700 font-bold">₱{formatCurrency(item.digital_sales)}</span>
+                                                                    <span className="text-indigo-700 font-bold">{formatCurrency(item.digital_sales)}</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-1.5 shrink-0">
                                                                     {(item.void_count || item.voids_count || 0) > 0 && (
@@ -2357,13 +2357,13 @@ export default function Reports({ auth, initial_report_data }) {
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">TOTAL REVENUE</span>
                                                                     <span className="font-bold text-[#1B3A69] text-xs sm:text-sm font-mono">
-                                                                        ₱{formatCurrency(item.total_revenue)}
+                                                                        {formatCurrency(item.total_revenue)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">GROSS PROFIT</span>
                                                                     <span className="font-bold text-emerald-700 text-xs sm:text-sm font-mono">
-                                                                        ₱{formatCurrency(item.total_profit)}
+                                                                        {formatCurrency(item.total_profit)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
@@ -2409,19 +2409,19 @@ export default function Reports({ auth, initial_report_data }) {
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">COST VALUE</span>
                                                                     <span className="font-semibold text-gray-600 text-xs sm:text-sm font-mono">
-                                                                        ₱{formatCurrency(item.total_cost_value)}
+                                                                        {formatCurrency(item.total_cost_value)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">RETAIL VALUE</span>
                                                                     <span className="font-bold text-[#1B3A69] text-xs sm:text-sm font-mono">
-                                                                        ₱{formatCurrency(item.total_retail_value)}
+                                                                        {formatCurrency(item.total_retail_value)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">POTENTIAL PROFIT</span>
                                                                     <span className="font-bold text-emerald-700 text-xs sm:text-sm font-mono">
-                                                                        ₱{formatCurrency(item.potential_profit)}
+                                                                        {formatCurrency(item.potential_profit)}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -2448,15 +2448,15 @@ export default function Reports({ auth, initial_report_data }) {
                                                                 <div className="shrink-0 text-right">
                                                                     {Number(item.difference || 0) > 0.01 ? (
                                                                         <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 leading-normal inline-flex items-center justify-center">
-                                                                            +₱{Number(item.difference).toFixed(2)} (Over)
+                                                                            +{Number(item.difference).toFixed(2)} (Over)
                                                                         </span>
                                                                     ) : Number(item.difference || 0) < -0.01 ? (
                                                                         <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 leading-normal inline-flex items-center justify-center">
-                                                                            -₱{Math.abs(Number(item.difference)).toFixed(2)} (Short)
+                                                                            -{Math.abs(Number(item.difference)).toFixed(2)} (Short)
                                                                         </span>
                                                                     ) : (
                                                                         <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-gray-100 text-gray-500 border border-gray-200 leading-normal inline-flex items-center justify-center">
-                                                                            Exact ₱0.00
+                                                                            Exact 0.00
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -2466,25 +2466,25 @@ export default function Reports({ auth, initial_report_data }) {
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block font-sans">START FLOAT</span>
                                                                     <span className="font-semibold text-gray-600 text-xs">
-                                                                        ₱{Number(item.starting_cash || item.opening_float || 0).toFixed(2)}
+                                                                        {Number(item.starting_cash || item.opening_float || 0).toFixed(2)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block font-sans">CASH SALES</span>
                                                                     <span className="font-bold text-[#1B3A69] text-xs sm:text-sm">
-                                                                        ₱{Number(item.cash_sales || 0).toFixed(2)}
+                                                                        {Number(item.cash_sales || 0).toFixed(2)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block font-sans">EXPECTED CASH</span>
                                                                     <span className="font-semibold text-gray-800 text-xs">
-                                                                        ₱{Number(item.expected_cash || item.expected_drawer || 0).toFixed(2)}
+                                                                        {Number(item.expected_cash || item.expected_drawer || 0).toFixed(2)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block font-sans">ACTUAL COUNTED</span>
                                                                     <span className="font-bold text-emerald-700 text-xs sm:text-sm">
-                                                                        {item.actual_cash !== null && item.actual_cash !== undefined ? `₱${Number(item.actual_cash).toFixed(2)}` : (item.actual_counted !== null && item.actual_counted !== undefined ? `₱${Number(item.actual_counted).toFixed(2)}` : 'N/A')}
+                                                                        {item.actual_cash !== null && item.actual_cash !== undefined ? `${Number(item.actual_cash).toFixed(2)}` : (item.actual_counted !== null && item.actual_counted !== undefined ? `${Number(item.actual_counted).toFixed(2)}` : 'N/A')}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -2527,19 +2527,19 @@ export default function Reports({ auth, initial_report_data }) {
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">TOTAL SALES</span>
                                                                     <span className="font-bold text-[#1B3A69] text-xs sm:text-sm font-mono">
-                                                                        ₱{formatCurrency(item.total_sales)}
+                                                                        {formatCurrency(item.total_sales)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">AVG TICKET</span>
                                                                     <span className="font-medium text-gray-600 text-xs font-mono">
-                                                                        ₱{formatCurrency(item.average_basket)}
+                                                                        {formatCurrency(item.average_basket)}
                                                                     </span>
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider block">DISCOUNTS / VOIDS</span>
                                                                     <span className="font-semibold text-amber-700 text-xs font-mono">
-                                                                        ₱{formatCurrency(item.discounts_given)} ({item.voids_count}v)
+                                                                        {formatCurrency(item.discounts_given)} ({item.voids_count}v)
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -2667,19 +2667,19 @@ export default function Reports({ auth, initial_report_data }) {
                                                 <div className="flex justify-between">
                                                     <span className="text-gray-500 font-medium">Gross Volume / Sales:</span>
                                                     <span className="font-bold text-[#1B3A69] font-mono">
-                                                        ₱{formatCurrency(drawerItem.gross_sales || drawerItem.total_revenue || drawerItem.total_sales || (drawerItem.cash_sales * 100))}
+                                                        {formatCurrency(drawerItem.gross_sales || drawerItem.total_revenue || drawerItem.total_sales || (drawerItem.cash_sales * 100))}
                                                     </span>
                                                 </div>
                                                 {drawerItem.discounts !== undefined && (
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-500 font-medium">Discounts Given:</span>
-                                                        <span className="font-semibold text-amber-700 font-mono">₱{formatCurrency(drawerItem.discounts)}</span>
+                                                        <span className="font-semibold text-amber-700 font-mono">{formatCurrency(drawerItem.discounts)}</span>
                                                     </div>
                                                 )}
                                                 {drawerItem.aov !== undefined && (
                                                     <div className="flex justify-between">
                                                         <span className="text-gray-500 font-medium">Average Order Value:</span>
-                                                        <span className="font-semibold text-gray-700 font-mono">₱{formatCurrency(drawerItem.aov)}</span>
+                                                        <span className="font-semibold text-gray-700 font-mono">{formatCurrency(drawerItem.aov)}</span>
                                                     </div>
                                                 )}
                                             </div>

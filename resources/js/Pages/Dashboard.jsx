@@ -212,7 +212,7 @@ export default function Dashboard({ auth, initial_stats }) {
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 min-w-0">
                                     <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider truncate">Today's Revenue</p>
-                                    <h3 className="text-sm sm:text-2xl font-bold text-gray-900 tracking-tight truncate font-mono">₱{formatCurrency(stats.kpi?.today_sales)}</h3>
+                                    <h3 className="text-sm sm:text-2xl font-bold text-gray-900 tracking-tight truncate font-mono">{formatCurrency(stats.kpi?.today_sales)}</h3>
                                 </div>
                                 <div className="p-1.5 sm:p-2.5 bg-[#EFF4F9] text-[#1B3A69] rounded-xl ring-1 ring-[#CBD7E6] shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5">
@@ -242,7 +242,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                             {stats.kpi?.profit_margin || 0}%
                                         </span>
                                     </div>
-                                    <h3 className="text-sm sm:text-2xl font-bold text-emerald-700 tracking-tight truncate font-mono">₱{formatCurrency(stats.kpi?.today_profit)}</h3>
+                                    <h3 className="text-sm sm:text-2xl font-bold text-emerald-700 tracking-tight truncate font-mono">{formatCurrency(stats.kpi?.today_profit)}</h3>
                                 </div>
                                 <div className="p-1.5 sm:p-2.5 bg-emerald-100/70 text-emerald-700 rounded-xl ring-1 ring-emerald-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5">
@@ -292,7 +292,7 @@ export default function Dashboard({ auth, initial_stats }) {
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 min-w-0">
                                     <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider truncate">Avg Ticket (AOV)</p>
-                                    <h3 className="text-sm sm:text-2xl font-bold text-gray-900 tracking-tight truncate font-mono">₱{formatCurrency(stats.kpi?.average_order_value)}</h3>
+                                    <h3 className="text-sm sm:text-2xl font-bold text-gray-900 tracking-tight truncate font-mono">{formatCurrency(stats.kpi?.average_order_value)}</h3>
                                 </div>
                                 <div className="p-1.5 sm:p-2.5 bg-amber-50 text-amber-600 rounded-xl ring-1 ring-amber-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5">
@@ -379,7 +379,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                             </defs>
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                                             <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748B' }} dy={8} />
-                                            <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `₱${val >= 1000 ? `${(val/1000).toFixed(0)}k` : val}`} tick={{ fontSize: 10, fill: '#64748B' }} width={48} />
+                                            <YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `${val >= 1000 ? `${(val/1000).toFixed(0)}k` : val}`} tick={{ fontSize: 10, fill: '#64748B' }} width={48} />
                                             <Tooltip
                                                 content={({ active, payload, label }) => {
                                                     if (active && payload && payload.length) {
@@ -391,13 +391,13 @@ export default function Dashboard({ auth, initial_stats }) {
                                                                     <span className="flex items-center gap-1.5">
                                                                         <span className="w-2 h-2 rounded-full bg-[#1B3A69]"></span> Revenue:
                                                                     </span>
-                                                                    <span className="font-bold text-gray-900 font-mono">₱{formatCurrency(pData.sales)}</span>
+                                                                    <span className="font-bold text-gray-900 font-mono">{formatCurrency(pData.sales)}</span>
                                                                 </div>
                                                                 <div className="flex items-center justify-between gap-4 text-gray-700">
                                                                     <span className="flex items-center gap-1.5">
                                                                         <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Profit:
                                                                     </span>
-                                                                    <span className="font-bold text-emerald-600 font-mono">₱{formatCurrency(pData.profit)}</span>
+                                                                    <span className="font-bold text-emerald-600 font-mono">{formatCurrency(pData.profit)}</span>
                                                                 </div>
                                                                 <div className="flex items-center justify-between gap-4 text-gray-500 pt-0.5 text-xs">
                                                                     <span>Orders:</span>
@@ -462,26 +462,26 @@ export default function Dashboard({ auth, initial_stats }) {
                                     <div className="space-y-2 text-xs sm:text-sm">
                                         <div className="flex justify-between items-center py-1 border-b border-gray-100/80">
                                             <span className="text-gray-500 font-medium">Opening Float:</span>
-                                            <span className="font-bold text-gray-800 font-mono">₱{formatCurrency(stats.active_shift.starting_cash)}</span>
+                                            <span className="font-bold text-gray-800 font-mono">{formatCurrency(stats.active_shift.starting_cash)}</span>
                                         </div>
                                         <div className="flex justify-between items-center py-1 border-b border-gray-100/80">
                                             <span className="text-gray-500 font-medium">Cash Sales:</span>
-                                            <span className="font-bold text-emerald-600 font-mono">+₱{formatCurrency(stats.active_shift.cash_sales)}</span>
+                                            <span className="font-bold text-emerald-600 font-mono">+{formatCurrency(stats.active_shift.cash_sales)}</span>
                                         </div>
                                         <div className="flex justify-between items-center py-1 border-b border-gray-100/80">
                                             <span className="text-gray-500 font-medium">Cash In (Float Top-up):</span>
-                                            <span className="font-bold text-blue-600 font-mono">+₱{formatCurrency(stats.active_shift.cash_in)}</span>
+                                            <span className="font-bold text-blue-600 font-mono">+{formatCurrency(stats.active_shift.cash_in)}</span>
                                         </div>
                                         <div className="flex justify-between items-center py-1 border-b border-gray-100/80">
                                             <span className="text-gray-500 font-medium">Cash Out / Drops:</span>
-                                            <span className="font-bold text-rose-600 font-mono">-₱{formatCurrency(stats.active_shift.cash_out + stats.active_shift.expenses)}</span>
+                                            <span className="font-bold text-rose-600 font-mono">-{formatCurrency(stats.active_shift.cash_out + stats.active_shift.expenses)}</span>
                                         </div>
                                     </div>
 
                                     {/* Highlight: Expected Drawer Cash */}
                                     <div className="p-3 sm:p-3.5 rounded-xl bg-[#EFF4F9] border border-[#CBD7E6]">
-                                        <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#1B3A69]">Expected In Drawer</p>
-                                        <p className="text-base sm:text-xl font-bold text-gray-900 tracking-tight mt-0.5 font-mono">₱{formatCurrency(stats.active_shift.expected_cash)}</p>
+                                        <p className="text-[#1B3A69] text-[10px] sm:text-xs font-bold uppercase tracking-wider">Expected In Drawer</p>
+                                        <p className="text-base sm:text-xl font-bold text-gray-900 tracking-tight mt-0.5 font-mono">{formatCurrency(stats.active_shift.expected_cash)}</p>
                                     </div>
                                 </div>
                             ) : (
@@ -550,7 +550,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                                     ))}
                                                 </Pie>
                                                 <Tooltip
-                                                    formatter={(val, name, props) => [`₱${formatCurrency(val)} (${props.payload.percentage}%)`, formatPaymentName(name)]}
+                                                    formatter={(val, name, props) => [`${formatCurrency(val)} (${props.payload.percentage}%)`, formatPaymentName(name)]}
                                                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '11px' }}
                                                 />
                                             </PieChart>
@@ -567,7 +567,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                                     <span className="text-[11px] text-gray-400 font-mono shrink-0">({pm.count})</span>
                                                 </div>
                                                 <div className="text-right shrink-0">
-                                                    <span className="font-bold text-gray-900 font-mono">₱{formatCurrency(pm.total)}</span>
+                                                    <span className="font-bold text-gray-900 font-mono">{formatCurrency(pm.total)}</span>
                                                     <span className="text-[11px] text-gray-500 font-bold ml-1.5 font-mono">{pm.percentage}%</span>
                                                 </div>
                                             </div>
@@ -622,7 +622,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                                             )}
                                                         </div>
                                                         <p className="text-[11px] sm:text-xs text-gray-400 truncate">
-                                                            {item.category_name} · <span className="font-mono text-gray-600 font-semibold">₱{formatCurrency(item.price)}</span>
+                                                            {item.category_name} · <span className="font-mono text-gray-600 font-semibold">{formatCurrency(item.price)}</span>
                                                         </p>
                                                     </div>
                                                     <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
@@ -681,7 +681,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                             </div>
                                             <div className="text-right shrink-0 space-y-0.5">
                                                 <p className="font-bold text-xs sm:text-sm text-gray-900 font-mono">
-                                                    ₱{formatCurrency(p.total_revenue)}
+                                                    {formatCurrency(p.total_revenue)}
                                                 </p>
                                                 <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border bg-emerald-50 text-emerald-700 border-emerald-200/70 shrink-0 font-mono leading-normal inline-flex items-center justify-center">
                                                     {p.units_sold} Sold
@@ -728,7 +728,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                             </div>
                                             <div className="text-right shrink-0 space-y-0.5">
                                                 <p className={`font-bold text-xs sm:text-sm font-mono ${sale.status === 'void' ? 'line-through text-gray-400' : 'text-emerald-600'}`}>
-                                                    ₱{formatCurrency(sale.total_amount)}
+                                                    {formatCurrency(sale.total_amount)}
                                                 </p>
                                                 <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border shrink-0 leading-normal inline-flex items-center justify-center ${getPaymentBadgeStyle(sale.payment_method)}`}>
                                                     {formatPaymentName(sale.payment_method)}
