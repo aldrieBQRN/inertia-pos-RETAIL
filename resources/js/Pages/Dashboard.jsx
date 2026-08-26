@@ -722,7 +722,9 @@ export default function Dashboard({ auth, initial_stats }) {
                                                         <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shrink-0 leading-normal inline-flex items-center justify-center">Void</span>
                                                     )}
                                                 </div>
-                                                <p className="text-[11px] text-gray-400 truncate">{sale.time_formatted} · {sale.cashier_name} ({sale.items_count} items)</p>
+                                                <p className="text-[11px] text-gray-400 truncate">
+                                                    {sale.created_at ? new Date(sale.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : sale.time_formatted} · {sale.cashier_name} ({sale.items_count} items)
+                                                </p>
                                             </div>
                                             <div className="text-right shrink-0 space-y-0.5">
                                                 <p className={`font-bold text-xs sm:text-sm font-mono ${sale.status === 'void' ? 'line-through text-gray-400' : 'text-emerald-600'}`}>

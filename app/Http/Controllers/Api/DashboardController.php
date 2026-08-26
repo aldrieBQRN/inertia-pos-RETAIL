@@ -24,10 +24,11 @@ class DashboardController extends Controller
     {
         $storeId = $request->user()->store_id;
 
-        $today = Carbon::today();
-        $endOfToday = Carbon::today()->endOfDay();
-        $yesterday = Carbon::yesterday();
-        $endOfYesterday = Carbon::yesterday()->endOfDay();
+        $tz = config('app.timezone', 'Asia/Manila');
+        $today = Carbon::now($tz)->startOfDay();
+        $endOfToday = Carbon::now($tz)->endOfDay();
+        $yesterday = Carbon::now($tz)->subDay()->startOfDay();
+        $endOfYesterday = Carbon::now($tz)->subDay()->endOfDay();
 
         // 1. KPI Cards (Today vs Yesterday)
         $todaySales = (int) Sale::where('store_id', $storeId)->where('status', '!=', 'void')->whereBetween('created_at', [$today, $endOfToday])->sum('total_amount');
@@ -91,38 +92,56 @@ class DashboardController extends Controller
         $chartData = [];
 
         if ($periodType === 'today_hourly') {
-            // Today hourly (12 AM - 11 PM)
-            $hourlySales = Sale::select(
-                DB::raw('HOUR(created_at) as hour'),
-                DB::raw('SUM(total_amount) as total_sales'),
-                DB::raw('COUNT(*) as orders_count')
-            )
-                ->where('store_id', $storeId)
-                ->where('status', '!=', 'void')
-                ->whereBetween('created_at', [$today, $endOfToday])
-                ->groupBy('hour')
-                ->get()
-                ->keyBy('hour');
+            // Fetch all non-void sales and group by local timezone hour (Asia/Manila)
+            $tz = config('app.timezone', 'Asia/Manila');
+            $todayLocalStr = Carbon::now($tz)->format('Y-m-d');
 
-            $hourlyProfits = DB::table('sale_items')
+            $allStoreSales = Sale::where('store_id', $storeId)
+                ->where('status', '!=', 'void')
+                ->get();
+
+            $hourlySales = [];
+            foreach ($allStoreSales as $s) {
+                // Parse timestamp and convert to store timezone
+                $carbonDt = Carbon::parse($s->getRawOriginal('created_at') ?: $s->created_at)->setTimezone($tz);
+                if ($carbonDt->format('Y-m-d') === $todayLocalStr) {
+                    $h = (int) $carbonDt->format('G'); // 0 - 23 hour format in local timezone
+                    if (!isset($hourlySales[$h])) {
+                        $hourlySales[$h] = ['total_sales' => 0, 'orders_count' => 0];
+                    }
+                    $hourlySales[$h]['total_sales'] += (int) $s->total_amount;
+                    $hourlySales[$h]['orders_count'] += 1;
+                }
+            }
+
+            $saleItemsToday = DB::table('sale_items')
                 ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
                 ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
                 ->where('sales.store_id', $storeId)
                 ->where('sales.status', '!=', 'void')
-                ->whereBetween('sales.created_at', [$today, $endOfToday])
                 ->select(
-                    DB::raw('HOUR(sales.created_at) as hour'),
-                    DB::raw('SUM((sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity) as item_profit')
+                    'sales.created_at',
+                    DB::raw('(sale_items.unit_price - COALESCE(products.cost_price, 0)) * sale_items.quantity as item_profit')
                 )
-                ->groupBy('hour')
-                ->get()
-                ->keyBy('hour');
+                ->get();
+
+            $hourlyProfits = [];
+            foreach ($saleItemsToday as $si) {
+                $carbonDt = Carbon::parse($si->created_at)->setTimezone($tz);
+                if ($carbonDt->format('Y-m-d') === $todayLocalStr) {
+                    $h = (int) $carbonDt->format('G');
+                    if (!isset($hourlyProfits[$h])) {
+                        $hourlyProfits[$h] = 0;
+                    }
+                    $hourlyProfits[$h] += (int) $si->item_profit;
+                }
+            }
 
             for ($h = 0; $h < 24; $h++) {
                 $label = Carbon::createFromTime($h, 0)->format('g A');
-                $salesCent = isset($hourlySales[$h]) ? (int) $hourlySales[$h]->total_sales : 0;
-                $profitCent = isset($hourlyProfits[$h]) ? (int) $hourlyProfits[$h]->item_profit : 0;
-                $orders = isset($hourlySales[$h]) ? (int) $hourlySales[$h]->orders_count : 0;
+                $salesCent = isset($hourlySales[$h]) ? $hourlySales[$h]['total_sales'] : 0;
+                $profitCent = isset($hourlyProfits[$h]) ? $hourlyProfits[$h] : 0;
+                $orders = isset($hourlySales[$h]) ? $hourlySales[$h]['orders_count'] : 0;
 
                 $chartData[] = [
                     'label' => $label,
@@ -309,7 +328,7 @@ class DashboardController extends Controller
         $totalLowStockCount = Product::where('store_id', $storeId)->where('is_active', true)->where('stock_quantity', '>', 0)->whereRaw('stock_quantity <= COALESCE(low_stock_threshold, 10)')->count();
         $totalActiveProducts = Product::where('store_id', $storeId)->where('is_active', true)->count();
 
-        // 6. Top Selling Products (Today)
+        // 6. Top Selling Products (Today) - Deterministic ordering by units_sold desc, total_revenue desc, product id asc
         $topProducts = DB::table('sale_items')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
@@ -327,6 +346,8 @@ class DashboardController extends Controller
             )
             ->groupBy('products.id', 'products.name', 'products.sku', 'categories.name')
             ->orderByDesc('units_sold')
+            ->orderByDesc('total_revenue')
+            ->orderBy('products.id', 'asc')
             ->limit(5)
             ->get()
             ->map(function ($tp) {
@@ -344,15 +365,16 @@ class DashboardController extends Controller
         $recentTransactions = Sale::with(['items', 'cashier'])
             ->where('store_id', $storeId)
             ->whereBetween('created_at', [$today, $endOfToday])
-            ->latest('created_at')
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
             ->limit(5)
             ->get()
             ->map(function ($s) {
                 return [
                     'id' => $s->id,
                     'invoice_number' => $s->invoice_number,
-                    'created_at' => $s->created_at->toISOString(),
-                    'time_formatted' => $s->created_at->format('g:i A'),
+                    'created_at' => $s->created_at ? $s->created_at->toIso8601String() : null,
+                    'time_formatted' => $s->created_at ? $s->created_at->timezone(config('app.timezone', 'Asia/Manila'))->format('g:i A') : '',
                     'cashier_name' => $s->cashier ? $s->cashier->name : 'Cashier',
                     'payment_method' => $s->payment_method ?: 'cash',
                     'total_amount' => $s->total_amount / 100,
