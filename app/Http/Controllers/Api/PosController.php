@@ -82,19 +82,30 @@ class PosController extends Controller
             ]);
 
             $calculatedTotal = 0;
+            $saleItemsToInsert = [];
+            $now = now();
 
-            // 3. Process each item in the cart
+            // 3. Batch fetch & lock all product catalog items in a SINGLE database query
+            $productIds = collect($request->cart)->pluck('id')->filter(function ($id) {
+                return $id !== null && !is_string($id);
+            })->unique()->values()->toArray();
+
+            $products = count($productIds) > 0
+                ? Product::whereIn('id', $productIds)->lockForUpdate()->get()->keyBy('id')
+                : collect();
+
+            // Process cart items in memory
             foreach ($request->cart as $item) {
                 $unitPrice = (int) round($item['price'] * 100);
                 $quantity = (float) $item['quantity'];
 
-                if (isset($item['id']) && $item['id'] !== null) {
+                if (isset($item['id']) && $item['id'] !== null && !is_string($item['id'])) {
                     if ((int) $quantity != $quantity) {
                         throw new \Exception('Product quantities must be whole numbers.');
                     }
 
                     $quantity = (int) $quantity;
-                    $product = Product::lockForUpdate()->find($item['id']);
+                    $product = $products->get($item['id']);
 
                     if (!$product) {
                         throw new \Exception("Item no longer available in catalog.");
@@ -104,37 +115,44 @@ class PosController extends Controller
                         throw new \Exception("Insufficient stock for {$product->name}. Only {$product->stock_quantity} remaining.");
                     }
 
-                    // Update inventory level
+                    // Decrement inventory level
                     $product->decrement('stock_quantity', $quantity);
 
                     $subtotal = $unitPrice * $quantity;
 
-                    // Record the sale item detail
-                    SaleItem::create([
+                    $saleItemsToInsert[] = [
                         'sale_id' => $sale->id,
                         'product_id' => $product->id,
                         'custom_name' => $product->name,
                         'quantity' => $quantity,
                         'unit_price' => $unitPrice,
                         'subtotal' => $subtotal,
-                    ]);
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
                 } else {
                     // Custom item
-                    $subtotal = $unitPrice * $quantity;
-
+                    $subtotal = (int) round($unitPrice * $quantity);
                     $customName = trim((string) ($item['name'] ?? ''));
 
-                    SaleItem::create([
+                    $saleItemsToInsert[] = [
                         'sale_id' => $sale->id,
                         'product_id' => null,
                         'custom_name' => $customName !== '' ? $customName : 'Custom Item',
                         'quantity' => $quantity,
                         'unit_price' => $unitPrice,
                         'subtotal' => $subtotal,
-                    ]);
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
                 }
 
                 $calculatedTotal += $subtotal;
+            }
+
+            // Execute single bulk INSERT for all line items
+            if (count($saleItemsToInsert) > 0) {
+                SaleItem::insert($saleItemsToInsert);
             }
 
             // 4. Apply Senior/PWD 20% discount logic (Philippine Standard)
@@ -151,6 +169,18 @@ class PosController extends Controller
             ]);
 
             DB::commit();
+
+            // Log sale transaction in background
+            try {
+                \App\Services\ActivityService::logCreate('Sale', $sale->id, "Completed checkout sale {$invoiceNumber} for ₱" . number_format($calculatedTotal / 100, 2), [
+                    'invoice_number' => $invoiceNumber,
+                    'total_amount' => $calculatedTotal / 100,
+                    'payment_method' => $request->payment_method,
+                    'items_count' => count($request->cart)
+                ]);
+            } catch (\Exception $logEx) {
+                // Silently swallow log errors to never disrupt cashier checkout
+            }
 
             return response()->json([
                 'success' => true,

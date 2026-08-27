@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import { createPortal } from 'react-dom';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ExcelJS from 'exceljs';
@@ -197,6 +197,19 @@ export default function ActivityLogs() {
             setLogs(initial_logs);
         }
     }, [initial_logs]);
+
+    // Silent background auto-refresh (every 6s)
+    useEffect(() => {
+        const interval = setInterval(() => {
+            router.reload({
+                only: ['initial_logs'],
+                preserveScroll: true,
+                preserveState: true,
+            });
+        }, 6000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     // Close export dropdown when clicking outside
     useEffect(() => {
@@ -1460,19 +1473,77 @@ export default function ActivityLogs() {
                                 </p>
                             </div>
 
-                            {/* Human-Friendly Diff Inspector */}
+                            {/* Human-Friendly Details / Diff Inspector */}
                             {(() => {
+                                const action = (selectedLogForModal.action || '').toLowerCase();
+                                const isEditAction = action.includes('update') || action.includes('edit') || action.includes('adjust') || action.includes('toggle') || action.includes('change');
+
                                 const oldV = selectedLogForModal.old_values || {};
                                 const newV = selectedLogForModal.new_values || {};
                                 const allKeys = Array.from(new Set([...Object.keys(oldV), ...Object.keys(newV)]))
                                     .filter(k => !IGNORED_FIELDS.has(k.toLowerCase()));
 
-                                if (allKeys.length === 0) {
+                                // If it is an Edit / Update action, render the Field Changes & Modifications table
+                                if (isEditAction && allKeys.length > 0) {
                                     return (
-                                        <div className="bg-white p-6 rounded-2xl border border-gray-200/80 text-center text-xs text-gray-500 font-medium">
-                                            No field value modifications were recorded for this action.
+                                        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-200/80 shadow-2xs space-y-3">
+                                            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="p-1.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-lg">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                                                        </svg>
+                                                    </div>
+                                                    <h4 className="text-xs font-black text-gray-900 uppercase tracking-wider">
+                                                        Field Changes & Modifications
+                                                    </h4>
+                                                </div>
+                                                <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">{allKeys.length} field(s) modified</span>
+                                            </div>
+
+                                            <div className="overflow-x-auto rounded-xl border border-gray-200">
+                                                <table className="w-full text-xs">
+                                                    <thead className="bg-gray-50 text-[10px] font-black uppercase tracking-wider text-gray-500 border-b border-gray-200">
+                                                        <tr>
+                                                            <th className="py-2.5 px-3.5 text-left w-1/3">Item / Field Name</th>
+                                                            <th className="py-2.5 px-3.5 text-left bg-rose-50/40 text-rose-900 w-1/3">Previous Value</th>
+                                                            <th className="py-2.5 px-3.5 text-left bg-emerald-50/40 text-emerald-900 w-1/3">New Value</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-gray-100">
+                                                        {allKeys.map((key) => {
+                                                            const oldVal = oldV[key];
+                                                            const newVal = newV[key];
+                                                            const isChanged = JSON.stringify(oldVal) !== JSON.stringify(newVal);
+                                                            const friendlyLabel = FIELD_LABELS[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+                                                            return (
+                                                                <tr key={key} className={isChanged ? 'bg-amber-50/20' : ''}>
+                                                                    <td className="py-2.5 px-3.5 font-bold text-gray-800">
+                                                                        {friendlyLabel}
+                                                                    </td>
+                                                                    <td className="py-2.5 px-3.5 bg-rose-50/20">
+                                                                        {formatAdminValue(key, oldVal)}
+                                                                    </td>
+                                                                    <td className="py-2.5 px-3.5 bg-emerald-50/20">
+                                                                        {formatAdminValue(key, newVal)}
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     );
+                                }
+
+                                // For Non-Edit actions (Sales, Cash Movements, Shifts, Creations, Security), display rich payload key-value cards
+                                const detailsObj = Object.keys(newV).length > 0 ? newV : oldV;
+                                const detailEntries = Object.entries(detailsObj).filter(([k]) => !IGNORED_FIELDS.has(k.toLowerCase()));
+
+                                if (detailEntries.length === 0) {
+                                    return null;
                                 }
 
                                 return (
@@ -1481,48 +1552,28 @@ export default function ActivityLogs() {
                                             <div className="flex items-center gap-2">
                                                 <div className="p-1.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-lg">
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                     </svg>
                                                 </div>
                                                 <h4 className="text-xs font-black text-gray-900 uppercase tracking-wider">
-                                                    Field Changes & Modifications
+                                                    Transaction & Operation Details
                                                 </h4>
                                             </div>
-                                            <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">{allKeys.length} field(s) changed</span>
+                                            <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">{detailEntries.length} detail attribute(s)</span>
                                         </div>
 
-                                        <div className="overflow-x-auto rounded-xl border border-gray-200">
-                                            <table className="w-full text-xs">
-                                                <thead className="bg-gray-50 text-[10px] font-black uppercase tracking-wider text-gray-500 border-b border-gray-200">
-                                                    <tr>
-                                                        <th className="py-2.5 px-3.5 text-left w-1/3">Item / Field Name</th>
-                                                        <th className="py-2.5 px-3.5 text-left bg-rose-50/40 text-rose-900 w-1/3">Previous Value</th>
-                                                        <th className="py-2.5 px-3.5 text-left bg-emerald-50/40 text-emerald-900 w-1/3">New Value</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-gray-100">
-                                                    {allKeys.map((key) => {
-                                                        const oldVal = oldV[key];
-                                                        const newVal = newV[key];
-                                                        const isChanged = JSON.stringify(oldVal) !== JSON.stringify(newVal);
-                                                        const friendlyLabel = FIELD_LABELS[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-
-                                                        return (
-                                                            <tr key={key} className={isChanged ? 'bg-amber-50/20' : ''}>
-                                                                <td className="py-2.5 px-3.5 font-bold text-gray-800">
-                                                                    {friendlyLabel}
-                                                                </td>
-                                                                <td className="py-2.5 px-3.5 bg-rose-50/20">
-                                                                    {formatAdminValue(key, oldVal)}
-                                                                </td>
-                                                                <td className="py-2.5 px-3.5 bg-emerald-50/20">
-                                                                    {formatAdminValue(key, newVal)}
-                                                                </td>
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                </tbody>
-                                            </table>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            {detailEntries.map(([key, value]) => {
+                                                const friendlyLabel = FIELD_LABELS[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                                return (
+                                                    <div key={key} className="bg-gray-50/80 p-3 rounded-xl border border-gray-200/60 flex flex-col justify-between">
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{friendlyLabel}</span>
+                                                        <span className="text-xs font-black text-gray-900 mt-1 break-words">
+                                                            {formatAdminValue(key, value)}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 );

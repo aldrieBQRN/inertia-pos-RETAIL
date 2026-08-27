@@ -182,6 +182,15 @@ export default function Reports({ auth, initial_report_data }) {
         }
     }, []);
 
+    // Silent background auto-refresh (every 6s)
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetchReports(startDate, endDate, false);
+        }, 6000);
+
+        return () => clearInterval(interval);
+    }, [startDate, endDate]);
+
     // Handle Outside Click for Data Menu
     useEffect(() => {
         const handleClickOutside = (e) => {

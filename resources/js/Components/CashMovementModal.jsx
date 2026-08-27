@@ -418,7 +418,7 @@ export default function CashMovementModal({
                 }
             }
 
-            const response = await axios.post('/api/cash-movements', payload);
+            const response = await axios.post('/api/shift/cash-movement', payload);
             const savedMovement = response.data.movement;
 
             Swal.fire({

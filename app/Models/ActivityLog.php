@@ -78,6 +78,10 @@ class ActivityLog extends Model
             return 'Sales';
         }
 
+        if ($modelType === 'shift' || $modelType === 'cashmovement' || str_starts_with($action, 'shift.') || str_starts_with($action, 'cash_movement.')) {
+            return 'Cash & Shifts';
+        }
+
         if ($modelType === 'payment' || in_array($action, ['approve', 'reject', 'refund'], true)) {
             return 'Payments';
         }
@@ -167,6 +171,13 @@ class ActivityLog extends Model
 
                 case 'Sales':
                     $builder->where('model_type', 'Sale');
+                    break;
+
+                case 'Cash & Shifts':
+                case 'Shifts':
+                    $builder->whereIn('model_type', ['Shift', 'CashMovement', 'shift', 'cashmovement'])
+                        ->orWhere('action', 'like', 'shift.%')
+                        ->orWhere('action', 'like', 'cash_movement.%');
                     break;
 
                 case 'Payments':

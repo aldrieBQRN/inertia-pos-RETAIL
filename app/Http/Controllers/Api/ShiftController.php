@@ -235,6 +235,25 @@ class ShiftController extends Controller
 
             $shift->load(['user', 'terminal']);
 
+            try {
+                \App\Services\ActivityService::log(
+                    'shift.open',
+                    'shift.open',
+                    'Shift',
+                    $shift->id,
+                    "Opened shift #{$shift->id} with starting float ₱" . number_format($startingCash, 2),
+                    null,
+                    [
+                        'starting_cash' => $startingCash,
+                        'expected_opening_cash' => $expectedOpeningCash,
+                        'discrepancy' => $openingDiscrepancy,
+                        'terminal_id' => $terminalId
+                    ]
+                );
+            } catch (\Exception $logEx) {
+                // Silently swallow log errors
+            }
+
             return response()->json([
                 'message' => 'Shift opened successfully.',
                 'shift'   => $shift
@@ -359,6 +378,27 @@ class ShiftController extends Controller
             'reason'      => $request->reason
         ]);
 
+        try {
+            $formattedType = str_replace('_', ' ', strtoupper($request->type));
+            \App\Services\ActivityService::log(
+                'cash_movement.create',
+                'cash_movement.create',
+                'CashMovement',
+                $movement->id,
+                "Recorded {$formattedType} of ₱" . number_format($request->amount, 2) . " (Reason: {$request->reason})",
+                null,
+                [
+                    'type' => $request->type,
+                    'amount' => (float) $request->amount,
+                    'reason' => $request->reason,
+                    'shift_id' => $targetShiftId,
+                    'terminal_id' => $targetTerminalId
+                ]
+            );
+        } catch (\Exception $logEx) {
+            // Silently swallow log errors
+        }
+
         return response()->json([
             'message'  => 'Cash movement recorded successfully.',
             'movement' => $movement->load(['user', 'terminal'])
@@ -464,6 +504,26 @@ class ShiftController extends Controller
                 }
             } catch (\Exception $e) {
                 // Don't fail shift closing if mail server is offline
+            }
+
+            try {
+                \App\Services\ActivityService::log(
+                    'shift.close',
+                    'shift.close',
+                    'Shift',
+                    $shift->id,
+                    "Closed shift #{$shift->id} with actual cash ₱" . number_format($actualCash, 2) . " (Variance: ₱" . number_format($difference, 2) . ")",
+                    null,
+                    [
+                        'actual_cash' => $actualCash,
+                        'expected_cash' => $expectedCash,
+                        'difference' => $difference,
+                        'total_sales' => $totalSales,
+                        'transactions_count' => $sales->count()
+                    ]
+                );
+            } catch (\Exception $logEx) {
+                // Silently swallow log errors
             }
 
             return response()->json($shift);

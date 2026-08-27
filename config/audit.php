@@ -90,6 +90,15 @@ return [
         'category.update',
         'category.delete',
 
+        // Sales & POS Checkout
+        'sale.create',
+        'sale.void',
+
+        // Cash & Shift Management
+        'shift.open',
+        'shift.close',
+        'cash_movement.create',
+
         // Security Events
         'security.login_failed',
         'security.login_success',
