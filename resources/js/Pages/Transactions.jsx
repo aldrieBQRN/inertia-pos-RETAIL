@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import axios from 'axios';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -10,7 +10,12 @@ import { saveAs } from 'file-saver';
 import usePrinterStore from '@/Stores/usePrinterStore';
 
 export default function Transactions({ auth, initial_transactions, initial_settings }) {
-    const isAdmin = Boolean(auth?.user?.is_admin || auth?.user?.role === 'admin' || auth?.user?.role === 'super_admin');
+    const { auth: pageAuth } = usePage().props;
+    const currentAuth = auth || pageAuth;
+    const user = currentAuth?.user;
+    const isSuperAdmin = user?.role === 'super_admin';
+    const isAdmin = !isSuperAdmin && Boolean(user?.role === 'admin' || user?.is_admin === true || user?.is_admin === 1 || user?.is_admin === '1');
+    const isCashier = !isSuperAdmin && !isAdmin;
 
     // 1. Core Data States
     const [allTransactions, setAllTransactions] = useState(() => initial_transactions || []);
@@ -327,12 +332,12 @@ export default function Transactions({ auth, initial_transactions, initial_setti
 
     // Base Transactions: Scoped to Current Cashier if non-admin, or Store-wide if Admin
     const baseTransactions = useMemo(() => {
-        if (auth.user?.is_admin) return allTransactions;
+        if (isAdmin) return allTransactions;
         return allTransactions.filter(sale => {
             const cashierId = sale.cashier_id || sale.cashier?.id || sale.user_id;
-            return String(cashierId) === String(auth.user?.id);
+            return String(cashierId) === String(user?.id);
         });
-    }, [allTransactions, auth.user]);
+    }, [allTransactions, user, isAdmin]);
 
     // SCOPED TRANSACTIONS (Date Range, Cashier, Search & Payment Method Filtered)
     const scopedTransactions = useMemo(() => {
@@ -354,7 +359,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
             }
 
             // Cashier Filter (Admin only)
-            if (auth.user?.is_admin && cashierFilter) {
+            if (isAdmin && cashierFilter) {
                 if (String(sale.cashier_id) !== String(cashierFilter) && String(sale.cashier?.id) !== String(cashierFilter)) {
                     return false;
                 }
@@ -376,7 +381,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
 
             return true;
         });
-    }, [baseTransactions, searchFilter, cashierFilter, startDate, endDate, paymentFilter, auth.user]);
+    }, [baseTransactions, searchFilter, cashierFilter, startDate, endDate, paymentFilter, user, isAdmin]);
 
     // Tab Counts Computation (computed from base transactions)
     const tabCounts = useMemo(() => {
@@ -1120,12 +1125,12 @@ export default function Transactions({ auth, initial_transactions, initial_setti
 
     return (
         <AuthenticatedLayout
-            user={auth.user}
+            user={user}
             header={
                 <div>
                     <h2 className="font-black text-xl text-gray-900 tracking-tight">Sales & Transactions</h2>
                     <p className="text-xs font-semibold text-gray-500 mt-0.5">
-                        {auth.user.is_admin
+                        {isAdmin
                             ? 'Monitor store transactions, cash drawer balance, payment channels, and receipt audits'
                             : 'View store sales transactions, receipt reprinting, and payment logs'}
                     </p>
@@ -1146,7 +1151,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider truncate">
-                                        {auth.user?.is_admin ? 'Gross Sales' : 'My Shift Sales'}
+                                        {isAdmin ? 'Gross Sales' : 'My Shift Sales'}
                                     </p>
                                     <h3 className="text-base sm:text-2xl font-black text-gray-900 tracking-tight truncate">{formatCurrency(kpiMetrics.totalValidRevenue)}</h3>
                                 </div>
@@ -1157,7 +1162,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                 </div>
                             </div>
                             <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold gap-1">
-                                <span className="truncate">{auth.user?.is_admin ? 'Completed Orders' : 'My Orders'}</span>
+                                <span className="truncate">{isAdmin ? 'Completed Orders' : 'My Orders'}</span>
                                 <span className="font-bold text-gray-700 truncate shrink-0">{kpiMetrics.validTransactionsCount} orders</span>
                             </div>
                         </div>
@@ -1167,7 +1172,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-emerald-700 uppercase tracking-wider truncate">
-                                        {auth.user?.is_admin ? 'Cash in Drawer' : 'My Cash Float'}
+                                        {isAdmin ? 'Cash in Drawer' : 'My Cash Float'}
                                     </p>
                                     <h3 className="text-base sm:text-2xl font-black text-emerald-900 tracking-tight truncate">{formatCurrency(kpiMetrics.cashRevenue)}</h3>
                                 </div>
@@ -1188,7 +1193,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-indigo-700 uppercase tracking-wider truncate">
-                                        {auth.user?.is_admin ? 'Digital & Cards' : 'My Digital Sales'}
+                                        {isAdmin ? 'Digital & Cards' : 'My Digital Sales'}
                                     </p>
                                     <h3 className="text-base sm:text-2xl font-black text-indigo-900 tracking-tight truncate">{formatCurrency(kpiMetrics.digitalRevenue)}</h3>
                                 </div>
@@ -1205,7 +1210,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                         </div>
 
                         {/* KPI 4: Voided Losses (Admin) vs Units Sold & Avg Ticket (Cashier) */}
-                        {auth.user?.is_admin ? (
+                        {isAdmin ? (
                             <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                                 <div className="flex justify-between items-start gap-2">
                                     <div className="space-y-0.5 sm:space-y-1 min-w-0">
@@ -1495,7 +1500,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                         {/* Cashier Filter (Admin) / Date Presets (Cashier) & Payment Method Selector */}
                                         <div className="grid grid-cols-2 sm:flex sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto shrink-0">
                                             {/* Cashier Filter Dropdown (Admin only) vs Date Presets Dropdown (Cashier) */}
-                                            {auth.user?.is_admin ? (
+                                            {isAdmin ? (
                                                 <div className="w-full sm:w-[155px] lg:w-[170px] shrink-0">
                                                     <select
                                                         value={cashierFilter}
@@ -1544,7 +1549,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                 </div>
 
                                 {/* Tier 2: Transaction Actions Label, Date Range Presets Dropdown & Custom Pickers & Data Export (Admin Only) */}
-                                {auth.user?.is_admin && (
+                                {isAdmin && (
                                     <div className="pt-2.5 border-t border-gray-100 pb-0.5 relative z-20">
                                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5 w-full">
                                             
@@ -1804,7 +1809,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                                                 </button>
 
                                                                                 {/* Void Order (Admin Only) */}
-                                                                                {auth.user.is_admin && (
+                                                                                {isAdmin && (
                                                                                     <button
                                                                                         onClick={() => handleVoid(sale)}
                                                                                         className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors active:scale-95 cursor-pointer"
@@ -1932,7 +1937,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                     </div>
 
                                                     {/* Action Buttons */}
-                                                    <div className={`grid gap-1.5 pt-1 border-t border-gray-100 ${sale.status === 'void' ? 'grid-cols-1' : (auth.user.is_admin ? 'grid-cols-3' : 'grid-cols-2')}`}>
+                                                    <div className={`grid gap-1.5 pt-1 border-t border-gray-100 ${sale.status === 'void' ? 'grid-cols-1' : (isAdmin ? 'grid-cols-3' : 'grid-cols-2')}`}>
                                                         <button
                                                             onClick={() => handleViewDetails(sale)}
                                                             className="py-2 px-2.5 text-xs font-bold text-[#1B3B6A] bg-[#EFF4F9] hover:bg-[#E2ECF6] rounded-xl border border-[#CBD7E6] shadow-2xs active:scale-95 transition-all text-center"
@@ -1949,7 +1954,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                                     Reprint
                                                                 </button>
 
-                                                                {auth.user.is_admin && (
+                                                                {isAdmin && (
                                                                     <button
                                                                         onClick={() => handleVoid(sale)}
                                                                         className="py-2 px-2.5 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl border border-rose-200 shadow-2xs active:scale-95 transition-all text-center"
@@ -2208,7 +2213,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                     <span>Reprint Receipt</span>
                                 </button>
 
-                                {selectedSale.status !== 'void' && auth.user.is_admin && (
+                                {selectedSale.status !== 'void' && isAdmin && (
                                     <button
                                         onClick={() => handleVoid(selectedSale)}
                                         className="py-2.5 px-4 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all active:scale-95"

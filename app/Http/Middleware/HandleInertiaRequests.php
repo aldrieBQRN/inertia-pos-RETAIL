@@ -25,7 +25,22 @@ class HandleInertiaRequests extends Middleware
 
             // Share authenticated user data globally
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                    'role' => $request->user()->role,
+                    'is_admin' => (bool) ($request->user()->role === 'admin' || $request->user()->role === 'super_admin' || $request->user()->is_admin),
+                    'store_id' => $request->user()->store_id,
+                    'avatar_path' => $request->user()->avatar_path,
+                    'account_number' => $request->user()->account_number,
+                    'phone_number' => $request->user()->phone_number,
+                    'address' => $request->user()->address,
+                    'city' => $request->user()->city,
+                    'province' => $request->user()->province,
+                    'country' => $request->user()->country,
+                    'is_active' => (bool) $request->user()->is_active,
+                ] : null,
                 'csrf_token' => csrf_token(),
                 'active_store_id' => $request->user() ? \App\Traits\BelongsToStore::getActiveStoreId() : null,
                 'accessible_stores' => function () use ($request) {

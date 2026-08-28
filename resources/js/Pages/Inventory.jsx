@@ -14,7 +14,13 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 export default function Inventory({ auth, initial_products, initial_categories, initial_recent_activity, initial_stock_histories }) {
-    const { is_demo_mode } = usePage().props;
+    const { auth: pageAuth, is_demo_mode } = usePage().props;
+    const currentAuth = auth || pageAuth;
+    const user = currentAuth?.user;
+    const isSuperAdmin = user?.role === 'super_admin';
+    const isAdmin = !isSuperAdmin && Boolean(user?.role === 'admin' || user?.is_admin === true || user?.is_admin === 1 || user?.is_admin === '1');
+    const isCashier = !isSuperAdmin && !isAdmin;
+
     const [products, setProducts] = useState(() => initial_products || []);
     const [categories, setCategories] = useState(() => initial_categories || []);
     const [settings, setSettings] = useState(null);
@@ -2250,11 +2256,11 @@ export default function Inventory({ auth, initial_products, initial_categories, 
     };
 
     return (
-        <AuthenticatedLayout user={auth.user} header={
+        <AuthenticatedLayout user={user} header={
             <div>
                 <h2 className="font-black text-xl text-gray-900 tracking-tight">Inventory Management</h2>
                 <p className="text-xs font-semibold text-gray-500 mt-0.5">
-                    {auth.user.is_admin
+                    {isAdmin
                         ? 'Manage stock levels, product valuations, and barcode tracking'
                         : 'Monitor stock levels, availability, and barcode tracking'}
                 </p>
@@ -2266,9 +2272,9 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                 <div className="w-full max-w-full px-3.5 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
 
                     {/* 1. EXECUTIVE INVENTORY HEALTH KPI STRIP */}
-                    <div className={`grid ${auth.user.is_admin ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3 lg:grid-cols-3'} gap-2.5 sm:gap-4`}>
+                    <div className={`grid ${isAdmin ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3 lg:grid-cols-3'} gap-2.5 sm:gap-4`}>
                         {/* KPI 1: Inventory Valuation (Admin Only) */}
-                        {auth.user.is_admin && (
+                        {isAdmin && (
                             <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                                 <div className="flex justify-between items-start gap-2">
                                     <div className="space-y-0.5 sm:space-y-1 min-w-0">
@@ -2623,7 +2629,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                             </div>
 
                             {/* Tier 2: Action Buttons & Tools Strip (Admin Only) */}
-                            {auth.user.is_admin && (
+                            {isAdmin && (
                                 <div className="pt-2.5 border-t border-gray-100 pb-0.5 relative z-20">
                                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5 w-full">
                                         
@@ -2743,7 +2749,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                 <th className="p-4 w-36 whitespace-nowrap">SKU / Barcode</th>
                                                 <th className="p-4 min-w-[220px] whitespace-nowrap">Product Details</th>
                                                 <th className="p-4 whitespace-nowrap">Category</th>
-                                                {auth.user.is_admin && (
+                                                {isAdmin && (
                                                     <th className="p-4 text-right whitespace-nowrap">Cost Price</th>
                                                 )}
                                                 <th className="p-4 text-right whitespace-nowrap">Retail & Wholesale</th>
@@ -2765,7 +2771,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                             </div>
                                                         </td>
                                                         <td className="p-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
-                                                        {auth.user.is_admin && (
+                                                        {isAdmin && (
                                                             <td className="p-4 text-right whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-16 ml-auto"></div></td>
                                                         )}
                                                         <td className="p-4 text-right whitespace-nowrap"><div className="h-4 bg-gray-200 rounded w-20 ml-auto"></div></td>
@@ -2775,7 +2781,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                 ))
                                             ) : paginatedProducts.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={auth.user.is_admin ? 8 : 7} className="py-8 px-4 sm:py-10 text-center text-gray-500 font-bold whitespace-nowrap">
+                                                    <td colSpan={isAdmin ? 8 : 7} className="py-8 px-4 sm:py-10 text-center text-gray-500 font-bold whitespace-nowrap">
                                                         <div className="max-w-xs mx-auto flex flex-col items-center">
                                                             <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mb-2">
                                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
@@ -2827,7 +2833,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                         )}
                                                                     </div>
                                                                     <div className="min-w-0">
-                                                                        <div className="font-bold text-gray-900 text-sm hover:underline cursor-pointer truncate max-w-[280px]" onClick={() => auth.user.is_admin && openEditModal(p)} title={p.name}>
+                                                                        <div className="font-bold text-gray-900 text-sm hover:underline cursor-pointer truncate max-w-[280px]" onClick={() => isAdmin && openEditModal(p)} title={p.name}>
                                                                             {p.name}
                                                                         </div>
                                                                         <div className="text-[11px] text-gray-400 font-medium">
@@ -2849,7 +2855,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                             </td>
 
                                                             {/* Cost Price (Admin Only) */}
-                                                            {auth.user.is_admin && (
+                                                            {isAdmin && (
                                                                 <td className="p-4 text-right whitespace-nowrap">
                                                                     <div className="font-bold text-gray-700 text-sm whitespace-nowrap">
                                                                         {p.cost_price ? formatCurrency(p.cost_price) : '—'}
@@ -2882,7 +2888,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                             <td className="p-4 text-center whitespace-nowrap">
                                                                 <div className="flex items-center justify-center gap-1 whitespace-nowrap">
                                                                     {/* Quick Restock (Admin Only) */}
-                                                                    {auth.user.is_admin && (
+                                                                    {isAdmin && (
                                                                         <button
                                                                             onClick={() => handleQuickAdd(p)}
                                                                             className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95"
@@ -2893,7 +2899,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                     )}
 
                                                                     {/* Stock History Ledger (Admin Only) */}
-                                                                    {auth.user.is_admin && (
+                                                                    {isAdmin && (
                                                                         <button
                                                                             onClick={() => openStockHistory(p)}
                                                                             className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95"
@@ -2921,7 +2927,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
                                                                     </button>
 
-                                                                    {auth.user.is_admin && (
+                                                                    {isAdmin && (
                                                                         <>
                                                                             {/* Edit Product */}
                                                                             <button
@@ -3067,13 +3073,13 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                     <span className="font-mono text-xs font-bold text-gray-600 truncate">
                                                         Barcode: {p.sku || 'N/A'}
                                                     </span>
-                                                    {auth.user.is_admin && p.cost_price && (
+                                                    {isAdmin && p.cost_price && (
                                                         <span className="text-[11px] text-gray-500 font-bold shrink-0">Cost: {formatCurrency(p.cost_price)}</span>
                                                     )}
                                                 </div>
 
                                                 {/* All Product Actions in Card */}
-                                                {auth.user.is_admin ? (
+                                                {isAdmin ? (
                                                     <div className="space-y-1.5 pt-0.5 border-t border-gray-100">
                                                         {/* Primary Actions Row (Admin) */}
                                                         <div className="grid grid-cols-3 gap-1.5">
@@ -3269,7 +3275,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                             <div className="h-4 w-px bg-white/20"></div>
 
                             <div className="flex items-center gap-2 flex-1 sm:flex-initial justify-end">
-                                {auth.user.is_admin && (
+                                {isAdmin && (
                                     <button
                                         onClick={handleBulkArchive}
                                         className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition-all active:scale-95 whitespace-nowrap"
@@ -3504,7 +3510,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
             )}
 
             {/* AUXILIARY UI COMPONENTS */}
-            {showCategoryManager && <CategoryManager onClose={() => setShowCategoryManager(false)} onUpdate={handleCategoryUpdate} isAdmin={auth.user.is_admin} initialCategories={categories} />}
+            {showCategoryManager && <CategoryManager onClose={() => setShowCategoryManager(false)} onUpdate={handleCategoryUpdate} isAdmin={isAdmin} initialCategories={categories} />}
 
             {/* FULL SCREEN MOBILE SCANNER PORTAL */}
             {showScanner && typeof document !== 'undefined' && createPortal(
@@ -3888,7 +3894,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                             </div>
 
                             <div className="flex items-center gap-2 w-full sm:w-auto">
-                                {auth.user.is_admin && historyModal.product && (
+                                {isAdmin && historyModal.product && (
                                     <button
                                         onClick={() => handleQuickAdd(historyModal.product)}
                                         className="flex-1 sm:flex-none px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-all active:scale-[0.98] shadow-sm flex items-center justify-center gap-1.5"

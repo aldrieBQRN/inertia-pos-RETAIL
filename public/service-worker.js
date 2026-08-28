@@ -1,4 +1,4 @@
-const CACHE_NAME = 'inertia-pos-v2';
+const CACHE_NAME = 'inertia-pos-v3';
 const urlsToCache = [
   '/images/icon-192x192.png',
   '/images/icon-512x512.png',
@@ -7,9 +7,7 @@ const urlsToCache = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache).catch(() => {
-        // Ignore files not found during initial install
-      });
+      return cache.addAll(urlsToCache).catch(() => {});
     })
   );
   self.skipWaiting();
@@ -45,22 +43,21 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Always fetch dynamic HTML, PHP, API, or Inertia page requests live from network
-  const isDynamicRoute = request.headers.get('accept')?.includes('text/html') ||
-                         request.headers.get('x-inertia') ||
-                         url.pathname === '/' ||
-                         url.pathname.endsWith('.php') ||
-                         url.pathname.startsWith('/api/') ||
-                         url.pathname.startsWith('/artisan-migrate');
+  // Only cache immutable static assets in /build/assets/ or /images/
+  const isStaticAsset = url.pathname.startsWith('/build/') ||
+                        url.pathname.startsWith('/images/') ||
+                        url.pathname === '/favicon.ico' ||
+                        url.pathname.endsWith('.png') ||
+                        url.pathname.endsWith('.jpg') ||
+                        url.pathname.endsWith('.svg') ||
+                        url.pathname.endsWith('.woff2');
 
-  if (isDynamicRoute) {
-    event.respondWith(
-      fetch(request).catch(() => new Response('Offline', { status: 503, statusText: 'Service Unavailable' }))
-    );
+  if (!isStaticAsset) {
+    // Dynamic page navigations, Inertia requests, sessions, and APIs are NEVER cached
     return;
   }
 
-  // Cache-first strategy for static assets (images, fonts, build chunks)
+  // Cache-first strategy for static assets
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       if (cachedResponse) {
