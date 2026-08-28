@@ -40,8 +40,9 @@ class BranchController extends Controller
             return redirect()->back()->with('error', 'Unauthorized: You do not have permission to access this branch.');
         }
 
-        // Store active branch in session
+        // Store active branch in session and reset in-memory memoization
         session(['active_store_id' => $targetStoreId]);
+        \App\Traits\BelongsToStore::clearActiveStoreCache();
 
         return redirect()->back()->with('success', "Switched to branch: {$targetStore->name}");
     }

@@ -7,23 +7,44 @@ use Illuminate\Support\Facades\Auth;
 
 trait BelongsToStore
 {
+    private static ?int $memoizedActiveStoreId = null;
+    private static bool $isStoreIdResolved = false;
+
     /**
-     * Get the active store ID for the current request.
+     * Clear memoized store id (e.g. after switching branches).
+     */
+    public static function clearActiveStoreCache(): void
+    {
+        static::$memoizedActiveStoreId = null;
+        static::$isStoreIdResolved = false;
+    }
+
+    /**
+     * Get the active store ID for the current request (Instant In-Memory Lookup).
      */
     public static function getActiveStoreId(): ?int
     {
+        if (static::$isStoreIdResolved) {
+            return static::$memoizedActiveStoreId;
+        }
+
         if (!Auth::hasUser()) {
-            return null;
+            static::$isStoreIdResolved = true;
+            return static::$memoizedActiveStoreId = null;
         }
 
         $user = Auth::user();
 
         try {
-            $hasOwnerId = \Illuminate\Support\Facades\Schema::hasColumn('stores', 'owner_id');
+            static $hasOwnerId = null;
+            if ($hasOwnerId === null) {
+                $hasOwnerId = \Illuminate\Support\Facades\Schema::hasColumn('stores', 'owner_id');
+            }
 
             // 1. If user is a regular branch staff / cashier / branch admin (does not own stores)
             if ($hasOwnerId && $user->role !== 'super_admin' && !$user->ownedStores()->exists()) {
-                return $user->store_id ? (int) $user->store_id : null;
+                static::$isStoreIdResolved = true;
+                return static::$memoizedActiveStoreId = ($user->store_id ? (int) $user->store_id : null);
             }
 
             // 2. If user is Tenant Owner or Super Admin, use the session active_store_id if valid
@@ -31,11 +52,13 @@ trait BelongsToStore
                 $sessId = (int) session('active_store_id');
 
                 if ($user->role === 'super_admin') {
-                    return $sessId;
+                    static::$isStoreIdResolved = true;
+                    return static::$memoizedActiveStoreId = $sessId;
                 }
 
                 if ($hasOwnerId && $user->ownedStores()->where('stores.id', $sessId)->exists()) {
-                    return $sessId;
+                    static::$isStoreIdResolved = true;
+                    return static::$memoizedActiveStoreId = $sessId;
                 }
 
                 // If session has an invalid/unowned store, clear it
@@ -45,7 +68,8 @@ trait BelongsToStore
             // Graceful fallback if migrations have not completed yet on server
         }
 
-        return $user->store_id ? (int) $user->store_id : null;
+        static::$isStoreIdResolved = true;
+        return static::$memoizedActiveStoreId = ($user->store_id ? (int) $user->store_id : null);
     }
 
     protected static function bootBelongsToStore()
