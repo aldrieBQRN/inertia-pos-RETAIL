@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
+import ApplicationLogo from '@/Components/ApplicationLogo';
 
 export default function GlobalBanner() {
     const { active_announcement } = usePage().props;
@@ -24,19 +25,22 @@ export default function GlobalBanner() {
     if (!isVisible || !active_announcement) return null;
 
     const colors = {
-        info: 'bg-blue-600 text-white',
-        warning: 'bg-yellow-500 text-black',
-        danger: 'bg-red-600 text-white',
+        info: 'bg-[#0B2545] text-white border-blue-400/20',
+        warning: 'bg-amber-500 text-slate-900 border-amber-600/30',
+        danger: 'bg-red-600 text-white border-red-700/30',
     };
 
     return (
-        <div className={`${colors[active_announcement.style] || colors.info} px-4 py-2 flex justify-between items-center shadow-md z-[100] relative`}>
-            <div className="flex-1 text-center font-bold text-sm tracking-wide">
-                📢 {active_announcement.message}
+        <div className={`${colors[active_announcement.style] || colors.info} px-4 py-2.5 flex justify-between items-center shadow-md z-[100] relative border-b`}>
+            <div className="flex-1 flex items-center justify-center gap-3 text-center text-sm">
+                <ApplicationLogo size="sm" dark={active_announcement.style !== 'warning'} showSubtitle={false} className="shrink-0 scale-95" />
+                <span className="h-3.5 w-px bg-current opacity-30"></span>
+                <span className="font-semibold tracking-wide">{active_announcement.message}</span>
             </div>
             <button
                 onClick={handleDismiss}
-                className="opacity-75 hover:opacity-100 font-bold p-1 rounded transition-opacity"
+                className="opacity-75 hover:opacity-100 font-bold p-1 rounded transition-opacity cursor-pointer text-sm leading-none"
+                aria-label="Dismiss announcement"
             >
                 ✕
             </button>

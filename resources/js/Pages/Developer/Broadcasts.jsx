@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, router, usePage, Link } from '@inertiajs/react';
 import Swal from 'sweetalert2';
+import ApplicationLogo from '@/Components/ApplicationLogo';
 
 export default function Broadcasts({ auth, announcements = { data: [], links: [] } }) {
     const { active_announcement } = usePage().props;
@@ -211,7 +212,8 @@ export default function Broadcasts({ auth, announcements = { data: [], links: []
                             <div className="bg-white p-6 sm:p-8 rounded-none sm:rounded-xl shadow-sm border border-y sm:border-y-0 border-gray-100">
                                 <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Live Preview</h3>
                                 <div className={`p-5 rounded-none sm:rounded-lg border-l-8 font-black shadow-sm transition-all duration-500 flex items-center gap-4 ${getThemeStyles(data.style)}`}>
-                                    <div className="shrink-0 scale-125">{getThemeIcon(data.style)}</div>
+                                    <ApplicationLogo size="sm" dark={false} showSubtitle={false} className="shrink-0 scale-90" />
+                                    <span className="h-4 w-px bg-current opacity-25"></span>
                                     <span className="text-sm leading-tight italic">"{data.message || "Enter a message to see the preview..."}"</span>
                                 </div>
                             </div>
@@ -237,8 +239,10 @@ export default function Broadcasts({ auth, announcements = { data: [], links: []
                                 {active_announcement ? (
                                     <div className="flex-1 flex flex-col justify-center">
                                         <div className={`p-6 rounded-none sm:rounded-lg border-2 font-black shadow-inner flex flex-col sm:flex-row items-center gap-5 ${getThemeStyles(active_announcement.style)}`}>
-                                            <div className="bg-white/60 p-4 rounded-none sm:rounded-lg shadow-sm transform scale-125">{getThemeIcon(active_announcement.style)}</div>
-                                            <div className="text-center sm:text-left text-lg leading-tight">{active_announcement.message}</div>
+                                            <div className="bg-white/80 p-3 rounded-xl shadow-sm">
+                                                <ApplicationLogo size="sm" dark={false} showSubtitle={false} />
+                                            </div>
+                                            <div className="text-center sm:text-left text-lg leading-tight flex-1">{active_announcement.message}</div>
                                         </div>
                                     </div>
                                 ) : (
