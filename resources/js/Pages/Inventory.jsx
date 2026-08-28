@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import Barcode from '@/Components/Barcode';
 import MobileScanner from '@/Components/MobileScanner';
 import CategoryManager from '@/Components/CategoryManager';
@@ -14,6 +14,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 export default function Inventory({ auth, initial_products, initial_categories, initial_recent_activity, initial_stock_histories }) {
+    const { is_demo_mode } = usePage().props;
     const [products, setProducts] = useState(() => initial_products || []);
     const [categories, setCategories] = useState(() => initial_categories || []);
     const [settings, setSettings] = useState(null);
@@ -147,6 +148,15 @@ export default function Inventory({ auth, initial_products, initial_categories, 
         } catch {
             return dateStr;
         }
+    };
+
+    // Helper for resolving full avatar URLs
+    const getAvatarUrl = (path) => {
+        if (!path) return null;
+        if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/storage/')) {
+            return path;
+        }
+        return `/storage/${path}`;
     };
 
     const isNewProduct = (dateStr) => {
@@ -1059,7 +1069,29 @@ export default function Inventory({ auth, initial_products, initial_categories, 
         }
     };
 
+    const showDemoAlert = () => {
+        Swal.fire({
+            icon: 'info',
+            title: 'Demo Mode Restricted',
+            html: `
+                <div class="text-center font-sans pt-1">
+                    <p class="text-sm text-gray-600 mb-4">This administrative action is locked in the public demonstration version.</p>
+                    <a href="https://www.facebook.com/aldrie.baquiran" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold text-xs rounded-xl shadow-md transition-all duration-150 no-underline cursor-pointer">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                        Contact Provider on Facebook
+                    </a>
+                </div>
+            `,
+            showConfirmButton: false,
+            showCloseButton: true
+        });
+    };
+
     const handleBulkArchive = async () => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         if (!selectedIds.length) return;
         const result = await Swal.fire({
             title: `Archive/Restore ${selectedIds.length} Products?`,
@@ -1085,6 +1117,10 @@ export default function Inventory({ auth, initial_products, initial_categories, 
     };
 
     const handleQuickAdd = async (product) => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         const costPriceText = product.cost_price 
             ? `${formatCurrency(product.cost_price)}` 
             : '—';
@@ -2002,6 +2038,10 @@ export default function Inventory({ auth, initial_products, initial_categories, 
     };
 
     const openAddModal = () => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         setEditMode(false);
         setEditingId(null);
         setFormData({ name: '', category_id: '', price: '', cost_price: '', wholesale_price: '', stock_quantity: '', sku: '', image: null, is_active: true });
@@ -2009,6 +2049,10 @@ export default function Inventory({ auth, initial_products, initial_categories, 
     };
 
     const openEditModal = (p) => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         setEditMode(true);
         setEditingId(p.id);
         setFormData({
@@ -2027,6 +2071,10 @@ export default function Inventory({ auth, initial_products, initial_categories, 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         setIsSaving(true);
 
         try {
@@ -2073,6 +2121,10 @@ export default function Inventory({ auth, initial_products, initial_categories, 
     };
 
     const handleToggleActive = async (product) => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         const action = product.is_active ? 'Archive' : 'Restore';
         const actionPast = product.is_active ? 'archived' : 'restored';
         
@@ -2103,6 +2155,10 @@ export default function Inventory({ auth, initial_products, initial_categories, 
     };
 
     const handleDelete = async (product) => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         const id = product.id;
         const result = await Swal.fire({
             title: 'Delete this product?',
@@ -3674,11 +3730,24 @@ export default function Inventory({ auth, initial_products, initial_categories, 
 
                                                                 {/* Recorded By */}
                                                                 <td className="p-4 whitespace-nowrap">
-                                                                    <div className="flex items-center gap-1.5">
-                                                                        <span className="w-5 h-5 rounded-full bg-[#1B3B6A] text-white text-[10px] font-black flex items-center justify-center shrink-0">
-                                                                            {row.user_name ? row.user_name.charAt(0).toUpperCase() : 'S'}
-                                                                        </span>
-                                                                        <span className="font-bold text-slate-900">{row.user_name || 'System'}</span>
+                                                                    <div className="flex items-center gap-2.5">
+                                                                        {row.user_avatar ? (
+                                                                            <img
+                                                                                src={getAvatarUrl(row.user_avatar)}
+                                                                                alt={row.user_name}
+                                                                                className="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                            />
+                                                                        ) : (
+                                                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 text-xs font-black flex items-center justify-center shrink-0 uppercase shadow-2xs">
+                                                                                {row.user_name ? row.user_name.charAt(0) : 'S'}
+                                                                            </div>
+                                                                        )}
+                                                                        <div>
+                                                                            <span className="font-extrabold text-gray-900 text-xs block">{row.user_name || 'System'}</span>
+                                                                            {row.user_account_number && (
+                                                                                <span className="text-[10px] font-mono font-bold text-gray-400 block -mt-0.5">#{row.user_account_number}</span>
+                                                                            )}
+                                                                        </div>
                                                                     </div>
                                                                 </td>
 
@@ -3734,13 +3803,24 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                         </div>
 
                                                         <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
-                                                            <div className="flex items-center gap-1.5 min-w-0">
-                                                                <span className="w-5 h-5 rounded-full bg-[#1B3B6A] text-white text-[10px] font-black flex items-center justify-center shrink-0">
-                                                                    {row.user_name ? row.user_name.charAt(0).toUpperCase() : 'S'}
-                                                                </span>
+                                                            <div className="flex items-center gap-2 min-w-0">
+                                                                {row.user_avatar ? (
+                                                                    <img
+                                                                        src={getAvatarUrl(row.user_avatar)}
+                                                                        alt={row.user_name}
+                                                                        className="w-7 h-7 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 text-[10px] font-black flex items-center justify-center shrink-0 uppercase shadow-2xs">
+                                                                        {row.user_name ? row.user_name.charAt(0) : 'S'}
+                                                                    </div>
+                                                                )}
                                                                 <div className="min-w-0">
-                                                                    <span className="text-xs font-bold text-slate-900 block truncate">{row.user_name || 'System'}</span>
-                                                                    <span className="font-mono text-[9px] text-slate-500 font-bold block truncate">Ref: {refNo}</span>
+                                                                    <span className="text-xs font-extrabold text-gray-900 block truncate">{row.user_name || 'System'}</span>
+                                                                    <div className="flex items-center gap-1.5 text-[9px] font-mono text-gray-400 font-bold">
+                                                                        <span>Ref: {refNo}</span>
+                                                                        {row.user_account_number && <span>• #{row.user_account_number}</span>}
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -4082,10 +4162,21 @@ export default function Inventory({ auth, initial_products, initial_categories, 
 
                                                                 {/* Staff / Actor Avatar Chip */}
                                                                 <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-700 text-[11px] font-bold">
-                                                                    <span className="w-4 h-4 rounded-full bg-[#1B3B6A] text-white text-[9px] font-black flex items-center justify-center shrink-0">
-                                                                        {log.user_name ? log.user_name.charAt(0).toUpperCase() : 'S'}
-                                                                    </span>
+                                                                    {log.user_avatar ? (
+                                                                        <img
+                                                                            src={getAvatarUrl(log.user_avatar)}
+                                                                            alt={log.user_name}
+                                                                            className="w-5 h-5 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                        />
+                                                                    ) : (
+                                                                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 flex items-center justify-center font-black text-[9px] shrink-0 uppercase shadow-2xs">
+                                                                            {log.user_name ? log.user_name.charAt(0) : 'S'}
+                                                                        </div>
+                                                                    )}
                                                                     <span>{log.user_name || 'System'}</span>
+                                                                    {log.user_account_number && (
+                                                                        <span className="font-mono text-[10px] text-gray-400 font-bold">#{log.user_account_number}</span>
+                                                                    )}
                                                                 </div>
 
                                                                 {/* Reference Number Badge */}

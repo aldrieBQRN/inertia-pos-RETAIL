@@ -10,6 +10,8 @@ import { saveAs } from 'file-saver';
 import usePrinterStore from '@/Stores/usePrinterStore';
 
 export default function Transactions({ auth, initial_transactions, initial_settings }) {
+    const isAdmin = Boolean(auth?.user?.is_admin || auth?.user?.role === 'admin' || auth?.user?.role === 'super_admin');
+
     // 1. Core Data States
     const [allTransactions, setAllTransactions] = useState(() => initial_transactions || []);
     const [settings, setSettings] = useState(() => initial_settings || null);
@@ -88,6 +90,15 @@ export default function Transactions({ auth, initial_transactions, initial_setti
 
     const formatCurrency = (cents) => {
         return (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    // Helper for resolving full avatar URLs
+    const getAvatarUrl = (path) => {
+        if (!path) return null;
+        if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/storage/')) {
+            return path;
+        }
+        return `/storage/${path}`;
     };
 
     // Auto horizontal scroll active tab into view when statusTab changes
@@ -1699,13 +1710,28 @@ export default function Transactions({ auth, initial_transactions, initial_setti
 
                                                                 {/* Cashier */}
                                                                 <td className="py-3.5 px-4 whitespace-nowrap">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <div className="w-6 h-6 rounded-full bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center font-black text-[10px] shrink-0">
-                                                                            {(sale.cashier?.name || 'S').charAt(0).toUpperCase()}
+                                                                    <div className="flex items-center gap-2.5">
+                                                                        {sale.cashier?.avatar_path ? (
+                                                                            <img
+                                                                                src={getAvatarUrl(sale.cashier.avatar_path)}
+                                                                                alt={sale.cashier.name}
+                                                                                className="w-9 h-9 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                            />
+                                                                        ) : (
+                                                                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 flex items-center justify-center font-black text-xs shrink-0 uppercase shadow-2xs">
+                                                                                {(sale.cashier?.name || 'S').charAt(0)}
+                                                                            </div>
+                                                                        )}
+                                                                        <div>
+                                                                            <span className="font-extrabold text-xs text-gray-900 block truncate max-w-[130px]">
+                                                                                {sale.cashier?.name || 'Staff Member'}
+                                                                            </span>
+                                                                            {isAdmin && (
+                                                                                <div className="text-[10px] font-mono font-bold text-gray-400 mt-0.5">
+                                                                                    {sale.cashier?.account_number ? `#${sale.cashier.account_number}` : (sale.cashier?.id ? `ID: #${sale.cashier.id}` : 'STAFF')}
+                                                                                </div>
+                                                                            )}
                                                                         </div>
-                                                                        <span className="font-bold text-xs text-gray-800 truncate max-w-[120px]">
-                                                                            {sale.cashier?.name || 'Staff'}
-                                                                        </span>
                                                                     </div>
                                                                 </td>
 
@@ -1858,11 +1884,26 @@ export default function Transactions({ auth, initial_transactions, initial_setti
 
                                                     {/* Meta Row: Cashier & Payment Method */}
                                                     <div className="flex justify-between items-center text-xs font-bold text-gray-600 pt-0.5">
-                                                        <div className="flex items-center gap-1.5 min-w-0">
-                                                            <div className="w-5 h-5 rounded-full bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center font-black text-[9px] shrink-0">
-                                                                {(sale.cashier?.name || 'S').charAt(0).toUpperCase()}
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            {sale.cashier?.avatar_path ? (
+                                                                <img
+                                                                    src={getAvatarUrl(sale.cashier.avatar_path)}
+                                                                    alt={sale.cashier.name}
+                                                                    className="w-7 h-7 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center font-black text-[10px] shrink-0 uppercase shadow-2xs">
+                                                                    {(sale.cashier?.name || 'S').charAt(0)}
+                                                                </div>
+                                                            )}
+                                                            <div className="min-w-0">
+                                                                <span className="truncate max-w-[120px] font-extrabold text-gray-900 block text-xs">{sale.cashier?.name || 'Staff'}</span>
+                                                                {isAdmin && (
+                                                                    <span className="text-[10px] font-mono font-bold text-gray-400 block -mt-0.5">
+                                                                        {sale.cashier?.account_number ? `#${sale.cashier.account_number}` : (sale.cashier?.id ? `ID: #${sale.cashier.id}` : '')}
+                                                                    </span>
+                                                                )}
                                                             </div>
-                                                            <span className="truncate max-w-[120px]">{sale.cashier?.name || 'Staff'}</span>
                                                         </div>
                                                         <div className="flex items-center gap-1 shrink-0">
                                                             <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black tracking-wider uppercase border shadow-2xs ${getPaymentBadgeStyle(sale.payment_method)}`}>
@@ -2027,9 +2068,16 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                     <span className="text-gray-400 font-bold uppercase text-[10px]">Date / Time:</span>
                                     <span className="font-semibold text-gray-800">{new Date(selectedSale.created_at).toLocaleString()}</span>
                                 </div>
-                                <div className="flex justify-between">
+                                <div className="flex justify-between items-center">
                                     <span className="text-gray-400 font-bold uppercase text-[10px]">Cashier:</span>
-                                    <span className="font-semibold text-gray-800">{selectedSale.cashier?.name || 'Staff'}</span>
+                                    <span className="font-semibold text-gray-800 flex items-center gap-1.5">
+                                        <span>{selectedSale.cashier?.name || 'Staff'}</span>
+                                        {isAdmin && (selectedSale.cashier?.account_number || selectedSale.cashier?.id) && (
+                                            <span className="font-mono text-[10px] font-bold text-gray-400">
+                                                ({selectedSale.cashier.account_number ? `#${selectedSale.cashier.account_number}` : `#${selectedSale.cashier.id}`})
+                                            </span>
+                                        )}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-400 font-bold uppercase text-[10px]">Status:</span>

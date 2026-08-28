@@ -39,6 +39,14 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
         setLogoError(false);
     }, [logoUrl]);
 
+    // Helper for generating dynamic initials avatar
+    const getInitials = (name) => {
+        if (!name) return 'U';
+        const parts = name.trim().split(' ').filter(Boolean);
+        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    };
+
     // Helper component for Desktop Nav items
     const NavItem = ({ href, active, icon, label }) => {
         return (
@@ -161,68 +169,260 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
                             <div className="relative ms-3">
                                 <Dropdown>
                                     <Dropdown.Trigger>
-                                        <span className="inline-flex rounded-md">
-                                            <button type="button" className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 hover:text-gray-700 transition duration-150 ease-in-out focus:outline-none">
-                                                <span>{user.name}</span>
-                                                <svg className="-me-0.5 ms-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                                        {({ open }) => (
+                                            <button
+                                                type="button"
+                                                className="group flex items-center gap-2.5 px-2 py-1.5 rounded-xl bg-transparent hover:bg-gray-100/70 transition-all duration-150 focus:outline-none select-none cursor-pointer"
+                                            >
+                                                {/* Avatar matching Staff Page */}
+                                                {user.avatar_path ? (
+                                                    <img
+                                                        src={`/storage/${user.avatar_path}`}
+                                                        alt={user.name}
+                                                        className="w-9 h-9 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                    />
+                                                ) : (
+                                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-sm border border-gray-200 shrink-0 uppercase shadow-2xs">
+                                                        {user.name ? user.name.charAt(0) : 'U'}
+                                                    </div>
+                                                )}
+
+                                                {/* Clean User Info Stack */}
+                                                <div className="hidden lg:flex flex-col text-left min-w-0 pr-0.5">
+                                                    <span className="text-xs font-bold text-gray-900 truncate max-w-[140px] leading-tight">
+                                                        {user.name}
+                                                    </span>
+                                                    <span className="text-[10px] font-medium text-gray-400 truncate max-w-[140px] leading-tight mt-0.5">
+                                                        {isSuperAdmin ? 'Super Admin' : user.is_admin ? 'Store Admin' : 'Cashier'}
+                                                    </span>
+                                                </div>
+
+                                                {/* Chevron Icon with 180° twist animation */}
+                                                <svg
+                                                    className={`w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600 transition-transform duration-200 ease-in-out ${open ? 'rotate-180 text-gray-700' : ''}`}
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 20 20"
+                                                    fill="currentColor"
+                                                >
+                                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                </svg>
                                             </button>
-                                        </span>
-                                    </Dropdown.Trigger>
-                                    <Dropdown.Content>
-                                        <div className="block px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">My Account</div>
-                                        <Dropdown.Link href={route('profile.edit')}>
-                                            <span className="inline-flex items-center gap-2">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
-                                                My Profile
-                                            </span>
-                                        </Dropdown.Link>
-
-                                        {user.role === 'super_admin' ? (
-                                            <>
-                                                <Dropdown.Link href={route('developer.system.info')}>
-                                                    <span className="inline-flex items-center gap-2">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.041.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.005-.828a1.125 1.125 0 01-.26-1.43l1.298-2.247a1.125 1.125 0 011.369-.491l1.217.456c.356.133.751.072 1.076-.124.072-.044.145-.086.22-.128.332-.183.582-.495.644-.869l.213-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                                        System Settings
-                                                    </span>
-                                                </Dropdown.Link>
-                                                <Dropdown.Link href={route('developer.policies')}>
-                                                    <span className="inline-flex items-center gap-2">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-7.5a2.25 2.25 0 00-2.25-2.25h-10.5A2.25 2.25 0 004.5 6.75v10.5A2.25 2.25 0 006.75 19.5h5.25" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6-3h6m-6 6h3m6.75 1.5l1.5 1.5 3-3" /></svg>
-                                                        Policy Documents
-                                                    </span>
-                                                </Dropdown.Link>
-                                            </>
-                                        ) : (
-                                            <Dropdown.Link href={route('settings')}>
-                                                <span className="inline-flex items-center gap-2">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.041.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.005-.828a1.125 1.125 0 01-.26-1.43l1.298-2.247a1.125 1.125 0 011.369-.491l1.217.456c.356.133.751.072 1.076-.124.072-.044.145-.086.22-.128.332-.183.582-.495.644-.869l.213-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                                    Store Settings
-                                                </span>
-                                            </Dropdown.Link>
                                         )}
+                                    </Dropdown.Trigger>
 
-                                        <Dropdown.Link href={route('logout')} method="post" as="button"><span className="text-red-600 font-bold">Log Out</span></Dropdown.Link>
+                                    <Dropdown.Content width="64" contentClasses="p-0 bg-white shadow-xl rounded-2xl border border-gray-100 divide-y divide-gray-100 overflow-hidden">
+                                        {/* 1. Header Profile Info */}
+                                        <div className="p-3.5 bg-gray-50/60">
+                                            <div className="flex items-center gap-2.5">
+                                                {user.avatar_path ? (
+                                                    <img
+                                                        src={`/storage/${user.avatar_path}`}
+                                                        alt={user.name}
+                                                        className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                    />
+                                                ) : (
+                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-sm border border-gray-200 shrink-0 uppercase shadow-2xs">
+                                                        {user.name ? user.name.charAt(0) : 'U'}
+                                                    </div>
+                                                )}
+                                                <div className="min-w-0 flex-1">
+                                                    <h4 className="text-xs font-bold text-gray-900 truncate leading-tight">{user.name}</h4>
+                                                    <p className="text-[11px] text-gray-500 truncate font-normal leading-tight mt-0.5">{user.email}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Store Branch tag if available */}
+                                            {settings?.store_name && !isSuperAdmin && (
+                                                <div className="mt-2.5 flex items-center justify-between text-[11px] font-semibold text-gray-700 bg-white border border-gray-200/80 px-2.5 py-1.5 rounded-lg shadow-2xs">
+                                                    <span className="flex items-center gap-1.5 truncate max-w-[155px]">
+                                                        <svg className="w-3.5 h-3.5 text-[#1B3B6A] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.651V9.35m0 0a3.001 3.001 0 003.75-.614A2.993 2.993 0 009 9.35c.66 0 1.28-.214 1.787-.58A3.001 3.001 0 0014.25 9.35c.66 0 1.28-.214 1.787-.58A3.001 3.001 0 0019.5 9.35m-15 0l1.2-5.4A1.5 1.5 0 017.16 2.75h9.68a1.5 1.5 0 011.46 1.2l1.2 5.4" />
+                                                        </svg>
+                                                        <span className="truncate text-gray-800">{settings.store_name}</span>
+                                                    </span>
+                                                    <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase text-emerald-600 tracking-wider shrink-0">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                        Online
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* 2. Management Shortcuts Section */}
+                                        <div className="py-2 px-1.5 space-y-0.5">
+                                            <div className="px-3 py-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                                Account & Preferences
+                                            </div>
+
+                                            {/* My Profile */}
+                                            <Link
+                                                href={route('profile.edit')}
+                                                className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-xl transition-all group"
+                                            >
+                                                <div className="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center group-hover:bg-[#1B3B6A] group-hover:text-white transition-colors shrink-0">
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                                    </svg>
+                                                </div>
+                                                <div className="flex flex-col min-w-0 text-left">
+                                                    <span className="font-bold text-gray-900">My Profile</span>
+                                                    <span className="text-[10px] text-gray-400 font-normal">Personal details & security credentials</span>
+                                                </div>
+                                            </Link>
+
+                                            {/* Store Settings / Super Admin items */}
+                                            {user.role === 'super_admin' ? (
+                                                <>
+                                                    <Link
+                                                        href={route('developer.system.info')}
+                                                        className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-xl transition-all group"
+                                                    >
+                                                        <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors shrink-0">
+                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.041.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.005-.828a1.125 1.125 0 01-.26-1.43l1.298-2.247a1.125 1.125 0 011.369-.491l1.217.456c.356.133.751.072 1.076-.124.072-.044.145-.086.22-.128.332-.183.582-.495.644-.869l.213-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                                        </div>
+                                                        <div className="flex flex-col min-w-0 text-left">
+                                                            <span className="font-bold text-gray-900">System Settings</span>
+                                                            <span className="text-[10px] text-gray-400 font-normal">Platform & server telemetry</span>
+                                                        </div>
+                                                    </Link>
+                                                    <Link
+                                                        href={route('developer.policies')}
+                                                        className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-xl transition-all group"
+                                                    >
+                                                        <div className="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors shrink-0">
+                                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-7.5a2.25 2.25 0 00-2.25-2.25h-10.5A2.25 2.25 0 004.5 6.75v10.5A2.25 2.25 0 006.75 19.5h5.25" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6-3h6m-6 6h3m6.75 1.5l1.5 1.5 3-3" /></svg>
+                                                        </div>
+                                                        <div className="flex flex-col min-w-0 text-left">
+                                                            <span className="font-bold text-gray-900">Policy Documents</span>
+                                                            <span className="text-[10px] text-gray-400 font-normal">Legal terms & agreements</span>
+                                                        </div>
+                                                    </Link>
+                                                </>
+                                            ) : (
+                                                <Link
+                                                    href={route('settings')}
+                                                    className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-xl transition-all group"
+                                                >
+                                                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#1B3B6A] flex items-center justify-center group-hover:bg-[#1B3B6A] group-hover:text-white transition-colors shrink-0">
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.041.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.005-.828a1.125 1.125 0 01-.26-1.43l1.298-2.247a1.125 1.125 0 011.369-.491l1.217.456c.356.133.751.072 1.076-.124.072-.044.145-.086.22-.128.332-.183.582-.495.644-.869l.213-1.281z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div className="flex flex-col min-w-0 text-left">
+                                                        <span className="font-bold text-gray-900">Store Settings</span>
+                                                        <span className="text-[10px] text-gray-400 font-normal">Registers, receipts & hardware</span>
+                                                    </div>
+                                                </Link>
+                                            )}
+                                        </div>
+
+                                        {/* 3. Sign Out Footer */}
+                                        <div className="p-2 bg-gray-50/80">
+                                            <Link
+                                                href={route('logout')}
+                                                method="post"
+                                                as="button"
+                                                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-red-600 hover:text-red-700 hover:bg-red-50/80 rounded-xl transition-all"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                                                </svg>
+                                                Sign Out of System
+                                            </Link>
+                                        </div>
                                     </Dropdown.Content>
                                 </Dropdown>
                             </div>
                         </div>
 
-                        <div className="-me-2 flex items-center sm:hidden">
-                            <button onClick={() => setShowingNavigationDropdown(true)} className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500">
-                                <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                        <div className="-me-2 flex items-center gap-2 sm:hidden">
+                            {/* Mobile Header User Avatar */}
+                            <button
+                                onClick={() => setShowingNavigationDropdown(true)}
+                                className="flex items-center p-0.5 rounded-full hover:bg-gray-100 transition-colors focus:outline-none cursor-pointer"
+                                title="Open Menu"
+                            >
+                                {user.avatar_path ? (
+                                    <img
+                                        src={`/storage/${user.avatar_path}`}
+                                        alt={user.name}
+                                        className="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-2xs"
+                                    />
+                                ) : (
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-xs border border-gray-200 uppercase shadow-2xs">
+                                        {user.name ? user.name.charAt(0) : 'U'}
+                                    </div>
+                                )}
+                            </button>
+
+                            <button
+                                onClick={() => setShowingNavigationDropdown(true)}
+                                className="inline-flex items-center justify-center rounded-xl p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors focus:outline-none cursor-pointer"
+                            >
+                                <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
                             </button>
                         </div>
                     </div>
                 </div>
             </nav>
 
-            {/* MOBILE NAVIGATION */}
+            {/* MOBILE NAVIGATION DRAWER */}
             <div className={`fixed inset-0 z-[60] sm:hidden transition-all duration-300 ${showingNavigationDropdown ? 'visible' : 'invisible'}`}>
                 <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${showingNavigationDropdown ? 'opacity-100' : 'opacity-0'}`} onClick={() => setShowingNavigationDropdown(false)} />
                 <div className={`fixed inset-y-0 left-0 w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${showingNavigationDropdown ? 'translate-x-0' : '-translate-x-full'}`}>
-                    <div className="flex items-center justify-between p-5 border-b border-gray-100">
-                        <span className="font-bold text-lg text-gray-800 uppercase tracking-widest">{appName}</span>
-                        <button onClick={() => setShowingNavigationDropdown(false)} className="p-2 text-gray-500"><svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                    
+                    {/* Top Profile Card in Mobile Drawer */}
+                    <div className="p-4 bg-gradient-to-b from-gray-50/90 to-white border-b border-gray-100">
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                                {user.avatar_path ? (
+                                    <img
+                                        src={`/storage/${user.avatar_path}`}
+                                        alt={user.name}
+                                        className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                    />
+                                ) : (
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-sm border border-gray-200 shrink-0 uppercase shadow-2xs">
+                                        {user.name ? user.name.charAt(0) : 'U'}
+                                    </div>
+                                )}
+                                <div className="min-w-0 flex-1">
+                                    <h4 className="text-xs font-bold text-gray-900 truncate leading-tight">{user.name}</h4>
+                                    <p className="text-[10px] font-medium text-gray-400 truncate leading-tight mt-0.5">
+                                        {isSuperAdmin ? 'Super Admin' : user.is_admin ? 'Store Admin' : 'Cashier'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Close Button */}
+                            <button
+                                onClick={() => setShowingNavigationDropdown(false)}
+                                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer shrink-0"
+                            >
+                                <svg className="h-5 w-5" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Store Branch tag if available */}
+                        {settings?.store_name && !isSuperAdmin && (
+                            <div className="flex items-center justify-between text-[11px] font-semibold text-gray-700 bg-white border border-gray-200/80 px-2.5 py-1.5 rounded-lg shadow-2xs">
+                                <span className="flex items-center gap-1.5 truncate max-w-[155px]">
+                                    <svg className="w-3.5 h-3.5 text-[#1B3B6A] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.651V9.35m0 0a3.001 3.001 0 003.75-.614A2.993 2.993 0 009 9.35c.66 0 1.28-.214 1.787-.58A3.001 3.001 0 0014.25 9.35c.66 0 1.28-.214 1.787-.58A3.001 3.001 0 0019.5 9.35m-15 0l1.2-5.4A1.5 1.5 0 017.16 2.75h9.68a1.5 1.5 0 011.46 1.2l1.2 5.4" />
+                                    </svg>
+                                    <span className="truncate text-gray-800">{settings.store_name}</span>
+                                </span>
+                                <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase text-emerald-600 tracking-wider shrink-0">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    Online
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-2">

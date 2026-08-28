@@ -194,6 +194,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
                     'reference_no' => 'LOG-' . str_pad($log->id, 5, '0', STR_PAD_LEFT),
                     'description' => $log->description,
                     'user_name' => $log->user ? $log->user->name : 'System',
+                    'user_avatar' => $log->user && $log->user->avatar_path ? (str_starts_with($log->user->avatar_path, 'http') ? $log->user->avatar_path : asset('storage/' . $log->user->avatar_path)) : null,
+                    'user_account_number' => $log->user ? $log->user->account_number : null,
                     'old_values' => $log->old_values,
                     'new_values' => $log->new_values,
                     'created_at' => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
@@ -218,6 +220,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
                     'sku' => $item->product ? $item->product->sku : null,
                     'description' => "Sold {$item->quantity}x {$prodName} via POS" . ($invoice ? " (Inv: {$invoice})" : ""),
                     'user_name' => $item->sale && $item->sale->cashier ? $item->sale->cashier->name : 'Cashier',
+                    'user_avatar' => $item->sale && $item->sale->cashier && $item->sale->cashier->avatar_path ? (str_starts_with($item->sale->cashier->avatar_path, 'http') ? $item->sale->cashier->avatar_path : asset('storage/' . $item->sale->cashier->avatar_path)) : null,
+                    'user_account_number' => $item->sale && $item->sale->cashier ? $item->sale->cashier->account_number : null,
                     'created_at' => $item->created_at ? $item->created_at->toIso8601String() : now()->toIso8601String(),
                 ];
             });
@@ -236,6 +240,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
                     'reference_no' => $p->sku ? ('SKU: ' . $p->sku) : ('PRD-' . str_pad($p->id, 5, '0', STR_PAD_LEFT)),
                     'description' => "Registered new product: {$p->name} (SKU: {$p->sku}) with {$p->stock_quantity} units",
                     'user_name' => 'Store Admin',
+                    'user_avatar' => null,
+                    'user_account_number' => null,
                     'created_at' => $p->created_at ? $p->created_at->toIso8601String() : now()->toIso8601String(),
                 ];
             });
@@ -273,6 +279,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
                     'invoice_number' => $inv,
                     'reference_no' => $inv,
                     'user_name' => $item->sale && $item->sale->cashier ? $item->sale->cashier->name : 'POS Cashier',
+                    'user_avatar' => $item->sale && $item->sale->cashier && $item->sale->cashier->avatar_path ? (str_starts_with($item->sale->cashier->avatar_path, 'http') ? $item->sale->cashier->avatar_path : asset('storage/' . $item->sale->cashier->avatar_path)) : null,
+                    'user_account_number' => $item->sale && $item->sale->cashier ? $item->sale->cashier->account_number : null,
                     'description' => "Sold {$item->quantity} unit(s) via POS (₱" . number_format($item->subtotal / 100, 2) . ")",
                     'created_at' => $item->created_at ? $item->created_at->toIso8601String() : now()->toIso8601String(),
                 ];
@@ -305,6 +313,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
                     'old_values' => $log->old_values,
                     'new_values' => $log->new_values,
                     'user_name' => $log->user ? $log->user->name : 'Store Admin',
+                    'user_avatar' => $log->user && $log->user->avatar_path ? (str_starts_with($log->user->avatar_path, 'http') ? $log->user->avatar_path : asset('storage/' . $log->user->avatar_path)) : null,
+                    'user_account_number' => $log->user ? $log->user->account_number : null,
                     'description' => $log->description ?: "Stock updated for product",
                     'created_at' => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
                 ];
@@ -322,6 +332,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
                     'reference_no' => $skuRef,
                     'invoice_number' => $skuRef,
                     'user_name' => 'Store Admin',
+                    'user_avatar' => null,
+                    'user_account_number' => null,
                     'description' => "Initial catalog registration for {$p->name} (SKU: {$p->sku})",
                     'created_at' => $p->created_at->toIso8601String(),
                 ];
@@ -403,6 +415,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
             $shiftDetails[$shift->id] = [
                 'id'                    => $shift->id,
                 'staff_name'            => $shift->user?->name ?? 'Staff',
+                'staff_avatar'          => $shift->user?->avatar_path ? (str_starts_with($shift->user->avatar_path, 'http') ? $shift->user->avatar_path : asset('storage/' . $shift->user->avatar_path)) : null,
+                'staff_role'            => $shift->user?->role ?? 'cashier',
                 'start_time'            => $shift->start_time,
                 'end_time'              => $shift->end_time,
                 'start'                 => $shift->start_time ? $shift->start_time->format('m/d/Y h:i A') : '—',
@@ -466,7 +480,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
 
         // Fetch store activity logs with user relationship
         $rawLogs = \App\Models\ActivityLog::where('store_id', $storeId)
-            ->with(['user:id,name,role,email,account_number'])
+            ->with(['user:id,name,role,email,account_number,avatar_path'])
             ->orderBy('created_at', 'desc')
             ->limit(500)
             ->get();
@@ -487,6 +501,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
                 'user_id' => $log->user_id,
                 'user_name' => $log->user ? $log->user->name : 'System / Auto',
                 'user_role' => $log->user ? $log->user->role : 'system',
+                'user_account_number' => $log->user ? $log->user->account_number : null,
+                'user_avatar' => $log->user && $log->user->avatar_path ? (str_starts_with($log->user->avatar_path, 'http') ? $log->user->avatar_path : asset('storage/' . $log->user->avatar_path)) : null,
                 'created_at' => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
             ];
         });
@@ -516,8 +532,8 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class, 'throt
 
     // Profile Management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::patch('/profile', [ProfileController::class, 'update'])->middleware(\App\Http\Middleware\PreventDemoModifications::class)->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->middleware(\App\Http\Middleware\PreventDemoModifications::class)->name('profile.destroy');
 
     // OTP Verification Routes
     Route::post('/profile/send-otp', [ProfileController::class, 'sendOtp'])
@@ -538,30 +554,30 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class, 'throt
     // API: Operational - Shared (Accessible by everyone authenticated)
     Route::post('/api/checkout', [PosController::class, 'checkout'])->middleware('throttle:checkout_api');
     Route::get('/api/products', [ProductController::class, 'index']);
-    Route::post('/api/products', [ProductController::class, 'store']);
+    Route::post('/api/products', [ProductController::class, 'store'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
     Route::get('/api/products/next-sku', [ProductController::class, 'getNextSku']);
     Route::get('/api/products/{id}/history', [ProductController::class, 'stockHistory']);
     Route::get('/api/inventory/recent-activity', [ProductController::class, 'recentActivity']);
     Route::get('/api/categories', [CategoryController::class, 'index']);
     Route::get('/api/transactions', [TransactionController::class, 'index']);
     Route::get('/api/transactions/{id}', [TransactionController::class, 'show']);
-    Route::post('/api/products/{id}/stock', [ProductController::class, 'adjustStock']);
+    Route::post('/api/products/{id}/stock', [ProductController::class, 'adjustStock'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
 
     // API: Operational & Config - Admin Restricted
     Route::middleware('admin')->group(function () {
-        Route::post('/api/settings', [SettingController::class, 'update']);
+        Route::post('/api/settings', [SettingController::class, 'update'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
         Route::get('/api/dashboard', [DashboardController::class, 'index']);
         Route::get('/api/reports', [ReportController::class, 'index']);
         Route::get('/api/dashboard/export', [DashboardController::class, 'export']);
 
-        Route::post('/api/products/import', [ProductController::class, 'bulkImport']);
-        Route::put('/api/products/{id}', [ProductController::class, 'update']);
-        Route::delete('/api/products/{id}', [ProductController::class, 'destroy']);
-        Route::patch('/api/products/{id}/toggle-active', [ProductController::class, 'toggleActive']);
+        Route::post('/api/products/import', [ProductController::class, 'bulkImport'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
+        Route::put('/api/products/{id}', [ProductController::class, 'update'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
+        Route::delete('/api/products/{id}', [ProductController::class, 'destroy'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
+        Route::patch('/api/products/{id}/toggle-active', [ProductController::class, 'toggleActive'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
 
-        Route::post('/api/categories', [CategoryController::class, 'store']);
-        Route::put('/api/categories/{id}', [CategoryController::class, 'update']);
-        Route::delete('/api/categories/{id}', [CategoryController::class, 'destroy']);
+        Route::post('/api/categories', [CategoryController::class, 'store'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
+        Route::put('/api/categories/{id}', [CategoryController::class, 'update'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
+        Route::delete('/api/categories/{id}', [CategoryController::class, 'destroy'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
 
         Route::post('/api/transactions/{id}/void', [TransactionController::class, 'void']);
 
@@ -573,7 +589,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class, 'throt
             $user = $request->user();
             $storeId = $user->store_id;
             $rawLogs = \App\Models\ActivityLog::where('store_id', $storeId)
-                ->with(['user:id,name,role,email,account_number'])
+                ->with(['user:id,name,role,email,account_number,avatar_path'])
                 ->orderBy('created_at', 'desc')
                 ->limit(500)
                 ->get();
@@ -594,6 +610,8 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class, 'throt
                     'user_id' => $log->user_id,
                     'user_name' => $log->user ? $log->user->name : 'System / Auto',
                     'user_role' => $log->user ? $log->user->role : 'system',
+                    'user_account_number' => $log->user ? $log->user->account_number : null,
+                    'user_avatar' => $log->user && $log->user->avatar_path ? (str_starts_with($log->user->avatar_path, 'http') ? $log->user->avatar_path : asset('storage/' . $log->user->avatar_path)) : null,
                     'created_at' => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
                 ];
             });
@@ -625,7 +643,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class, 'throt
     Route::delete('/api/held-orders/{id}', [HeldOrderController::class, 'destroy']);
 
     // API: User Management (Admin Actions)
-    Route::middleware('admin')->group(function () {
+    Route::middleware(['admin', \App\Http\Middleware\PreventDemoModifications::class])->group(function () {
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
         Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');

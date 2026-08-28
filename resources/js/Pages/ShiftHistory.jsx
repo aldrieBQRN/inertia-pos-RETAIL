@@ -48,6 +48,15 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Helper for resolving full avatar URLs
+    const getAvatarUrl = (path) => {
+        if (!path) return null;
+        if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/storage/')) {
+            return path;
+        }
+        return `/storage/${path}`;
+    };
     const [cashierFilter, setCashierFilter] = useState('');
 
     // Refs for Smooth Workspace Clearance
@@ -1663,9 +1672,17 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                                 {/* Cashier / Staff */}
                                                                 <td className="py-3.5 px-4 whitespace-nowrap">
                                                                     <div className="flex items-center gap-2.5">
-                                                                        <div className="w-8 h-8 rounded-full bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center font-black text-xs shrink-0">
-                                                                            {(shift.user?.name || 'S').charAt(0).toUpperCase()}
-                                                                        </div>
+                                                                        {shift.user?.avatar_path ? (
+                                                                            <img
+                                                                                src={getAvatarUrl(shift.user.avatar_path)}
+                                                                                alt={shift.user.name}
+                                                                                className="w-9 h-9 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                            />
+                                                                        ) : (
+                                                                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 flex items-center justify-center font-black text-xs shrink-0 uppercase shadow-2xs">
+                                                                                {(shift.user?.name || 'S').charAt(0)}
+                                                                            </div>
+                                                                        )}
                                                                         <div>
                                                                             <span className="font-black text-gray-900 text-sm block">
                                                                                 {shift.user?.name || 'Staff Member'}
@@ -1823,9 +1840,17 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                             {/* Card Header: Cashier & Variance Badge */}
                                                             <div className="flex justify-between items-start gap-2">
                                                                 <div className="flex items-center gap-2.5 min-w-0">
-                                                                    <div className="w-9 h-9 rounded-full bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center font-black text-xs shrink-0">
-                                                                        {(shift.user?.name || 'S').charAt(0).toUpperCase()}
-                                                                    </div>
+                                                                    {shift.user?.avatar_path ? (
+                                                                        <img
+                                                                            src={getAvatarUrl(shift.user.avatar_path)}
+                                                                            alt={shift.user.name}
+                                                                            className="w-9 h-9 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                        />
+                                                                    ) : (
+                                                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
+                                                                            {(shift.user?.name || 'S').charAt(0).toUpperCase()}
+                                                                        </div>
+                                                                    )}
                                                                     <div className="min-w-0">
                                                                         <h4 className="font-black text-gray-900 text-sm truncate">
                                                                             {shift.user?.name || 'Staff Member'}
@@ -1985,27 +2010,40 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
 
                         {/* Modal Header */}
                         <div className="bg-[#1B3B6A] px-6 py-4 flex justify-between items-center text-white shrink-0 shadow-md">
-                            <div>
-                                <h3 className="text-lg font-black tracking-tight">Shift Z-Read & Audit</h3>
-                                <p className="text-xs text-white/80 font-medium mt-0.5 flex items-center gap-1.5">
-                                    <span>Shift #{selectedShiftData?.id || '—'}</span>
-                                    <span>·</span>
-                                    <span>{selectedShiftData?.staff_name || 'Staff Member'}</span>
-                                    {selectedShiftData?.terminal?.name && (
-                                        <>
-                                            <span>·</span>
-                                            <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">
-                                                {selectedShiftData.terminal.name}
-                                            </span>
-                                        </>
-                                    )}
-                                </p>
+                            <div className="flex items-center gap-3 min-w-0">
+                                {selectedShiftData?.staff_avatar || selectedShiftData?.shift_record?.user?.avatar_path ? (
+                                    <img
+                                        src={getAvatarUrl(selectedShiftData.staff_avatar || selectedShiftData.shift_record?.user?.avatar_path)}
+                                        alt={selectedShiftData.staff_name}
+                                        className="w-10 h-10 rounded-full object-cover border border-white/30 shadow-sm shrink-0"
+                                    />
+                                ) : (
+                                    <div className="w-10 h-10 rounded-full bg-white/10 text-white border border-white/20 flex items-center justify-center font-black text-sm shrink-0">
+                                        {(selectedShiftData?.staff_name || 'S').charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <div className="min-w-0">
+                                    <h3 className="text-lg font-black tracking-tight truncate">Shift Z-Read & Audit</h3>
+                                    <p className="text-xs text-white/80 font-medium mt-0.5 flex items-center gap-1.5 truncate">
+                                        <span>Shift #{selectedShiftData?.id || '—'}</span>
+                                        <span>·</span>
+                                        <span className="font-bold text-white truncate">{selectedShiftData?.staff_name || 'Staff Member'}</span>
+                                        {selectedShiftData?.terminal?.name && (
+                                            <>
+                                                <span>·</span>
+                                                <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0">
+                                                    {selectedShiftData.terminal.name}
+                                                </span>
+                                            </>
+                                        )}
+                                    </p>
+                                </div>
                             </div>
                             <button
                                 onClick={() => setShowDetails(false)}
-                                className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full cursor-pointer"
+                                className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full cursor-pointer shrink-0 ml-2"
                             >
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>

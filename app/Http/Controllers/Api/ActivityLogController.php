@@ -83,7 +83,7 @@ class ActivityLogController extends Controller
         // Get paginated results with user relation for table display
         $logs = $query
             ->with([
-                'user:id,name,role,account_number,store_id',
+                'user:id,name,role,account_number,store_id,avatar_path',
                 'user.store:id,name',
             ])
             ->latest('created_at')
