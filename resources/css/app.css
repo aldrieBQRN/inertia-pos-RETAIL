@@ -62,3 +62,30 @@ input::-ms-clear {
         border-bottom: 2px solid #d1d5db !important;
     }
 }
+
+/* Inertia Top Navigation Loading Line */
+#nprogress {
+    pointer-events: none;
+}
+#nprogress .bar {
+    background: #4B5563 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 3px !important;
+    z-index: 99999 !important;
+}
+#nprogress .peg {
+    display: block !important;
+    position: absolute !important;
+    right: 0px !important;
+    width: 100px !important;
+    height: 100% !important;
+    box-shadow: 0 0 10px #4B5563, 0 0 5px #4B5563 !important;
+    opacity: 1.0 !important;
+    transform: rotate(3deg) translate(0px, -4px) !important;
+}
+#nprogress .spinner {
+    display: none !important;
+}
