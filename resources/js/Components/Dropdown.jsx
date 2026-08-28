@@ -104,11 +104,12 @@ const Content = ({
     );
 };
 
-const DropdownLink = ({ className = '', children, ...props }) => {
+const DropdownLink = ({ className = '', children, method = 'get', ...props }) => {
+    const isGet = !method || method.toLowerCase() === 'get';
     return (
         <Link
-            prefetch={['hover', 'mount']}
-            cacheFor="1m"
+            method={method}
+            {...(isGet ? { prefetch: ['hover', 'mount'], cacheFor: '1m' } : {})}
             {...props}
             className={
                 'block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 focus:bg-gray-100 focus:outline-none ' +

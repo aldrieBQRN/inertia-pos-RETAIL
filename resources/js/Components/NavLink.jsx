@@ -4,12 +4,14 @@ export default function NavLink({
     active = false,
     className = '',
     children,
+    method = 'get',
     ...props
 }) {
+    const isGet = !method || method.toLowerCase() === 'get';
     return (
         <Link
-            prefetch={['hover', 'mount']}
-            cacheFor="1m"
+            method={method}
+            {...(isGet ? { prefetch: ['hover', 'mount'], cacheFor: '1m' } : {})}
             {...props}
             className={
                 'inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none ' +

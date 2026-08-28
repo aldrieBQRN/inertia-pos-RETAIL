@@ -11,6 +11,12 @@
     RewriteRule ^ index.php [QSA,L]
 </IfModule>
 
+# MIME Types for Web Manifest & JSON
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest
+    AddType application/json .json
+</IfModule>
+
 # ==============================================================================
 # BROWSER ASSET & IMAGE CACHING HEADERS (Instant reload for POS & Inventory)
 # ==============================================================================

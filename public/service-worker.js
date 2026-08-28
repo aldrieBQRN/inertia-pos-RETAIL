@@ -1,16 +1,14 @@
-const CACHE_NAME = 'inertia-pos-v1';
+const CACHE_NAME = 'inertia-pos-v2';
 const urlsToCache = [
-  '/',
-  '/index.php',
-  '/css/app.css',
+  '/images/icon-192x192.png',
+  '/images/icon-512x512.png',
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(urlsToCache).catch(() => {
-        // Ignore errors for files that don't exist yet
-        console.log('Some files failed to cache during install');
+        // Ignore files not found during initial install
       });
     })
   );
@@ -34,49 +32,57 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  const url = new URL(request.url);
 
-  // Skip non-GET requests
-  if (request.method !== 'GET') {
+  // Only handle HTTP/HTTPS GET requests
+  if (request.method !== 'GET' || !request.url.startsWith('http')) {
     return;
   }
 
-  // Always fetch fresh for HTML pages and API (never cache)
-  const isHtmlRequest = request.headers.get('accept')?.includes('text/html') ||
-                        url.pathname === '/' ||
-                        url.pathname.endsWith('.php') ||
-                        url.pathname.startsWith('/api/');
+  const url = new URL(request.url);
 
-  if (isHtmlRequest) {
+  // Skip cross-origin extensions, analytics, or third-party APIs
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  // Always fetch dynamic HTML, PHP, API, or Inertia page requests live from network
+  const isDynamicRoute = request.headers.get('accept')?.includes('text/html') ||
+                         request.headers.get('x-inertia') ||
+                         url.pathname === '/' ||
+                         url.pathname.endsWith('.php') ||
+                         url.pathname.startsWith('/api/') ||
+                         url.pathname.startsWith('/artisan-migrate');
+
+  if (isDynamicRoute) {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          return response;
-        })
-        .catch(() => {
-          // Return offline response (no cached fallback)
-          return new Response('Offline', { status: 503 });
-        })
+      fetch(request).catch(() => new Response('Offline', { status: 503, statusText: 'Service Unavailable' }))
     );
     return;
   }
 
-  // Cache-first for static assets (images, build files, CSS, JS)
+  // Cache-first strategy for static assets (images, fonts, build chunks)
   event.respondWith(
-    caches.match(request).then((response) => {
-      return response || fetch(request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'error') {
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return fetch(request)
+        .then((networkResponse) => {
+          if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+            return networkResponse;
+          }
+
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseClone).catch(() => {});
+          });
+
           return networkResponse;
-        }
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(request, responseToCache);
+        })
+        .catch(() => {
+          return new Response('', { status: 404, statusText: 'Not Found' });
         });
-        return networkResponse;
-      }).catch((err) => {
-        console.warn('Service worker asset fetch failed:', err);
-        return new Response('', { status: 404, statusText: 'Not Found' });
-      });
     })
   );
 });

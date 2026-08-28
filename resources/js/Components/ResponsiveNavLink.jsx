@@ -5,12 +5,14 @@ export default function ResponsiveNavLink({
     className = '',
     icon = null,
     children,
+    method = 'get',
     ...props
 }) {
+    const isGet = !method || method.toLowerCase() === 'get';
     return (
         <Link
-            prefetch={['hover', 'mount']}
-            cacheFor="1m"
+            method={method}
+            {...(isGet ? { prefetch: ['hover', 'mount'], cacheFor: '1m' } : {})}
             {...props}
             className={`flex w-full items-center gap-3 py-2.5 px-3.5 rounded-lg transition-all duration-200 ${
                 active
