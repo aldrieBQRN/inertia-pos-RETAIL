@@ -165,7 +165,7 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                             </span>
                             <span className="text-[10px] font-semibold text-gray-400">Click to fill</span>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                             <button
                                 type="button"
                                 onClick={() => setData(prev => ({ ...prev, email: 'admin@email.com', password: 'password' }))}
@@ -195,54 +195,6 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                                 <div className="min-w-0">
                                     <p className="text-[11px] font-bold text-gray-900 truncate">John (Cashier 1)</p>
                                     <p className="text-[9px] text-gray-500 truncate">cashier@email.com</p>
-                                </div>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => setData(prev => ({ ...prev, email: 'maria@email.com', password: 'password' }))}
-                                className="flex items-center gap-2 p-2 rounded-lg border border-gray-200 bg-white hover:border-[#1B3B6A] hover:bg-blue-50/40 transition-all text-left group shadow-xs active:scale-[0.98]"
-                            >
-                                <div className="w-7 h-7 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center shrink-0 group-hover:bg-[#1B3B6A] group-hover:text-white transition-colors">
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                    </svg>
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-[11px] font-bold text-gray-900 truncate">Maria (Cashier 2)</p>
-                                    <p className="text-[9px] text-gray-500 truncate">maria@email.com</p>
-                                </div>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => setData(prev => ({ ...prev, email: 'carlos@email.com', password: 'password' }))}
-                                className="flex items-center gap-2 p-2 rounded-lg border border-gray-200 bg-white hover:border-[#1B3B6A] hover:bg-blue-50/40 transition-all text-left group shadow-xs active:scale-[0.98]"
-                            >
-                                <div className="w-7 h-7 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center shrink-0 group-hover:bg-[#1B3B6A] group-hover:text-white transition-colors">
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                    </svg>
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-[11px] font-bold text-gray-900 truncate">Carlos (Cashier 3)</p>
-                                    <p className="text-[9px] text-gray-500 truncate">carlos@email.com</p>
-                                </div>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => setData(prev => ({ ...prev, email: 'elena@email.com', password: 'password' }))}
-                                className="col-span-2 flex items-center gap-2 p-2 rounded-lg border border-gray-200 bg-white hover:border-[#1B3B6A] hover:bg-blue-50/40 transition-all text-left group shadow-xs active:scale-[0.98]"
-                            >
-                                <div className="w-7 h-7 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center shrink-0 group-hover:bg-[#1B3B6A] group-hover:text-white transition-colors">
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                    </svg>
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-[11px] font-bold text-gray-900 truncate">Elena (Cashier 4 - Fast Deli)</p>
-                                    <p className="text-[9px] text-gray-500 truncate">elena@email.com</p>
                                 </div>
                             </button>
                         </div>
