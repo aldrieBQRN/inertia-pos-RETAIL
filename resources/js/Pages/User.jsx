@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, usePage } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import jsPDF from 'jspdf';
@@ -10,6 +10,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 export default function User({ auth, users, settings }) {
+    const { is_demo_mode } = usePage().props;
     // 1. Core Data States
     const [loading, setLoading] = useState(() => !users || (Array.isArray(users) ? users.length === 0 : false));
     const [isSaving, setIsSaving] = useState(false);
