@@ -158,8 +158,7 @@ name: Deploy to InfinityFree (Secure Split Architecture)
 on:
   push:
     branches:
-      - main
-      - master
+      - demo
 
 jobs:
   web-deploy:
