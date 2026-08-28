@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 import ShiftModal from '@/Components/ShiftModal';
 import usePrinterStore from '@/Stores/usePrinterStore';
@@ -15,6 +15,7 @@ import usePrinterStore from '@/Stores/usePrinterStore';
  * - Cashier: Workstation Hardware, Active Shift Drawer & Z-Read, My Profile & Security, Staff Policies.
  */
 export default function Settings({ auth, initial_settings, initial_terminals }) {
+    const { is_demo_mode } = usePage().props;
     const user = auth?.user;
     const isAdmin = Boolean(user?.is_admin);
 
@@ -193,6 +194,15 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
     // Save Store Details (Admin)
     const handleSaveStoreDetails = async (e) => {
         e.preventDefault();
+        if (is_demo_mode) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Demo Mode Restricted',
+                text: 'Please contact the POS provider to access this feature.',
+                confirmButtonColor: '#1B3B6A'
+            });
+            return;
+        }
         setSaving(true);
 
         const formData = new FormData();
@@ -249,6 +259,15 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
 
     // Terminal Management Handlers
     const handleOpenTerminalModal = (terminal = null) => {
+        if (is_demo_mode) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Demo Mode Restricted',
+                text: 'Please contact the POS provider to access this feature.',
+                confirmButtonColor: '#1B3B6A'
+            });
+            return;
+        }
         if (terminal) {
             setEditingTerminal(terminal);
             setTerminalForm({
@@ -269,6 +288,15 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
 
     const handleSaveTerminal = async (e) => {
         e.preventDefault();
+        if (is_demo_mode) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Demo Mode Restricted',
+                text: 'Please contact the POS provider to access this feature.',
+                confirmButtonColor: '#1B3B6A'
+            });
+            return;
+        }
         if (!terminalForm.name.trim()) {
             Swal.fire('Name Required', 'Please enter a register name (e.g. Register 1).', 'warning');
             return;
@@ -292,6 +320,15 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
     };
 
     const handleDeleteTerminal = async (terminal) => {
+        if (is_demo_mode) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Demo Mode Restricted',
+                text: 'Please contact the POS provider to access this feature.',
+                confirmButtonColor: '#1B3B6A'
+            });
+            return;
+        }
         const result = await Swal.fire({
             title: `Delete ${terminal.name}?`,
             text: "This register will be removed. Ensure no active shifts are currently open on it.",

@@ -1,8 +1,9 @@
 import { useRef, useState, useEffect } from 'react';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
 export default function UpdatePasswordForm({ isOpen, onClose }) {
+    const { is_demo_mode } = usePage().props;
     const passwordInput = useRef();
     const currentPasswordInput = useRef();
 
@@ -32,6 +33,15 @@ export default function UpdatePasswordForm({ isOpen, onClose }) {
 
     const updatePassword = (e) => {
         e.preventDefault();
+        if (is_demo_mode) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Demo Mode Restricted',
+                text: 'Please contact the POS provider to access this feature.',
+                confirmButtonColor: '#1B3B6A'
+            });
+            return;
+        }
 
         Swal.fire({
             title: 'Securing Account...',

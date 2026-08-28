@@ -516,8 +516,8 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class, 'throt
 
     // Profile Management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::patch('/profile', [ProfileController::class, 'update'])->middleware(\App\Http\Middleware\PreventDemoModifications::class)->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->middleware(\App\Http\Middleware\PreventDemoModifications::class)->name('profile.destroy');
 
     // OTP Verification Routes
     Route::post('/profile/send-otp', [ProfileController::class, 'sendOtp'])
@@ -538,30 +538,30 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class, 'throt
     // API: Operational - Shared (Accessible by everyone authenticated)
     Route::post('/api/checkout', [PosController::class, 'checkout'])->middleware('throttle:checkout_api');
     Route::get('/api/products', [ProductController::class, 'index']);
-    Route::post('/api/products', [ProductController::class, 'store']);
+    Route::post('/api/products', [ProductController::class, 'store'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
     Route::get('/api/products/next-sku', [ProductController::class, 'getNextSku']);
     Route::get('/api/products/{id}/history', [ProductController::class, 'stockHistory']);
     Route::get('/api/inventory/recent-activity', [ProductController::class, 'recentActivity']);
     Route::get('/api/categories', [CategoryController::class, 'index']);
     Route::get('/api/transactions', [TransactionController::class, 'index']);
     Route::get('/api/transactions/{id}', [TransactionController::class, 'show']);
-    Route::post('/api/products/{id}/stock', [ProductController::class, 'adjustStock']);
+    Route::post('/api/products/{id}/stock', [ProductController::class, 'adjustStock'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
 
     // API: Operational & Config - Admin Restricted
     Route::middleware('admin')->group(function () {
-        Route::post('/api/settings', [SettingController::class, 'update']);
+        Route::post('/api/settings', [SettingController::class, 'update'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
         Route::get('/api/dashboard', [DashboardController::class, 'index']);
         Route::get('/api/reports', [ReportController::class, 'index']);
         Route::get('/api/dashboard/export', [DashboardController::class, 'export']);
 
-        Route::post('/api/products/import', [ProductController::class, 'bulkImport']);
-        Route::put('/api/products/{id}', [ProductController::class, 'update']);
-        Route::delete('/api/products/{id}', [ProductController::class, 'destroy']);
-        Route::patch('/api/products/{id}/toggle-active', [ProductController::class, 'toggleActive']);
+        Route::post('/api/products/import', [ProductController::class, 'bulkImport'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
+        Route::put('/api/products/{id}', [ProductController::class, 'update'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
+        Route::delete('/api/products/{id}', [ProductController::class, 'destroy'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
+        Route::patch('/api/products/{id}/toggle-active', [ProductController::class, 'toggleActive'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
 
-        Route::post('/api/categories', [CategoryController::class, 'store']);
-        Route::put('/api/categories/{id}', [CategoryController::class, 'update']);
-        Route::delete('/api/categories/{id}', [CategoryController::class, 'destroy']);
+        Route::post('/api/categories', [CategoryController::class, 'store'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
+        Route::put('/api/categories/{id}', [CategoryController::class, 'update'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
+        Route::delete('/api/categories/{id}', [CategoryController::class, 'destroy'])->middleware(\App\Http\Middleware\PreventDemoModifications::class);
 
         Route::post('/api/transactions/{id}/void', [TransactionController::class, 'void']);
 
@@ -625,7 +625,7 @@ Route::middleware(['auth', \App\Http\Middleware\CheckTenantStatus::class, 'throt
     Route::delete('/api/held-orders/{id}', [HeldOrderController::class, 'destroy']);
 
     // API: User Management (Admin Actions)
-    Route::middleware('admin')->group(function () {
+    Route::middleware(['admin', \App\Http\Middleware\PreventDemoModifications::class])->group(function () {
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
         Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');

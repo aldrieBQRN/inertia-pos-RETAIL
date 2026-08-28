@@ -282,7 +282,20 @@ export default function User({ auth, users, settings }) {
         setSelectedStaff(null);
     };
 
+    const showDemoAlert = () => {
+        Swal.fire({
+            icon: 'info',
+            title: 'Demo Mode Restricted',
+            text: 'Please contact the POS provider to access this feature.',
+            confirmButtonColor: '#1B3B6A'
+        });
+    };
+
     const openAddModal = () => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         setEditMode(false);
         setEditingId(null);
         clearErrors();
@@ -308,6 +321,10 @@ export default function User({ auth, users, settings }) {
     };
 
     const openEditModal = (user) => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         setEditMode(true);
         setEditingId(user.id);
         setOriginalEmail(user.email);
@@ -336,6 +353,10 @@ export default function User({ auth, users, settings }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         clearErrors();
 
         if (editMode && data.email !== originalEmail) {
@@ -379,6 +400,10 @@ export default function User({ auth, users, settings }) {
     };
 
     const submitStaffUpdate = () => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         setIsSaving(true);
         const options = {
             preserveScroll: true,
@@ -410,6 +435,10 @@ export default function User({ auth, users, settings }) {
     };
 
     const handleToggleActive = (user) => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         const isRevoking = user.is_active !== false;
         Swal.fire({
             title: isRevoking ? 'Revoke System Access?' : 'Restore Access?',
@@ -438,6 +467,10 @@ export default function User({ auth, users, settings }) {
     };
 
     const handleResendInvite = (user) => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         Swal.fire({
             title: 'Resend Setup Invite?',
             text: `Send a new secure 24-hour setup link to "${user.email}"?`,
@@ -459,6 +492,10 @@ export default function User({ auth, users, settings }) {
     };
 
     const handleDelete = (user) => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         Swal.fire({
             title: 'Delete Staff Member?',
             text: `Are you sure you want to permanently delete "${user.name}"?`,

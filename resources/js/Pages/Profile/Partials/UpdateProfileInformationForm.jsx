@@ -1,9 +1,10 @@
 import { useRef, useState, useEffect } from 'react';
-import { Link, useForm } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 
 export default function UpdateProfileInformationForm({ isOpen, onClose, user, mustVerifyEmail, status }) {
+    const { is_demo_mode } = usePage().props;
     const fileInput = useRef();
     const [avatarPreview, setAvatarPreview] = useState(user.avatar_path ? `/storage/${user.avatar_path}` : null);
 
@@ -49,6 +50,15 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
 
     const submit = async (e) => {
         e.preventDefault();
+        if (is_demo_mode) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Demo Mode Restricted',
+                text: 'Please contact the POS provider to access this feature.',
+                confirmButtonColor: '#1B3B6A'
+            });
+            return;
+        }
         clearErrors(); // Clear any previous inline errors
 
         // SMART CHECK: Did the user change their email address?

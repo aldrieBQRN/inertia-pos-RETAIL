@@ -29,6 +29,8 @@ class HandleInertiaRequests extends Middleware
                 'csrf_token' => csrf_token(),
             ],
 
+            'is_demo_mode' => (bool) config('app.demo_mode', false),
+
             // Share flash messages
             'flash' => [
                 'success' => $request->session()->get('success'),

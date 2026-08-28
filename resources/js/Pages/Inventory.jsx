@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import Barcode from '@/Components/Barcode';
 import MobileScanner from '@/Components/MobileScanner';
 import CategoryManager from '@/Components/CategoryManager';
@@ -14,6 +14,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 export default function Inventory({ auth, initial_products, initial_categories, initial_recent_activity, initial_stock_histories }) {
+    const { is_demo_mode } = usePage().props;
     const [products, setProducts] = useState(() => initial_products || []);
     const [categories, setCategories] = useState(() => initial_categories || []);
     const [settings, setSettings] = useState(null);
@@ -1059,7 +1060,20 @@ export default function Inventory({ auth, initial_products, initial_categories, 
         }
     };
 
+    const showDemoAlert = () => {
+        Swal.fire({
+            icon: 'info',
+            title: 'Demo Mode Restricted',
+            text: 'Please contact the POS provider to access this feature.',
+            confirmButtonColor: '#1B3B6A'
+        });
+    };
+
     const handleBulkArchive = async () => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         if (!selectedIds.length) return;
         const result = await Swal.fire({
             title: `Archive/Restore ${selectedIds.length} Products?`,
@@ -1085,6 +1099,10 @@ export default function Inventory({ auth, initial_products, initial_categories, 
     };
 
     const handleQuickAdd = async (product) => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         const costPriceText = product.cost_price 
             ? `${formatCurrency(product.cost_price)}` 
             : '—';
@@ -2002,6 +2020,10 @@ export default function Inventory({ auth, initial_products, initial_categories, 
     };
 
     const openAddModal = () => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         setEditMode(false);
         setEditingId(null);
         setFormData({ name: '', category_id: '', price: '', cost_price: '', wholesale_price: '', stock_quantity: '', sku: '', image: null, is_active: true });
@@ -2009,6 +2031,10 @@ export default function Inventory({ auth, initial_products, initial_categories, 
     };
 
     const openEditModal = (p) => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         setEditMode(true);
         setEditingId(p.id);
         setFormData({
@@ -2027,6 +2053,10 @@ export default function Inventory({ auth, initial_products, initial_categories, 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         setIsSaving(true);
 
         try {
@@ -2073,6 +2103,10 @@ export default function Inventory({ auth, initial_products, initial_categories, 
     };
 
     const handleToggleActive = async (product) => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         const action = product.is_active ? 'Archive' : 'Restore';
         const actionPast = product.is_active ? 'archived' : 'restored';
         
@@ -2103,6 +2137,10 @@ export default function Inventory({ auth, initial_products, initial_categories, 
     };
 
     const handleDelete = async (product) => {
+        if (is_demo_mode) {
+            showDemoAlert();
+            return;
+        }
         const id = product.id;
         const result = await Swal.fire({
             title: 'Delete this product?',
