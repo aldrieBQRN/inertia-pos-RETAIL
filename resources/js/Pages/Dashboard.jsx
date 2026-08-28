@@ -76,6 +76,15 @@ export default function Dashboard({ auth, initial_stats }) {
 
     const isFirstMountRef = useRef(true);
 
+    // Sync state immediately when server-side initial_stats prop updates (e.g. branch switch, back navigation)
+    useEffect(() => {
+        if (initial_stats) {
+            setStats(initial_stats);
+            setLoading(false);
+            setHasLoaded(true);
+        }
+    }, [initial_stats]);
+
     // Initial Load & Period change
     useEffect(() => {
         if (isFirstMountRef.current) {

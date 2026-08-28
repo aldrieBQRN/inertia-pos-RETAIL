@@ -52,10 +52,11 @@ class ShiftController extends Controller
     public function current(Request $request)
     {
         $user = Auth::user();
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $user->store_id;
         $terminalId = $request->terminal_id;
 
         // 1. Check if this cashier or terminal has an active open shift
-        $query = Shift::where('store_id', $user->store_id)->where('status', 'open');
+        $query = Shift::where('store_id', $storeId)->where('status', 'open');
         if ($terminalId) {
             $query->where(function($q) use ($user, $terminalId) {
                 $q->where('user_id', $user->id)->orWhere('terminal_id', $terminalId);
@@ -96,7 +97,7 @@ class ShiftController extends Controller
         }
 
         // 2. No active shift: Calculate expected opening cash from last closed shift + intermediate cash movements
-        $lastShiftQuery = Shift::where('store_id', $user->store_id)->where('status', 'closed');
+        $lastShiftQuery = Shift::where('store_id', $storeId)->where('status', 'closed');
         if ($terminalId) {
             $lastShiftQuery->where('terminal_id', $terminalId);
         }
@@ -104,14 +105,14 @@ class ShiftController extends Controller
 
         // Fallback to latest overall shift if this terminal has no previous shift record
         if (!$lastShift) {
-            $lastShift = Shift::where('store_id', $user->store_id)->where('status', 'closed')->latest('end_time')->first();
+            $lastShift = Shift::where('store_id', $storeId)->where('status', 'closed')->latest('end_time')->first();
         }
 
         $lastClosingCash = $lastShift ? (float) $lastShift->actual_cash : 0.00;
         $lastClosedTime = $lastShift && $lastShift->end_time ? $lastShift->end_time : Carbon::parse('2000-01-01 00:00:00');
 
         // Fetch any intermediate cash movements that occurred since the last shift closed
-        $movementsQuery = CashMovement::where('store_id', $user->store_id)
+        $movementsQuery = CashMovement::where('store_id', $storeId)
             ->where(function ($q) use ($lastClosedTime) {
                 $q->whereNull('shift_id')->orWhere('created_at', '>=', $lastClosedTime);
             })
@@ -160,10 +161,11 @@ class ShiftController extends Controller
         ]);
 
         $user = Auth::user();
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $user->store_id;
         $terminalId = $request->terminal_id;
 
         // Prevent opening duplicate active shifts on this user or terminal
-        $existingQuery = Shift::where('store_id', $user->store_id)->where('status', 'open');
+        $existingQuery = Shift::where('store_id', $storeId)->where('status', 'open');
         if ($terminalId) {
             $existingQuery->where(function($q) use ($user, $terminalId) {
                 $q->where('user_id', $user->id)->orWhere('terminal_id', $terminalId);
@@ -181,21 +183,21 @@ class ShiftController extends Controller
             ], 422);
         }
 
-        return DB::transaction(function () use ($request, $user, $terminalId) {
+        return DB::transaction(function () use ($request, $user, $storeId, $terminalId) {
             // Find last closed shift for this terminal
-            $lastShiftQuery = Shift::where('store_id', $user->store_id)->where('status', 'closed');
+            $lastShiftQuery = Shift::where('store_id', $storeId)->where('status', 'closed');
             if ($terminalId) {
                 $lastShiftQuery->where('terminal_id', $terminalId);
             }
             $lastShift = $lastShiftQuery->latest('end_time')->first();
             if (!$lastShift) {
-                $lastShift = Shift::where('store_id', $user->store_id)->where('status', 'closed')->latest('end_time')->first();
+                $lastShift = Shift::where('store_id', $storeId)->where('status', 'closed')->latest('end_time')->first();
             }
 
             $lastClosingCash = $lastShift ? (float) $lastShift->actual_cash : 0.00;
             $lastClosedTime = $lastShift && $lastShift->end_time ? $lastShift->end_time : Carbon::parse('2000-01-01 00:00:00');
 
-            $movementsQuery = CashMovement::where('store_id', $user->store_id)
+            $movementsQuery = CashMovement::where('store_id', $storeId)
                 ->where(function ($q) use ($lastClosedTime) {
                     $q->whereNull('shift_id')->orWhere('created_at', '>=', $lastClosedTime);
                 })
@@ -217,7 +219,7 @@ class ShiftController extends Controller
             $openingDiscrepancy = $startingCash - $expectedOpeningCash;
 
             $shift = Shift::create([
-                'store_id'              => $user->store_id,
+                'store_id'              => $storeId,
                 'user_id'               => $user->id,
                 'terminal_id'           => $terminalId,
                 'start_time'            => now(),
@@ -267,7 +269,7 @@ class ShiftController extends Controller
     public function activeShifts(Request $request)
     {
         $user = Auth::user();
-        $storeId = $user->store_id;
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $user->store_id;
 
         $openShifts = Shift::where('store_id', $storeId)
             ->where('status', 'open')
@@ -306,11 +308,12 @@ class ShiftController extends Controller
         ]);
 
         $user = Auth::user();
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $user->store_id;
         $targetShiftId = null;
         $targetTerminalId = null;
 
         if ($request->filled('shift_id') && $request->shift_id !== 'general' && $request->shift_id !== 'none') {
-            $targetShift = Shift::where('store_id', $user->store_id)
+            $targetShift = Shift::where('store_id', $storeId)
                 ->where('status', 'open')
                 ->find($request->shift_id);
             if ($targetShift) {
@@ -351,11 +354,11 @@ class ShiftController extends Controller
             } else if ($targetTerminalId) {
                 $term = Terminal::find($targetTerminalId);
                 $locationName = ($term ? $term->name : 'Register') . " Drawer";
-                $lastShift = Shift::where('store_id', $user->store_id)->where('status', 'closed')->where('terminal_id', $targetTerminalId)->latest('end_time')->first();
+                $lastShift = Shift::where('store_id', $storeId)->where('status', 'closed')->where('terminal_id', $targetTerminalId)->latest('end_time')->first();
                 $lastClosingCash = $lastShift ? (float) $lastShift->actual_cash : 0.00;
                 $lastClosedTime = $lastShift && $lastShift->end_time ? $lastShift->end_time : Carbon::parse('2000-01-01 00:00:00');
 
-                $movements = CashMovement::where('store_id', $user->store_id)->where('terminal_id', $targetTerminalId)->where('created_at', '>=', $lastClosedTime)->get();
+                $movements = CashMovement::where('store_id', $storeId)->where('terminal_id', $targetTerminalId)->where('created_at', '>=', $lastClosedTime)->get();
                 $in = (float) $movements->whereIn('type', ['cash_in', 'float_topup'])->sum('amount');
                 $out = (float) $movements->whereIn('type', ['cash_out', 'owner_draw', 'safe_drop', 'expense'])->sum('amount');
                 $availableCash = max(0, $lastClosingCash + $in - $out);
@@ -369,7 +372,7 @@ class ShiftController extends Controller
         }
 
         $movement = CashMovement::create([
-            'store_id'    => $user->store_id,
+            'store_id'    => $storeId,
             'user_id'     => $user->id,
             'shift_id'    => $targetShiftId,
             'terminal_id' => $targetTerminalId,

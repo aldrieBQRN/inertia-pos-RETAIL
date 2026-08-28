@@ -3,8 +3,9 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, router, Link } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
-export default function Tenants({ auth, stores, plans }) {
+export default function Tenants({ auth, stores, plans, owners = [] }) {
     const [showModal, setShowModal] = useState(false);
+    const [showBranchModal, setShowBranchModal] = useState(false);
 
     // --- FILTER STATES (Read from URL if present) ---
     const params = new URLSearchParams(window.location.search);
@@ -50,6 +51,22 @@ export default function Tenants({ auth, stores, plans }) {
         plan_id: '',
     });
 
+    // Form: Provision Additional Branch for Existing Owner
+    const {
+        data: branchData,
+        setData: setBranchData,
+        post: postBranch,
+        processing: branchProcessing,
+        errors: branchErrors,
+        reset: resetBranch,
+    } = useForm({
+        owner_id: '',
+        branch_name: '',
+        address: '',
+        phone: '',
+        plan_id: '',
+    });
+
     const formatDate = (dateString) => {
         if (!dateString) return 'No Expiration Set';
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -77,6 +94,30 @@ export default function Tenants({ auth, stores, plans }) {
                     icon: 'success',
                     title: 'Invitation Sent!',
                     text: 'The tenant has been emailed a secure link to complete their setup.',
+                    confirmButtonColor: '#2563eb'
+                });
+            },
+            onError: () => Swal.close()
+        });
+    };
+
+    const submitBranch = (e) => {
+        e.preventDefault();
+        Swal.fire({
+            title: 'Provisioning Branch',
+            html: 'Please wait while we create and link the new branch...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        postBranch(route('developer.stores.branch'), {
+            onSuccess: () => {
+                setShowBranchModal(false);
+                resetBranch();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Branch Provisioned!',
+                    text: 'The new branch has been linked to the owner account.',
                     confirmButtonColor: '#2563eb'
                 });
             },
@@ -183,13 +224,23 @@ export default function Tenants({ auth, stores, plans }) {
                                 ))}
                             </select>
 
-                            <button
-                                onClick={() => setShowModal(true)}
-                                className="w-full sm:w-auto bg-gray-900 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-none sm:rounded-lg font-black hover:bg-black active:bg-black uppercase tracking-widest text-[10px] transition-all active:scale-95 flex items-center justify-center gap-2 shrink-0 shadow-md min-h-10 sm:min-h-auto"
-                            >
-                                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>
-                                <span className="whitespace-nowrap">Invite Tenant</span>
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setShowBranchModal(true)}
+                                    className="w-full sm:w-auto bg-blue-600 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-none sm:rounded-lg font-black hover:bg-blue-700 active:bg-blue-800 uppercase tracking-widest text-[10px] transition-all active:scale-95 flex items-center justify-center gap-1.5 shrink-0 shadow-md min-h-10 sm:min-h-auto"
+                                >
+                                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                                    <span className="whitespace-nowrap">+ Add Branch</span>
+                                </button>
+
+                                <button
+                                    onClick={() => setShowModal(true)}
+                                    className="w-full sm:w-auto bg-gray-900 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-none sm:rounded-lg font-black hover:bg-black active:bg-black uppercase tracking-widest text-[10px] transition-all active:scale-95 flex items-center justify-center gap-2 shrink-0 shadow-md min-h-10 sm:min-h-auto"
+                                >
+                                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>
+                                    <span className="whitespace-nowrap">Invite Tenant</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -363,6 +414,65 @@ export default function Tenants({ auth, stores, plans }) {
                                 <button type="submit" disabled={processing} className="order-1 sm:order-2 flex-[2] py-2.5 sm:py-3 lg:py-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-black rounded-none sm:rounded-lg lg:rounded-xl shadow-lg shadow-blue-100 uppercase tracking-widest text-[8px] sm:text-[9px] lg:text-[10px] transition-all active:scale-[0.98] flex items-center justify-center gap-1 sm:gap-1.5 lg:gap-2 min-h-11 sm:min-h-12">
                                     {processing ? 'Processing...' : 'Send Invitation'}
                                     {!processing && <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+            {/* PROVISION BRANCH MODAL */}
+            {showBranchModal && (
+                <div className="fixed inset-0 bg-gray-900/80 flex items-center justify-center z-[100] p-3 sm:p-4 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-md rounded-none sm:rounded-lg lg:rounded-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
+                        <div className="bg-blue-600 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 flex justify-between items-center sticky top-0 z-10">
+                            <div>
+                                <h2 className="text-base sm:text-lg lg:text-xl font-black text-white uppercase tracking-widest leading-none">Add Branch</h2>
+                                <p className="text-[8px] sm:text-[9px] lg:text-[10px] font-bold text-blue-100 uppercase mt-1 sm:mt-1.5 lg:mt-2">Provision Paid Branch for Client</p>
+                            </div>
+                            <button onClick={() => setShowBranchModal(false)} className="bg-white/10 p-1.5 sm:p-2 rounded-none sm:rounded-lg text-white hover:bg-white/20 transition-all cursor-pointer">
+                                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+
+                        <form onSubmit={submitBranch} className="p-4 sm:p-6 lg:p-8 space-y-3 sm:space-y-4">
+                            <div>
+                                <label className="block text-[9px] sm:text-[10px] font-black text-gray-500 uppercase mb-1.5 ml-1 tracking-widest">Select Tenant Owner</label>
+                                <select value={branchData.owner_id} onChange={e => setBranchData('owner_id', e.target.value)} required className="w-full border-gray-100 bg-gray-50 rounded-none sm:rounded-lg lg:rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold text-gray-800 shadow-sm cursor-pointer">
+                                    <option value="">Select owner account...</option>
+                                    {owners.map(o => <option key={o.id} value={o.id}>{o.name} ({o.email})</option>)}
+                                </select>
+                                {branchErrors.owner_id && <p className="text-red-500 text-[9px] font-black mt-1 ml-1 uppercase">{branchErrors.owner_id}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-[9px] sm:text-[10px] font-black text-gray-500 uppercase mb-1.5 ml-1 tracking-widest">Branch Name</label>
+                                <input type="text" value={branchData.branch_name} onChange={e => setBranchData('branch_name', e.target.value)} required className="w-full border-gray-100 bg-gray-50 rounded-none sm:rounded-lg lg:rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold text-gray-900 shadow-sm" placeholder="e.g. Downtown Branch, SM Mall Branch" />
+                                {branchErrors.branch_name && <p className="text-red-500 text-[9px] font-black mt-1 ml-1 uppercase">{branchErrors.branch_name}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-[9px] sm:text-[10px] font-black text-gray-500 uppercase mb-1.5 ml-1 tracking-widest">Address (Optional)</label>
+                                <input type="text" value={branchData.address} onChange={e => setBranchData('address', e.target.value)} className="w-full border-gray-100 bg-gray-50 rounded-none sm:rounded-lg lg:rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold text-gray-900 shadow-sm" placeholder="e.g. 123 Main St, City" />
+                            </div>
+
+                            <div>
+                                <label className="block text-[9px] sm:text-[10px] font-black text-gray-500 uppercase mb-1.5 ml-1 tracking-widest">Phone (Optional)</label>
+                                <input type="text" value={branchData.phone} onChange={e => setBranchData('phone', e.target.value)} className="w-full border-gray-100 bg-gray-50 rounded-none sm:rounded-lg lg:rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold text-gray-900 shadow-sm" placeholder="e.g. +63 912 345 6789" />
+                            </div>
+
+                            <div>
+                                <label className="block text-[9px] sm:text-[10px] font-black text-gray-500 uppercase mb-1.5 ml-1 tracking-widest">Assign Plan</label>
+                                <select value={branchData.plan_id} onChange={e => setBranchData('plan_id', e.target.value)} required className="w-full border-gray-100 bg-gray-50 rounded-none sm:rounded-lg lg:rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-black text-gray-800 shadow-sm cursor-pointer">
+                                    <option value="">Select a billing plan...</option>
+                                    {plans.map(p => <option key={p.id} value={p.id}>{p.name} - ₱{parseFloat(p.price).toLocaleString()} ({p.duration_months} mo)</option>)}
+                                </select>
+                                {branchErrors.plan_id && <p className="text-red-500 text-[9px] font-black mt-1 ml-1 uppercase">{branchErrors.plan_id}</p>}
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 border-t border-gray-100">
+                                <button type="button" onClick={() => setShowBranchModal(false)} className="order-2 sm:order-1 flex-1 py-2.5 sm:py-3 text-gray-500 font-black bg-gray-100 hover:bg-gray-200 rounded-none sm:rounded-lg uppercase tracking-widest text-[9px] sm:text-[10px] transition-all">Discard</button>
+                                <button type="submit" disabled={branchProcessing} className="order-1 sm:order-2 flex-[2] py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-none sm:rounded-lg shadow-lg shadow-blue-100 uppercase tracking-widest text-[9px] sm:text-[10px] transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                                    {branchProcessing ? 'Creating...' : 'Provision Branch'}
                                 </button>
                             </div>
                         </form>

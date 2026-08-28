@@ -27,6 +27,9 @@ class DatabaseSeeder extends Seeder
         // 4. Subscriptions, Tenant Stores, and Billing History
         $this->call(SubscriptionSeeder::class);
 
+        // 4.5. Multi-Branch & Store Locations (BGC Main, Makati Ayala, Cebu IT Park)
+        $this->call(BranchSeeder::class);
+
         // 5. Populate complete live products (with photos), Terminals, Multi-Cashier shifts, Inventory & Transactions
         $this->call(ApiProductSeeder::class);
 

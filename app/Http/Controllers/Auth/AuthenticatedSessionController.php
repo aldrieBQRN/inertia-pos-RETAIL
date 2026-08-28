@@ -36,6 +36,12 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
         $request->session()->regenerate();
 
+        // Reset any previous branch session on login
+        $request->session()->forget('active_store_id');
+        if ($request->user()->store_id) {
+            $request->session()->put('active_store_id', (int) $request->user()->store_id);
+        }
+
         ActivityService::logSecurityAction(
             'login_success',
             'User logged in successfully',

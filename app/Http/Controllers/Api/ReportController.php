@@ -28,7 +28,7 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         try {
-            $storeId = $request->user()->store_id;
+            $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $request->user()->store_id;
 
             // 1. Date Range Handling (Default to Last 7 Days)
             $startDate = $request->has('start_date') && $request->start_date

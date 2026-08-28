@@ -16,7 +16,9 @@ class TerminalController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $terminals = Terminal::where('store_id', $user->store_id)
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $user->store_id;
+
+        $terminals = Terminal::where('store_id', $storeId)
             ->with(['activeShift.user'])
             ->orderBy('name', 'asc')
             ->get();
@@ -24,13 +26,13 @@ class TerminalController extends Controller
         // If no terminals exist yet, automatically generate a default "Register 1"
         if ($terminals->isEmpty()) {
             $default = Terminal::create([
-                'store_id'  => $user->store_id,
+                'store_id'  => $storeId,
                 'name'      => 'Register 1',
                 'code'      => 'REG-01',
                 'is_active' => true,
                 'notes'     => 'Main checkout counter'
             ]);
-            $terminals = Terminal::where('store_id', $user->store_id)
+            $terminals = Terminal::where('store_id', $storeId)
                 ->with(['activeShift.user'])
                 ->get();
         }
@@ -47,7 +49,7 @@ class TerminalController extends Controller
                 $cashOut = (float) \App\Models\CashMovement::where('shift_id', $shift->id)->whereIn('type', ['cash_out', 'owner_draw', 'safe_drop', 'expense'])->sum('amount');
                 $term->current_drawer_cash = max(0, (float) $shift->starting_cash + $cashSales + $cashIn - $cashOut - (float) ($shift->expenses ?? 0));
             } else {
-                $lastShift = Shift::where('store_id', $user->store_id)
+                $lastShift = Shift::where('store_id', $storeId)
                     ->where('status', 'closed')
                     ->where('terminal_id', $term->id)
                     ->latest('end_time')
@@ -55,7 +57,7 @@ class TerminalController extends Controller
                 $lastClosingCash = $lastShift ? (float) $lastShift->actual_cash : 0.00;
                 $lastClosedTime = $lastShift && $lastShift->end_time ? $lastShift->end_time : \Carbon\Carbon::parse('2000-01-01 00:00:00');
 
-                $movements = \App\Models\CashMovement::where('store_id', $user->store_id)
+                $movements = \App\Models\CashMovement::where('store_id', $storeId)
                     ->where('terminal_id', $term->id)
                     ->where('created_at', '>=', $lastClosedTime)
                     ->get();
@@ -80,11 +82,12 @@ class TerminalController extends Controller
         ]);
 
         $user = Auth::user();
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $user->store_id;
 
         $terminal = Terminal::create([
-            'store_id'  => $user->store_id,
+            'store_id'  => $storeId,
             'name'      => $request->name,
-            'code'      => $request->code ?: ('REG-0' . (Terminal::where('store_id', $user->store_id)->count() + 1)),
+            'code'      => $request->code ?: ('REG-0' . (Terminal::where('store_id', $storeId)->count() + 1)),
             'is_active' => true,
             'notes'     => $request->notes,
         ]);
@@ -108,7 +111,8 @@ class TerminalController extends Controller
         ]);
 
         $user = Auth::user();
-        $terminal = Terminal::where('store_id', $user->store_id)->findOrFail($id);
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $user->store_id;
+        $terminal = Terminal::where('store_id', $storeId)->findOrFail($id);
 
         $terminal->update([
             'name'      => $request->name,
@@ -129,7 +133,8 @@ class TerminalController extends Controller
     public function destroy($id)
     {
         $user = Auth::user();
-        $terminal = Terminal::where('store_id', $user->store_id)->findOrFail($id);
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $user->store_id;
+        $terminal = Terminal::where('store_id', $storeId)->findOrFail($id);
 
         $activeShift = Shift::where('terminal_id', $terminal->id)
             ->where('status', 'open')

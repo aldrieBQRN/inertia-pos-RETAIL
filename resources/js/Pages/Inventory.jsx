@@ -63,7 +63,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
     const [showCategoryManager, setShowCategoryManager] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [loading, setLoading] = useState(() => !initial_products || initial_products.length === 0);
+    const [loading, setLoading] = useState(() => !Array.isArray(initial_products));
     const [isCheckingSku, setIsCheckingSku] = useState(false);
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -847,8 +847,34 @@ export default function Inventory({ auth, initial_products, initial_categories, 
         return ((cents || 0) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
+    // Sync preloaded server-side props on navigation / branch switch
     useEffect(() => {
-        const hasInitialData = Boolean(initial_products && initial_products.length > 0);
+        if (Array.isArray(initial_products)) {
+            setProducts(initial_products);
+            setLoading(false);
+        }
+    }, [initial_products]);
+
+    useEffect(() => {
+        if (Array.isArray(initial_categories)) {
+            setCategories(initial_categories);
+        }
+    }, [initial_categories]);
+
+    useEffect(() => {
+        if (initial_stock_histories) {
+            historyCacheRef.current = initial_stock_histories;
+        }
+    }, [initial_stock_histories]);
+
+    useEffect(() => {
+        if (Array.isArray(initial_recent_activity)) {
+            setActivityDrawer((prev) => ({ ...prev, logs: initial_recent_activity }));
+        }
+    }, [initial_recent_activity]);
+
+    useEffect(() => {
+        const hasInitialData = Array.isArray(initial_products);
         if (!hasInitialData) {
             loadCategories();
             loadAllProducts(true);

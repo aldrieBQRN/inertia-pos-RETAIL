@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import Swal from 'sweetalert2';
+import ApplicationLogo from '@/Components/ApplicationLogo';
 
 /**
  * Login Component
@@ -71,32 +72,8 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                 </div>
 
                 {/* Top: Branding Header */}
-                <div className="relative z-10 flex items-center gap-3 sm:gap-4">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/10 backdrop-blur-md rounded-full border border-white/20 shadow-xl flex items-center justify-center overflow-hidden shrink-0">
-                        {settings?.logo_path ? (
-                            <img 
-                                src={`/storage/${settings.logo_path}`} 
-                                alt="Logo" 
-                                className="w-full h-full object-cover rounded-full" 
-                                onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.src = '/logo.png';
-                                }}
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-white/10 text-white font-black text-xl sm:text-2xl rounded-full">
-                                {settings?.app_name?.charAt(0) || 'S'}
-                            </div>
-                        )}
-                    </div>
-                    <div>
-                        <h1 className="text-base sm:text-lg font-black tracking-widest uppercase text-white drop-shadow-sm">
-                            {settings?.app_name || 'InertiaPos'}
-                        </h1>
-                        <p className="text-[10px] sm:text-[11px] font-semibold text-blue-200 uppercase tracking-widest">
-                            Retail & Inventory POS Platform
-                        </p>
-                    </div>
+                <div className="relative z-10 flex items-center">
+                    <ApplicationLogo size="lg" dark={true} showSubtitle={true} />
                 </div>
 
                 {/* Center: System Value Proposition */}

@@ -27,6 +27,21 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
                 'csrf_token' => csrf_token(),
+                'active_store_id' => $request->user() ? \App\Traits\BelongsToStore::getActiveStoreId() : null,
+                'accessible_stores' => function () use ($request) {
+                    $user = $request->user();
+                    if (!$user) return [];
+
+                    return $user->getAccessibleStores()->map(function ($store) {
+                        return [
+                            'id' => $store->id,
+                            'name' => $store->name,
+                            'address' => $store->address,
+                            'phone' => $store->phone,
+                            'status' => (bool) $store->status,
+                        ];
+                    });
+                },
             ],
 
             'is_demo_mode' => filter_var(env('APP_DEMO_MODE', config('app.demo_mode', false)), FILTER_VALIDATE_BOOLEAN),
@@ -48,12 +63,13 @@ class HandleInertiaRequests extends Middleware
                 }
 
                 // Isolate the Global SaaS Branding
-                $globalAppName = $globalSettings['app_name'] ?? 'Smart Retail POS';
+                $globalAppName = $globalSettings['app_name'] ?? 'Inertia POS';
                 $globalLogo = $globalSettings['logo_path'] ?? null;
 
-                // 2. Tenant Context (Has store_id)
-                if ($user && $user->store_id) {
-                    $store = Store::find($user->store_id);
+                // 2. Tenant Context (Has active branch or store_id)
+                $activeStoreId = $user ? \App\Traits\BelongsToStore::getActiveStoreId() : null;
+                if ($activeStoreId) {
+                    $store = Store::find($activeStoreId);
 
                     if ($store) {
                         return [
@@ -62,6 +78,7 @@ class HandleInertiaRequests extends Middleware
                             'logo_path'       => $globalLogo,
 
                             // TENANT SPECIFIC DATA (Used for printing receipts, store settings, etc.)
+                            'store_id'        => $store->id,
                             'store_name'      => $store->name,
                             'store_logo_path' => $store->logo_path ?? null,
                             'address'         => $store->address,

@@ -172,6 +172,14 @@ export default function Reports({ auth, initial_report_data }) {
 
     const isFirstMountRef = useRef(true);
 
+    // Sync state immediately when server-side initial_report_data prop updates (e.g. branch switch, back navigation)
+    useEffect(() => {
+        if (initial_report_data) {
+            setReportData(initial_report_data);
+            setLoading(false);
+        }
+    }, [initial_report_data]);
+
     // Initial preloaded data check
     useEffect(() => {
         if (isFirstMountRef.current) {

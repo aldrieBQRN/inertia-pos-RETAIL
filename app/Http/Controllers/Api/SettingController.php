@@ -26,7 +26,8 @@ class SettingController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $store = Store::find($user->store_id);
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $user?->store_id;
+        $store = $storeId ? Store::find($storeId) : null;
 
         // Fetch the generalized legal policies from the system settings
         $legalSettings = SystemSetting::whereIn('key', [
@@ -123,8 +124,9 @@ class SettingController extends Controller
             'logo' => 'nullable|image|max:2048', // Max 2MB
         ]);
 
-        // Find the current user's specific store
-        $store = Store::findOrFail(Auth::user()->store_id);
+        // Find the current active store
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? Auth::user()->store_id;
+        $store = Store::findOrFail($storeId);
 
         $oldValues = [
             'store_name' => $store->name,

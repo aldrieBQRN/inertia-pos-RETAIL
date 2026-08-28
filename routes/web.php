@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\TenantSetupController;
+use App\Http\Controllers\BranchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
@@ -60,6 +61,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/portal/billing', [BillingController::class, 'portal'])->name('tenant.billing.portal');
     Route::post('/portal/billing', [BillingController::class, 'store'])->name('tenant.billing.submit');
     Route::get('/api/portal/billing/history', [BillingController::class, 'getHistory'])->name('tenant.billing.history');
+
+    // Multi-Branch Active Switch Route
+    Route::post('/switch-branch', [BranchController::class, 'switchBranch'])->name('branch.switch');
 });
 
 
@@ -131,15 +135,17 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
         if ($user->role === 'super_admin') return redirect()->route('developer.index');
         if ($user->is_admin) return redirect()->route('dashboard');
 
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $user->store_id;
+
         // Preload data so POS renders instantly with zero loading delay or layout shift
         $terminalsRes = app(\App\Http\Controllers\Api\TerminalController::class)->index($request);
         $terminals = $terminalsRes instanceof \Illuminate\Http\JsonResponse ? $terminalsRes->getData(true) : $terminalsRes;
 
-        $categories = \App\Models\Category::where('store_id', $user->store_id)
+        $categories = \App\Models\Category::where('store_id', $storeId)
             ->orderBy('name', 'asc')
             ->get();
 
-        $products = \App\Models\Product::where('store_id', $user->store_id)
+        $products = \App\Models\Product::where('store_id', $storeId)
             ->where('is_active', true)
             ->with('category')
             ->orderBy('name', 'asc')
@@ -147,7 +153,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
 
         $shiftRes = app(\App\Http\Controllers\Api\ShiftController::class)->current($request);
         $shiftData = $shiftRes instanceof \Illuminate\Http\JsonResponse ? $shiftRes->getData(true) : $shiftRes;
-        $heldOrders = \App\Models\HeldOrder::orderBy('created_at', 'desc')->get();
+        $heldOrders = \App\Models\HeldOrder::where('store_id', $storeId)->orderBy('created_at', 'desc')->get();
 
         return Inertia::render('PosTerminal', [
             'initial_shift_data' => $shiftData,
@@ -163,17 +169,18 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
         $user = $request->user();
         if ($user->role === 'super_admin') return redirect()->route('developer.index');
 
-        $categories = \App\Models\Category::where('store_id', $user->store_id)
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $user->store_id;
+
+        $categories = \App\Models\Category::where('store_id', $storeId)
             ->orderBy('name', 'asc')
             ->get();
 
-        $products = \App\Models\Product::where('store_id', $user->store_id)
+        $products = \App\Models\Product::where('store_id', $storeId)
             ->with('category')
             ->orderBy('created_at', 'desc')
             ->get();
 
         // Preload recent activity feed for instant zero-delay modal opening
-        $storeId = $user->store_id;
         $logs = \App\Models\ActivityLog::where('store_id', $storeId)
             ->where(function ($q) {
                 $q->whereIn('model_type', ['Product', 'Inventory', 'Category'])
@@ -378,7 +385,9 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
         $user = $request->user();
         if ($user->role === 'super_admin') return redirect()->route('developer.index');
 
-        $transactions = \App\Models\Sale::where('store_id', $user->store_id)
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $user->store_id;
+
+        $transactions = \App\Models\Sale::where('store_id', $storeId)
             ->with(['items.product', 'cashier'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -397,12 +406,14 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
         $user = $request->user();
         if ($user->role === 'super_admin') return redirect()->route('developer.index');
 
-        $shifts = \App\Models\Shift::where('store_id', $user->store_id)
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $user->store_id;
+
+        $shifts = \App\Models\Shift::where('store_id', $storeId)
             ->with(['user', 'terminal', 'cashMovements.user'])
             ->orderBy('id', 'desc')
             ->get();
 
-        $terminals = \App\Models\Terminal::where('store_id', $user->store_id)->get();
+        $terminals = \App\Models\Terminal::where('store_id', $storeId)->get();
         $settingsRes = app(\App\Http\Controllers\Api\SettingController::class)->index($request);
         $settings = $settingsRes instanceof \Illuminate\Http\JsonResponse ? $settingsRes->getData(true) : $settingsRes;
 
@@ -476,7 +487,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckTenantStatus::c
         if ($user->role === 'super_admin') return redirect()->route('developer.activity-logs');
         if (!$user->is_admin) return redirect()->route('pos');
 
-        $storeId = $user->store_id;
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $user->store_id;
 
         // Fetch store activity logs with user relationship
         $rawLogs = \App\Models\ActivityLog::where('store_id', $storeId)
@@ -681,6 +692,7 @@ Route::middleware(['auth', 'super_admin'])->prefix('developer')->group(function 
 
     // 3. Provisioning & Actions
     Route::post('/stores', [DeveloperController::class, 'storeStore'])->name('developer.stores.store');
+    Route::post('/stores/branch', [DeveloperController::class, 'storeBranch'])->name('developer.stores.branch');
     Route::post('/plans', [DeveloperController::class, 'storePlan'])->name('developer.plans.store');
     Route::post('/plans/{plan}/toggle-status', [DeveloperController::class, 'togglePlanStatus'])->name('developer.plans.toggle-status');
     Route::post('/stores/{store}/toggle-status', [DeveloperController::class, 'toggleStatus'])->name('developer.stores.toggle-status');

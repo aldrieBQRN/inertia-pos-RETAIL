@@ -13,7 +13,7 @@ import CashMovementModal from '@/Components/CashMovementModal';
 export default function ShiftHistory({ auth, initial_shifts, initial_terminals, initial_settings, initial_active_shifts, initial_shift_details }) {
     // 1. Data States
     const [allShifts, setAllShifts] = useState(() => initial_shifts || []);
-    const [loading, setLoading] = useState(() => !initial_shifts || initial_shifts.length === 0);
+    const [loading, setLoading] = useState(() => !Array.isArray(initial_shifts));
     const [settings, setSettings] = useState(() => initial_settings || null);
     const [activeShifts, setActiveShifts] = useState(() => initial_active_shifts || []);
     const [isExporting, setIsExporting] = useState(false);
@@ -203,9 +203,24 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
         });
     };
 
+    // Sync preloaded server-side props on navigation / branch switch
+    useEffect(() => {
+        if (Array.isArray(initial_shifts)) {
+            setAllShifts(initial_shifts);
+            setLoading(false);
+        }
+    }, [initial_shifts]);
+
+    useEffect(() => {
+        if (Array.isArray(initial_terminals)) setTerminals(initial_terminals);
+        if (initial_settings) setSettings(initial_settings);
+        if (Array.isArray(initial_active_shifts)) setActiveShifts(initial_active_shifts);
+        if (initial_shift_details) shiftDetailsCacheRef.current = initial_shift_details;
+    }, [initial_terminals, initial_settings, initial_active_shifts, initial_shift_details]);
+
     // Initial Load & Background Polling Setup
     useEffect(() => {
-        const hasInitialData = Boolean(initial_shifts && initial_shifts.length > 0);
+        const hasInitialData = Array.isArray(initial_shifts);
         if (!hasInitialData) {
             fetchSettings();
             loadAllShifts(true);

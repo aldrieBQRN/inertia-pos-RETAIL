@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * User Model
@@ -106,11 +108,59 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the store that the user belongs to.
+     * Get the primary store that the user belongs to.
      */
     public function store(): BelongsTo
     {
         return $this->belongsTo(Store::class);
+    }
+
+    /**
+     * Stores owned by this user (Tenant Owner).
+     */
+    public function ownedStores(): HasMany
+    {
+        return $this->hasMany(Store::class, 'owner_id');
+    }
+
+    /**
+     * Stores this user has access to via pivot table.
+     */
+    public function stores(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Store::class, 'store_user')
+            ->withPivot('role', 'is_primary')
+            ->withTimestamps();
+    }
+
+    protected $accessibleStoresCache = null;
+
+    /**
+     * Get all accessible stores for the user.
+     */
+    public function getAccessibleStores()
+    {
+        if ($this->accessibleStoresCache !== null) {
+            return $this->accessibleStoresCache;
+        }
+
+        if ($this->role === 'super_admin') {
+            return $this->accessibleStoresCache = Store::orderBy('name')->get();
+        }
+
+        // 1. Tenant Owner (created by Developer / owns stores): has full access to switch between all owned branches
+        if ($this->ownedStores()->exists()) {
+            return $this->accessibleStoresCache = Store::where('owner_id', $this->id)
+                ->orderBy('name')
+                ->get();
+        }
+
+        // 2. Branch Admin / Cashier (added via Staff page): restricted ONLY to their assigned store
+        return $this->accessibleStoresCache = Store::where('id', $this->store_id)
+            ->orWhereHas('assignedUsers', fn($q) => $q->where('users.id', $this->id))
+            ->distinct()
+            ->orderBy('name')
+            ->get();
     }
 
     /**
@@ -124,7 +174,7 @@ class User extends Authenticatable
     /**
      * Shifts worked by this user.
      */
-    public function shifts()
+    public function shifts(): HasMany
     {
         return $this->hasMany(Shift::class, 'user_id');
     }
@@ -140,7 +190,7 @@ class User extends Authenticatable
     /**
      * Sales transactions processed by this cashier.
      */
-    public function sales()
+    public function sales(): HasMany
     {
         return $this->hasMany(Sale::class, 'cashier_id');
     }

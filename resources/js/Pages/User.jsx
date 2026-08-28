@@ -12,7 +12,7 @@ import { saveAs } from 'file-saver';
 export default function User({ auth, users, settings }) {
     const { is_demo_mode } = usePage().props;
     // 1. Core Data States
-    const [loading, setLoading] = useState(() => !users || (Array.isArray(users) ? users.length === 0 : false));
+    const [loading, setLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isSendingOtp, setIsSendingOtp] = useState(false);
     const [isExporting, setIsExporting] = useState(false);

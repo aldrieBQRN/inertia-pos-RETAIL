@@ -46,7 +46,7 @@ class PosController extends Controller
 
             // 2. Initialize the main Sale record
             // Multi-tenant isolation: Get the store ID to prefix the invoice
-            $storeId = Auth::user()->store_id;
+            $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? Auth::user()->store_id;
 
             // Format: INV-[STORE_ID]-[YEAR][MONTH][DAY]-
             // Example: INV-001-20260329-

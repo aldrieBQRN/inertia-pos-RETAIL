@@ -44,6 +44,9 @@ class CleanDatabaseSeeder extends Seeder
         if (Schema::hasTable('terminals')) {
             \App\Models\Terminal::truncate();
         }
+        if (Schema::hasTable('store_user')) {
+            \Illuminate\Support\Facades\DB::table('store_user')->truncate();
+        }
         Product::truncate();
         Category::truncate();
         SubscriptionPayment::truncate();

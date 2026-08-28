@@ -22,7 +22,7 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
-        $storeId = $request->user()->store_id;
+        $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? $request->user()->store_id;
 
         $tz = config('app.timezone', 'Asia/Manila');
         $today = Carbon::now($tz)->startOfDay();

@@ -15,7 +15,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
     // 1. Core Data States
     const [allTransactions, setAllTransactions] = useState(() => initial_transactions || []);
     const [settings, setSettings] = useState(() => initial_settings || null);
-    const [loading, setLoading] = useState(() => !initial_transactions || initial_transactions.length === 0);
+    const [loading, setLoading] = useState(() => !Array.isArray(initial_transactions));
     const [isExporting, setIsExporting] = useState(false);
     const [showDataMenu, setShowDataMenu] = useState(false);
 
@@ -210,9 +210,23 @@ export default function Transactions({ auth, initial_transactions, initial_setti
         }
     };
 
+    // Sync preloaded server-side props on navigation / branch switch
+    useEffect(() => {
+        if (Array.isArray(initial_transactions)) {
+            setAllTransactions(initial_transactions);
+            setLoading(false);
+        }
+    }, [initial_transactions]);
+
+    useEffect(() => {
+        if (initial_settings) {
+            setSettings(initial_settings);
+        }
+    }, [initial_settings]);
+
     // Initial Load & Background Polling
     useEffect(() => {
-        const hasInitialData = Boolean(initial_transactions && initial_transactions.length > 0);
+        const hasInitialData = Array.isArray(initial_transactions);
         if (!hasInitialData) {
             loadAllTransactions(true);
         }

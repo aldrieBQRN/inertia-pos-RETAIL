@@ -76,16 +76,22 @@ class DeveloperController extends Controller
      */
     public function tenants(Request $request)
     {
-        $query = Store::with(['users', 'plan']);
+        $query = Store::with(['users', 'plan', 'owner']);
 
         // 1. Search Filter
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where('name', 'like', "%{$search}%")
-                ->orWhereHas('users', function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                });
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhereHas('users', function ($uq) use ($search) {
+                        $uq->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('owner', function ($oq) use ($search) {
+                        $oq->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
         }
 
         // 2. Status Filter
@@ -101,9 +107,15 @@ class DeveloperController extends Controller
         // Pass `withQueryString()` to keep filter parameters when switching pages!
         $stores = $query->latest()->paginate(9)->withQueryString();
 
+        $owners = User::where('role', 'admin')
+            ->select('id', 'name', 'email')
+            ->orderBy('name')
+            ->get();
+
         return inertia('Developer/Tenants', [
             'stores' => $stores,
-            'plans'  => Plan::all()
+            'plans'  => Plan::where('is_active', true)->get(),
+            'owners' => $owners,
         ]);
     }
     /**
@@ -345,7 +357,17 @@ class DeveloperController extends Controller
         $endsAt = now()->addMonths($plan->duration_months);
 
         $user = DB::transaction(function () use ($request, $endsAt, $plan) {
+            $user = User::create([
+                'name'              => $request->owner_name,
+                'email'             => $request->owner_email,
+                'password'          => Hash::make(Str::random(32)),
+                'role'              => 'admin',
+                'is_admin'          => true,
+                'email_verified_at' => now(),
+            ]);
+
             $store = Store::create([
+                'owner_id'             => $user->id,
                 'name'                 => 'Pending Setup - ' . explode('@', $request->owner_email)[0],
                 'address'              => 'Pending Details',
                 'status'               => true,
@@ -353,15 +375,18 @@ class DeveloperController extends Controller
                 'subscription_ends_at' => $endsAt,
             ]);
 
-            return User::create([
-                'name'              => $request->owner_name,
-                'email'             => $request->owner_email,
-                'password'          => Hash::make(Str::random(32)),
-                'role'              => 'admin',
-                'is_admin'          => true,
-                'store_id'          => $store->id,
-                'email_verified_at' => now(),
+            $user->update(['store_id' => $store->id]);
+
+            DB::table('store_user')->insert([
+                'user_id'    => $user->id,
+                'store_id'   => $store->id,
+                'role'       => 'admin',
+                'is_primary' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
+
+            return $user;
         });
 
         ActivityService::log(
@@ -384,6 +409,67 @@ class DeveloperController extends Controller
         Mail::to($user->email)->send(new TenantInviteMail($user, $setupUrl));
 
         return redirect()->back()->with('success', "Invitation sent! {$user->name} will receive an email to complete setup.");
+    }
+
+    /**
+     * Provision an Additional Branch for an Existing Tenant Owner
+     */
+    public function storeBranch(Request $request)
+    {
+        if (Auth::user()->role !== 'super_admin') abort(403);
+
+        $request->validate([
+            'owner_id'    => 'required|exists:users,id',
+            'branch_name' => 'required|string|max:255',
+            'address'     => 'nullable|string|max:255',
+            'phone'       => 'nullable|string|max:50',
+            'plan_id'     => 'required|exists:plans,id',
+        ]);
+
+        $owner = User::findOrFail($request->owner_id);
+        $plan = Plan::findOrFail($request->plan_id);
+        $endsAt = now()->addMonths($plan->duration_months);
+
+        $store = DB::transaction(function () use ($request, $owner, $plan, $endsAt) {
+            $branch = Store::create([
+                'owner_id'             => $owner->id,
+                'name'                 => $request->branch_name,
+                'address'              => $request->address ?: 'Pending Details',
+                'phone'                => $request->phone ?: null,
+                'status'               => true,
+                'plan_id'              => $plan->id,
+                'subscription_ends_at' => $endsAt,
+            ]);
+
+            DB::table('store_user')->insert([
+                'user_id'    => $owner->id,
+                'store_id'   => $branch->id,
+                'role'       => 'admin',
+                'is_primary' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return $branch;
+        });
+
+        ActivityService::log(
+            'tenant.branch.create',
+            'create',
+            'Store',
+            $store->id,
+            "Provisioned additional branch '{$store->name}' for owner {$owner->name} ({$owner->email})",
+            null,
+            [
+                'store_id'             => $store->id,
+                'owner_id'             => $owner->id,
+                'branch_name'          => $store->name,
+                'plan_id'              => $plan->id,
+                'subscription_ends_at' => optional($endsAt)->toDateString(),
+            ]
+        );
+
+        return redirect()->back()->with('success', "New branch '{$store->name}' provisioned successfully for {$owner->name}!");
     }
 
     public function toggleStatus(Store $store)
