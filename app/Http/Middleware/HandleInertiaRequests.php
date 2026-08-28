@@ -29,7 +29,7 @@ class HandleInertiaRequests extends Middleware
                 'csrf_token' => csrf_token(),
             ],
 
-            'is_demo_mode' => (bool) config('app.demo_mode', false),
+            'is_demo_mode' => filter_var(env('APP_DEMO_MODE', config('app.demo_mode', false)), FILTER_VALIDATE_BOOLEAN),
 
             // Share flash messages
             'flash' => [

@@ -14,7 +14,9 @@ class PreventDemoModifications
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (config('app.demo_mode', false)) {
+        $isDemo = filter_var(env('APP_DEMO_MODE', config('app.demo_mode', false)), FILTER_VALIDATE_BOOLEAN);
+
+        if ($isDemo) {
             $message = 'Demo Mode Active: Please contact the POS provider to access this feature.';
 
             if ($request->wantsJson() || $request->header('X-Inertia')) {
