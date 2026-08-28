@@ -150,6 +150,15 @@ export default function Inventory({ auth, initial_products, initial_categories, 
         }
     };
 
+    // Helper for resolving full avatar URLs
+    const getAvatarUrl = (path) => {
+        if (!path) return null;
+        if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/storage/')) {
+            return path;
+        }
+        return `/storage/${path}`;
+    };
+
     const isNewProduct = (dateStr) => {
         if (!dateStr) return false;
         try {
@@ -3721,11 +3730,24 @@ export default function Inventory({ auth, initial_products, initial_categories, 
 
                                                                 {/* Recorded By */}
                                                                 <td className="p-4 whitespace-nowrap">
-                                                                    <div className="flex items-center gap-1.5">
-                                                                        <span className="w-5 h-5 rounded-full bg-[#1B3B6A] text-white text-[10px] font-black flex items-center justify-center shrink-0">
-                                                                            {row.user_name ? row.user_name.charAt(0).toUpperCase() : 'S'}
-                                                                        </span>
-                                                                        <span className="font-bold text-slate-900">{row.user_name || 'System'}</span>
+                                                                    <div className="flex items-center gap-2.5">
+                                                                        {row.user_avatar ? (
+                                                                            <img
+                                                                                src={getAvatarUrl(row.user_avatar)}
+                                                                                alt={row.user_name}
+                                                                                className="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                            />
+                                                                        ) : (
+                                                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 text-xs font-black flex items-center justify-center shrink-0 uppercase shadow-2xs">
+                                                                                {row.user_name ? row.user_name.charAt(0) : 'S'}
+                                                                            </div>
+                                                                        )}
+                                                                        <div>
+                                                                            <span className="font-extrabold text-gray-900 text-xs block">{row.user_name || 'System'}</span>
+                                                                            {row.user_account_number && (
+                                                                                <span className="text-[10px] font-mono font-bold text-gray-400 block -mt-0.5">#{row.user_account_number}</span>
+                                                                            )}
+                                                                        </div>
                                                                     </div>
                                                                 </td>
 
@@ -3781,13 +3803,24 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                         </div>
 
                                                         <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
-                                                            <div className="flex items-center gap-1.5 min-w-0">
-                                                                <span className="w-5 h-5 rounded-full bg-[#1B3B6A] text-white text-[10px] font-black flex items-center justify-center shrink-0">
-                                                                    {row.user_name ? row.user_name.charAt(0).toUpperCase() : 'S'}
-                                                                </span>
+                                                            <div className="flex items-center gap-2 min-w-0">
+                                                                {row.user_avatar ? (
+                                                                    <img
+                                                                        src={getAvatarUrl(row.user_avatar)}
+                                                                        alt={row.user_name}
+                                                                        className="w-7 h-7 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 text-[10px] font-black flex items-center justify-center shrink-0 uppercase shadow-2xs">
+                                                                        {row.user_name ? row.user_name.charAt(0) : 'S'}
+                                                                    </div>
+                                                                )}
                                                                 <div className="min-w-0">
-                                                                    <span className="text-xs font-bold text-slate-900 block truncate">{row.user_name || 'System'}</span>
-                                                                    <span className="font-mono text-[9px] text-slate-500 font-bold block truncate">Ref: {refNo}</span>
+                                                                    <span className="text-xs font-extrabold text-gray-900 block truncate">{row.user_name || 'System'}</span>
+                                                                    <div className="flex items-center gap-1.5 text-[9px] font-mono text-gray-400 font-bold">
+                                                                        <span>Ref: {refNo}</span>
+                                                                        {row.user_account_number && <span>• #{row.user_account_number}</span>}
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             <div>
@@ -4129,10 +4162,21 @@ export default function Inventory({ auth, initial_products, initial_categories, 
 
                                                                 {/* Staff / Actor Avatar Chip */}
                                                                 <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-700 text-[11px] font-bold">
-                                                                    <span className="w-4 h-4 rounded-full bg-[#1B3B6A] text-white text-[9px] font-black flex items-center justify-center shrink-0">
-                                                                        {log.user_name ? log.user_name.charAt(0).toUpperCase() : 'S'}
-                                                                    </span>
+                                                                    {log.user_avatar ? (
+                                                                        <img
+                                                                            src={getAvatarUrl(log.user_avatar)}
+                                                                            alt={log.user_name}
+                                                                            className="w-5 h-5 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                        />
+                                                                    ) : (
+                                                                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 flex items-center justify-center font-black text-[9px] shrink-0 uppercase shadow-2xs">
+                                                                            {log.user_name ? log.user_name.charAt(0) : 'S'}
+                                                                        </div>
+                                                                    )}
                                                                     <span>{log.user_name || 'System'}</span>
+                                                                    {log.user_account_number && (
+                                                                        <span className="font-mono text-[10px] text-gray-400 font-bold">#{log.user_account_number}</span>
+                                                                    )}
                                                                 </div>
 
                                                                 {/* Reference Number Badge */}

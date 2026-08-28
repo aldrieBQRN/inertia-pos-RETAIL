@@ -23,7 +23,9 @@ const Trigger = ({ children }) => {
 
     return (
         <>
-            <div onClick={toggleOpen}>{children}</div>
+            <div onClick={toggleOpen}>
+                {typeof children === 'function' ? children({ open }) : children}
+            </div>
 
             {open && (
                 <div
@@ -55,6 +57,16 @@ const Content = ({
 
     if (width === '48') {
         widthClasses = 'w-48';
+    } else if (width === '56') {
+        widthClasses = 'w-56';
+    } else if (width === '64') {
+        widthClasses = 'w-64';
+    } else if (width === '72') {
+        widthClasses = 'w-72';
+    } else if (width === '80') {
+        widthClasses = 'w-80';
+    } else if (width && width.startsWith('w-')) {
+        widthClasses = width;
     }
 
     return (

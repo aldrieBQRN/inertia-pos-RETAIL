@@ -1441,9 +1441,20 @@ export default function ActivityLogs() {
                             {/* Core Meta Details Grid */}
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                                 <div className="bg-white p-3.5 rounded-2xl border border-gray-200/80 shadow-2xs">
-                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">Staff Member</span>
-                                    <span className="font-black text-gray-900 mt-1 block truncate text-sm">{selectedLogForModal.user_name || 'System / Auto'}</span>
-                                    <span className="text-[10px] text-gray-400 uppercase font-bold block">{selectedLogForModal.user_role || 'Staff'}</span>
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block mb-1.5">Staff Member</span>
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                        {selectedLogForModal.user_avatar ? (
+                                            <img src={selectedLogForModal.user_avatar} alt={selectedLogForModal.user_name} className="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0" />
+                                        ) : (
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-xs border border-gray-200 shrink-0 uppercase shadow-2xs">
+                                                {selectedLogForModal.user_name ? selectedLogForModal.user_name.charAt(0) : 'S'}
+                                            </div>
+                                        )}
+                                        <div className="min-w-0">
+                                            <span className="font-black text-gray-900 block truncate text-xs">{selectedLogForModal.user_name || 'System / Auto'}</span>
+                                            <span className="text-[10px] text-gray-400 uppercase font-bold block">{selectedLogForModal.user_role || 'Staff'}</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="bg-white p-3.5 rounded-2xl border border-gray-200/80 shadow-2xs">
                                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">Category</span>

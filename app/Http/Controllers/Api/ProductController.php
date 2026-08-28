@@ -539,6 +539,8 @@ class ProductController extends Controller
                     'invoice_number' => $inv,
                     'reference_no' => $inv,
                     'user_name' => $item->sale && $item->sale->cashier ? $item->sale->cashier->name : 'POS Cashier',
+                    'user_avatar' => $item->sale && $item->sale->cashier && $item->sale->cashier->avatar_path ? (str_starts_with($item->sale->cashier->avatar_path, 'http') ? $item->sale->cashier->avatar_path : asset('storage/' . $item->sale->cashier->avatar_path)) : null,
+                    'user_account_number' => $item->sale && $item->sale->cashier ? $item->sale->cashier->account_number : null,
                     'description' => "Sold {$item->quantity} unit(s) via POS (₱" . number_format($item->subtotal / 100, 2) . ")",
                     'created_at' => $item->created_at ? $item->created_at->toIso8601String() : now()->toIso8601String(),
                 ];
@@ -588,6 +590,8 @@ class ProductController extends Controller
                         'old_values' => $log->old_values,
                         'new_values' => $log->new_values,
                         'user_name' => $log->user ? $log->user->name : 'Store Admin',
+                        'user_avatar' => $log->user && $log->user->avatar_path ? (str_starts_with($log->user->avatar_path, 'http') ? $log->user->avatar_path : asset('storage/' . $log->user->avatar_path)) : null,
+                        'user_account_number' => $log->user ? $log->user->account_number : null,
                         'description' => $log->description ?: "Stock updated for product",
                         'created_at' => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
                     ];
@@ -608,6 +612,8 @@ class ProductController extends Controller
                     'reference_no' => $skuRef,
                     'invoice_number' => $skuRef,
                     'user_name' => 'Store Admin',
+                    'user_avatar' => null,
+                    'user_account_number' => null,
                     'description' => "Initial catalog registration for {$product->name} (SKU: {$product->sku})",
                     'created_at' => $product->created_at->toIso8601String(),
                 ];
@@ -679,6 +685,8 @@ class ProductController extends Controller
                         'reference_no' => 'LOG-' . str_pad($log->id, 5, '0', STR_PAD_LEFT),
                         'description' => $log->description,
                         'user_name' => $log->user ? $log->user->name : 'System',
+                        'user_avatar' => $log->user && $log->user->avatar_path ? (str_starts_with($log->user->avatar_path, 'http') ? $log->user->avatar_path : asset('storage/' . $log->user->avatar_path)) : null,
+                        'user_account_number' => $log->user ? $log->user->account_number : null,
                         'old_values' => $log->old_values,
                         'new_values' => $log->new_values,
                         'created_at' => $log->created_at ? $log->created_at->toIso8601String() : now()->toIso8601String(),
@@ -706,6 +714,8 @@ class ProductController extends Controller
                     'sku' => $item->product ? $item->product->sku : null,
                     'description' => "Sold {$item->quantity}x {$prodName} via POS" . ($invoice ? " (Inv: {$invoice})" : ""),
                     'user_name' => $item->sale && $item->sale->cashier ? $item->sale->cashier->name : 'Cashier',
+                    'user_avatar' => $item->sale && $item->sale->cashier && $item->sale->cashier->avatar_path ? (str_starts_with($item->sale->cashier->avatar_path, 'http') ? $item->sale->cashier->avatar_path : asset('storage/' . $item->sale->cashier->avatar_path)) : null,
+                    'user_account_number' => $item->sale && $item->sale->cashier ? $item->sale->cashier->account_number : null,
                     'created_at' => $item->created_at ? $item->created_at->toIso8601String() : now()->toIso8601String(),
                 ];
             });
@@ -726,6 +736,8 @@ class ProductController extends Controller
                     'reference_no' => $p->sku ? ('SKU: ' . $p->sku) : ('PRD-' . str_pad($p->id, 5, '0', STR_PAD_LEFT)),
                     'description' => "Registered new product: {$p->name} (SKU: {$p->sku}) with {$p->stock_quantity} units",
                     'user_name' => 'Store Admin',
+                    'user_avatar' => null,
+                    'user_account_number' => null,
                     'created_at' => $p->created_at ? $p->created_at->toIso8601String() : now()->toIso8601String(),
                 ];
             });
