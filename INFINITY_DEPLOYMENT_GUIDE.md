@@ -119,13 +119,13 @@ https://your-domain.infinityfreeapp.com/artisan-migrate?token=YOUR_TOKEN&seed=1
 https://your-domain.infinityfreeapp.com/artisan-migrate?token=YOUR_TOKEN&fresh=1&seed=1
 ```
 
-#### 4. Run a Specific Seeder Class (e.g. `DemoSeeder`, `ApiProductSeeder`, or `SystemSettingsSeeder`):
+#### 4. Run a Specific Seeder Class (e.g. `BranchSeeder`, `ApiProductSeeder`, or `SystemSettingsSeeder`):
 ```http
-https://your-domain.infinityfreeapp.com/artisan-migrate?token=YOUR_TOKEN&fresh=1&seed=1&class=DemoSeeder
+https://your-domain.infinityfreeapp.com/artisan-migrate?token=YOUR_TOKEN&fresh=1&seed=1&class=BranchSeeder
 ```
 *(or seed specific class without wiping existing data)*:
 ```http
-https://your-domain.infinityfreeapp.com/artisan-migrate?token=YOUR_TOKEN&seed=1&class=ApiProductSeeder
+https://your-domain.infinityfreeapp.com/artisan-migrate?token=YOUR_TOKEN&seed=1&class=BranchSeeder
 ```
 
 #### 5. Storage Symlink Resolution (Fix missing images):
@@ -140,9 +140,10 @@ https://your-domain.infinityfreeapp.com/artisan-migrate?token=YOUR_TOKEN&storage
 | Goal | URL Parameters | Equivalent Artisan Command |
 | :--- | :--- | :--- |
 | **Run Migrations** | `?token=YOUR_TOKEN` | `php artisan migrate --force` |
-| **Migrate + Seed** | `?token=YOUR_TOKEN&seed=1` | `php artisan migrate --force --seed` |
-| **Wipe & Fresh Seed** | `?token=YOUR_TOKEN&fresh=1&seed=1` | `php artisan migrate:fresh --force --seed` |
-| **Seed Specific Class** | `?token=YOUR_TOKEN&seed=1&class=DemoSeeder` | `php artisan db:seed --class=DemoSeeder --force` |
+| **Migrate + Seed All (with Multi-Branch)** | `?token=YOUR_TOKEN&seed=1` | `php artisan migrate --force --seed` |
+| **Wipe & Fresh Seed All** | `?token=YOUR_TOKEN&fresh=1&seed=1` | `php artisan migrate:fresh --force --seed` |
+| **Seed Multi-Branch Specifically** | `?token=YOUR_TOKEN&seed=1&class=BranchSeeder` | `php artisan db:seed --class=BranchSeeder --force` |
+| **Seed Products & Photos Specifically** | `?token=YOUR_TOKEN&seed=1&class=ApiProductSeeder` | `php artisan db:seed --class=ApiProductSeeder --force` |
 | **Clear Cache & Config** | Automatic on every call | `php artisan optimize:clear` |
 
 ---

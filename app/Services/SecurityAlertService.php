@@ -15,19 +15,20 @@ class SecurityAlertService
     public static function sendAlert(string $action, string $description, ?array $details = null): void
     {
         // 1. Check if alerts are enabled
-        if (!env('SECURITY_ALERTS_ENABLED', false)) {
+        $enabled = getenv('SECURITY_ALERTS_ENABLED') ?: ($_ENV['SECURITY_ALERTS_ENABLED'] ?? env('SECURITY_ALERTS_ENABLED', false));
+        if ($enabled === false || $enabled === 'false' || $enabled === 0 || $enabled === '0' || empty($enabled)) {
             return;
         }
 
-        $channel = env('SECURITY_ALERTS_CHANNEL', 'email');
+        $channel = getenv('SECURITY_ALERTS_CHANNEL') ?: ($_ENV['SECURITY_ALERTS_CHANNEL'] ?? env('SECURITY_ALERTS_CHANNEL', 'email'));
 
         // 2. Handle Email alerts
         if ($channel === 'email' || $channel === 'both') {
-            $recipient = env('SECURITY_ALERTS_EMAIL_RECIPIENT');
+            $recipient = getenv('SECURITY_ALERTS_EMAIL_RECIPIENT') ?: ($_ENV['SECURITY_ALERTS_EMAIL_RECIPIENT'] ?? env('SECURITY_ALERTS_EMAIL_RECIPIENT'));
             if (!empty($recipient)) {
                 try {
                     // Send queued email (non-blocking)
-                    Mail::to($recipient)->send(new SecurityAlertMail($action, $description, $details));
+                    Mail::to($recipient)->queue(new SecurityAlertMail($action, $description, $details));
                 } catch (\Exception $e) {
                     Log::error("Failed to queue security alert email: " . $e->getMessage());
                 }
@@ -38,7 +39,7 @@ class SecurityAlertService
 
         // 3. Handle Webhook alerts
         if ($channel === 'webhook' || $channel === 'both') {
-            $webhookUrl = env('SECURITY_ALERTS_WEBHOOK_URL');
+            $webhookUrl = getenv('SECURITY_ALERTS_WEBHOOK_URL') ?: ($_ENV['SECURITY_ALERTS_WEBHOOK_URL'] ?? env('SECURITY_ALERTS_WEBHOOK_URL'));
             if (empty($webhookUrl)) {
                 Log::warning('Security alerts are configured via webhook, but SECURITY_ALERTS_WEBHOOK_URL is not configured.');
                 return;
@@ -102,7 +103,7 @@ class SecurityAlertService
                             'pretext' => "{$titleEmoji} *Security Event Alert*",
                             'title' => $description,
                             'fields' => $fields,
-                            'footer' => env('APP_NAME', 'Inertia POS'),
+                            'footer' => config('app.name', 'Inertia POS'),
                             'ts' => time(),
                         ]
                     ]

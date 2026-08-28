@@ -76,21 +76,30 @@ class DeveloperController extends Controller
      */
     public function tenants(Request $request)
     {
-        $query = Store::with(['users', 'plan', 'owner']);
+        $relations = ['users', 'plan'];
+        $hasOwner = \Illuminate\Support\Facades\Schema::hasColumn('stores', 'owner_id');
+        if ($hasOwner) {
+            $relations[] = 'owner';
+        }
+
+        $query = Store::with($relations);
 
         // 1. Search Filter
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function ($q) use ($search) {
+            $query->where(function ($q) use ($search, $hasOwner) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhereHas('users', function ($uq) use ($search) {
                         $uq->where('name', 'like', "%{$search}%")
                             ->orWhere('email', 'like', "%{$search}%");
-                    })
-                    ->orWhereHas('owner', function ($oq) use ($search) {
+                    });
+                
+                if ($hasOwner) {
+                    $q->orWhereHas('owner', function ($oq) use ($search) {
                         $oq->where('name', 'like', "%{$search}%")
                             ->orWhere('email', 'like', "%{$search}%");
                     });
+                }
             });
         }
 

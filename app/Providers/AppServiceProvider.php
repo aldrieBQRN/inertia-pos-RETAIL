@@ -58,16 +58,25 @@ class AppServiceProvider extends ServiceProvider
 
         // 1. Guest API Throttling: Strict rate limit to prevent brute force & signature scanning (10 per minute per IP)
         RateLimiter::for('guest_api', function (Request $request) {
+            if (app()->environment('local')) {
+                return Limit::none();
+            }
             return Limit::perMinute(10)->by($request->ip());
         });
 
         // 2. Auth API Throttling: High limit per User ID to avoid interrupting busy cashiers/admins
         RateLimiter::for('auth_api', function (Request $request) {
+            if (app()->environment('local')) {
+                return Limit::none();
+            }
             return Limit::perMinute(300)->by($request->user()?->id ?: $request->ip());
         });
 
         // 3. Checkout API Throttling: High limit to support rapid scanning & checkouts, but prevents double clicks
         RateLimiter::for('checkout_api', function (Request $request) {
+            if (app()->environment('local')) {
+                return Limit::none();
+            }
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
     }

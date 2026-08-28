@@ -23,14 +23,16 @@ class BranchController extends Controller
 
         // Authorization check
         $hasAccess = false;
+        $hasOwnerId = \Illuminate\Support\Facades\Schema::hasColumn('stores', 'owner_id');
+        $hasStoreUser = \Illuminate\Support\Facades\Schema::hasTable('store_user');
 
         if ($user->role === 'super_admin') {
             $hasAccess = true;
-        } elseif ($targetStore->owner_id && (int) $targetStore->owner_id === (int) $user->id) {
+        } elseif ($hasOwnerId && $targetStore->owner_id && (int) $targetStore->owner_id === (int) $user->id) {
             $hasAccess = true;
         } elseif ((int) $user->store_id === $targetStoreId) {
             $hasAccess = true;
-        } elseif ($user->stores()->where('stores.id', $targetStoreId)->exists()) {
+        } elseif ($hasStoreUser && $user->stores()->where('stores.id', $targetStoreId)->exists()) {
             $hasAccess = true;
         }
 

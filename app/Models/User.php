@@ -144,23 +144,42 @@ class User extends Authenticatable
             return $this->accessibleStoresCache;
         }
 
-        if ($this->role === 'super_admin') {
-            return $this->accessibleStoresCache = Store::orderBy('name')->get();
-        }
+        try {
+            if ($this->role === 'super_admin') {
+                return $this->accessibleStoresCache = Store::orderBy('name')->get();
+            }
 
-        // 1. Tenant Owner (created by Developer / owns stores): has full access to switch between all owned branches
-        if ($this->ownedStores()->exists()) {
-            return $this->accessibleStoresCache = Store::where('owner_id', $this->id)
-                ->orderBy('name')
-                ->get();
-        }
+            $hasOwnerId = \Illuminate\Support\Facades\Schema::hasColumn('stores', 'owner_id');
+            $hasStoreUser = \Illuminate\Support\Facades\Schema::hasTable('store_user');
 
-        // 2. Branch Admin / Cashier (added via Staff page): restricted ONLY to their assigned store
-        return $this->accessibleStoresCache = Store::where('id', $this->store_id)
-            ->orWhereHas('assignedUsers', fn($q) => $q->where('users.id', $this->id))
-            ->distinct()
-            ->orderBy('name')
-            ->get();
+            // 1. Tenant Owner (created by Developer / owns stores): has full access to switch between all owned branches
+            if ($hasOwnerId && $this->ownedStores()->exists()) {
+                return $this->accessibleStoresCache = Store::where('owner_id', $this->id)
+                    ->orderBy('name')
+                    ->get();
+            }
+
+            // 2. Branch Admin / Cashier (added via Staff page): restricted ONLY to their assigned store
+            if ($hasStoreUser) {
+                return $this->accessibleStoresCache = Store::where('id', $this->store_id)
+                    ->orWhereHas('assignedUsers', fn($q) => $q->where('users.id', $this->id))
+                    ->distinct()
+                    ->orderBy('name')
+                    ->get();
+            }
+
+            // Fallback for pre-migration state
+            if ($this->store_id) {
+                return $this->accessibleStoresCache = Store::where('id', $this->store_id)->get();
+            }
+
+            return $this->accessibleStoresCache = Store::all();
+        } catch (\Throwable $e) {
+            if ($this->store_id) {
+                return $this->accessibleStoresCache = Store::where('id', $this->store_id)->get();
+            }
+            return $this->accessibleStoresCache = collect([]);
+        }
     }
 
     /**

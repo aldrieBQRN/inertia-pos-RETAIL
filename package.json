@@ -4,7 +4,12 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "vite --host 127.0.0.1"
+    "dev": "vite --host 127.0.0.1",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:cashier": "playwright test e2e/02_cashier_pos",
+    "test:e2e:admin": "playwright test e2e/03_admin_inventory e2e/04_admin_transactions e2e/05_admin_shifts e2e/06_admin_analytics e2e/07_admin_management",
+    "test:backend": "php artisan test"
   },
   "devDependencies": {
     "@headlessui/react": "^2.0.0",

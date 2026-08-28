@@ -18,26 +18,31 @@ trait BelongsToStore
 
         $user = Auth::user();
 
-        // 1. If user is a regular branch staff / admin (does not own stores), strictly force their assigned store_id
-        if (!$user->ownedStores()->exists() && $user->role !== 'super_admin') {
-            return $user->store_id ? (int) $user->store_id : null;
-        }
+        try {
+            $hasOwnerId = \Illuminate\Support\Facades\Schema::hasColumn('stores', 'owner_id');
 
-        // 2. If user is Tenant Owner or Super Admin, use the session active_store_id if valid
-        if (session()->has('active_store_id')) {
-            $sessId = (int) session('active_store_id');
-
-            if ($user->role === 'super_admin') {
-                return $sessId;
+            // 1. If user is a regular branch staff / cashier / branch admin (does not own stores)
+            if ($hasOwnerId && $user->role !== 'super_admin' && !$user->ownedStores()->exists()) {
+                return $user->store_id ? (int) $user->store_id : null;
             }
 
-            // Verify the owner actually owns this store
-            if ($user->ownedStores()->where('stores.id', $sessId)->exists()) {
-                return $sessId;
-            }
+            // 2. If user is Tenant Owner or Super Admin, use the session active_store_id if valid
+            if (session()->has('active_store_id')) {
+                $sessId = (int) session('active_store_id');
 
-            // If session has an invalid/unowned store, clear it
-            session()->forget('active_store_id');
+                if ($user->role === 'super_admin') {
+                    return $sessId;
+                }
+
+                if ($hasOwnerId && $user->ownedStores()->where('stores.id', $sessId)->exists()) {
+                    return $sessId;
+                }
+
+                // If session has an invalid/unowned store, clear it
+                session()->forget('active_store_id');
+            }
+        } catch (\Throwable $e) {
+            // Graceful fallback if migrations have not completed yet on server
         }
 
         return $user->store_id ? (int) $user->store_id : null;

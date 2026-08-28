@@ -33,7 +33,7 @@ Route::middleware('guest')->group(function () {
 
     // NEW: OTP-based password reset endpoints
     Route::post('forgot-password/send-otp', [ForgotPasswordController::class, 'sendOtp'])
-        ->middleware('throttle:guest_api')
+        ->middleware(['throttle.mail', 'throttle:guest_api'])
         ->name('password.send-otp');
 
     Route::post('forgot-password/verify-otp', [ForgotPasswordController::class, 'verifyOtp'])

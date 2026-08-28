@@ -48,8 +48,8 @@ class HandleInertiaRequests extends Middleware
 
             // Share flash messages
             'flash' => [
-                'success' => $request->session()->get('success'),
-                'error' => $request->session()->get('error'),
+                'success' => $request->hasSession() ? $request->session()->get('success') : null,
+                'error' => $request->hasSession() ? $request->session()->get('error') : null,
             ],
 
             // Share dynamic settings (Global Branding overrides Tenant defaults in UI)

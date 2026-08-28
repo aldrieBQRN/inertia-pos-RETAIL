@@ -52,12 +52,12 @@ test('logged in user bypasses the block even if their ip is blocked', function (
     // 2. Create a user and log them in
     $user = User::factory()->create(['role' => 'cashier']);
 
-    // 3. Request POS page as logged-in user from the blocked IP
+    // 3. Request profile page as logged-in user from the blocked IP
     $response = $this->actingAs($user)
         ->withServerVariables(['REMOTE_ADDR' => '8.8.8.8'])
-        ->get('/pos');
+        ->get('/profile');
 
-    // 4. Should bypass block and redirect/succeed (not be a 403)
-    $response->assertStatus(302); // Redirects cashiers to pos or runs check status
-    $response->assertNotStatus(403);
+    // 4. Should bypass block and succeed (not be a 403)
+    $response->assertOk();
+    $this->assertNotEquals(403, $response->getStatusCode());
 });

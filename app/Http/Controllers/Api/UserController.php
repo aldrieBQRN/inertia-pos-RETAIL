@@ -25,11 +25,17 @@ class UserController extends Controller
     {
         $storeId = \App\Traits\BelongsToStore::getActiveStoreId() ?? Auth::user()->store_id;
         $store = \App\Models\Store::find($storeId) ?? Auth::user()->store;
-        $ownerId = $store?->owner_id;
+        
+        $hasOwnerId = \Illuminate\Support\Facades\Schema::hasColumn('stores', 'owner_id');
+        $hasStoreUser = \Illuminate\Support\Facades\Schema::hasTable('store_user');
 
-        $users = User::where(function ($q) use ($storeId) {
-                $q->where('store_id', $storeId)
-                  ->orWhereHas('stores', fn($sq) => $sq->where('stores.id', $storeId));
+        $ownerId = ($hasOwnerId && $store) ? $store->owner_id : null;
+
+        $users = User::where(function ($q) use ($storeId, $hasStoreUser) {
+                $q->where('store_id', $storeId);
+                if ($hasStoreUser) {
+                    $q->orWhereHas('stores', fn($sq) => $sq->where('stores.id', $storeId));
+                }
             })
             ->where('role', '!=', 'super_admin')
             ->when($ownerId, fn($q) => $q->where('id', '!=', $ownerId))
@@ -140,13 +146,16 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $activeStoreId = \App\Traits\BelongsToStore::getActiveStoreId() ?? Auth::user()->store_id;
-        $hasAccess = (int) $user->store_id === (int) $activeStoreId || $user->stores()->where('stores.id', $activeStoreId)->exists();
+        $hasStoreUser = \Illuminate\Support\Facades\Schema::hasTable('store_user');
+        $hasOwnerId = \Illuminate\Support\Facades\Schema::hasColumn('stores', 'owner_id');
+
+        $hasAccess = (int) $user->store_id === (int) $activeStoreId || ($hasStoreUser && $user->stores()->where('stores.id', $activeStoreId)->exists());
         if (!$hasAccess && Auth::user()->role !== 'super_admin') {
             abort(403, 'Unauthorized action.');
         }
 
         $store = \App\Models\Store::find($activeStoreId);
-        if ($store && $store->owner_id && (int) $user->id === (int) $store->owner_id && Auth::id() !== $user->id) {
+        if ($store && $hasOwnerId && $store->owner_id && (int) $user->id === (int) $store->owner_id && Auth::id() !== $user->id) {
             abort(403, 'Unauthorized: Store Owner cannot be managed from Staff settings.');
         }
 
@@ -238,13 +247,16 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $activeStoreId = \App\Traits\BelongsToStore::getActiveStoreId() ?? Auth::user()->store_id;
-        $hasAccess = (int) $user->store_id === (int) $activeStoreId || $user->stores()->where('stores.id', $activeStoreId)->exists();
+        $hasStoreUser = \Illuminate\Support\Facades\Schema::hasTable('store_user');
+        $hasOwnerId = \Illuminate\Support\Facades\Schema::hasColumn('stores', 'owner_id');
+
+        $hasAccess = (int) $user->store_id === (int) $activeStoreId || ($hasStoreUser && $user->stores()->where('stores.id', $activeStoreId)->exists());
         if (!$hasAccess && Auth::user()->role !== 'super_admin') {
             abort(403, 'Unauthorized action.');
         }
 
         $store = \App\Models\Store::find($activeStoreId);
-        if ($store && $store->owner_id && (int) $user->id === (int) $store->owner_id) {
+        if ($store && $hasOwnerId && $store->owner_id && (int) $user->id === (int) $store->owner_id) {
             abort(403, 'Unauthorized: Store Owner cannot be deleted from Staff management.');
         }
 
@@ -275,13 +287,16 @@ class UserController extends Controller
     public function toggleActive(User $user)
     {
         $activeStoreId = \App\Traits\BelongsToStore::getActiveStoreId() ?? Auth::user()->store_id;
-        $hasAccess = (int) $user->store_id === (int) $activeStoreId || $user->stores()->where('stores.id', $activeStoreId)->exists();
+        $hasStoreUser = \Illuminate\Support\Facades\Schema::hasTable('store_user');
+        $hasOwnerId = \Illuminate\Support\Facades\Schema::hasColumn('stores', 'owner_id');
+
+        $hasAccess = (int) $user->store_id === (int) $activeStoreId || ($hasStoreUser && $user->stores()->where('stores.id', $activeStoreId)->exists());
         if (!$hasAccess && Auth::user()->role !== 'super_admin') {
             abort(403, 'Unauthorized action.');
         }
 
         $store = \App\Models\Store::find($activeStoreId);
-        if ($store && $store->owner_id && (int) $user->id === (int) $store->owner_id) {
+        if ($store && $hasOwnerId && $store->owner_id && (int) $user->id === (int) $store->owner_id) {
             abort(403, 'Unauthorized: Store Owner cannot be deactivated from Staff management.');
         }
 

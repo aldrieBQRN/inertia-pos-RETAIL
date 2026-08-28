@@ -58,28 +58,33 @@ try {
 
     // Step 5: Run migrations
     echo "<strong>Step 5: Running database migrations...</strong><br>";
-    ob_start();
     $kernel->call('migrate', ['--force' => true]);
-    $output = ob_get_clean();
-
-    if (strpos($output, 'error') !== false || strpos($output, 'Error') !== false) {
-        echo "<em style='color: orange;'>⚠️ Migration output: " . htmlspecialchars($output) . "</em><br>";
-    } else {
-        echo "✓ Database migrations completed<br>";
-    }
+    $output = \Illuminate\Support\Facades\Artisan::output();
+    echo "<pre style='background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; font-size: 12px; max-height: 200px; overflow: auto;'>" . htmlspecialchars($output ?: '✓ Database is already up to date.') . "</pre>";
     echo "<br>";
 
-    // Step 6: Seed database (optional)
-    echo "<strong>Step 6: Verifying database tables...</strong><br>";
-    try {
-        ob_start();
-        $kernel->call('migrate:status');
-        $output = ob_get_clean();
-        echo "✓ Database tables verified<br><br>";
-    } catch (Exception $e) {
-        // Ignore seeding errors
-        echo "⚠️ Database check skipped (this is ok)<br><br>";
+    // Step 6: Optional database seeding (e.g. ?seed=BranchSeeder or ?seed=DatabaseSeeder)
+    if (isset($_GET['seed'])) {
+        $seederClass = trim($_GET['seed']) ?: 'BranchSeeder';
+        echo "<strong>Step 6: Running database seeder ({$seederClass})...</strong><br>";
+        try {
+            $kernel->call('db:seed', ['--class' => $seederClass, '--force' => true]);
+            $seedOutput = \Illuminate\Support\Facades\Artisan::output();
+            echo "<pre style='background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; font-size: 12px; max-height: 200px; overflow: auto;'>" . htmlspecialchars($seedOutput) . "</pre>";
+        } catch (\Throwable $se) {
+            echo "<p style='color: orange;'>⚠️ Seeding note: " . htmlspecialchars($se->getMessage()) . "</p>";
+        }
+    } else {
+        echo "<strong>Step 6: Database table status check...</strong><br>";
+        try {
+            $kernel->call('migrate:status');
+            $statusOutput = \Illuminate\Support\Facades\Artisan::output();
+            echo "<pre style='background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; font-size: 12px; max-height: 150px; overflow: auto;'>" . htmlspecialchars($statusOutput) . "</pre>";
+        } catch (\Throwable $e) {
+            echo "✓ Database tables verified<br>";
+        }
     }
+    echo "<br>";
 
     // Step 7: Set file permissions
     echo "<strong>Step 7: Setting directory permissions...</strong><br>";

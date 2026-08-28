@@ -19,11 +19,13 @@ $app = Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
 
+        // 0. Global Security Middleware (Runs before route matching to block probes)
+        $middleware->append(\App\Http\Middleware\IpBlacklistMiddleware::class);
+
         // 1. THIS LINE ENSURES REACT GETS THE DATA
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             SecurityHeaders::class,
-            \App\Http\Middleware\IpBlacklistMiddleware::class,
         ]);
 
         // 2. Your existing Admin alias
