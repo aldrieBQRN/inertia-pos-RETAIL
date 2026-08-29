@@ -94,6 +94,12 @@ class PosController extends Controller
                 ? Product::whereIn('id', $productIds)->lockForUpdate()->get()->keyBy('id')
                 : collect();
 
+            // Resolve store_id once for all line items.
+            // SaleItem::insert() bypasses the Eloquent 'creating' hook that normally
+            // auto-populates store_id via BelongsToStore. Without an explicit store_id,
+            // the global scope filters the items out when queried, causing "0 items".
+            $resolvedStoreId = \App\Traits\BelongsToStore::getActiveStoreId() ?? Auth::user()->store_id;
+
             // Process cart items in memory
             foreach ($request->cart as $item) {
                 $unitPrice = (int) round($item['price'] * 100);
@@ -127,6 +133,7 @@ class PosController extends Controller
                         'quantity' => $quantity,
                         'unit_price' => $unitPrice,
                         'subtotal' => $subtotal,
+                        'store_id' => $resolvedStoreId,
                         'created_at' => $now,
                         'updated_at' => $now,
                     ];
@@ -142,6 +149,7 @@ class PosController extends Controller
                         'quantity' => $quantity,
                         'unit_price' => $unitPrice,
                         'subtotal' => $subtotal,
+                        'store_id' => $resolvedStoreId,
                         'created_at' => $now,
                         'updated_at' => $now,
                     ];
