@@ -29,14 +29,14 @@ export default function ProductGrid({ products }) {
                     <div
                         key={product.id}
                         onClick={() => !isOutOfStock && addToCart(product)}
-                        className={`bg-white rounded-lg shadow-sm border border-slate-200 p-4 flex flex-col h-full transition-all
+                        className={`bg-white rounded-none shadow-sm border border-slate-200 p-4 flex flex-col h-full transition-all
                             ${isOutOfStock
                                 ? 'opacity-50 cursor-not-allowed grayscale'
                                 : 'cursor-pointer hover:shadow-md hover:border-[#1B3B6A] active:scale-95'
                             }`}
                     >
                         {/* Image Placeholder with Fallback SVG */}
-                        <div className="h-24 bg-slate-50 rounded-md mb-3 flex items-center justify-center overflow-hidden relative border border-slate-100">
+                        <div className="h-24 bg-slate-50 rounded-none mb-3 flex items-center justify-center overflow-hidden relative border border-slate-100">
                             {product.image_path ? (
                                 <img src={product.image_path} alt={product.name} className="w-full h-full object-cover" loading="lazy"/>
                             ) : (
@@ -46,7 +46,7 @@ export default function ProductGrid({ products }) {
                             )}
 
                             {/* Stock Badge: Displays Sold Out, Low Stock (<10), or Current Quantity */}
-                            <div className={`absolute top-1 right-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase shadow-sm
+                            <div className={`absolute top-1 right-1 px-2 py-0.5 rounded-none text-[10px] font-bold uppercase shadow-sm
                                 ${isOutOfStock
                                     ? 'bg-slate-900 text-white'
                                     : (isLowStock ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-700 border border-slate-200')
@@ -74,7 +74,7 @@ export default function ProductGrid({ products }) {
 
                                 {/* Quick-add indicator (Hidden for OOS items) */}
                                 {!isOutOfStock && (
-                                    <div className="w-6 h-6 bg-slate-100 text-[#1B3B6A] rounded-full flex items-center justify-center text-lg font-extrabold shadow-sm hover:bg-[#1B3B6A] hover:text-white transition-colors">
+                                    <div className="w-6 h-6 bg-slate-100 text-[#1B3B6A] rounded-none flex items-center justify-center text-lg font-extrabold shadow-sm hover:bg-[#1B3B6A] hover:text-white transition-colors">
                                         +
                                     </div>
                                 )}

@@ -30,7 +30,7 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
     };
 
     const getRoleBadge = (role) => {
-        const baseClass = "px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider inline-flex items-center justify-center shrink-0 border shadow-xs";
+        const baseClass = "px-2.5 py-0.5 rounded-none text-xs font-bold uppercase tracking-wider inline-flex items-center justify-center shrink-0 border shadow-xs";
         if (role === 'super_admin') {
             return <span className={`${baseClass} bg-purple-50 text-purple-700 border-purple-200`}>Super Admin</span>;
         }
@@ -53,7 +53,7 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
     const InfoRow = ({ icon, label, value, badge }) => (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between py-3.5 border-b border-gray-100 last:border-0 gap-1.5 sm:gap-4 transition-colors">
             <dt className="flex items-center gap-2.5 text-xs sm:text-sm font-medium text-gray-500">
-                <div className="p-1.5 rounded-lg bg-gray-50 text-gray-400 border border-gray-100 shrink-0">
+                <div className="p-1.5 rounded-none bg-gray-50 text-gray-400 border border-gray-100 shrink-0">
                     {icon}
                 </div>
                 <span>{label}</span>
@@ -86,13 +86,13 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                 }
             >
                 <Head title="Account Settings" />
-                <div className="py-3 sm:py-8 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
-                    <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 animate-pulse space-y-6">
+                <div className="py-3 sm:py-6 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
+                    <div className="w-full max-w-full px-3.5 sm:px-6 lg:px-8 animate-pulse space-y-6">
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                            <div className="lg:col-span-4 h-96 bg-gray-200 rounded-2xl"></div>
+                            <div className="lg:col-span-4 h-96 bg-gray-200 rounded-none"></div>
                             <div className="lg:col-span-8 space-y-6">
-                                <div className="h-64 bg-gray-200 rounded-2xl"></div>
-                                <div className="h-64 bg-gray-200 rounded-2xl"></div>
+                                <div className="h-64 bg-gray-200 rounded-none"></div>
+                                <div className="h-64 bg-gray-200 rounded-none"></div>
                             </div>
                         </div>
                     </div>
@@ -115,8 +115,8 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
         >
             <Head title="Account Settings" />
 
-            <div className="py-3 sm:py-8 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
-                <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 space-y-6 pb-12">
+            <div className="py-3 sm:py-6 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
+                <div className="w-full max-w-full px-3.5 sm:px-6 lg:px-8 space-y-6 pb-12">
 
                     {/* MAIN GRID */}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -125,13 +125,13 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                         <div className="lg:col-span-4 space-y-6">
                             
                             {/* Primary User Identity Card */}
-                            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 sm:p-7 text-center relative overflow-hidden flex flex-col items-center">
+                            <div className="bg-white rounded-none border border-gray-200/80 shadow-xs p-6 sm:p-7 text-center relative overflow-hidden flex flex-col items-center">
                                 {/* Subtle decorative header gradient */}
                                 <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-[#EFF4F9] to-transparent pointer-events-none"></div>
 
                                 {/* Avatar Container */}
                                 <div className="relative inline-block mt-2 mb-4">
-                                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full ring-4 ring-white shadow-md bg-white overflow-hidden mx-auto z-10 relative border border-gray-200">
+                                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-none ring-4 ring-white shadow-md bg-white overflow-hidden mx-auto z-10 relative border border-gray-200">
                                         {user.avatar_path ? (
                                             <img
                                                 src={`/storage/${user.avatar_path}`}
@@ -164,7 +164,7 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                                             <button
                                                 type="button"
                                                 onClick={() => setShowProfileModal(true)}
-                                                className="w-full px-4 py-2 sm:py-2.5 rounded-xl bg-[#1B3A69] text-white font-bold text-xs sm:text-sm hover:bg-[#142E54] transition-all shadow-xs active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                                                className="w-full px-4 py-2 sm:py-2.5 rounded-none bg-[#1B3A69] text-white font-bold text-xs sm:text-sm hover:bg-[#142E54] transition-all shadow-xs active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                                             >
                                                 <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -174,7 +174,7 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPasswordModal(true)}
-                                                className="w-full px-4 py-2 sm:py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-50 transition-all shadow-xs active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                                                className="w-full px-4 py-2 sm:py-2.5 rounded-none border border-gray-200 bg-white text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-50 transition-all shadow-xs active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                                             >
                                                 <svg className="w-4 h-4 shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -187,7 +187,7 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPasswordModal(true)}
-                                                className="w-full px-4 py-2 sm:py-2.5 rounded-xl bg-[#1B3A69] text-white font-bold text-xs sm:text-sm hover:bg-[#142E54] transition-all shadow-xs active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                                                className="w-full px-4 py-2 sm:py-2.5 rounded-none bg-[#1B3A69] text-white font-bold text-xs sm:text-sm hover:bg-[#142E54] transition-all shadow-xs active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                                             >
                                                 <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -197,7 +197,7 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                                             <button
                                                 type="button"
                                                 onClick={() => setShowProfileModal(true)}
-                                                className="w-full px-4 py-2 sm:py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-50 transition-all shadow-xs active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                                                className="w-full px-4 py-2 sm:py-2.5 rounded-none border border-gray-200 bg-white text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-50 transition-all shadow-xs active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                                             >
                                                 <svg className="w-4 h-4 shrink-0 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -211,7 +211,7 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                             </div>
 
                             {/* Account Status & Security Card */}
-                            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 sm:p-6 space-y-4">
+                            <div className="bg-white rounded-none border border-gray-200/80 shadow-xs p-5 sm:p-6 space-y-4">
                                 <div className="border-b border-gray-100 pb-3">
                                     <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-700 flex items-center gap-2">
                                         <svg className="w-4 h-4 text-[#1B3A69]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -243,9 +243,9 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                         <div className="lg:col-span-8 space-y-6">
 
                             {/* Section 1: Personal & Contact Information */}
-                            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+                            <div className="bg-white rounded-none border border-gray-200/80 shadow-xs overflow-hidden">
                                 <div className="px-5 sm:px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-                                    <div className="p-2 bg-[#EFF4F9] text-[#1B3A69] rounded-xl shrink-0">
+                                    <div className="p-2 bg-[#EFF4F9] text-[#1B3A69] rounded-none shrink-0">
                                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                         </svg>
@@ -262,7 +262,7 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                                             icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
                                             label="Email Address"
                                             value={user.email}
-                                            badge={<span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Verified</span>}
+                                            badge={<span className="px-2.5 py-0.5 rounded-none text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Verified</span>}
                                         />
                                         <InfoRow
                                             icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>}
@@ -274,9 +274,9 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                             </div>
 
                             {/* Section 2: Location & Address */}
-                            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+                            <div className="bg-white rounded-none border border-gray-200/80 shadow-xs overflow-hidden">
                                 <div className="px-5 sm:px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-                                    <div className="p-2 bg-[#EFF4F9] text-[#1B3A69] rounded-xl shrink-0">
+                                    <div className="p-2 bg-[#EFF4F9] text-[#1B3A69] rounded-none shrink-0">
                                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />

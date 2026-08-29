@@ -54,7 +54,7 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
         return (
             <Link
                 href={href}
-                className={`group relative flex items-center justify-center h-10 px-3 sm:px-3.5 rounded-lg transition-all duration-300 ease-in-out select-none
+                className={`group relative flex items-center justify-center h-10 px-3 sm:px-3.5 rounded-none transition-all duration-300 ease-in-out select-none
                     ${active 
                         ? 'bg-indigo-50 text-indigo-600' 
                         : 'text-gray-555 hover:bg-gray-50 hover:text-gray-900'
@@ -66,7 +66,7 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
                 {/* TOOLTIP: Tablet & Desktop (hidden on mobile) */}
                 <div className="absolute top-[50px] left-1/2 -translate-x-1/2 hidden sm:group-hover:flex flex-col items-center z-50 pointer-events-none">
                     <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[5px] border-b-gray-800"></div>
-                    <span className="bg-gray-800 text-white text-[10px] font-black rounded py-1 px-2 shadow-lg whitespace-nowrap uppercase tracking-wider">
+                    <span className="bg-gray-800 text-white text-[10px] font-black rounded-none py-1 px-2 shadow-lg whitespace-nowrap uppercase tracking-wider">
                         {label}
                     </span>
                 </div>
@@ -164,17 +164,17 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
                                         {({ open }) => (
                                             <button
                                                 type="button"
-                                                className="group flex items-center gap-2.5 px-2 py-1.5 rounded-xl bg-transparent hover:bg-gray-100/70 transition-all duration-150 focus:outline-none select-none cursor-pointer"
+                                                className="group flex items-center gap-2.5 px-2 py-1.5 rounded-none bg-transparent hover:bg-gray-100/70 transition-all duration-150 focus:outline-none select-none cursor-pointer"
                                             >
                                                 {/* Avatar matching Staff Page */}
                                                 {user.avatar_path ? (
                                                     <img
                                                         src={`/storage/${user.avatar_path}`}
                                                         alt={user.name}
-                                                        className="w-9 h-9 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                        className="w-9 h-9 rounded-none object-cover border border-gray-200 shadow-2xs shrink-0"
                                                     />
                                                 ) : (
-                                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-sm border border-gray-200 shrink-0 uppercase shadow-2xs">
+                                                    <div className="w-9 h-9 rounded-none bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-sm border border-gray-200 shrink-0 uppercase shadow-2xs">
                                                         {user.name ? user.name.charAt(0) : 'U'}
                                                     </div>
                                                 )}
@@ -202,7 +202,7 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
                                         )}
                                     </Dropdown.Trigger>
 
-                                    <Dropdown.Content width="64" contentClasses="p-0 bg-white shadow-xl rounded-2xl border border-gray-100 divide-y divide-gray-100 overflow-hidden">
+                                    <Dropdown.Content width="64" contentClasses="p-0 bg-white shadow-xl rounded-none border border-gray-100 divide-y divide-gray-100 overflow-hidden">
                                         {/* 1. Header Profile Info */}
                                         <div className="p-3.5 bg-gray-50/60">
                                             <div className="flex items-center gap-2.5">
@@ -210,10 +210,10 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
                                                     <img
                                                         src={`/storage/${user.avatar_path}`}
                                                         alt={user.name}
-                                                        className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                        className="w-10 h-10 rounded-none object-cover border border-gray-200 shadow-2xs shrink-0"
                                                     />
                                                 ) : (
-                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-sm border border-gray-200 shrink-0 uppercase shadow-2xs">
+                                                    <div className="w-10 h-10 rounded-none bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-sm border border-gray-200 shrink-0 uppercase shadow-2xs">
                                                         {user.name ? user.name.charAt(0) : 'U'}
                                                     </div>
                                                 )}
@@ -240,9 +240,9 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
                                             {/* My Profile */}
                                             <Link
                                                 href={route('profile.edit')}
-                                                className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-xl transition-all group"
+                                                className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-none transition-all group"
                                             >
-                                                <div className="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center group-hover:bg-gray-900 group-hover:text-white transition-colors shrink-0">
+                                                <div className="w-8 h-8 rounded-none bg-gray-100 text-gray-600 flex items-center justify-center group-hover:bg-gray-900 group-hover:text-white transition-colors shrink-0">
                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                                     </svg>
@@ -258,9 +258,9 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
                                                 <>
                                                     <Link
                                                         href={route('developer.system.info')}
-                                                        className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-xl transition-all group"
+                                                        className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-none transition-all group"
                                                     >
-                                                        <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors shrink-0">
+                                                        <div className="w-8 h-8 rounded-none bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors shrink-0">
                                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.041.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.005-.828a1.125 1.125 0 01-.26-1.43l1.298-2.247a1.125 1.125 0 011.369-.491l1.217.456c.356.133.751.072 1.076-.124.072-.044.145-.086.22-.128.332-.183.582-.495.644-.869l.213-1.281z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                                         </div>
                                                         <div className="flex flex-col min-w-0 text-left">
@@ -270,9 +270,9 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
                                                     </Link>
                                                     <Link
                                                         href={route('developer.policies')}
-                                                        className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-xl transition-all group"
+                                                        className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-none transition-all group"
                                                     >
-                                                        <div className="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors shrink-0">
+                                                        <div className="w-8 h-8 rounded-none bg-gray-100 text-gray-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors shrink-0">
                                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-7.5a2.25 2.25 0 00-2.25-2.25h-10.5A2.25 2.25 0 004.5 6.75v10.5A2.25 2.25 0 006.75 19.5h5.25" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6-3h6m-6 6h3m6.75 1.5l1.5 1.5 3-3" /></svg>
                                                         </div>
                                                         <div className="flex flex-col min-w-0 text-left">
@@ -284,9 +284,9 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
                                             ) : (
                                                 <Link
                                                     href={route('settings')}
-                                                    className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-xl transition-all group"
+                                                    className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-none transition-all group"
                                                 >
-                                                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#1B3B6A] flex items-center justify-center group-hover:bg-[#1B3B6A] group-hover:text-white transition-colors shrink-0">
+                                                    <div className="w-8 h-8 rounded-none bg-blue-50 text-[#1B3B6A] flex items-center justify-center group-hover:bg-[#1B3B6A] group-hover:text-white transition-colors shrink-0">
                                                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.75" stroke="currentColor">
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.592c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.041.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.005-.828a1.125 1.125 0 01-.26-1.43l1.298-2.247a1.125 1.125 0 011.369-.491l1.217.456c.356.133.751.072 1.076-.124.072-.044.145-.086.22-.128.332-.183.582-.495.644-.869l.213-1.281z" />
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -306,7 +306,7 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
                                                 href={route('logout')}
                                                 method="post"
                                                 as="button"
-                                                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-red-600 hover:text-red-700 hover:bg-red-50/80 rounded-xl transition-all"
+                                                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-red-600 hover:text-red-700 hover:bg-red-50/80 rounded-none transition-all"
                                             >
                                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
@@ -324,17 +324,17 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
                             {/* Mobile Header User Avatar */}
                             <button
                                 onClick={() => setShowingNavigationDropdown(true)}
-                                className="flex items-center p-0.5 rounded-full hover:bg-gray-100 transition-colors focus:outline-none cursor-pointer"
+                                className="flex items-center p-0.5 rounded-none hover:bg-gray-100 transition-colors focus:outline-none cursor-pointer"
                                 title="Open Menu"
                             >
                                 {user.avatar_path ? (
                                     <img
                                         src={`/storage/${user.avatar_path}`}
                                         alt={user.name}
-                                        className="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-2xs"
+                                        className="w-8 h-8 rounded-none object-cover border border-gray-200 shadow-2xs"
                                     />
                                 ) : (
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-xs border border-gray-200 uppercase shadow-2xs">
+                                    <div className="w-8 h-8 rounded-none bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-xs border border-gray-200 uppercase shadow-2xs">
                                         {user.name ? user.name.charAt(0) : 'U'}
                                     </div>
                                 )}
@@ -342,7 +342,7 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
 
                             <button
                                 onClick={() => setShowingNavigationDropdown(true)}
-                                className="inline-flex items-center justify-center rounded-xl p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors focus:outline-none cursor-pointer"
+                                className="inline-flex items-center justify-center rounded-none p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors focus:outline-none cursor-pointer"
                             >
                                 <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -366,10 +366,10 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
                                     <img
                                         src={`/storage/${user.avatar_path}`}
                                         alt={user.name}
-                                        className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                        className="w-10 h-10 rounded-none object-cover border border-gray-200 shadow-2xs shrink-0"
                                     />
                                 ) : (
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-sm border border-gray-200 shrink-0 uppercase shadow-2xs">
+                                    <div className="w-10 h-10 rounded-none bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-sm border border-gray-200 shrink-0 uppercase shadow-2xs">
                                         {user.name ? user.name.charAt(0) : 'U'}
                                     </div>
                                 )}
@@ -384,7 +384,7 @@ export default function AuthenticatedLayout({ header, children, navBtn }) {
                             {/* Close Button */}
                             <button
                                 onClick={() => setShowingNavigationDropdown(false)}
-                                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer shrink-0"
+                                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-none transition-colors cursor-pointer shrink-0"
                             >
                                 <svg className="h-5 w-5" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />

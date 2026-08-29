@@ -75,12 +75,12 @@ export default function MobileScanner({ onScan, onClose }) {
         // BACKDROP: Dark blurred background on desktop, pure black on mobile
         <div className="fixed inset-0 z-[10000] bg-black sm:bg-black/90 sm:backdrop-blur-sm flex flex-col items-center justify-center sm:p-6 animate-in fade-in duration-300">
 
-            {/* CONTAINER: Full screen on mobile, rounded landscape modal on desktop */}
-            <div className="relative w-full h-full sm:max-w-4xl sm:h-[600px] sm:rounded-2xl bg-black overflow-hidden flex flex-col shadow-2xl sm:ring-1 sm:ring-white/10 animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
+            {/* CONTAINER: Full screen on mobile, landscape modal on desktop */}
+            <div className="relative w-full h-full sm:max-w-4xl sm:h-[600px] sm:rounded-none bg-black overflow-hidden flex flex-col shadow-2xl sm:ring-1 sm:ring-white/10 animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
 
                 {/* Top Bar */}
                 <div className="absolute top-0 left-0 w-full p-4 sm:p-6 z-50 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent">
-                    <button onClick={onClose} className="p-2 bg-white/20 hover:bg-white/40 rounded-full text-white backdrop-blur-md transition-all active:scale-95">
+                    <button onClick={onClose} className="p-2 bg-white/20 hover:bg-white/40 rounded-none text-white backdrop-blur-md transition-all active:scale-95">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
                     </button>
                     <span className="text-white font-bold tracking-widest uppercase text-xs sm:text-sm drop-shadow-md">Scan Barcode</span>
@@ -129,10 +129,10 @@ export default function MobileScanner({ onScan, onClose }) {
                         <div className="relative w-[250px] h-[250px] sm:w-[350px] sm:h-[350px]">
                             <div className="absolute top-0 left-0 w-full h-[2px] bg-blue-500 shadow-[0_0_15px_4px_rgba(59,130,246,0.6)] sm:animate-[scan_2.5s_ease-in-out_infinite_alternate] animate-[scan_2s_ease-in-out_infinite_alternate]"></div>
 
-                            <div className="absolute top-0 left-0 w-10 h-10 border-t-4 border-l-4 border-white rounded-tl-3xl sm:rounded-tl-[2rem]"></div>
-                            <div className="absolute top-0 right-0 w-10 h-10 border-t-4 border-r-4 border-white rounded-tr-3xl sm:rounded-tr-[2rem]"></div>
-                            <div className="absolute bottom-0 left-0 w-10 h-10 border-b-4 border-l-4 border-white rounded-bl-3xl sm:rounded-bl-[2rem]"></div>
-                            <div className="absolute bottom-0 right-0 w-10 h-10 border-b-4 border-r-4 border-white rounded-br-3xl sm:rounded-br-[2rem]"></div>
+                            <div className="absolute top-0 left-0 w-10 h-10 border-t-4 border-l-4 border-white rounded-none"></div>
+                            <div className="absolute top-0 right-0 w-10 h-10 border-t-4 border-r-4 border-white rounded-none"></div>
+                            <div className="absolute bottom-0 left-0 w-10 h-10 border-b-4 border-l-4 border-white rounded-none"></div>
+                            <div className="absolute bottom-0 right-0 w-10 h-10 border-b-4 border-r-4 border-white rounded-none"></div>
                         </div>
                     </div>
                 )}
@@ -152,11 +152,11 @@ export default function MobileScanner({ onScan, onClose }) {
 
                 {/* NATIVE ANDROID BOTTOM SHEET / DESKTOP MODAL OVERLAY */}
                 {scannedCode && (
-                    <div className="absolute inset-x-0 bottom-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 bg-white rounded-t-2xl sm:rounded-2xl p-6 sm:p-10 flex flex-col items-center animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.3)] sm:shadow-2xl sm:w-full sm:max-w-sm">
+                    <div className="absolute inset-x-0 bottom-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 bg-white rounded-none p-6 sm:p-10 flex flex-col items-center animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.3)] sm:shadow-2xl sm:w-full sm:max-w-sm">
 
-                        <div className="sm:hidden w-12 h-1.5 bg-gray-200 rounded-full mb-6"></div>
+                        <div className="sm:hidden w-12 h-1.5 bg-gray-200 rounded-none mb-6"></div>
 
-                        <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 ring-8 ring-blue-50">
+                        <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-none flex items-center justify-center mb-4 ring-8 ring-blue-50">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" /><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h1.5v-1.5H15v-1.5h1.5v1.5h1.5v1.5h1.5v-1.5h-1.5v-1.5h-1.5v1.5h-1.5v-1.5H15v1.5h-1.5v1.5z" /></svg>
                         </div>
 
@@ -164,10 +164,10 @@ export default function MobileScanner({ onScan, onClose }) {
                         <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-8 tracking-tight font-mono text-center break-all">{scannedCode}</h2>
 
                         <div className="w-full flex flex-col gap-3">
-                            <button onClick={handleContinue} className="w-full py-4 sm:py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold sm:text-base text-lg transition-all active:scale-95 shadow-lg shadow-blue-500/30">
+                            <button onClick={handleContinue} className="w-full py-4 sm:py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-none font-bold sm:text-base text-lg transition-all active:scale-95 shadow-lg shadow-blue-500/30">
                                 Continue
                             </button>
-                            <button onClick={handleRescan} className="w-full py-4 sm:py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg font-bold sm:text-base transition-all active:scale-95">
+                            <button onClick={handleRescan} className="w-full py-4 sm:py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-none font-bold sm:text-base transition-all active:scale-95">
                                 Rescan
                             </button>
                         </div>

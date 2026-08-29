@@ -230,13 +230,13 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
                 ref={modalRef}
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={handleModalMouseDown}
-                className="relative bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[90vh] z-10 border border-gray-200/90 animate-slide-up sm:animate-fade-in"
+                className="relative bg-white w-full sm:max-w-md rounded-none shadow-2xl overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[90vh] z-10 border border-gray-200/90 animate-slide-up sm:animate-fade-in"
             >
 
                 {/* Header */}
                 <div className="bg-white px-5 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center shrink-0">
+                        <div className="w-8 h-8 rounded-none bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -249,7 +249,7 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
                     <button
                         type="button"
                         onClick={onClose}
-                        className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-xl transition-colors shadow-2xs cursor-pointer"
+                        className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-none transition-colors shadow-2xs cursor-pointer"
                         title="Close (Esc)"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -260,7 +260,7 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
                     {summary ? (
                         <div className="space-y-4 pb-4 sm:pb-0">
                             {/* DRAWER RECONCILIATION */}
-                            <div className="bg-gray-50 p-5 rounded-2xl space-y-2.5 border border-gray-100 text-xs sm:text-sm shadow-inner">
+                            <div className="bg-gray-50 p-5 rounded-none space-y-2.5 border border-gray-100 text-xs sm:text-sm shadow-inner">
                                 <div className="text-[10px] uppercase font-black text-gray-400 tracking-widest pb-1 border-b border-gray-200/60">
                                     Cash Drawer Reconciliation
                                 </div>
@@ -310,7 +310,7 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
                             </div>
 
                             {/* DISCREPANCY HERO BOX */}
-                            <div className={`p-4 rounded-2xl text-center border shadow-xs ${
+                            <div className={`p-4 rounded-none text-center border shadow-xs ${
                                 Math.abs(Number(summary.difference || 0)) < 0.01 
                                     ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
                                     : Number(summary.difference || 0) > 0 
@@ -330,7 +330,7 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
                             </div>
 
                             {/* GROSS SALES BREAKDOWN */}
-                            <div className="bg-gray-50 p-4 sm:p-5 rounded-2xl space-y-2.5 border border-gray-200/80 text-xs sm:text-sm shadow-inner">
+                            <div className="bg-gray-50 p-4 sm:p-5 rounded-none space-y-2.5 border border-gray-200/80 text-xs sm:text-sm shadow-inner">
                                 <div className="flex justify-between items-center pb-1 border-b border-gray-200/60">
                                     <span className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Gross Sales by Channel</span>
                                     <span className="text-[10px] font-bold text-gray-500">{summary.transactions_count || 0} Checkouts</span>
@@ -382,7 +382,7 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
                                 <button
                                     type="button"
                                     onClick={() => printZRead(summary, settings)}
-                                    className="w-full py-3.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+                                    className="w-full py-3.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-none shadow-md transition-all active:scale-95 cursor-pointer"
                                 >
                                     Print Thermal Z-Read<span className="hidden sm:inline"> (Enter)</span>
                                 </button>
@@ -391,7 +391,7 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
                                     type="button"
                                     onClick={handleFinalDone}
                                     disabled={isLoggingOut}
-                                    className="w-full py-2.5 bg-white text-[#1B3B6A] border border-[#CBD7E6] font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl hover:bg-[#EFF4F9] transition-all active:scale-95 shadow-2xs cursor-pointer disabled:opacity-50 text-center"
+                                    className="w-full py-2.5 bg-white text-[#1B3B6A] border border-[#CBD7E6] font-bold text-xs sm:text-sm uppercase tracking-wider rounded-none hover:bg-[#EFF4F9] transition-all active:scale-95 shadow-2xs cursor-pointer disabled:opacity-50 text-center"
                                 >
                                     {isLoggingOut ? 'Logging out...' : (
                                         <>
@@ -408,7 +408,7 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
                                     <label className="block text-xs font-black text-gray-700 uppercase tracking-wider">
                                         Step 1: Counted Physical Cash <span className="text-rose-500">*</span>
                                     </label>
-                                    <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
+                                    <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded-none bg-gray-100 text-gray-600 border border-gray-200">
                                         F1
                                     </span>
                                 </div>
@@ -420,7 +420,7 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
                                         min="0"
                                         required
                                         autoFocus
-                                        className="w-full px-4 py-3 text-2xl font-black border-2 border-gray-200 rounded-2xl text-center text-gray-900 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/20 transition-all bg-gray-50 focus:bg-white outline-none font-mono"
+                                        className="w-full px-4 py-3 text-2xl font-black border-2 border-gray-200 rounded-none text-center text-gray-900 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/20 transition-all bg-gray-50 focus:bg-white outline-none font-mono"
                                         placeholder="0.00"
                                         value={amount}
                                         onChange={(e) => setAmount(e.target.value)}
@@ -434,7 +434,7 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
                                     <label className="block text-xs font-black text-gray-700 uppercase tracking-wider">
                                         Step 2: Total Unlogged Expenses <span className="text-gray-400 font-normal">(Optional)</span>
                                     </label>
-                                    <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
+                                    <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded-none bg-gray-100 text-gray-600 border border-gray-200">
                                         F2
                                     </span>
                                 </div>
@@ -444,7 +444,7 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
                                         type="number"
                                         step="0.01"
                                         min="0"
-                                        className="w-full px-4 py-2.5 text-lg font-black border-2 border-gray-200 rounded-2xl text-center text-gray-900 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all bg-gray-50 focus:bg-white outline-none font-mono"
+                                        className="w-full px-4 py-2.5 text-lg font-black border-2 border-gray-200 rounded-none text-center text-gray-900 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all bg-gray-50 focus:bg-white outline-none font-mono"
                                         placeholder="0.00"
                                         value={expenses}
                                         onChange={(e) => setExpenses(e.target.value)}
@@ -458,7 +458,7 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
                                     <label className="block text-xs font-black text-gray-700 uppercase tracking-wider">
                                         Step 3: Closing Notes / Handover Comments
                                     </label>
-                                    <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
+                                    <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded-none bg-gray-100 text-gray-600 border border-gray-200">
                                         F3
                                     </span>
                                 </div>
@@ -468,7 +468,7 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
                                     value={closingNotes}
                                     onChange={(e) => setClosingNotes(e.target.value)}
                                     placeholder="Optional end-of-shift notes..."
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-[#1B3B6A] rounded-xl text-xs text-gray-800 transition-all outline-none resize-none"
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-[#1B3B6A] rounded-none text-xs text-gray-800 transition-all outline-none resize-none"
                                 />
                             </div>
 
@@ -477,7 +477,7 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
                                 <button
                                     type="submit"
                                     disabled={loading || !amount}
-                                    className={`w-full py-3.5 text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 ${
+                                    className={`w-full py-3.5 text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-none shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 ${
                                         loading || !amount ? 'bg-gray-300 cursor-not-allowed shadow-none' : 'bg-[#1B3B6A] hover:bg-[#142E54]'
                                     }`}
                                 >
@@ -496,7 +496,7 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
                                     type="button"
                                     onClick={onClose}
                                     disabled={loading}
-                                    className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl hover:bg-gray-50 transition-all active:scale-95 shadow-2xs cursor-pointer disabled:opacity-50 text-center"
+                                    className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold text-xs sm:text-sm uppercase tracking-wider rounded-none hover:bg-gray-50 transition-all active:scale-95 shadow-2xs cursor-pointer disabled:opacity-50 text-center"
                                 >
                                     Cancel<span className="hidden sm:inline"> (Esc)</span>
                                 </button>

@@ -461,7 +461,7 @@ export default function CartSidebar({
                 <div className="px-4 py-3 flex justify-between items-center border-b border-gray-200 bg-white shrink-0">
                     <div className="flex items-center gap-2">
                         {onClose && (
-                            <button onClick={onClose} className="md:hidden p-1.5 -ml-1 text-gray-500 hover:bg-gray-100 rounded-xl transition-colors">
+                            <button onClick={onClose} className="md:hidden p-1.5 -ml-1 text-gray-500 hover:bg-gray-100 rounded-none transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                                 </svg>
@@ -482,20 +482,20 @@ export default function CartSidebar({
                         <button
                             onClick={onRecallClick}
                             disabled={disabled}
-                            className="relative px-2.5 xl:px-3.5 h-[38px] bg-white text-gray-700 hover:bg-gray-50 rounded-xl transition-all border border-gray-200 flex items-center gap-1.5 text-xs sm:text-sm font-bold shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="relative px-2.5 xl:px-3.5 h-[38px] bg-white text-gray-700 hover:bg-gray-50 rounded-none transition-all border border-gray-200 flex items-center gap-1.5 text-xs sm:text-sm font-bold shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                             title={showFKeys ? "Recall (F8)" : "Recall"}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-gray-500 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             {showFKeys ? (
                                 <span className="hidden lg:inline-flex items-center gap-1">
                                     <span className="hidden xl:inline">Recall</span>
-                                    <span className="text-[10px] font-black font-mono px-1 py-0.2 rounded bg-gray-100 text-gray-600">F8</span>
+                                    <span className="text-[10px] font-black font-mono px-1 py-0.2 rounded-none bg-gray-100 text-gray-600">F8</span>
                                 </span>
                             ) : (
                                 <span className="hidden xl:inline">Recall</span>
                             )}
                             {heldOrdersCount > 0 && (
-                                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-amber-500 text-white text-[10px] font-black font-mono rounded-full flex items-center justify-center shadow-xs border-2 border-white pointer-events-none transition-transform scale-100 animate-in zoom-in-50 duration-150">
+                                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-amber-500 text-white text-[10px] font-black font-mono rounded-none flex items-center justify-center shadow-xs border-2 border-white pointer-events-none transition-transform scale-100 animate-in zoom-in-50 duration-150">
                                     {heldOrdersCount > 99 ? '99+' : heldOrdersCount}
                                 </span>
                             )}
@@ -505,14 +505,14 @@ export default function CartSidebar({
                         <button
                             onClick={handleClearCart}
                             disabled={disabled}
-                            className="px-2.5 xl:px-3.5 h-[38px] bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl transition-all border border-rose-200 flex items-center gap-1.5 text-xs sm:text-sm font-bold shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-2.5 xl:px-3.5 h-[38px] bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-none transition-all border border-rose-200 flex items-center gap-1.5 text-xs sm:text-sm font-bold shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                             title={showFKeys ? "Clear Cart (F9)" : "Clear Cart"}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-rose-600 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
                             {showFKeys ? (
                                 <span className="hidden lg:inline-flex items-center gap-1">
                                     <span className="hidden xl:inline">Clear</span>
-                                    <span className="text-[10px] font-black font-mono px-1 py-0.2 rounded bg-rose-100 text-rose-700">F9</span>
+                                    <span className="text-[10px] font-black font-mono px-1 py-0.2 rounded-none bg-rose-100 text-rose-700">F9</span>
                                 </span>
                             ) : (
                                 <span className="hidden xl:inline">Clear</span>
@@ -523,7 +523,7 @@ export default function CartSidebar({
                         <button
                             onClick={toggleSenior}
                             disabled={disabled}
-                            className={`px-2.5 xl:px-3.5 h-[38px] rounded-xl transition-all border flex items-center gap-1.5 text-xs sm:text-sm font-bold shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
+                            className={`px-2.5 xl:px-3.5 h-[38px] rounded-none transition-all border flex items-center gap-1.5 text-xs sm:text-sm font-bold shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
                                 isSenior 
                                     ? 'bg-amber-100 hover:bg-amber-200/80 text-amber-900 border-amber-300 font-extrabold shadow-2xs' 
                                     : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200'
@@ -536,7 +536,7 @@ export default function CartSidebar({
                             {showFKeys ? (
                                 <span className="hidden lg:inline-flex items-center gap-1">
                                     <span className="hidden xl:inline">Discount</span>
-                                    <span className={`text-[10px] font-black font-mono px-1 py-0.2 rounded ${isSenior ? 'bg-amber-200/90 text-amber-900' : 'bg-amber-100 text-amber-700'}`}>F10</span>
+                                    <span className={`text-[10px] font-black font-mono px-1 py-0.2 rounded-none ${isSenior ? 'bg-amber-200/90 text-amber-900' : 'bg-amber-100 text-amber-700'}`}>F10</span>
                                 </span>
                             ) : (
                                 <span className="hidden xl:inline">Discount</span>
@@ -560,7 +560,7 @@ export default function CartSidebar({
                 <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar bg-white">
                     {cart.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-gray-300 pb-10 space-y-2">
-                            <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-300">
+                            <div className="w-12 h-12 rounded-none bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-300">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>
                             </div>
                             <p className="text-xs font-bold text-gray-400">Order is currently empty</p>
@@ -583,7 +583,7 @@ export default function CartSidebar({
                                         className={`w-full cart-item-row hidden lg:grid grid-cols-[85px_1fr_95px_100px] gap-2 px-4 py-2.5 items-center hover:bg-gray-50/80 transition-colors text-xs font-bold group cursor-pointer ${focusedIndex === index ? 'bg-[#EFF4F9]/70 ring-1 ring-inset ring-[#1B3B6A]/40' : ''}`}
                                     >
                                         {/* QTY Column with Hover Controls */}
-                                        <div className="flex items-center justify-between h-7 select-none relative w-full bg-gray-50 rounded-lg p-0.5 border border-gray-200">
+                                        <div className="flex items-center justify-between h-7 select-none relative w-full bg-gray-50 rounded-none p-0.5 border border-gray-200">
                                             {!item.is_custom ? (
                                                 <>
                                                     <button
@@ -592,7 +592,7 @@ export default function CartSidebar({
                                                              removeFromCart(item.id);
                                                         }}
                                                         disabled={disabled}
-                                                        className="w-5 h-5 bg-white hover:bg-[#1B3A69] hover:text-white rounded-md text-gray-700 flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-2xs cursor-pointer disabled:cursor-not-allowed"
+                                                        className="w-5 h-5 bg-white hover:bg-[#1B3A69] hover:text-white rounded-none text-gray-700 flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-2xs cursor-pointer disabled:cursor-not-allowed"
                                                         title="Decrease"
                                                     >
                                                         -
@@ -606,7 +606,7 @@ export default function CartSidebar({
                                                              handleIncreaseQty(item);
                                                         }}
                                                         disabled={disabled}
-                                                        className="w-5 h-5 bg-white hover:bg-[#1B3A69] hover:text-white rounded-md text-gray-700 flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-2xs cursor-pointer disabled:cursor-not-allowed"
+                                                        className="w-5 h-5 bg-white hover:bg-[#1B3A69] hover:text-white rounded-none text-gray-700 flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-2xs cursor-pointer disabled:cursor-not-allowed"
                                                         title="Increase"
                                                     >
                                                         +
@@ -630,7 +630,7 @@ export default function CartSidebar({
                                                     handleRemoveEntireItem(item);
                                                 }}
                                                 disabled={disabled}
-                                                className={`text-gray-400 hover:text-rose-600 p-1 rounded-md hover:bg-rose-50 transition-all shrink-0 ml-1 disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'md:opacity-100' : 'md:opacity-0 md:group-hover:opacity-100')}`}
+                                                className={`text-gray-400 hover:text-rose-600 p-1 rounded-none hover:bg-rose-50 transition-all shrink-0 ml-1 disabled:cursor-not-allowed ${disabled ? 'opacity-0 pointer-events-none' : (focusedIndex === index ? 'md:opacity-100' : 'md:opacity-0 md:group-hover:opacity-100')}`}
                                                 title="Delete"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -656,7 +656,7 @@ export default function CartSidebar({
                                             window.dispatchEvent(new CustomEvent('reset-catalog-nav'));
                                             setFocusedIndex(index);
                                         }}
-                                        className={`w-full cart-item-row flex lg:hidden flex-col p-3.5 border rounded-2xl bg-white transition-all relative cursor-pointer shadow-2xs ${focusedIndex === index ? 'border-[#1B3B6A]/60 bg-[#EFF4F9]/40 shadow-xs' : 'border-gray-200/80 hover:bg-gray-50'}`}
+                                        className={`w-full cart-item-row flex lg:hidden flex-col p-3.5 border rounded-none bg-white transition-all relative cursor-pointer shadow-2xs ${focusedIndex === index ? 'border-[#1B3B6A]/60 bg-[#EFF4F9]/40 shadow-xs' : 'border-gray-200/80 hover:bg-gray-50'}`}
                                     >
                                         {/* Top section: Name and Delete button */}
                                         <div className="flex justify-between items-start gap-2">
@@ -669,7 +669,7 @@ export default function CartSidebar({
                                                     handleRemoveEntireItem(item);
                                                 }}
                                                 disabled={disabled}
-                                                className="text-gray-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-all shrink-0 -mt-1 cursor-pointer"
+                                                className="text-gray-400 hover:text-rose-600 p-1.5 rounded-none hover:bg-rose-50 transition-all shrink-0 -mt-1 cursor-pointer"
                                                 title="Delete"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -680,14 +680,14 @@ export default function CartSidebar({
                                         <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-gray-100">
                                             {/* Left: Qty Selector */}
                                             {!item.is_custom ? (
-                                                <div className="flex items-center h-8 select-none relative bg-gray-50 border border-gray-200 rounded-xl p-0.5">
+                                                <div className="flex items-center h-8 select-none relative bg-gray-50 border border-gray-200 rounded-none p-0.5">
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             removeFromCart(item.id);
                                                         }}
                                                         disabled={disabled}
-                                                        className="w-6 h-6 bg-white border border-gray-200 hover:bg-[#1B3A69] hover:text-white rounded-lg text-gray-700 flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-2xs disabled:cursor-not-allowed cursor-pointer"
+                                                        className="w-6 h-6 bg-white border border-gray-200 hover:bg-[#1B3A69] hover:text-white rounded-none text-gray-700 flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-2xs disabled:cursor-not-allowed cursor-pointer"
                                                         title="Decrease"
                                                     >
                                                         -
@@ -701,14 +701,14 @@ export default function CartSidebar({
                                                             handleIncreaseQty(item);
                                                         }}
                                                         disabled={disabled}
-                                                        className="w-6 h-6 bg-white border border-gray-200 hover:bg-[#1B3A69] hover:text-white rounded-lg text-gray-700 flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-2xs disabled:cursor-not-allowed cursor-pointer"
+                                                        className="w-6 h-6 bg-white border border-gray-200 hover:bg-[#1B3A69] hover:text-white rounded-none text-gray-700 flex items-center justify-center transition-all shrink-0 font-mono text-xs font-black shadow-2xs disabled:cursor-not-allowed cursor-pointer"
                                                         title="Increase"
                                                     >
                                                         +
                                                     </button>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center h-8 select-none relative px-2.5 text-xs font-black text-gray-500 bg-gray-100 border border-gray-200 rounded-xl font-mono">
+                                                <div className="flex items-center h-8 select-none relative px-2.5 text-xs font-black text-gray-500 bg-gray-100 border border-gray-200 rounded-none font-mono">
                                                     QTY: <span className="text-gray-900 ml-1">{item.quantity}</span>
                                                 </div>
                                             )}
@@ -718,7 +718,7 @@ export default function CartSidebar({
                                                 <div className="text-[10px] font-bold text-gray-400 font-mono">
                                                     {formatPrice(item.price)} × {item.quantity}
                                                 </div>
-                                                <div className="text-xs sm:text-sm font-black text-[#1B3A69] font-mono mt-0.5">
+                                                <div className="text-xs sm:text-sm font-black text-[#1B3B6A] font-mono mt-0.5">
                                                     {formatPrice(item.price * item.quantity)}
                                                 </div>
                                             </div>
@@ -749,7 +749,7 @@ export default function CartSidebar({
 
                     <div className="pt-2.5 border-t border-gray-100 flex justify-between items-end">
                         <span className="text-xs uppercase font-black text-gray-500 tracking-wider">Total Payable</span>
-                        <span className="text-2xl sm:text-3xl font-black text-[#1B3A69] tracking-tight font-mono">{formatPrice(total)}</span>
+                        <span className="text-2xl sm:text-3xl font-black text-[#1B3B6A] tracking-tight font-mono">{formatPrice(total)}</span>
                     </div>
 
                     {/* ACTIONS */}
@@ -757,7 +757,7 @@ export default function CartSidebar({
                         <button
                             onClick={() => handleSaveOrder()}
                             disabled={disabled || cart.length === 0}
-                            className="w-full py-3 rounded-xl bg-[#EFF4F9] text-[#1B3A69] font-bold text-xs sm:text-sm border border-[#CBD7E6] hover:bg-[#E2ECF6] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer shadow-2xs"
+                            className="w-full py-3 rounded-none bg-[#EFF4F9] text-[#1B3B6A] font-bold text-xs sm:text-sm border border-[#CBD7E6] hover:bg-[#E2ECF6] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer shadow-2xs"
                         >
                             {showFKeys ? "Save Order (F11)" : "Save Order"}
                         </button>
@@ -782,7 +782,7 @@ export default function CartSidebar({
                                 setShowPaymentModal(true);
                             }}
                             disabled={disabled || cart.length === 0}
-                            className="w-full py-3 rounded-xl bg-[#1B3A69] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm shadow-2xs disabled:bg-gray-300 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer"
+                            className="w-full py-3 rounded-none bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm shadow-2xs disabled:bg-gray-300 disabled:cursor-not-allowed transition-all active:scale-95 cursor-pointer"
                         >
                             {showFKeys ? "Checkout (F12)" : "Checkout"}
                         </button>
@@ -805,8 +805,8 @@ export default function CartSidebar({
             {/* SUCCESS MODAL */}
             {showSuccessModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white rounded-2xl shadow-2xl border border-gray-200/90 w-full max-w-sm overflow-hidden text-center p-6 flex flex-col items-center">
-                        <div className="w-14 h-14 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-2xl flex items-center justify-center mb-3.5 shadow-2xs">
+                    <div className="bg-white rounded-none shadow-2xl border border-gray-200/90 w-full max-w-sm overflow-hidden text-center p-6 flex flex-col items-center">
+                        <div className="w-14 h-14 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-none flex items-center justify-center mb-3.5 shadow-2xs">
                             <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
                         </div>
 
@@ -815,7 +815,7 @@ export default function CartSidebar({
 
                         {/* Transaction Summary (Total, Cash, Change) */}
                         {successDetails && (
-                            <div className="w-full bg-[#EFF4F9] border border-[#CBD7E6] rounded-2xl p-4 my-4 text-left font-sans text-xs space-y-2 shadow-2xs">
+                            <div className="w-full bg-[#EFF4F9] border border-[#CBD7E6] rounded-none p-4 my-4 text-left font-sans text-xs space-y-2 shadow-2xs">
                                 <div className="flex justify-between items-center text-gray-600">
                                     <span className="font-bold text-[10px] uppercase tracking-wider text-gray-400">Total Settled</span>
                                     <span className="font-black text-gray-900 text-sm font-mono">₱{successDetails.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
@@ -841,7 +841,7 @@ export default function CartSidebar({
                                         {successDetails.reference && (
                                             <div className="flex justify-between items-center text-gray-600">
                                                 <span className="font-bold text-[10px] uppercase tracking-wider text-gray-400">Ref Code</span>
-                                                <span className="font-mono text-xs font-bold text-gray-800 bg-white border border-gray-200 px-2 py-0.5 rounded-lg shadow-2xs select-all">{successDetails.reference}</span>
+                                                <span className="font-mono text-xs font-bold text-gray-800 bg-white border border-gray-200 px-2 py-0.5 rounded-none shadow-2xs select-all">{successDetails.reference}</span>
                                             </div>
                                         )}
                                     </>
@@ -852,7 +852,7 @@ export default function CartSidebar({
                         <div className="w-full space-y-2 mt-1">
                             <button
                                 onClick={() => onPrintReceipt(lastTransactionId)}
-                                className="w-full py-3 bg-[#1B3B6A] text-white font-bold rounded-xl shadow-md hover:bg-[#142E54] active:scale-95 transition-all flex items-center justify-center gap-2 text-xs cursor-pointer"
+                                className="w-full py-3 bg-[#1B3B6A] text-white font-bold rounded-none shadow-md hover:bg-[#142E54] active:scale-95 transition-all flex items-center justify-center gap-2 text-xs cursor-pointer"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
                                 {showFKeys ? <>Print Receipt<span className="hidden md:inline"> (Enter)</span></> : "Print Receipt"}
@@ -860,7 +860,7 @@ export default function CartSidebar({
 
                             <button
                                 onClick={handleNewOrder}
-                                className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold rounded-xl hover:bg-gray-50 active:scale-95 transition-all text-xs cursor-pointer shadow-2xs"
+                                className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold rounded-none hover:bg-gray-50 active:scale-95 transition-all text-xs cursor-pointer shadow-2xs"
                             >
                                 New Order<span className="hidden md:inline"> (Esc)</span>
                             </button>

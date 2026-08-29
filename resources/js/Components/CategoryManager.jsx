@@ -191,12 +191,12 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin, initialCat
 
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm animate-in fade-in duration-300 p-4">
-            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-gray-200/80">
+            <div className="bg-white w-full max-w-md rounded-none shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-gray-200/80">
 
                 {/* Modal Header */}
                 <div className="bg-[#1B3B6A] px-6 py-5 border-b border-white/10 flex justify-between items-center shrink-0 text-white shadow-md">
                     <div className="flex items-center gap-3 min-w-0">
-                        <div className="p-2 sm:p-2.5 bg-white/10 rounded-xl shrink-0 ring-1 ring-white/20">
+                        <div className="p-2 sm:p-2.5 bg-white/10 rounded-none shrink-0 ring-1 ring-white/20">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-white">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
@@ -213,7 +213,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin, initialCat
                     </div>
                     <button 
                         onClick={onClose} 
-                        className="bg-white/10 hover:bg-white/20 p-2 sm:p-2.5 rounded-full text-white transition-colors active:scale-95 shrink-0 ml-2 ring-1 ring-white/20"
+                        className="bg-white/10 hover:bg-white/20 p-2 sm:p-2.5 rounded-none text-white transition-colors active:scale-95 shrink-0 ml-2 ring-1 ring-white/20"
                         title="Close Modal"
                     >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -223,10 +223,10 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin, initialCat
                 <div className="p-4 sm:p-6 flex-1 overflow-y-auto">
                     {/* Inline Add Category Form - ONLY VISIBLE TO ADMINS */}
                     {isAdmin && (
-                        <form onSubmit={handleAdd} className="flex gap-2 mb-6 bg-slate-50 p-2.5 sm:p-3 rounded-xl border border-slate-200">
+                        <form onSubmit={handleAdd} className="flex gap-2 mb-6 bg-slate-50 p-2.5 sm:p-3 rounded-none border border-slate-200">
                             <input
                                 type="text"
-                                className="flex-1 border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] text-sm py-2 text-slate-900 bg-white"
+                                className="flex-1 border-slate-300 rounded-none focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] text-sm py-2 text-slate-900 bg-white"
                                 placeholder="New Category Name..."
                                 value={newCategory}
                                 onChange={(e) => setNewCategory(e.target.value)}
@@ -234,7 +234,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin, initialCat
                             <button
                                 type="submit"
                                 disabled={loading || !newCategory.trim()}
-                                className="bg-[#1B3B6A] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#142e54] disabled:opacity-50 text-sm whitespace-nowrap shadow-sm transition-colors active:scale-95"
+                                className="bg-[#1B3B6A] text-white px-4 py-2 rounded-none font-bold hover:bg-[#142e54] disabled:opacity-50 text-sm whitespace-nowrap shadow-sm transition-colors active:scale-95"
                             >
                                 Add
                             </button>
@@ -246,12 +246,12 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin, initialCat
                         {isFetching ? (
                             // Loading Skeletons
                             Array.from({ length: 4 }).map((_, i) => (
-                                <div key={i} className="flex justify-between items-center p-3 bg-white rounded-xl border border-slate-200 animate-pulse">
-                                    <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+                                <div key={i} className="flex justify-between items-center p-3 bg-white rounded-none border border-slate-200 animate-pulse">
+                                    <div className="h-4 bg-slate-200 rounded-none w-1/2"></div>
                                     {isAdmin && (
                                         <div className="flex gap-2.5 shrink-0">
-                                            <div className="w-5 h-5 bg-slate-200 rounded"></div>
-                                            <div className="w-5 h-5 bg-slate-200 rounded"></div>
+                                            <div className="w-5 h-5 bg-slate-200 rounded-none"></div>
+                                            <div className="w-5 h-5 bg-slate-200 rounded-none"></div>
                                         </div>
                                     )}
                                 </div>
@@ -259,7 +259,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin, initialCat
                         ) : (
                             <>
                                 {categories.map(cat => (
-                                    <div key={cat.id} className="flex justify-between items-center p-3 bg-white rounded-xl border border-slate-200 hover:border-[#1B3B6A] hover:bg-slate-50 transition-all">
+                                    <div key={cat.id} className="flex justify-between items-center p-3 bg-white rounded-none border border-slate-200 hover:border-[#1B3B6A] hover:bg-slate-50 transition-all">
 
                                         {/* CATEGORY NAME */}
                                         <div className="flex items-center gap-2.5 overflow-hidden">
@@ -273,7 +273,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin, initialCat
                                             <div className="flex gap-1 shrink-0">
                                                 <button
                                                     onClick={() => handleEdit(cat)}
-                                                    className="text-slate-400 hover:text-[#1B3B6A] hover:bg-slate-100 p-2 rounded-lg transition-colors"
+                                                    className="text-slate-400 hover:text-[#1B3B6A] hover:bg-slate-100 p-2 rounded-none transition-colors"
                                                     title="Edit Category"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -282,7 +282,7 @@ export default function CategoryManager({ onClose, onUpdate, isAdmin, initialCat
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(cat.id)}
-                                                    className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 p-2 rounded-lg transition-colors"
+                                                    className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 p-2 rounded-none transition-colors"
                                                     title="Delete Category"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">

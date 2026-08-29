@@ -198,7 +198,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
             html: `
                 <div class="text-center font-sans pt-1">
                     <p class="text-sm text-gray-600 mb-4">This administrative action is locked in the public demonstration version.</p>
-                    <a href="https://www.facebook.com/aldrie.baquiran" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold text-xs rounded-xl shadow-md transition-all duration-150 no-underline cursor-pointer">
+                    <a href="https://www.facebook.com/aldrie.baquiran" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold text-xs rounded-none shadow-md transition-all duration-150 no-underline cursor-pointer">
                         <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                         Contact Provider on Facebook
                     </a>
@@ -542,11 +542,11 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                 }
             >
                 <Head title="Store Settings" />
-                <div className="py-3 sm:py-8 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
-                    <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 animate-pulse space-y-6">
+                <div className="py-3 sm:py-6 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
+                    <div className="w-full max-w-full px-3.5 sm:px-6 lg:px-8 animate-pulse space-y-6">
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                            <div className="lg:col-span-4 h-80 bg-gray-200 rounded-2xl"></div>
-                            <div className="lg:col-span-8 h-96 bg-gray-200 rounded-2xl"></div>
+                            <div className="lg:col-span-4 h-80 bg-gray-200 rounded-none"></div>
+                            <div className="lg:col-span-8 h-96 bg-gray-200 rounded-none"></div>
                         </div>
                     </div>
                 </div>
@@ -570,8 +570,8 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
         >
             <Head title="Store Settings" />
 
-            <div className="py-3 sm:py-8 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
-                <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 space-y-6 pb-12">
+            <div className="py-3 sm:py-6 bg-gray-50/80 min-h-0 sm:min-h-[calc(100vh-140px)] max-w-full overflow-x-clip">
+                <div className="w-full max-w-full px-3.5 sm:px-6 lg:px-8 space-y-6 pb-12">
 
                     {/* MOBILE / TABLET HORIZONTAL TAB STRIP (Auto-centered, hidden scrollbar) */}
                     <div 
@@ -586,7 +586,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                     data-tab={tab.id}
                                     type="button"
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap shrink-0 border cursor-pointer active:scale-95 ${
+                                    className={`px-4 py-2 sm:py-2.5 rounded-none text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap shrink-0 border cursor-pointer active:scale-95 ${
                                         isActive
                                             ? 'bg-[#1B3A69] text-white border-[#1B3A69] shadow-xs'
                                             : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 shadow-xs'
@@ -594,7 +594,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                 >
                                     <span>{tab.label}</span>
                                     {tab.badge && (
-                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-none ${
                                             isActive ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
                                         }`}>
                                             {tab.badge}
@@ -612,8 +612,8 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                     <div className="hidden lg:block lg:col-span-4 space-y-4">
                         
                         {/* Store Overview Card */}
-                        <div className="bg-white rounded-2xl border border-gray-200/80 p-5 shadow-xs flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-200/80 overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
+                        <div className="bg-white rounded-none border border-gray-200/80 p-5 shadow-xs flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-none bg-gray-50 border border-gray-200/80 overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
                                 <img 
                                     src={preview} 
                                     alt="Store Logo" 
@@ -629,7 +629,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                         </div>
 
                         {/* Navigation Sidebar Card */}
-                        <div className="bg-white rounded-2xl border border-gray-200/80 p-2 shadow-xs space-y-1">
+                        <div className="bg-white rounded-none border border-gray-200/80 p-2 shadow-xs space-y-1">
                             {currentTabs.map((tab) => {
                                 const isActive = activeTab === tab.id;
                                 return (
@@ -637,14 +637,14 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                         key={tab.id}
                                         type="button"
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`w-full text-left px-3.5 py-3 rounded-xl transition-all flex items-center justify-between group cursor-pointer ${
+                                        className={`w-full text-left px-3.5 py-3 rounded-none transition-all flex items-center justify-between group cursor-pointer ${
                                             isActive
                                                 ? 'bg-[#EFF4F9] text-[#1B3A69] font-bold border border-[#CBD7E6] shadow-xs'
                                                 : 'text-gray-700 hover:bg-gray-50 border border-transparent font-medium'
                                         }`}
                                     >
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <div className={`p-2 rounded-xl shrink-0 transition-colors ${
+                                            <div className={`p-2 rounded-none shrink-0 transition-colors ${
                                                 isActive ? 'bg-[#1B3A69] text-white' : 'bg-gray-100 text-gray-500 group-hover:text-gray-700'
                                             }`}>
                                                 {tab.icon}
@@ -658,7 +658,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                         </div>
 
                                         {tab.badge && (
-                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-none shrink-0 ml-2 ${
                                                 tab.badge === 'Admin Only'
                                                     ? 'bg-amber-50 text-amber-800 border border-amber-200'
                                                     : isActive
@@ -681,13 +681,13 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                         {/* TAB 1: STORE PROFILE & BRANDING (ADMIN)                  */}
                         {/* ======================================================== */}
                         {isAdmin && activeTab === 'store' && (
-                            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+                            <div className="bg-white rounded-none border border-gray-200/80 shadow-xs overflow-hidden">
                                 <div className="px-5 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                                     <div>
                                         <h2 className="text-sm sm:text-base font-bold text-gray-900">Store Profile & Branding</h2>
                                         <p className="text-xs text-gray-500 mt-0.5">Manage store name, contact numbers, address, and logo asset.</p>
                                     </div>
-                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#EFF4F9] text-[#1B3A69] border border-[#CBD7E6]">
+                                    <span className="px-2.5 py-0.5 rounded-none text-xs font-bold bg-[#EFF4F9] text-[#1B3A69] border border-[#CBD7E6]">
                                         Admin Config
                                     </span>
                                 </div>
@@ -697,7 +697,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                     <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 pb-6 border-b border-gray-100">
                                         <div 
                                             onClick={() => document.getElementById('store-logo-file-input').click()}
-                                            className="relative w-24 h-24 rounded-2xl ring-4 ring-gray-100 flex items-center justify-center overflow-hidden cursor-pointer group hover:ring-[#CBD7E6] transition-all shadow-xs shrink-0 bg-gray-50"
+                                            className="relative w-24 h-24 rounded-none ring-4 ring-gray-100 flex items-center justify-center overflow-hidden cursor-pointer group hover:ring-[#CBD7E6] transition-all shadow-xs shrink-0 bg-gray-50"
                                         >
                                             <img 
                                                 src={preview} 
@@ -719,7 +719,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                             <button
                                                 type="button"
                                                 onClick={() => document.getElementById('store-logo-file-input').click()}
-                                                className="px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-50 shadow-xs active:scale-95 transition-all cursor-pointer"
+                                                className="px-4 py-2 rounded-none border border-gray-200 bg-white text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-50 shadow-xs active:scale-95 transition-all cursor-pointer"
                                             >
                                                 Upload New Logo
                                             </button>
@@ -737,7 +737,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                 type="text"
                                                 value={storeForm.store_name}
                                                 onChange={(e) => setStoreForm({ ...storeForm, store_name: e.target.value })}
-                                                className="w-full h-11 px-3.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69] transition-all"
+                                                className="w-full h-11 px-3.5 rounded-none border border-gray-200 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69] transition-all"
                                                 placeholder="e.g. Aivin Retail & Grocery"
                                                 required
                                             />
@@ -752,7 +752,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                     type="text"
                                                     value={storeForm.phone}
                                                     onChange={(e) => setStoreForm({ ...storeForm, phone: e.target.value })}
-                                                    className="w-full h-11 px-3.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69] transition-all"
+                                                    className="w-full h-11 px-3.5 rounded-none border border-gray-200 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69] transition-all"
                                                     placeholder="e.g. 0917-123-4567"
                                                 />
                                             </div>
@@ -765,7 +765,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                     type="text"
                                                     value={storeForm.address}
                                                     onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })}
-                                                    className="w-full h-11 px-3.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69] transition-all"
+                                                    className="w-full h-11 px-3.5 rounded-none border border-gray-200 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69] transition-all"
                                                     placeholder="e.g. 123 Main Street, City"
                                                 />
                                             </div>
@@ -777,7 +777,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                         <button
                                             type="submit"
                                             disabled={saving}
-                                            className="px-4 py-2 sm:py-2.5 rounded-xl bg-[#1B3A69] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm shadow-xs active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                                            className="px-4 py-2 sm:py-2.5 rounded-none bg-[#1B3A69] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm shadow-xs active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                                         >
                                             {saving ? (
                                                 <>
@@ -800,7 +800,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                         {/* TAB 2: POS REGISTERS & LANES (ADMIN)                     */}
                         {/* ======================================================== */}
                         {isAdmin && activeTab === 'terminals' && (
-                            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+                            <div className="bg-white rounded-none border border-gray-200/80 shadow-xs overflow-hidden">
                                 <div className="px-5 sm:px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                     <div>
                                         <h2 className="text-sm sm:text-base font-bold text-gray-900">Physical Checkout Registers</h2>
@@ -809,7 +809,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                     <button
                                         type="button"
                                         onClick={() => handleOpenTerminalModal()}
-                                        className="px-4 py-2 rounded-xl bg-[#1B3A69] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer self-start sm:self-auto"
+                                        className="px-4 py-2 rounded-none bg-[#1B3A69] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer self-start sm:self-auto"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                         <span>Add New Register</span>
@@ -818,7 +818,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
 
                                 <div className="p-5 sm:p-6 space-y-4">
                                     {terminals.length === 0 ? (
-                                        <div className="text-center py-10 border border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
+                                        <div className="text-center py-10 border border-dashed border-gray-200 rounded-none bg-gray-50/50">
                                             <p className="text-xs font-bold text-gray-500">No registers configured yet.</p>
                                             <p className="text-xs text-gray-400 mt-0.5">Click "Add New Register" to set up Register 1.</p>
                                         </div>
@@ -831,7 +831,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                 return (
                                                     <div
                                                         key={term.id}
-                                                        className={`p-4 rounded-2xl border transition-all ${
+                                                        className={`p-4 rounded-none border transition-all ${
                                                             isAssigned
                                                                 ? 'border-[#1B3A69] bg-[#EFF4F9]/40 ring-2 ring-[#1B3A69]/10 shadow-xs'
                                                                 : 'border-gray-200 bg-white hover:border-gray-300 shadow-xs'
@@ -839,14 +839,14 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                     >
                                                         <div className="flex items-start justify-between gap-3">
                                                             <div className="flex items-center gap-3">
-                                                                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 font-bold shrink-0">
+                                                                <div className="w-10 h-10 rounded-none bg-slate-100 flex items-center justify-center text-slate-700 font-bold shrink-0">
                                                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0H3" /></svg>
                                                                 </div>
                                                                 <div>
                                                                     <div className="font-bold text-sm text-gray-900 flex items-center gap-2">
                                                                         <span>{term.name}</span>
                                                                         {term.code && (
-                                                                            <span className="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-mono font-bold">
+                                                                            <span className="text-[11px] px-1.5 py-0.5 rounded-none bg-gray-100 text-gray-600 font-mono font-bold">
                                                                                 {term.code}
                                                                             </span>
                                                                         )}
@@ -854,12 +854,12 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                                     <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1.5">
                                                                         {activeShift ? (
                                                                             <span className="text-emerald-700 font-bold flex items-center gap-1">
-                                                                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                                                <span className="w-2 h-2 rounded-none bg-emerald-500 animate-pulse"></span>
                                                                                 <span>Cashier: {activeShift.user?.name || 'Staff'} (Shift #{activeShift.id})</span>
                                                                             </span>
                                                                         ) : (
                                                                             <span className="text-gray-400 flex items-center gap-1">
-                                                                                <span className="w-2 h-2 rounded-full bg-gray-300"></span>
+                                                                                <span className="w-2 h-2 rounded-none bg-gray-300"></span>
                                                                                 <span>Closed / Idle</span>
                                                                             </span>
                                                                         )}
@@ -868,7 +868,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                             </div>
 
                                                             {isAssigned && (
-                                                                <span className="px-2 py-0.5 bg-[#1B3A69] text-white text-[10px] font-bold rounded-lg uppercase tracking-wider shrink-0">
+                                                                <span className="px-2 py-0.5 bg-[#1B3A69] text-white text-[10px] font-bold rounded-none uppercase tracking-wider shrink-0">
                                                                     This Screen
                                                                 </span>
                                                             )}
@@ -900,14 +900,14 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => handleOpenTerminalModal(term)}
-                                                                    className="px-2.5 py-1 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
+                                                                    className="px-2.5 py-1 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-none transition-colors cursor-pointer"
                                                                 >
                                                                     Edit
                                                                 </button>
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => handleDeleteTerminal(term)}
-                                                                    className="px-2 py-1 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                                                    className="px-2 py-1 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-none transition-colors cursor-pointer"
                                                                     title="Delete Register"
                                                                 >
                                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -928,13 +928,13 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                         {/* ======================================================== */}
                         {isAdmin && activeTab === 'receipts' && (
                             <div className="space-y-6">
-                                <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+                                <div className="bg-white rounded-none border border-gray-200/80 shadow-xs overflow-hidden">
                                     <div className="px-5 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                                         <div>
                                             <h2 className="text-sm sm:text-base font-bold text-gray-900">Receipt Customization & Layout</h2>
                                             <p className="text-xs text-gray-500 mt-0.5">Customize printed header sub-notes, footer text, and paper roll dimensions.</p>
                                         </div>
-                                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#EFF4F9] text-[#1B3A69] border border-[#CBD7E6]">
+                                        <span className="px-2.5 py-0.5 rounded-none text-xs font-bold bg-[#EFF4F9] text-[#1B3A69] border border-[#CBD7E6]">
                                             Live Mockup
                                         </span>
                                     </div>
@@ -950,7 +950,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                     type="text"
                                                     value={receiptHeaderTagline}
                                                     onChange={(e) => setReceiptHeaderTagline(e.target.value)}
-                                                    className="w-full h-11 px-3.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69] transition-all"
+                                                    className="w-full h-11 px-3.5 rounded-none border border-gray-200 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69] transition-all"
                                                     placeholder="e.g. Official Retail Receipt"
                                                 />
                                             </div>
@@ -963,7 +963,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                     rows={3}
                                                     value={receiptFooterNote}
                                                     onChange={(e) => setReceiptFooterNote(e.target.value)}
-                                                    className="w-full p-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69] transition-all"
+                                                    className="w-full p-3 rounded-none border border-gray-200 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69] transition-all"
                                                     placeholder="e.g. Thank you for shopping with us! Please keep your receipt for returns."
                                                 />
                                             </div>
@@ -974,11 +974,11 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                     <h4 className="font-bold text-gray-900 text-xs sm:text-sm">Thermal Paper Roll Size</h4>
                                                     <p className="text-xs text-gray-500 mt-0.5">Specify layout width matching printer paper.</p>
                                                 </div>
-                                                <div className="flex bg-gray-100 rounded-xl p-1 border border-gray-200">
+                                                <div className="flex bg-gray-100 rounded-none p-1 border border-gray-200">
                                                     <button
                                                         type="button"
                                                         onClick={() => setPaperWidth('58mm')}
-                                                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                                        className={`px-4 py-1.5 rounded-none text-xs font-bold transition-all cursor-pointer ${
                                                             paperWidth === '58mm' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-800'
                                                         }`}
                                                     >
@@ -987,7 +987,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                     <button
                                                         type="button"
                                                         onClick={() => setPaperWidth('80mm')}
-                                                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                                        className={`px-4 py-1.5 rounded-none text-xs font-bold transition-all cursor-pointer ${
                                                             paperWidth === '80mm' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-800'
                                                         }`}
                                                     >
@@ -1000,14 +1000,14 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                 <button
                                                     type="button"
                                                     onClick={handleSaveReceiptSettings}
-                                                    className="px-4 py-2 sm:py-2.5 rounded-xl bg-[#1B3A69] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm shadow-xs active:scale-95 transition-all cursor-pointer"
+                                                    className="px-4 py-2 sm:py-2.5 rounded-none bg-[#1B3A69] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm shadow-xs active:scale-95 transition-all cursor-pointer"
                                                 >
                                                     Save Receipt Text
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={handleTestPrint}
-                                                    className="px-4 py-2 sm:py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 font-bold text-xs sm:text-sm shadow-xs active:scale-95 transition-all cursor-pointer"
+                                                    className="px-4 py-2 sm:py-2.5 rounded-none border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 font-bold text-xs sm:text-sm shadow-xs active:scale-95 transition-all cursor-pointer"
                                                 >
                                                     Test Thermal Print
                                                 </button>
@@ -1015,10 +1015,10 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                         </div>
 
                                         {/* Interactive Live Receipt Mockup */}
-                                        <div className="lg:col-span-5 bg-[#F8FAFC] border border-gray-200 rounded-2xl p-4 shadow-inner flex flex-col items-center">
+                                        <div className="lg:col-span-5 bg-[#F8FAFC] border border-gray-200 rounded-none p-4 shadow-inner flex flex-col items-center">
                                             <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Live Thermal Preview ({paperWidth})</span>
                                             
-                                            <div className={`bg-white border border-gray-300 rounded-xl p-4 font-mono text-[11px] text-gray-800 shadow-sm leading-tight space-y-2 w-full ${
+                                            <div className={`bg-white border border-gray-300 rounded-none p-4 font-mono text-[11px] text-gray-800 shadow-sm leading-tight space-y-2 w-full ${
                                                 paperWidth === '58mm' ? 'max-w-[240px]' : 'max-w-[280px]'
                                             }`}>
                                                 <div className="text-center space-y-0.5">
@@ -1081,13 +1081,13 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                         {/* ======================================================== */}
                         {isAdmin && activeTab === 'rules' && (
                             <div className="space-y-6">
-                                <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+                                <div className="bg-white rounded-none border border-gray-200/80 shadow-xs overflow-hidden">
                                     <div className="px-5 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                                         <div>
                                             <h2 className="text-sm sm:text-base font-bold text-gray-900">Operational & Sales Rules</h2>
                                             <p className="text-xs text-gray-500 mt-0.5">Overview of system discount policies, stock threshold triggers, and payment configurations.</p>
                                         </div>
-                                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#EFF4F9] text-[#1B3A69] border border-[#CBD7E6]">
+                                        <span className="px-2.5 py-0.5 rounded-none text-xs font-bold bg-[#EFF4F9] text-[#1B3A69] border border-[#CBD7E6]">
                                             Store Policies
                                         </span>
                                     </div>
@@ -1097,24 +1097,24 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             
                                             {/* Senior & PWD Discount Card */}
-                                            <div className="p-4 rounded-2xl border border-gray-200 bg-gray-50/50 space-y-2">
+                                            <div className="p-4 rounded-none border border-gray-200 bg-gray-50/50 space-y-2">
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 font-mono">Discounts</span>
-                                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                    <span className="px-2.5 py-0.5 rounded-none text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                                         20% Active
                                                     </span>
                                                 </div>
                                                 <h4 className="font-bold text-gray-900 text-sm">Senior & PWD Statutory Discount</h4>
                                                 <p className="text-xs text-gray-500 leading-relaxed">
-                                                    Standard 20% discount compliant with RA 9994. Triggered at POS via <kbd className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-700 font-mono text-[10px]">F10</kbd>.
+                                                    Standard 20% discount compliant with RA 9994. Triggered at POS via <kbd className="px-1.5 py-0.5 rounded-none bg-gray-200 text-gray-700 font-mono text-[10px]">F10</kbd>.
                                                 </p>
                                             </div>
 
                                             {/* Low Stock Alert Threshold */}
-                                            <div className="p-4 rounded-2xl border border-gray-200 bg-gray-50/50 space-y-2">
+                                            <div className="p-4 rounded-none border border-gray-200 bg-gray-50/50 space-y-2">
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 font-mono">Inventory</span>
-                                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                                    <span className="px-2.5 py-0.5 rounded-none text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
                                                         Trigger: &le; 5 Units
                                                     </span>
                                                 </div>
@@ -1125,10 +1125,10 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                             </div>
 
                                             {/* Wholesale Multi-Tier Pricing */}
-                                            <div className="p-4 rounded-2xl border border-gray-200 bg-gray-50/50 space-y-2">
+                                            <div className="p-4 rounded-none border border-gray-200 bg-gray-50/50 space-y-2">
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 font-mono">Pricing</span>
-                                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#EFF4F9] text-[#1B3A69] border border-[#CBD7E6]">
+                                                    <span className="px-2.5 py-0.5 rounded-none text-xs font-bold bg-[#EFF4F9] text-[#1B3A69] border border-[#CBD7E6]">
                                                         Dual Tier
                                                     </span>
                                                 </div>
@@ -1143,32 +1143,32 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                         <div className="pt-4 border-t border-gray-100">
                                             <h4 className="font-bold text-gray-900 text-sm mb-3">Supported POS Payment Channels</h4>
                                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                                <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/40 flex items-center gap-2.5">
-                                                    <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs font-mono">₱</div>
+                                                <div className="p-3 rounded-none border border-emerald-200 bg-emerald-50/40 flex items-center gap-2.5">
+                                                    <div className="w-8 h-8 rounded-none bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs font-mono">₱</div>
                                                     <div>
                                                         <p className="text-xs font-bold text-gray-900">Cash Drawer</p>
                                                         <p className="text-[11px] text-emerald-700 font-semibold">F1 • Enabled</p>
                                                     </div>
                                                 </div>
 
-                                                <div className="p-3 rounded-xl border border-blue-200 bg-blue-50/40 flex items-center gap-2.5">
-                                                    <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">G</div>
+                                                <div className="p-3 rounded-none border border-blue-200 bg-blue-50/40 flex items-center gap-2.5">
+                                                    <div className="w-8 h-8 rounded-none bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">G</div>
                                                     <div>
                                                         <p className="text-xs font-bold text-gray-900">GCash E-Wallet</p>
                                                         <p className="text-[11px] text-blue-700 font-semibold">F3 • Enabled</p>
                                                     </div>
                                                 </div>
 
-                                                <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/40 flex items-center gap-2.5">
-                                                    <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">M</div>
+                                                <div className="p-3 rounded-none border border-emerald-200 bg-emerald-50/40 flex items-center gap-2.5">
+                                                    <div className="w-8 h-8 rounded-none bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">M</div>
                                                     <div>
                                                         <p className="text-xs font-bold text-gray-900">Maya E-Wallet</p>
                                                         <p className="text-[11px] text-emerald-700 font-semibold">F4 • Enabled</p>
                                                     </div>
                                                 </div>
 
-                                                <div className="p-3 rounded-xl border border-indigo-200 bg-indigo-50/40 flex items-center gap-2.5">
-                                                    <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">💳</div>
+                                                <div className="p-3 rounded-none border border-indigo-200 bg-indigo-50/40 flex items-center gap-2.5">
+                                                    <div className="w-8 h-8 rounded-none bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">💳</div>
                                                     <div>
                                                         <p className="text-xs font-bold text-gray-900">Cards (Credit/Debit)</p>
                                                         <p className="text-[11px] text-indigo-700 font-semibold">F8/F9 • Enabled</p>
@@ -1186,13 +1186,13 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                         {/* ======================================================== */}
                         {(!isAdmin && activeTab === 'hardware') && (
                             <div className="space-y-6">
-                                <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+                                <div className="bg-white rounded-none border border-gray-200/80 shadow-xs overflow-hidden">
                                     <div className="px-5 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                                         <div>
                                             <h2 className="text-sm sm:text-base font-bold text-gray-900">Workstation & Thermal Printer</h2>
                                             <p className="text-xs text-gray-500 mt-0.5">Manage USB/Bluetooth printer hardware and cash drawer kickers on this terminal.</p>
                                         </div>
-                                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                                        <span className={`px-2.5 py-0.5 rounded-none text-xs font-bold border ${
                                             usbDevice || bluetoothDevice
                                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                                 : 'bg-rose-50 text-rose-700 border-rose-200'
@@ -1203,7 +1203,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
 
                                     <div className="p-5 sm:p-6 space-y-6">
                                         {/* Assigned Terminal Lane Dropdown */}
-                                        <div className="p-4 rounded-2xl border border-gray-200 bg-gray-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                        <div className="p-4 rounded-none border border-gray-200 bg-gray-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                             <div>
                                                 <h4 className="font-bold text-gray-900 text-sm">Assigned POS Register Lane</h4>
                                                 <p className="text-xs text-gray-500 mt-0.5">Choose which checkout register this browser/screen represents.</p>
@@ -1214,7 +1214,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                     const selected = terminals.find(t => String(t.id) === String(e.target.value));
                                                     if (selected) handleSetWorkstation(selected);
                                                 }}
-                                                className="h-10 px-3 rounded-xl border border-gray-300 bg-white text-xs sm:text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69] cursor-pointer"
+                                                className="h-10 px-3 rounded-none border border-gray-300 bg-white text-xs sm:text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69] cursor-pointer"
                                             >
                                                 {terminals.map(t => (
                                                     <option key={t.id} value={t.id}>{t.name} ({t.code || 'LANE'})</option>
@@ -1223,9 +1223,9 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                         </div>
 
                                         {/* Printer Connection Controls */}
-                                        <div className="p-5 rounded-2xl border border-gray-200 bg-white shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                                        <div className="p-5 rounded-none border border-gray-200 bg-white shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                                             <div className="flex items-center gap-3.5">
-                                                <div className={`p-3 rounded-2xl transition-colors ${
+                                                <div className={`p-3 rounded-none transition-colors ${
                                                     usbDevice || bluetoothDevice
                                                         ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
                                                         : 'bg-gray-100 text-gray-400 border border-gray-200'
@@ -1247,20 +1247,20 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                     <button
                                                         type="button"
                                                         onClick={isMobile ? connectBluetooth : connectUsb}
-                                                        className="px-4 py-2 sm:py-2.5 rounded-xl bg-[#1B3A69] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm shadow-xs active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                                                        className="px-4 py-2 sm:py-2.5 rounded-none bg-[#1B3A69] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm shadow-xs active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
                                                     >
                                                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
                                                         Pair {isMobile ? 'Bluetooth' : 'USB'} Printer
                                                     </button>
                                                 ) : (
                                                     <>
-                                                        <button type="button" onClick={handleTestPrint} className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-50 shadow-xs active:scale-95 transition-all cursor-pointer">
+                                                        <button type="button" onClick={handleTestPrint} className="px-4 py-2 rounded-none bg-white border border-gray-200 text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-50 shadow-xs active:scale-95 transition-all cursor-pointer">
                                                             Test Print
                                                         </button>
-                                                        <button type="button" onClick={openCashDrawer} className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-50 shadow-xs active:scale-95 transition-all cursor-pointer">
+                                                        <button type="button" onClick={openCashDrawer} className="px-4 py-2 rounded-none bg-white border border-gray-200 text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-50 shadow-xs active:scale-95 transition-all cursor-pointer">
                                                             Kick Drawer
                                                         </button>
-                                                        <button type="button" onClick={disconnect} className="px-4 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 font-bold text-xs sm:text-sm hover:bg-rose-100 transition-all cursor-pointer">
+                                                        <button type="button" onClick={disconnect} className="px-4 py-2 rounded-none bg-rose-50 border border-rose-200 text-rose-700 font-bold text-xs sm:text-sm hover:bg-rose-100 transition-all cursor-pointer">
                                                             Disconnect
                                                         </button>
                                                     </>
@@ -1273,7 +1273,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                             <h4 className="font-bold text-gray-900 text-xs sm:text-sm uppercase tracking-wider">Workstation Display & Keybindings</h4>
                                             
                                             {/* POS Keyboard Shortcuts Toggle */}
-                                            <div className="p-4 rounded-2xl border border-gray-200 bg-white flex items-center justify-between gap-4">
+                                            <div className="p-4 rounded-none border border-gray-200 bg-white flex items-center justify-between gap-4">
                                                 <div>
                                                     <h5 className="font-bold text-gray-900 text-sm">POS Keyboard Function Keys (F1–F12)</h5>
                                                     <p className="text-xs text-gray-500 mt-0.5">Enable physical keyboard shortcuts for rapid cashier checkout operations.</p>
@@ -1281,14 +1281,14 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                 <button
                                                     type="button"
                                                     onClick={toggleShortcuts}
-                                                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${localShortcutsEnabled ? 'bg-emerald-500' : 'bg-gray-300'}`}
+                                                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-none border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${localShortcutsEnabled ? 'bg-emerald-500' : 'bg-gray-300'}`}
                                                 >
-                                                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${localShortcutsEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                                                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-none bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${localShortcutsEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
                                                 </button>
                                             </div>
 
                                             {/* Full Screen Mode */}
-                                            <div className="p-4 rounded-2xl border border-gray-200 bg-white flex items-center justify-between gap-4">
+                                            <div className="p-4 rounded-none border border-gray-200 bg-white flex items-center justify-between gap-4">
                                                 <div>
                                                     <h5 className="font-bold text-gray-900 text-sm">POS Full Screen Mode</h5>
                                                     <p className="text-xs text-gray-500 mt-0.5">Maximize POS display area to hide browser chrome and distraction bars.</p>
@@ -1296,14 +1296,14 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                 <button
                                                     type="button"
                                                     onClick={toggleFullScreen}
-                                                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isFullScreen ? 'bg-emerald-500' : 'bg-gray-300'}`}
+                                                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-none border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isFullScreen ? 'bg-emerald-500' : 'bg-gray-300'}`}
                                                 >
-                                                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${isFullScreen ? 'translate-x-5' : 'translate-x-0'}`} />
+                                                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-none bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${isFullScreen ? 'translate-x-5' : 'translate-x-0'}`} />
                                                 </button>
                                             </div>
 
                                             {/* Scan / Results Only Mode */}
-                                            <div className="p-4 rounded-2xl border border-gray-200 bg-white flex items-center justify-between gap-4">
+                                            <div className="p-4 rounded-none border border-gray-200 bg-white flex items-center justify-between gap-4">
                                                 <div>
                                                     <h5 className="font-bold text-gray-900 text-sm">Scan & Search Results Only</h5>
                                                     <p className="text-xs text-gray-500 mt-0.5">Only show catalog items when scanning barcodes or typing a search query.</p>
@@ -1311,9 +1311,9 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                 <button
                                                     type="button"
                                                     onClick={toggleResultsOnly}
-                                                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${showResultsOnly ? 'bg-emerald-500' : 'bg-gray-300'}`}
+                                                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-none border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${showResultsOnly ? 'bg-emerald-500' : 'bg-gray-300'}`}
                                                 >
-                                                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${showResultsOnly ? 'translate-x-5' : 'translate-x-0'}`} />
+                                                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-none bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${showResultsOnly ? 'translate-x-5' : 'translate-x-0'}`} />
                                                 </button>
                                             </div>
                                         </div>
@@ -1327,13 +1327,13 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                         {/* ======================================================== */}
                         {(!isAdmin && activeTab === 'shift') && (
                             <div className="space-y-6">
-                                <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+                                <div className="bg-white rounded-none border border-gray-200/80 shadow-xs overflow-hidden">
                                     <div className="px-5 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                                         <div>
                                             <h2 className="text-sm sm:text-base font-bold text-gray-900">Active Shift Reconciliation & Z-Read</h2>
                                             <p className="text-xs text-gray-500 mt-0.5">Monitor current cash drawer expected count and perform end-of-shift Z-Read.</p>
                                         </div>
-                                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                                        <span className={`px-2.5 py-0.5 rounded-none text-xs font-bold border ${
                                             settings?.active_shift ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-600'
                                         }`}>
                                             {settings?.active_shift ? 'Shift In Progress' : 'No Active Shift'}
@@ -1349,21 +1349,21 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                 </div>
 
                                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                                    <div className="p-4 rounded-2xl border border-gray-200 bg-gray-50/50">
+                                                    <div className="p-4 rounded-none border border-gray-200 bg-gray-50/50">
                                                         <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 font-mono">Starting Float</span>
                                                         <p className="text-xl font-bold text-gray-900 font-mono mt-1">
                                                             ₱{Number(settings.active_shift.starting_cash || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                                         </p>
                                                     </div>
 
-                                                    <div className="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40">
+                                                    <div className="p-4 rounded-none border border-emerald-200 bg-emerald-50/40">
                                                         <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 font-mono">Cash Sales</span>
                                                         <p className="text-xl font-bold text-emerald-700 font-mono mt-1">
                                                             ₱{Number(settings.active_shift.cash_sales || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                                         </p>
                                                     </div>
 
-                                                    <div className="p-4 rounded-2xl border border-[#CBD7E6] bg-[#EFF4F9]">
+                                                    <div className="p-4 rounded-none border border-[#CBD7E6] bg-[#EFF4F9]">
                                                         <span className="text-[11px] font-bold uppercase tracking-wider text-[#1B3A69] font-mono">Expected in Drawer</span>
                                                         <p className="text-xl font-bold text-[#1B3A69] font-mono mt-1">
                                                             ₱{Number(settings.active_shift.expected_cash || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -1377,25 +1377,25 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                         <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 font-mono">Digital Payments Collected</span>
                                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                                             {gcashSales > 0 && (
-                                                                <div className="p-3 rounded-xl border border-blue-100 bg-blue-50/40">
+                                                                <div className="p-3 rounded-none border border-blue-100 bg-blue-50/40">
                                                                     <span className="text-xs font-bold text-blue-600">GCash</span>
                                                                     <p className="font-mono font-bold text-blue-800 text-sm mt-0.5">₱{gcashSales.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                                                                 </div>
                                                             )}
                                                             {mayaSales > 0 && (
-                                                                <div className="p-3 rounded-xl border border-emerald-100 bg-emerald-50/40">
+                                                                <div className="p-3 rounded-none border border-emerald-100 bg-emerald-50/40">
                                                                     <span className="text-xs font-bold text-emerald-600">Maya</span>
                                                                     <p className="font-mono font-bold text-emerald-800 text-sm mt-0.5">₱{mayaSales.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                                                                 </div>
                                                             )}
                                                             {creditCardSales > 0 && (
-                                                                <div className="p-3 rounded-xl border border-purple-100 bg-purple-50/40">
+                                                                <div className="p-3 rounded-none border border-purple-100 bg-purple-50/40">
                                                                     <span className="text-xs font-bold text-purple-600">Credit Card</span>
                                                                     <p className="font-mono font-bold text-purple-800 text-sm mt-0.5">₱{creditCardSales.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                                                                 </div>
                                                             )}
                                                             {debitCardSales > 0 && (
-                                                                <div className="p-3 rounded-xl border border-indigo-100 bg-indigo-50/40">
+                                                                <div className="p-3 rounded-none border border-indigo-100 bg-indigo-50/40">
                                                                     <span className="text-xs font-bold text-indigo-600">Debit Card</span>
                                                                     <p className="font-mono font-bold text-indigo-800 text-sm mt-0.5">₱{debitCardSales.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                                                                 </div>
@@ -1413,7 +1413,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowShiftModal(true)}
-                                                        className="w-full sm:w-auto px-4 py-2 sm:py-2.5 rounded-xl bg-[#1B3A69] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm shadow-xs active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                                        className="w-full sm:w-auto px-4 py-2 sm:py-2.5 rounded-none bg-[#1B3A69] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm shadow-xs active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                                                     >
                                                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                                         <span>Perform Z-Read & Close Shift</span>
@@ -1421,7 +1421,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="text-center py-10 border border-dashed border-gray-200 rounded-2xl bg-gray-50/50 space-y-2">
+                                            <div className="text-center py-10 border border-dashed border-gray-200 rounded-none bg-gray-50/50 space-y-2">
                                                 <svg className="w-10 h-10 text-gray-300 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                                 <p className="text-xs font-bold text-gray-500">No active selling shift on this terminal.</p>
                                                 <p className="text-xs text-gray-400">Open a shift on the POS Terminal to start recording sales.</p>
@@ -1436,26 +1436,26 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                         {/* TAB 7: LEGAL & POLICIES (ADMIN & CASHIER)                */}
                         {/* ======================================================== */}
                         {activeTab === 'legal' && (
-                            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
+                            <div className="bg-white rounded-none border border-gray-200/80 shadow-xs overflow-hidden">
                                 <div className="px-5 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                                     <div>
                                         <h2 className="text-sm sm:text-base font-bold text-gray-900">Legal Agreements & Policies</h2>
                                         <p className="text-xs text-gray-500 mt-0.5">Platform terms of service, acceptable use policies, and privacy standards.</p>
                                     </div>
-                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#EFF4F9] text-[#1B3A69] border border-[#CBD7E6]">
+                                    <span className="px-2.5 py-0.5 rounded-none text-xs font-bold bg-[#EFF4F9] text-[#1B3A69] border border-[#CBD7E6]">
                                         Compliance
                                     </span>
                                 </div>
 
                                 <div className="p-5 sm:p-6 space-y-5">
                                     {/* Document Selection Tabs Strip */}
-                                    <div className="flex overflow-x-auto gap-1.5 p-1.5 bg-gray-100/80 rounded-xl border border-gray-200 w-full sm:w-max custom-scrollbar">
+                                    <div className="flex overflow-x-auto gap-1.5 p-1.5 bg-gray-100/80 rounded-none border border-gray-200 w-full sm:w-max custom-scrollbar">
                                         {isAdmin && (
                                             <>
                                                 <button
                                                     type="button"
                                                     onClick={() => setSelectedLegalDoc('terms')}
-                                                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                                                    className={`px-3.5 py-1.5 rounded-none text-xs font-bold transition-all shrink-0 cursor-pointer ${
                                                         selectedLegalDoc === 'terms'
                                                             ? 'bg-white text-[#1B3A69] shadow-xs'
                                                             : 'text-gray-600 hover:text-gray-900'
@@ -1466,7 +1466,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                 <button
                                                     type="button"
                                                     onClick={() => setSelectedLegalDoc('privacy')}
-                                                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                                                    className={`px-3.5 py-1.5 rounded-none text-xs font-bold transition-all shrink-0 cursor-pointer ${
                                                         selectedLegalDoc === 'privacy'
                                                             ? 'bg-white text-[#1B3A69] shadow-xs'
                                                             : 'text-gray-600 hover:text-gray-900'
@@ -1479,7 +1479,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                         <button
                                             type="button"
                                             onClick={() => setSelectedLegalDoc('staff_terms')}
-                                            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                                            className={`px-3.5 py-1.5 rounded-none text-xs font-bold transition-all shrink-0 cursor-pointer ${
                                                 selectedLegalDoc === 'staff_terms'
                                                     ? 'bg-white text-[#1B3A69] shadow-xs'
                                                     : 'text-gray-600 hover:text-gray-900'
@@ -1490,7 +1490,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                         <button
                                             type="button"
                                             onClick={() => setSelectedLegalDoc('staff_privacy')}
-                                            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                                            className={`px-3.5 py-1.5 rounded-none text-xs font-bold transition-all shrink-0 cursor-pointer ${
                                                 selectedLegalDoc === 'staff_privacy'
                                                     ? 'bg-white text-[#1B3A69] shadow-xs'
                                                     : 'text-gray-600 hover:text-gray-900'
@@ -1501,7 +1501,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                     </div>
 
                                     {/* Direct Inline Document Reader Box */}
-                                    <div className="bg-gray-50/70 border border-gray-200/90 rounded-2xl p-5 sm:p-6 space-y-3 shadow-inner">
+                                    <div className="bg-gray-50/70 border border-gray-200/90 rounded-none p-5 sm:p-6 space-y-3 shadow-inner">
                                         <div className="flex items-center justify-between border-b border-gray-200 pb-3">
                                             <div className="flex items-center gap-2">
                                                 <svg className="w-4 h-4 text-[#1B3A69]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -1514,7 +1514,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                                     {selectedLegalDoc === 'staff_privacy' && 'Staff Privacy Policy'}
                                                 </h3>
                                             </div>
-                                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-white px-2 py-0.5 rounded-md border border-gray-200 shadow-xs">
+                                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider bg-white px-2 py-0.5 rounded-none border border-gray-200 shadow-xs">
                                                 Official Document
                                             </span>
                                         </div>
@@ -1553,11 +1553,11 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
             {/* Add / Edit Register Modal */}
             {showTerminalModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                    <div className="bg-white rounded-none shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
                         {/* Standard App Modal Navy Header */}
                         <div className="px-6 py-4 bg-[#1B3A69] text-white flex justify-between items-center shrink-0 shadow-md">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 text-white">
+                                <div className="w-10 h-10 rounded-none bg-white/10 flex items-center justify-center shrink-0 text-white">
                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0H3" />
                                     </svg>
@@ -1572,7 +1572,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                             <button
                                 type="button"
                                 onClick={() => setShowTerminalModal(false)}
-                                className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                                className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 w-8 h-8 rounded-none flex items-center justify-center transition-colors cursor-pointer"
                             >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -1589,7 +1589,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                     type="text"
                                     value={terminalForm.name}
                                     onChange={(e) => setTerminalForm({ ...terminalForm, name: e.target.value })}
-                                    className="w-full h-11 px-3.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69]"
+                                    className="w-full h-11 px-3.5 rounded-none border border-gray-200 text-sm font-semibold text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69]"
                                     placeholder="e.g. Register 1 / Front Counter"
                                     required
                                 />
@@ -1603,7 +1603,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                     type="text"
                                     value={terminalForm.code}
                                     onChange={(e) => setTerminalForm({ ...terminalForm, code: e.target.value })}
-                                    className="w-full h-11 px-3.5 rounded-xl border border-gray-200 text-sm font-semibold font-mono text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69]"
+                                    className="w-full h-11 px-3.5 rounded-none border border-gray-200 text-sm font-semibold font-mono text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69]"
                                     placeholder="e.g. REG-01"
                                 />
                             </div>
@@ -1616,7 +1616,7 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                     rows={2}
                                     value={terminalForm.notes}
                                     onChange={(e) => setTerminalForm({ ...terminalForm, notes: e.target.value })}
-                                    className="w-full p-3 rounded-xl border border-gray-200 text-xs font-medium text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69]"
+                                    className="w-full p-3 rounded-none border border-gray-200 text-xs font-medium text-gray-800 focus:ring-2 focus:ring-[#1B3A69]/20 focus:border-[#1B3A69]"
                                     placeholder="e.g. Main checkout lane near entrance"
                                 />
                             </div>
@@ -1625,13 +1625,13 @@ export default function Settings({ auth, initial_settings, initial_terminals }) 
                                 <button
                                     type="button"
                                     onClick={() => setShowTerminalModal(false)}
-                                    className="px-4 py-2 sm:py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-50 transition-all shadow-xs active:scale-95 cursor-pointer"
+                                    className="px-4 py-2 sm:py-2.5 rounded-none border border-gray-200 bg-white text-gray-700 font-bold text-xs sm:text-sm hover:bg-gray-50 transition-all shadow-xs active:scale-95 cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 sm:py-2.5 rounded-xl bg-[#1B3A69] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm shadow-xs active:scale-95 transition-all cursor-pointer"
+                                    className="px-4 py-2 sm:py-2.5 rounded-none bg-[#1B3A69] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm shadow-xs active:scale-95 transition-all cursor-pointer"
                                 >
                                     Save Register
                                 </button>

@@ -15,13 +15,13 @@ export default function Guest({ children }) {
             {/* Logo Section: Displays the store branding or a fallback icon */}
             <div className="mb-6">
                 <Link href="/">
-                    {/* Circular logo container with shadow and border */}
-                    <div className="w-20 h-20 bg-white rounded-full shadow-md flex items-center justify-center overflow-hidden border border-gray-100">
+                    {/* Square logo container with shadow and border */}
+                    <div className="w-20 h-20 bg-white rounded-none shadow-md flex items-center justify-center overflow-hidden border border-gray-100">
                         {!logoError ? (
                             <img
                                 src="/logo.png"
                                 alt="Store Logo"
-                                className="w-full h-full object-cover rounded-full"
+                                className="w-full h-full object-cover rounded-none"
                                 onError={() => setLogoError(true)}
                             />
                         ) : (
@@ -37,7 +37,7 @@ export default function Guest({ children }) {
             </div>
 
             {/* Central Content Card: Houses the login or registration forms */}
-            <div className="w-full sm:max-w-md mt-2 px-6 py-8 bg-white shadow-xl overflow-hidden rounded-2xl border border-gray-100">
+            <div className="w-full sm:max-w-md mt-2 px-6 py-8 bg-white shadow-xl overflow-hidden rounded-none border border-gray-100">
                 {children}
             </div>
 

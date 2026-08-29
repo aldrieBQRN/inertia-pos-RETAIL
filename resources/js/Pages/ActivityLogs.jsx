@@ -123,7 +123,7 @@ const formatAdminValue = (key, value) => {
     if (typeof value === 'boolean' || key === 'is_active') {
         const isTrue = value === true || value === 1 || value === '1';
         return (
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold ${isTrue ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-none text-[11px] font-bold ${isTrue ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
                 {isTrue ? 'Active' : 'Inactive'}
             </span>
         );
@@ -143,7 +143,7 @@ const formatAdminValue = (key, value) => {
                 <img 
                     src={imgSrc} 
                     alt="Logo" 
-                    className="w-8 h-8 rounded-lg object-cover border border-gray-200 shadow-2xs shrink-0 bg-white" 
+                    className="w-8 h-8 rounded-none object-cover border border-gray-200 shadow-2xs shrink-0 bg-white" 
                     onError={(e) => { e.target.style.display = 'none'; }}
                 />
                 <span className="text-xs font-semibold text-gray-700 font-sans">Image File Updated</span>
@@ -154,7 +154,7 @@ const formatAdminValue = (key, value) => {
     // Staff Roles
     if (key === 'role') {
         return (
-            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md font-bold text-xs uppercase">
+            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-none font-bold text-xs uppercase">
                 {String(value)}
             </span>
         );
@@ -651,7 +651,7 @@ export default function ActivityLogs() {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
 
                         {/* KPI 1: Total Activities */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider truncate">Total Logs</p>
@@ -659,7 +659,7 @@ export default function ActivityLogs() {
                                         {stats.totalCount.toLocaleString()} <span className="text-xs font-semibold text-gray-400">events</span>
                                     </h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-xl ring-1 ring-[#CBD7E6] shrink-0">
+                                <div className="p-2 sm:p-2.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-none ring-1 ring-[#CBD7E6] shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
                                     </svg>
@@ -672,7 +672,7 @@ export default function ActivityLogs() {
                         </div>
 
                         {/* KPI 2: Inventory & Stock */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-indigo-700 uppercase tracking-wider truncate">Catalog & Stock</p>
@@ -680,7 +680,7 @@ export default function ActivityLogs() {
                                         {stats.inventoryCount.toLocaleString()} <span className="text-xs font-semibold text-indigo-600">updates</span>
                                     </h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-indigo-50 text-indigo-700 rounded-xl ring-1 ring-indigo-200 shrink-0">
+                                <div className="p-2 sm:p-2.5 bg-indigo-50 text-indigo-700 rounded-none ring-1 ring-indigo-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                                     </svg>
@@ -695,7 +695,7 @@ export default function ActivityLogs() {
                         </div>
 
                         {/* KPI 3: Sales & POS */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-emerald-700 uppercase tracking-wider truncate">POS & Checkouts</p>
@@ -703,7 +703,7 @@ export default function ActivityLogs() {
                                         {stats.salesCount.toLocaleString()} <span className="text-xs font-semibold text-emerald-600">transactions</span>
                                     </h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-emerald-100/70 text-emerald-700 rounded-xl ring-1 ring-emerald-200 shrink-0">
+                                <div className="p-2 sm:p-2.5 bg-emerald-100/70 text-emerald-700 rounded-none ring-1 ring-emerald-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -718,7 +718,7 @@ export default function ActivityLogs() {
                         </div>
 
                         {/* KPI 4: Staff & Accounts */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-purple-700 uppercase tracking-wider truncate">Staff & Accounts</p>
@@ -726,7 +726,7 @@ export default function ActivityLogs() {
                                         {stats.staffCount.toLocaleString()} <span className="text-xs font-semibold text-purple-600">audits</span>
                                     </h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-purple-100/70 text-purple-700 rounded-xl ring-1 ring-purple-200 shrink-0">
+                                <div className="p-2 sm:p-2.5 bg-purple-100/70 text-purple-700 rounded-none ring-1 ring-purple-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                                     </svg>
@@ -754,7 +754,7 @@ export default function ActivityLogs() {
                                 <button
                                     data-tab="all"
                                     onClick={() => handleCategoryTabChange('all')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         categoryTab === 'all'
                                             ? 'bg-white text-gray-900 font-black border-t-[#1B3B6A] border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
@@ -777,7 +777,7 @@ export default function ActivityLogs() {
                                         </>
                                     )}
                                     <span>All Activities</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         categoryTab === 'all'
                                             ? 'bg-[#1B3B6A] text-white shadow-2xs'
                                             : 'bg-gray-200/80 text-gray-700 group-hover:bg-gray-300'
@@ -790,7 +790,7 @@ export default function ActivityLogs() {
                                 <button
                                     data-tab="inventory"
                                     onClick={() => handleCategoryTabChange('inventory')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         categoryTab === 'inventory'
                                             ? 'bg-white text-indigo-900 font-black border-t-indigo-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
@@ -813,7 +813,7 @@ export default function ActivityLogs() {
                                         </>
                                     )}
                                     <span>Inventory & Stock</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         categoryTab === 'inventory'
                                             ? 'bg-indigo-600 text-white shadow-2xs'
                                             : 'bg-indigo-50 text-indigo-700 group-hover:bg-indigo-100'
@@ -826,7 +826,7 @@ export default function ActivityLogs() {
                                 <button
                                     data-tab="sales"
                                     onClick={() => handleCategoryTabChange('sales')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         categoryTab === 'sales'
                                             ? 'bg-white text-emerald-900 font-black border-t-emerald-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
@@ -849,7 +849,7 @@ export default function ActivityLogs() {
                                         </>
                                     )}
                                     <span>Sales & POS</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         categoryTab === 'sales'
                                             ? 'bg-emerald-600 text-white shadow-2xs'
                                             : 'bg-emerald-50 text-emerald-700 group-hover:bg-emerald-100'
@@ -862,7 +862,7 @@ export default function ActivityLogs() {
                                 <button
                                     data-tab="cash"
                                     onClick={() => handleCategoryTabChange('cash')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         categoryTab === 'cash'
                                             ? 'bg-white text-sky-900 font-black border-t-sky-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
@@ -885,7 +885,7 @@ export default function ActivityLogs() {
                                         </>
                                     )}
                                     <span>Cash & Shifts</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         categoryTab === 'cash'
                                             ? 'bg-sky-600 text-white shadow-2xs'
                                             : 'bg-sky-50 text-sky-700 group-hover:bg-sky-100'
@@ -898,7 +898,7 @@ export default function ActivityLogs() {
                                 <button
                                     data-tab="staff"
                                     onClick={() => handleCategoryTabChange('staff')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         categoryTab === 'staff'
                                             ? 'bg-white text-purple-900 font-black border-t-purple-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
@@ -921,7 +921,7 @@ export default function ActivityLogs() {
                                         </>
                                     )}
                                     <span>Staff & Accounts</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         categoryTab === 'staff'
                                             ? 'bg-purple-600 text-white shadow-2xs'
                                             : 'bg-purple-50 text-purple-700 group-hover:bg-purple-100'
@@ -933,7 +933,7 @@ export default function ActivityLogs() {
                         </div>
 
                         {/* MAIN CONTENT CARD: TOOLBAR + TABLE / CARDS + PAGINATION */}
-                        <div className="bg-white rounded-b-2xl sm:rounded-tr-2xl border border-gray-200/80 shadow-sm overflow-hidden flex flex-col relative z-10">
+                        <div className="bg-white rounded-none border border-gray-200/80 shadow-sm overflow-hidden flex flex-col relative z-10">
 
                             {/* 3. FULLY RESPONSIVE SEARCH, FILTER & OPERATIONAL TOOLBAR */}
                             <div className="p-3.5 sm:p-4 bg-white border-b border-gray-100 space-y-3 relative z-10">
@@ -947,7 +947,7 @@ export default function ActivityLogs() {
                                             <input
                                                 type="text"
                                                 placeholder="Search by log ID (e.g. LOG-00039), staff, action, or description..."
-                                                className="pl-11 pr-10 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl w-full focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 focus:bg-white text-sm font-medium transition-all shadow-2xs placeholder:text-gray-400"
+                                                className="pl-11 pr-10 py-2.5 bg-gray-50/70 border border-gray-200 rounded-none w-full focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 focus:bg-white text-sm font-medium transition-all shadow-2xs placeholder:text-gray-400"
                                                 value={searchTerm}
                                                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                                             />
@@ -964,11 +964,11 @@ export default function ActivityLogs() {
                                         </div>
 
                                         {/* View Mode Toggle (Desktop only, matches Inventory) */}
-                                        <div className="hidden lg:inline-flex rounded-xl bg-gray-100 p-1 border border-gray-200 shrink-0 self-start sm:self-auto">
+                                        <div className="hidden lg:inline-flex rounded-none bg-gray-100 p-1 border border-gray-200 shrink-0 self-start sm:self-auto">
                                             <button
                                                 type="button"
                                                 onClick={() => setViewMode('table')}
-                                                className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs cursor-pointer ${viewMode === 'table' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                                className={`p-2 rounded-none transition-all flex items-center gap-1.5 text-xs cursor-pointer ${viewMode === 'table' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
                                                 title="List View"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -979,7 +979,7 @@ export default function ActivityLogs() {
                                             <button
                                                 type="button"
                                                 onClick={() => setViewMode('grid')}
-                                                className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs cursor-pointer ${viewMode === 'grid' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                                className={`p-2 rounded-none transition-all flex items-center gap-1.5 text-xs cursor-pointer ${viewMode === 'grid' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
                                                 title="Card View"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -994,7 +994,7 @@ export default function ActivityLogs() {
                                             <select
                                                 value={filterStaff}
                                                 onChange={(e) => { setFilterStaff(e.target.value); setCurrentPage(1); }}
-                                                className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[160px] lg:w-[175px] shrink-0 truncate cursor-pointer"
+                                                className="bg-gray-50/70 border border-gray-200 rounded-none py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[160px] lg:w-[175px] shrink-0 truncate cursor-pointer"
                                             >
                                                 <option value="">All Staff ({uniqueStaff.length})</option>
                                                 {uniqueStaff.map(s => (
@@ -1005,7 +1005,7 @@ export default function ActivityLogs() {
                                             <select
                                                 value={filterAction}
                                                 onChange={(e) => { setFilterAction(e.target.value); setCurrentPage(1); }}
-                                                className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[160px] lg:w-[175px] shrink-0 truncate cursor-pointer"
+                                                className="bg-gray-50/70 border border-gray-200 rounded-none py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[160px] lg:w-[175px] shrink-0 truncate cursor-pointer"
                                             >
                                                 <option value="">All Actions ({uniqueActions.length})</option>
                                                 {uniqueActions.map(act => (
@@ -1029,7 +1029,7 @@ export default function ActivityLogs() {
                                         <div className="grid grid-cols-2 md:grid-cols-4 lg:flex lg:w-auto items-center gap-2 w-full lg:w-auto shrink-0 justify-end">
 
                                             {/* Custom Date Range: From */}
-                                            <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl px-2.5 sm:px-3 py-2 w-full sm:w-auto shrink-0 shadow-2xs">
+                                            <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-none px-2.5 sm:px-3 py-2 w-full sm:w-auto shrink-0 shadow-2xs">
                                                 <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider shrink-0">From</span>
                                                 <input
                                                     type="date"
@@ -1040,7 +1040,7 @@ export default function ActivityLogs() {
                                             </div>
 
                                             {/* Custom Date Range: To */}
-                                            <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl px-2.5 sm:px-3 py-2 w-full sm:w-auto shrink-0 shadow-2xs">
+                                            <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-none px-2.5 sm:px-3 py-2 w-full sm:w-auto shrink-0 shadow-2xs">
                                                 <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider shrink-0">To</span>
                                                 <input
                                                     type="date"
@@ -1055,7 +1055,7 @@ export default function ActivityLogs() {
                                                 <select
                                                     value={datePreset}
                                                     onChange={(e) => handleDatePresetChange(e.target.value)}
-                                                    className="h-[38px] bg-white border border-gray-200 rounded-xl py-2 pl-2.5 pr-6 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
+                                                    className="h-[38px] bg-white border border-gray-200 rounded-none py-2 pl-2.5 pr-6 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
                                                 >
                                                     <option value="all">All Time</option>
                                                     <option value="today">Today</option>
@@ -1071,7 +1071,7 @@ export default function ActivityLogs() {
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowDataMenu(!showDataMenu)}
-                                                    className="w-full lg:w-auto justify-center px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm bg-[#EFF4F9] text-[#1B3B6A] hover:bg-[#E2ECF6] border border-[#CBD7E6] shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer h-[38px]"
+                                                    className="w-full lg:w-auto justify-center px-3.5 py-2 rounded-none font-bold text-xs sm:text-sm bg-[#EFF4F9] text-[#1B3B6A] hover:bg-[#E2ECF6] border border-[#CBD7E6] shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer h-[38px]"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-[#1B3B6A]">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -1083,7 +1083,7 @@ export default function ActivityLogs() {
                                                 </button>
 
                                                 {showDataMenu && (
-                                                    <div className="absolute left-0 lg:left-auto lg:right-0 top-full mt-2 w-full sm:w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                                    <div className="absolute left-0 lg:left-auto lg:right-0 top-full mt-2 w-full sm:w-56 bg-white rounded-none shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                                                         <div className="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400">Reports & Audit</div>
                                                         <button
                                                             onClick={() => { setShowDataMenu(false); exportActivityExcel(); }}
@@ -1125,7 +1125,7 @@ export default function ActivityLogs() {
                                                     <tr>
                                                         <td colSpan={7} className="py-12 px-4 text-center text-gray-500 font-bold whitespace-nowrap">
                                                             <div className="max-w-xs mx-auto flex flex-col items-center">
-                                                                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mb-2">
+                                                                <div className="w-12 h-12 bg-gray-100 rounded-none flex items-center justify-center text-gray-400 mb-2">
                                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                                     </svg>
@@ -1160,9 +1160,9 @@ export default function ActivityLogs() {
                                                                 <td className="p-4 whitespace-nowrap">
                                                                     <div className="flex items-center gap-3">
                                                                         {log.user_avatar ? (
-                                                                            <img src={log.user_avatar} alt={log.user_name} className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0" />
+                                                                            <img src={log.user_avatar} alt={log.user_name} className="w-10 h-10 rounded-none object-cover border border-gray-200 shadow-2xs shrink-0" />
                                                                         ) : (
-                                                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-sm border border-gray-200 shrink-0 uppercase shadow-2xs">
+                                                                            <div className="w-10 h-10 rounded-none bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-sm border border-gray-200 shrink-0 uppercase shadow-2xs">
                                                                                 {log.user_name ? log.user_name.charAt(0) : 'S'}
                                                                             </div>
                                                                         )}
@@ -1177,14 +1177,14 @@ export default function ActivityLogs() {
 
                                                                 {/* Category Column */}
                                                                 <td className="p-4 whitespace-nowrap">
-                                                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${catInfo.badgeClass}`}>
+                                                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-none text-xs font-bold border ${catInfo.badgeClass}`}>
                                                                         {catInfo.label}
                                                                     </span>
                                                                 </td>
 
                                                                 {/* Action Column */}
                                                                 <td className="p-4 whitespace-nowrap">
-                                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-800 border border-gray-200/80">
+                                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-none text-xs font-bold bg-gray-100 text-gray-800 border border-gray-200/80">
                                                                         {formatActionName(log.action)}
                                                                     </span>
                                                                 </td>
@@ -1198,7 +1198,7 @@ export default function ActivityLogs() {
 
                                                                 {/* Target Entity (Clean Spaced Capitalized without subtext) */}
                                                                 <td className="p-4 whitespace-nowrap">
-                                                                    <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-700 whitespace-nowrap">
+                                                                    <span className="px-2.5 py-1 rounded-none text-xs font-bold bg-gray-100 text-gray-700 whitespace-nowrap">
                                                                         {formatTargetEntity(log.model_type)}
                                                                     </span>
                                                                 </td>
@@ -1207,7 +1207,7 @@ export default function ActivityLogs() {
                                                                 <td className="p-4 text-center whitespace-nowrap">
                                                                     <button
                                                                         onClick={() => setSelectedLogForModal(log)}
-                                                                        className="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95 cursor-pointer shadow-2xs"
+                                                                        className="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-none transition-colors inline-flex items-center justify-center active:scale-95 cursor-pointer shadow-2xs"
                                                                         title="View Audit Details & Changes"
                                                                     >
                                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
@@ -1232,9 +1232,9 @@ export default function ActivityLogs() {
                             <div className={`${viewMode === 'table' ? 'lg:hidden' : 'block'} p-3.5 sm:p-4 bg-gray-50/40 border-t lg:border-t-0 border-gray-100`}>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
                                     {filteredLogs.length === 0 ? (
-                                        <div className="col-span-full bg-white py-12 px-4 rounded-2xl border border-gray-200/80 text-center text-gray-500 font-bold">
+                                        <div className="col-span-full bg-white py-12 px-4 rounded-none border border-gray-200/80 text-center text-gray-500 font-bold">
                                             <div className="max-w-xs mx-auto flex flex-col items-center">
-                                                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mb-2">
+                                                <div className="w-12 h-12 bg-gray-100 rounded-none flex items-center justify-center text-gray-400 mb-2">
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                     </svg>
@@ -1250,15 +1250,15 @@ export default function ActivityLogs() {
                                             return (
                                                 <div 
                                                     key={log.id} 
-                                                    className="bg-white rounded-2xl border border-gray-200/80 shadow-2xs p-3.5 sm:p-4 flex flex-col justify-between gap-3 hover:shadow-md transition-all"
+                                                    className="bg-white rounded-none border border-gray-200/80 shadow-2xs p-3.5 sm:p-4 flex flex-col justify-between gap-3 hover:shadow-md transition-all"
                                                 >
                                                     {/* Card Header: Staff Avatar, Log ID & Time */}
                                                     <div className="flex items-start justify-between gap-2 border-b border-gray-100 pb-2.5">
                                                         <div className="flex items-center gap-2.5 min-w-0">
                                                             {log.user_avatar ? (
-                                                                <img src={log.user_avatar} alt={log.user_name} className="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0" />
+                                                                <img src={log.user_avatar} alt={log.user_name} className="w-10 h-10 rounded-none object-cover border border-gray-200 shadow-2xs shrink-0" />
                                                             ) : (
-                                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-sm border border-gray-200 shrink-0 uppercase shadow-2xs">
+                                                                <div className="w-10 h-10 rounded-none bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-sm border border-gray-200 shrink-0 uppercase shadow-2xs">
                                                                     {log.user_name ? log.user_name.charAt(0) : 'S'}
                                                                 </div>
                                                             )}
@@ -1277,21 +1277,21 @@ export default function ActivityLogs() {
 
                                                     {/* Category, Action & Target Entity Badges */}
                                                     <div className="flex flex-wrap items-center gap-1.5">
-                                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${catInfo.badgeClass}`}>
+                                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-none text-[10px] font-bold border ${catInfo.badgeClass}`}>
                                                             {catInfo.label}
                                                         </span>
-                                                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-md text-[10px] font-bold border border-gray-200 font-sans">
+                                                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-none text-[10px] font-bold border border-gray-200 font-sans">
                                                             {formatActionName(log.action)}
                                                         </span>
                                                         {log.model_type && (
-                                                            <span className="px-2 py-0.5 bg-slate-50 text-slate-700 rounded-md text-[10px] font-bold border border-slate-200">
+                                                            <span className="px-2 py-0.5 bg-slate-50 text-slate-700 rounded-none text-[10px] font-bold border border-slate-200">
                                                                 {formatTargetEntity(log.model_type)}
                                                             </span>
                                                         )}
                                                     </div>
 
                                                     {/* Description Box */}
-                                                    <p className="text-xs text-gray-800 font-medium leading-relaxed bg-gray-50/70 p-3 rounded-xl border border-gray-100 line-clamp-3">
+                                                    <p className="text-xs text-gray-800 font-medium leading-relaxed bg-gray-50/70 p-3 rounded-none border border-gray-100 line-clamp-3">
                                                         {log.description || 'No description logged'}
                                                     </p>
 
@@ -1300,7 +1300,7 @@ export default function ActivityLogs() {
                                                         <span className="text-[11px] font-mono font-bold text-gray-400">{formatLogId(log.id)}</span>
                                                         <button
                                                             onClick={() => setSelectedLogForModal(log)}
-                                                            className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95 cursor-pointer shadow-2xs gap-1 font-bold text-xs"
+                                                            className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-none transition-colors inline-flex items-center justify-center active:scale-95 cursor-pointer shadow-2xs gap-1 font-bold text-xs"
                                                             title="View Audit Details"
                                                         >
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -1352,7 +1352,7 @@ export default function ActivityLogs() {
                                         <button
                                             disabled={currentPage === 1}
                                             onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                            className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center shadow-2xs cursor-pointer"
+                                            className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center shadow-2xs cursor-pointer"
                                         >
                                             &laquo; Prev
                                         </button>
@@ -1364,7 +1364,7 @@ export default function ActivityLogs() {
                                                 <button
                                                     key={num}
                                                     onClick={() => { setCurrentPage(num); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                                    className={`shrink-0 px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all flex items-center justify-center cursor-pointer
+                                                    className={`shrink-0 px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all flex items-center justify-center cursor-pointer
                                                         ${currentPage === num ? 'bg-[#1B3B6A] text-white border-[#1B3B6A] shadow-sm font-extrabold' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                                                 >
                                                     {num}
@@ -1375,7 +1375,7 @@ export default function ActivityLogs() {
                                         <button
                                             disabled={currentPage === totalPages}
                                             onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                            className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center shadow-2xs cursor-pointer"
+                                            className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center shadow-2xs cursor-pointer"
                                         >
                                             Next &raquo;
                                         </button>
@@ -1397,13 +1397,13 @@ export default function ActivityLogs() {
                     onClick={() => setSelectedLogForModal(null)}
                 >
                     <div 
-                        className="bg-white w-full h-full sm:h-auto sm:max-w-4xl lg:max-w-5xl sm:rounded-2xl sm:shadow-2xl overflow-hidden flex flex-col sm:max-h-[92vh] animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 border border-gray-200/80"
+                        className="bg-white w-full h-full sm:h-auto sm:max-w-4xl lg:max-w-5xl sm:rounded-none sm:shadow-2xl overflow-hidden flex flex-col sm:max-h-[92vh] animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 border border-gray-200/80"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header (Sticky on Mobile, matches Inventory Stock History Modal) */}
                         <div className="bg-[#1B3B6A] border-b border-white/10 px-4 sm:px-8 py-3.5 sm:py-5 flex justify-between items-center shrink-0 sticky top-0 z-50 text-white shadow-md">
                             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                                <div className="p-2 sm:p-2.5 bg-white/10 rounded-xl shrink-0 ring-1 ring-white/20">
+                                <div className="p-2 sm:p-2.5 bg-white/10 rounded-none shrink-0 ring-1 ring-white/20">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 text-white">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -1425,7 +1425,7 @@ export default function ActivityLogs() {
                             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-2">
                                 <button
                                     onClick={() => setSelectedLogForModal(null)}
-                                    className="bg-white/10 hover:bg-white/20 p-1.5 sm:p-2 rounded-full text-white transition-colors active:scale-95 shrink-0 ring-1 ring-white/20 cursor-pointer"
+                                    className="bg-white/10 hover:bg-white/20 p-1.5 sm:p-2 rounded-none text-white transition-colors active:scale-95 shrink-0 ring-1 ring-white/20 cursor-pointer"
                                     title="Close Modal"
                                 >
                                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
@@ -1440,13 +1440,13 @@ export default function ActivityLogs() {
 
                             {/* Core Meta Details Grid */}
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                                <div className="bg-white p-3.5 rounded-2xl border border-gray-200/80 shadow-2xs">
+                                <div className="bg-white p-3.5 rounded-none border border-gray-200/80 shadow-2xs">
                                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block mb-1.5">Staff Member</span>
                                     <div className="flex items-center gap-2.5 min-w-0">
                                         {selectedLogForModal.user_avatar ? (
-                                            <img src={selectedLogForModal.user_avatar} alt={selectedLogForModal.user_name} className="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0" />
+                                            <img src={selectedLogForModal.user_avatar} alt={selectedLogForModal.user_name} className="w-8 h-8 rounded-none object-cover border border-gray-200 shadow-2xs shrink-0" />
                                         ) : (
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-xs border border-gray-200 shrink-0 uppercase shadow-2xs">
+                                            <div className="w-8 h-8 rounded-none bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] flex items-center justify-center font-black text-xs border border-gray-200 shrink-0 uppercase shadow-2xs">
                                                 {selectedLogForModal.user_name ? selectedLogForModal.user_name.charAt(0) : 'S'}
                                             </div>
                                         )}
@@ -1456,20 +1456,20 @@ export default function ActivityLogs() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="bg-white p-3.5 rounded-2xl border border-gray-200/80 shadow-2xs">
+                                <div className="bg-white p-3.5 rounded-none border border-gray-200/80 shadow-2xs">
                                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">Category</span>
                                     <span className="font-black text-gray-900 mt-1 block truncate text-sm">
                                         {getCategoryDetails(selectedLogForModal.category, selectedLogForModal.action).label}
                                     </span>
                                     <span className="text-[10px] text-gray-600 font-bold block">{formatActionName(selectedLogForModal.action)}</span>
                                 </div>
-                                <div className="bg-white p-3.5 rounded-2xl border border-gray-200/80 shadow-2xs">
+                                <div className="bg-white p-3.5 rounded-none border border-gray-200/80 shadow-2xs">
                                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">Target Entity</span>
                                     <span className="font-black text-gray-900 mt-1 block truncate text-sm">
                                         {formatTargetEntity(selectedLogForModal.model_type)}
                                     </span>
                                 </div>
-                                <div className="bg-white p-3.5 rounded-2xl border border-gray-200/80 shadow-2xs">
+                                <div className="bg-white p-3.5 rounded-none border border-gray-200/80 shadow-2xs">
                                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">Timestamp</span>
                                     <span className="font-bold text-gray-900 mt-1 block truncate text-xs">{formatDateTime(selectedLogForModal.created_at)}</span>
                                     <span className="text-[10px] text-gray-400 font-semibold block">{formatRelativeTime(selectedLogForModal.created_at)}</span>
@@ -1477,7 +1477,7 @@ export default function ActivityLogs() {
                             </div>
 
                             {/* Summary Description Box */}
-                            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs space-y-1.5">
+                            <div className="bg-white p-4 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs space-y-1.5">
                                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">Activity Summary</span>
                                 <p className="text-sm font-semibold text-gray-900 leading-relaxed">
                                     {selectedLogForModal.description || 'No description recorded.'}
@@ -1497,10 +1497,10 @@ export default function ActivityLogs() {
                                 // If it is an Edit / Update action, render the Field Changes & Modifications table
                                 if (isEditAction && allKeys.length > 0) {
                                     return (
-                                        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-200/80 shadow-2xs space-y-3">
+                                        <div className="bg-white p-4 sm:p-6 rounded-none border border-gray-200/80 shadow-2xs space-y-3">
                                             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="p-1.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-lg">
+                                                    <div className="p-1.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-none">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
                                                         </svg>
@@ -1509,10 +1509,10 @@ export default function ActivityLogs() {
                                                         Field Changes & Modifications
                                                     </h4>
                                                 </div>
-                                                <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">{allKeys.length} field(s) modified</span>
+                                                <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-none">{allKeys.length} field(s) modified</span>
                                             </div>
 
-                                            <div className="overflow-x-auto rounded-xl border border-gray-200">
+                                            <div className="overflow-x-auto rounded-none border border-gray-200">
                                                 <table className="w-full text-xs">
                                                     <thead className="bg-gray-50 text-[10px] font-black uppercase tracking-wider text-gray-500 border-b border-gray-200">
                                                         <tr>
@@ -1558,10 +1558,10 @@ export default function ActivityLogs() {
                                 }
 
                                 return (
-                                    <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-200/80 shadow-2xs space-y-3">
+                                    <div className="bg-white p-4 sm:p-6 rounded-none border border-gray-200/80 shadow-2xs space-y-3">
                                         <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                                             <div className="flex items-center gap-2">
-                                                <div className="p-1.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-lg">
+                                                <div className="p-1.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-none">
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                     </svg>
@@ -1570,14 +1570,14 @@ export default function ActivityLogs() {
                                                     Transaction & Operation Details
                                                 </h4>
                                             </div>
-                                            <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">{detailEntries.length} detail attribute(s)</span>
+                                            <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-none">{detailEntries.length} detail attribute(s)</span>
                                         </div>
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             {detailEntries.map(([key, value]) => {
                                                 const friendlyLabel = FIELD_LABELS[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                                                 return (
-                                                    <div key={key} className="bg-gray-50/80 p-3 rounded-xl border border-gray-200/60 flex flex-col justify-between">
+                                                    <div key={key} className="bg-gray-50/80 p-3 rounded-none border border-gray-200/60 flex flex-col justify-between">
                                                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{friendlyLabel}</span>
                                                         <span className="text-xs font-black text-gray-900 mt-1 break-words">
                                                             {formatAdminValue(key, value)}
@@ -1596,7 +1596,7 @@ export default function ActivityLogs() {
                         <div className="bg-white px-4 sm:px-8 py-3.5 border-t border-gray-100 flex justify-end shrink-0">
                             <button
                                 onClick={() => setSelectedLogForModal(null)}
-                                className="px-6 py-2.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md shadow-[#1B3B6A]/15 cursor-pointer"
+                                className="px-6 py-2.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white rounded-none text-xs font-bold transition-all active:scale-95 shadow-md shadow-[#1B3B6A]/15 cursor-pointer"
                             >
                                 Done
                             </button>

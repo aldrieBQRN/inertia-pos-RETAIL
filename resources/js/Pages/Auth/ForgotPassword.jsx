@@ -38,7 +38,7 @@ export default function ForgotPassword({ status, settings = {} }) {
     const isPasswordStrong = hasMinLength && hasUpperLower && hasNumberSymbol;
 
     // Shared Styling Constants
-    const inputClasses = "appearance-none block w-full px-4 py-3.5 border border-gray-200 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] sm:text-sm font-bold text-gray-900 bg-gray-50/50 transition-all";
+    const inputClasses = "appearance-none block w-full px-4 py-3.5 border border-gray-200 rounded-none shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] sm:text-sm font-bold text-gray-900 bg-gray-50/50 transition-all";
     const labelClasses = "block text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1 mb-1.5";
     const errorClasses = "mt-1.5 ml-1 text-[10px] font-bold text-red-500 uppercase tracking-wide";
 
@@ -70,8 +70,8 @@ export default function ForgotPassword({ status, settings = {} }) {
                 confirmButtonColor: '#1B3B6A',
                 confirmButtonText: 'OK',
                 customClass: {
-                    popup: 'rounded-lg',
-                    confirmButton: 'rounded-lg px-8 py-2.5 font-bold text-sm'
+                    popup: 'rounded-none',
+                    confirmButton: 'rounded-none px-8 py-2.5 font-bold text-sm'
                 }
             });
         } catch (error) {
@@ -86,8 +86,8 @@ export default function ForgotPassword({ status, settings = {} }) {
                     text: error.response?.data?.message || 'Failed to send OTP. Please try again.',
                     confirmButtonColor: '#ef4444',
                     customClass: {
-                        popup: 'rounded-lg',
-                        confirmButton: 'rounded-lg px-8 py-2.5 font-bold text-sm'
+                        popup: 'rounded-none',
+                        confirmButton: 'rounded-none px-8 py-2.5 font-bold text-sm'
                     }
                 });
             }
@@ -120,8 +120,8 @@ export default function ForgotPassword({ status, settings = {} }) {
                 text: 'You can now set a new password.',
                 confirmButtonColor: '#1B3B6A',
                 customClass: {
-                    popup: 'rounded-lg',
-                    confirmButton: 'rounded-lg px-8 py-2.5 font-bold text-sm'
+                    popup: 'rounded-none',
+                    confirmButton: 'rounded-none px-8 py-2.5 font-bold text-sm'
                 }
             });
         } catch (error) {
@@ -136,8 +136,8 @@ export default function ForgotPassword({ status, settings = {} }) {
                     text: 'The code you entered is invalid or expired.',
                     confirmButtonColor: '#ef4444',
                     customClass: {
-                        popup: 'rounded-lg',
-                        confirmButton: 'rounded-lg px-8 py-2.5 font-bold text-sm'
+                        popup: 'rounded-none',
+                        confirmButton: 'rounded-none px-8 py-2.5 font-bold text-sm'
                     }
                 });
             }
@@ -157,8 +157,8 @@ export default function ForgotPassword({ status, settings = {} }) {
                 text: 'Please fill in all password fields',
                 confirmButtonColor: '#1B3B6A',
                 customClass: {
-                    popup: 'rounded-lg',
-                    confirmButton: 'rounded-lg px-8 py-2.5 font-bold text-sm'
+                    popup: 'rounded-none',
+                    confirmButton: 'rounded-none px-8 py-2.5 font-bold text-sm'
                 }
             });
             return;
@@ -171,8 +171,8 @@ export default function ForgotPassword({ status, settings = {} }) {
                 text: 'Please make sure your password meets all security requirements (green checkmarks) before continuing.',
                 confirmButtonColor: '#ef4444',
                 customClass: {
-                    popup: 'rounded-lg',
-                    confirmButton: 'rounded-lg px-8 py-2.5 font-bold text-sm'
+                    popup: 'rounded-none',
+                    confirmButton: 'rounded-none px-8 py-2.5 font-bold text-sm'
                 }
             });
             return;
@@ -197,8 +197,8 @@ export default function ForgotPassword({ status, settings = {} }) {
                 text: 'Your password has been successfully reset. Redirecting to login...',
                 confirmButtonColor: '#1B3B6A',
                 customClass: {
-                    popup: 'rounded-lg',
-                    confirmButton: 'rounded-lg px-8 py-2.5 font-bold text-sm'
+                    popup: 'rounded-none',
+                    confirmButton: 'rounded-none px-8 py-2.5 font-bold text-sm'
                 }
             }).then(() => {
                 window.location.href = '/login';
@@ -213,8 +213,8 @@ export default function ForgotPassword({ status, settings = {} }) {
                     text: error.response.data.message,
                     confirmButtonColor: '#ef4444',
                     customClass: {
-                        popup: 'rounded-lg',
-                        confirmButton: 'rounded-lg px-8 py-2.5 font-bold text-sm'
+                        popup: 'rounded-none',
+                        confirmButton: 'rounded-none px-8 py-2.5 font-bold text-sm'
                     }
                 });
             } else {
@@ -224,8 +224,8 @@ export default function ForgotPassword({ status, settings = {} }) {
                     text: 'Failed to reset password. Please try again.',
                     confirmButtonColor: '#ef4444',
                     customClass: {
-                        popup: 'rounded-lg',
-                        confirmButton: 'rounded-lg px-8 py-2.5 font-bold text-sm'
+                        popup: 'rounded-none',
+                        confirmButton: 'rounded-none px-8 py-2.5 font-bold text-sm'
                     }
                 });
             }
@@ -255,7 +255,7 @@ export default function ForgotPassword({ status, settings = {} }) {
 
                 {/* Top: Branding Header */}
                 <div className="relative z-10 flex items-center gap-4">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-xl flex items-center justify-center overflow-hidden shrink-0">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/10 backdrop-blur-md rounded-none border border-white/20 shadow-xl flex items-center justify-center overflow-hidden shrink-0">
                         {settings?.logo_path ? (
                             <img 
                                 src={`/storage/${settings.logo_path}`} 
@@ -285,7 +285,7 @@ export default function ForgotPassword({ status, settings = {} }) {
                 {/* Center: System Value Proposition */}
                 <div className="relative z-10 my-6 lg:my-8 space-y-4 lg:space-y-8 animate-in fade-in slide-in-from-left-6 duration-700">
                     <div className="space-y-2 sm:space-y-3">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-blue-200 text-xs font-semibold backdrop-blur-sm">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-none bg-white/10 border border-white/15 text-blue-200 text-xs font-semibold backdrop-blur-sm">
                             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                             Secure Account Recovery
                         </div>
@@ -299,8 +299,8 @@ export default function ForgotPassword({ status, settings = {} }) {
 
                     {/* Feature Badges (Tablet & Desktop) */}
                     <div className="hidden sm:flex flex-col space-y-3 pt-2">
-                        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                            <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-blue-200 shrink-0">
+                        <div className="flex items-center gap-3 p-3.5 rounded-none bg-white/5 border border-white/10 backdrop-blur-sm">
+                            <div className="w-10 h-10 rounded-none bg-white/10 flex items-center justify-center text-blue-200 shrink-0">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                             </div>
                             <div>
@@ -309,8 +309,8 @@ export default function ForgotPassword({ status, settings = {} }) {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                            <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-blue-200 shrink-0">
+                        <div className="flex items-center gap-3 p-3.5 rounded-none bg-white/5 border border-white/10 backdrop-blur-sm">
+                            <div className="w-10 h-10 rounded-none bg-white/10 flex items-center justify-center text-blue-200 shrink-0">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                             </div>
                             <div>
@@ -346,7 +346,7 @@ export default function ForgotPassword({ status, settings = {} }) {
                     </div>
 
                     {status && (
-                        <div className="font-bold text-sm text-emerald-700 text-center bg-emerald-50 p-3.5 rounded-lg border border-emerald-200">
+                        <div className="font-bold text-sm text-emerald-700 text-center bg-emerald-50 p-3.5 rounded-none border border-emerald-200">
                             {status}
                         </div>
                     )}
@@ -372,7 +372,7 @@ export default function ForgotPassword({ status, settings = {} }) {
                                 <button
                                     type="submit"
                                     disabled={isSendingOtp}
-                                    className={`w-full py-4 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-black text-[12px] uppercase tracking-widest rounded-xl shadow-lg shadow-[#1B3B6A]/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2
+                                    className={`w-full py-4 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-black text-[12px] uppercase tracking-widest rounded-none shadow-lg shadow-[#1B3B6A]/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2 cursor-pointer
                                         ${isSendingOtp ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     {isSendingOtp ? (
@@ -397,7 +397,7 @@ export default function ForgotPassword({ status, settings = {} }) {
                     {/* STEP 2: OTP VERIFICATION */}
                     {step === 'otp' && (
                         <form onSubmit={handleVerifyOtp} className="space-y-5">
-                            <div className="bg-[#EFF4F9] border border-[#CBD7E6] rounded-xl p-4">
+                            <div className="bg-[#EFF4F9] border border-[#CBD7E6] rounded-none p-4">
                                 <p className="text-xs text-[#1B3B6A] font-semibold">
                                     Verification code sent to <strong>{userEmail}</strong>
                                 </p>
@@ -423,7 +423,7 @@ export default function ForgotPassword({ status, settings = {} }) {
                                 <button
                                     type="submit"
                                     disabled={isVerifyingOtp}
-                                    className={`w-full py-4 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-black text-[12px] uppercase tracking-widest rounded-xl shadow-lg shadow-[#1B3B6A]/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2
+                                    className={`w-full py-4 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-black text-[12px] uppercase tracking-widest rounded-none shadow-lg shadow-[#1B3B6A]/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2 cursor-pointer
                                         ${isVerifyingOtp ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     {isVerifyingOtp ? (
@@ -440,7 +440,7 @@ export default function ForgotPassword({ status, settings = {} }) {
                                         setStep('email');
                                         setData({...data, otp_code: ''});
                                     }}
-                                    className="w-full text-center text-sm font-semibold text-gray-600 hover:text-[#1B3B6A] transition-colors py-2"
+                                    className="w-full text-center text-sm font-semibold text-gray-600 hover:text-[#1B3B6A] transition-colors py-2 cursor-pointer"
                                 >
                                     ← Back to Email
                                 </button>
@@ -451,7 +451,7 @@ export default function ForgotPassword({ status, settings = {} }) {
                     {/* STEP 3: PASSWORD RESET */}
                     {step === 'password' && (
                         <form onSubmit={handleResetPassword} className="space-y-5">
-                            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                            <div className="bg-emerald-50 border border-emerald-200 rounded-none p-4">
                                 <p className="text-xs text-emerald-800 font-semibold">
                                     ✓ Email verified successfully!
                                 </p>
@@ -472,7 +472,7 @@ export default function ForgotPassword({ status, settings = {} }) {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-[38px] text-gray-400 hover:text-gray-600 transition-colors"
+                                    className="absolute right-4 top-[38px] text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                                 >
                                     {showPassword ? (
                                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m0 0a10.05 10.05 0 015.188-1.583 8.32 8.32 0 013.89.981L19.5 19.5" /></svg>
@@ -484,7 +484,7 @@ export default function ForgotPassword({ status, settings = {} }) {
                             </div>
 
                             {/* Password Strength Checklist */}
-                            <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 flex flex-col sm:flex-row gap-3 sm:gap-6 sm:items-center justify-center">
+                            <div className="p-4 rounded-none bg-gray-50 border border-gray-100 flex flex-col sm:flex-row gap-3 sm:gap-6 sm:items-center justify-center">
                                 <div className={`flex items-center gap-1.5 text-xs font-bold transition-colors ${hasMinLength ? 'text-emerald-600' : 'text-gray-400'}`}>
                                     {hasMinLength ? <CheckIcon /> : <DotIcon />}
                                     8+ Characters
@@ -513,7 +513,7 @@ export default function ForgotPassword({ status, settings = {} }) {
                                 <button
                                     type="button"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute right-4 top-[38px] text-gray-400 hover:text-gray-600 transition-colors"
+                                    className="absolute right-4 top-[38px] text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                                 >
                                     {showConfirmPassword ? (
                                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m0 0a10.05 10.05 0 015.188-1.583 8.32 8.32 0 013.89.981L19.5 19.5" /></svg>
@@ -528,7 +528,7 @@ export default function ForgotPassword({ status, settings = {} }) {
                                 <button
                                     type="submit"
                                     disabled={isResettingPassword}
-                                    className={`w-full py-4 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-black text-[12px] uppercase tracking-widest rounded-xl shadow-lg shadow-[#1B3B6A]/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2
+                                    className={`w-full py-4 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-black text-[12px] uppercase tracking-widest rounded-none shadow-lg shadow-[#1B3B6A]/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2 cursor-pointer
                                         ${isResettingPassword ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     {isResettingPassword ? (

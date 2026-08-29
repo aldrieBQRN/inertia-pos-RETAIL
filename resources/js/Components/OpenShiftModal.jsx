@@ -198,13 +198,13 @@ export default function OpenShiftModal({ isOpen, onClose, onShiftOpened, shiftIn
                 ref={modalRef}
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={handleModalMouseDown}
-                className="relative bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[90vh] z-10 border border-gray-200/90 animate-slide-up sm:animate-fade-in"
+                className="relative bg-white w-full sm:max-w-md rounded-none shadow-2xl overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[90vh] z-10 border border-gray-200/90 animate-slide-up sm:animate-fade-in"
             >
 
                 {/* Header */}
                 <div className="bg-white px-5 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center shrink-0">
+                        <div className="w-8 h-8 rounded-none bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                             </svg>
@@ -217,7 +217,7 @@ export default function OpenShiftModal({ isOpen, onClose, onShiftOpened, shiftIn
                     <button
                         type="button"
                         onClick={onClose}
-                        className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-xl transition-colors shadow-2xs cursor-pointer"
+                        className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-none transition-colors shadow-2xs cursor-pointer"
                         title="Close (Esc)"
                     >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -230,11 +230,11 @@ export default function OpenShiftModal({ isOpen, onClose, onShiftOpened, shiftIn
                 <form onSubmit={handleSubmit} className="p-5 sm:p-6 overflow-y-auto custom-scrollbar space-y-4 bg-white">
                     
                     {/* Expected Float & Recent Movement Card */}
-                    <div className="bg-gray-50 p-3.5 sm:p-4 rounded-2xl border border-gray-200/80 space-y-2.5">
+                    <div className="bg-gray-50 p-3.5 sm:p-4 rounded-none border border-gray-200/80 space-y-2.5">
                         {terminal && (
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1.5 pb-2.5 border-b border-gray-200/60">
                                 <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">Register / Lane</span>
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black bg-[#1B3B6A]/10 text-[#1B3B6A] self-start sm:self-auto max-w-full truncate">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-xs font-black bg-[#1B3B6A]/10 text-[#1B3B6A] self-start sm:self-auto max-w-full truncate">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 shrink-0 text-[#1B3B6A]">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
                                     </svg>
@@ -261,7 +261,7 @@ export default function OpenShiftModal({ isOpen, onClose, onShiftOpened, shiftIn
                         )}
 
                         {recentMovements.length > 0 && (
-                            <div className="bg-amber-50/80 p-2.5 rounded-xl border border-amber-200/80 space-y-1.5">
+                            <div className="bg-amber-50/80 p-2.5 rounded-none border border-amber-200/80 space-y-1.5">
                                 <div className="text-[10px] font-black text-amber-800 uppercase tracking-wider flex items-center gap-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 shrink-0">
                                         <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
@@ -286,7 +286,7 @@ export default function OpenShiftModal({ isOpen, onClose, onShiftOpened, shiftIn
                             <label className="block text-xs font-black text-gray-700 uppercase tracking-wider">
                                 Counted Physical Starting Cash <span className="text-rose-500">*</span>
                             </label>
-                            <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
+                            <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded-none bg-gray-100 text-gray-600 border border-gray-200">
                                 F1
                             </span>
                         </div>
@@ -302,7 +302,7 @@ export default function OpenShiftModal({ isOpen, onClose, onShiftOpened, shiftIn
                                 onChange={(e) => setStartingCash(e.target.value)}
                                 onFocus={(e) => e.target.select()}
                                 placeholder="0.00"
-                                className="w-full px-4 py-3 bg-white border-2 border-gray-200 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/20 rounded-2xl font-black text-lg text-gray-900 transition-all outline-none"
+                                className="w-full px-4 py-3 bg-white border-2 border-gray-200 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/20 rounded-none font-black text-lg text-gray-900 transition-all outline-none"
                             />
                         </div>
 
@@ -314,7 +314,7 @@ export default function OpenShiftModal({ isOpen, onClose, onShiftOpened, shiftIn
                                     key={amt}
                                     type="button"
                                     onClick={() => handleQuickPreset(amt)}
-                                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all shrink-0 active:scale-95 cursor-pointer shadow-2xs font-mono"
+                                    className="px-3 py-1.5 rounded-none text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all shrink-0 active:scale-95 cursor-pointer shadow-2xs font-mono"
                                 >
                                     {amt}
                                 </button>
@@ -324,7 +324,7 @@ export default function OpenShiftModal({ isOpen, onClose, onShiftOpened, shiftIn
 
                     {/* Handover Discrepancy Alert */}
                     {hasDiscrepancy && (
-                        <div className={`p-3.5 rounded-2xl border text-xs space-y-1.5 ${
+                        <div className={`p-3.5 rounded-none border text-xs space-y-1.5 ${
                             discrepancy < 0 ? 'bg-rose-50 border-rose-200 text-rose-800' : 'bg-indigo-50 border-indigo-200 text-indigo-800'
                         }`}>
                             <div className="flex justify-between items-center font-bold">
@@ -345,7 +345,7 @@ export default function OpenShiftModal({ isOpen, onClose, onShiftOpened, shiftIn
                             <label className="block text-[11px] font-bold text-gray-600 uppercase tracking-wider">
                                 Opening Notes {hasDiscrepancy && <span className="text-rose-500 font-normal">(Explain reason for variance)</span>}
                             </label>
-                            <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200">
+                            <span className="hidden sm:inline-flex text-[10px] font-black font-mono px-1.5 py-0.5 rounded-none bg-gray-100 text-gray-600 border border-gray-200">
                                 F2
                             </span>
                         </div>
@@ -355,7 +355,7 @@ export default function OpenShiftModal({ isOpen, onClose, onShiftOpened, shiftIn
                             value={openingNotes}
                             onChange={(e) => setOpeningNotes(e.target.value)}
                             placeholder={hasDiscrepancy ? "e.g., Missing 500 from previous shift handover..." : "Optional shift handover notes..."}
-                            className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-[#1B3B6A] rounded-xl text-xs text-gray-800 transition-all outline-none resize-none"
+                            className="w-full p-3 bg-gray-50 border border-gray-200 focus:border-[#1B3B6A] rounded-none text-xs text-gray-800 transition-all outline-none resize-none"
                         />
                     </div>
 
@@ -364,7 +364,7 @@ export default function OpenShiftModal({ isOpen, onClose, onShiftOpened, shiftIn
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                            className="w-full py-3.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-none shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                         >
                             {loading ? (
                                 <div className="flex items-center justify-center gap-2">
@@ -381,7 +381,7 @@ export default function OpenShiftModal({ isOpen, onClose, onShiftOpened, shiftIn
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl hover:bg-gray-50 transition-all active:scale-95 shadow-2xs cursor-pointer disabled:opacity-50 text-center"
+                            className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold text-xs sm:text-sm uppercase tracking-wider rounded-none hover:bg-gray-50 transition-all active:scale-95 shadow-2xs cursor-pointer disabled:opacity-50 text-center"
                         >
                             Cancel<span className="hidden sm:inline"> (Esc)</span>
                         </button>

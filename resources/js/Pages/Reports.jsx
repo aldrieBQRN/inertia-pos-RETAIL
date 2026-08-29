@@ -977,7 +977,7 @@ export default function Reports({ auth, initial_report_data }) {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                         
                         {/* KPI 1: Net Sales Revenue */}
-                        <div className="p-3 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs flex flex-col justify-between">
+                        <div className="p-3 sm:p-5 rounded-none bg-white border border-gray-200/80 shadow-xs flex flex-col justify-between">
                             <div className="flex justify-between items-start gap-1 sm:gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
                                     <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider truncate">Net Sales Revenue</p>
@@ -985,7 +985,7 @@ export default function Reports({ auth, initial_report_data }) {
                                         {formatCurrency(reportData.summary.total_sales)}
                                     </h3>
                                 </div>
-                                <div className="p-1.5 sm:p-2.5 bg-blue-50 text-blue-700 rounded-xl ring-1 ring-blue-100 shrink-0">
+                                <div className="p-1.5 sm:p-2.5 bg-blue-50 text-blue-700 rounded-none ring-1 ring-blue-100 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -998,7 +998,7 @@ export default function Reports({ auth, initial_report_data }) {
                         </div>
 
                         {/* KPI 2: Gross Profit & Margin */}
-                        <div className="p-3 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs flex flex-col justify-between">
+                        <div className="p-3 sm:p-5 rounded-none bg-white border border-gray-200/80 shadow-xs flex flex-col justify-between">
                             <div className="flex justify-between items-start gap-1 sm:gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
                                     <p className="text-[10px] sm:text-xs font-bold text-emerald-700 uppercase tracking-wider truncate">Gross Profit</p>
@@ -1006,7 +1006,7 @@ export default function Reports({ auth, initial_report_data }) {
                                         {formatCurrency(reportData.summary.total_gross_profit)}
                                     </h3>
                                 </div>
-                                <div className="p-1.5 sm:p-2.5 bg-emerald-50 text-emerald-700 rounded-xl ring-1 ring-emerald-100 shrink-0">
+                                <div className="p-1.5 sm:p-2.5 bg-emerald-50 text-emerald-700 rounded-none ring-1 ring-emerald-100 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
                                     </svg>
@@ -1019,7 +1019,7 @@ export default function Reports({ auth, initial_report_data }) {
                         </div>
 
                         {/* KPI 3: Units Sold & Discounts */}
-                        <div className="p-3 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs flex flex-col justify-between">
+                        <div className="p-3 sm:p-5 rounded-none bg-white border border-gray-200/80 shadow-xs flex flex-col justify-between">
                             <div className="flex justify-between items-start gap-1 sm:gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
                                     <p className="text-[10px] sm:text-xs font-bold text-amber-700 uppercase tracking-wider truncate">Volume & Disc.</p>
@@ -1027,7 +1027,7 @@ export default function Reports({ auth, initial_report_data }) {
                                         {formatNumber(reportData.summary.total_units_sold)} <span className="text-[10px] sm:text-sm font-semibold text-gray-400 font-sans">Units</span>
                                     </h3>
                                 </div>
-                                <div className="p-1.5 sm:p-2.5 bg-amber-50 text-amber-700 rounded-xl ring-1 ring-amber-100 shrink-0">
+                                <div className="p-1.5 sm:p-2.5 bg-amber-50 text-amber-700 rounded-none ring-1 ring-amber-100 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
@@ -1041,7 +1041,7 @@ export default function Reports({ auth, initial_report_data }) {
                         </div>
 
                         {/* KPI 4: Stock Valuation & Discrepancies */}
-                        <div className="p-3 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs flex flex-col justify-between">
+                        <div className="p-3 sm:p-5 rounded-none bg-white border border-gray-200/80 shadow-xs flex flex-col justify-between">
                             <div className="flex justify-between items-start gap-1 sm:gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
                                     <p className="text-[10px] sm:text-xs font-bold text-purple-700 uppercase tracking-wider truncate">Inventory Value</p>
@@ -1049,7 +1049,7 @@ export default function Reports({ auth, initial_report_data }) {
                                         {formatCurrency(reportData.summary.inventory_retail_value)}
                                     </h3>
                                 </div>
-                                <div className="p-1.5 sm:p-2.5 bg-purple-50 text-purple-700 rounded-xl ring-1 ring-purple-100 shrink-0">
+                                <div className="p-1.5 sm:p-2.5 bg-purple-50 text-purple-700 rounded-none ring-1 ring-purple-100 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                                     </svg>
@@ -1063,7 +1063,7 @@ export default function Reports({ auth, initial_report_data }) {
                     </div>
 
                     {/* ========================================================================= */}
-                    {/* 2. CONNECTED PIPELINE TABS (With Inverted Scoop Radiuses)                  */}
+                    {/* 2. CONNECTED PIPELINE TABS                                                 */}
                     {/* ========================================================================= */}
                     <div ref={workspaceSectionRef} className="flex flex-col scroll-mt-4">
                         
@@ -1075,30 +1075,14 @@ export default function Reports({ auth, initial_report_data }) {
                                 <button
                                     data-tab="sales"
                                     onClick={() => handleTabChange('sales')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         activeTab === 'sales'
                                             ? 'bg-white text-[#1B3A69] font-black border-t-[#1B3A69] border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {activeTab === 'sales' && (
-                                        <>
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Sales & Revenue Audit</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         activeTab === 'sales' ? 'bg-[#1B3A69] text-white shadow-2xs' : 'bg-gray-200 text-gray-700 group-hover:bg-gray-300'
                                     }`}>
                                         {reportData.sales_report.daily_breakdown.length}
@@ -1109,30 +1093,14 @@ export default function Reports({ auth, initial_report_data }) {
                                 <button
                                     data-tab="products"
                                     onClick={() => handleTabChange('products')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         activeTab === 'products'
                                             ? 'bg-white text-blue-900 font-black border-t-blue-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {activeTab === 'products' && (
-                                        <>
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Products & Categories</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         activeTab === 'products' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-blue-50 text-blue-700 group-hover:bg-blue-100'
                                     }`}>
                                         {reportData.product_report.products.length}
@@ -1143,30 +1111,14 @@ export default function Reports({ auth, initial_report_data }) {
                                 <button
                                     data-tab="inventory"
                                     onClick={() => handleTabChange('inventory')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         activeTab === 'inventory'
                                             ? 'bg-white text-purple-900 font-black border-t-purple-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {activeTab === 'inventory' && (
-                                        <>
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Inventory Valuation</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         activeTab === 'inventory' ? 'bg-purple-600 text-white shadow-2xs' : 'bg-purple-50 text-purple-700 group-hover:bg-purple-100'
                                     }`}>
                                         {reportData.inventory_report.items.length}
@@ -1177,30 +1129,14 @@ export default function Reports({ auth, initial_report_data }) {
                                 <button
                                     data-tab="shifts"
                                     onClick={() => handleTabChange('shifts')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         activeTab === 'shifts'
                                             ? 'bg-white text-emerald-900 font-black border-t-emerald-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {activeTab === 'shifts' && (
-                                        <>
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Shift & Cash Reconciliation</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         activeTab === 'shifts' ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-emerald-50 text-emerald-700 group-hover:bg-emerald-100'
                                     }`}>
                                         {reportData.shift_report.shifts.length}
@@ -1211,30 +1147,14 @@ export default function Reports({ auth, initial_report_data }) {
                                 <button
                                     data-tab="staff"
                                     onClick={() => handleTabChange('staff')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         activeTab === 'staff'
                                             ? 'bg-white text-indigo-900 font-black border-t-indigo-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {activeTab === 'staff' && (
-                                        <>
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Staff Accountability</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         activeTab === 'staff' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-indigo-50 text-indigo-700 group-hover:bg-indigo-100'
                                     }`}>
                                         {reportData.staff_report.staff.length}
@@ -1244,7 +1164,7 @@ export default function Reports({ auth, initial_report_data }) {
                         </div>
 
                         {/* MAIN CONTENT CARD: TOOLBAR + TABLE / CARDS + PAGINATION */}
-                        <div className="bg-white rounded-b-2xl sm:rounded-tr-2xl border border-gray-200/80 shadow-sm overflow-hidden flex flex-col relative z-10">
+                        <div className="bg-white rounded-none border border-gray-200/80 shadow-sm overflow-hidden flex flex-col relative z-10">
 
                             {/* 3. FULLY RESPONSIVE SEARCH, FILTER & OPERATIONAL TOOLBAR */}
                             <div className="p-3.5 sm:p-4 bg-white border-b border-gray-100 space-y-3 relative z-10">
@@ -1259,12 +1179,12 @@ export default function Reports({ auth, initial_report_data }) {
                                                 type="text"
                                                 placeholder={
                                                     activeTab === 'sales' ? 'Search sales, transactions, cashiers...' :
-                                                    activeTab === 'products' ? 'Search products, SKUs, categories...' :
+                                                     activeTab === 'products' ? 'Search products, SKUs, categories...' :
                                                     activeTab === 'inventory' ? 'Search inventory items, SKUs...' :
                                                     activeTab === 'shifts' ? 'Search shift logs, cashiers, registers...' :
                                                     'Search staff members, cashiers, emails...'
                                                 }
-                                                className="pl-11 pr-10 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl w-full focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 focus:bg-white text-xs sm:text-sm font-medium transition-all shadow-2xs placeholder:text-gray-400"
+                                                className="pl-11 pr-10 py-2.5 bg-gray-50/70 border border-gray-200 rounded-none w-full focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 focus:bg-white text-xs sm:text-sm font-medium transition-all shadow-2xs placeholder:text-gray-400"
                                                 value={searchTerm}
                                                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                                             />
@@ -1281,11 +1201,11 @@ export default function Reports({ auth, initial_report_data }) {
                                         </div>
 
                                         {/* View Mode Toggle (Desktop only) */}
-                                        <div className="hidden lg:inline-flex rounded-xl bg-gray-100 p-1 border border-gray-200 shrink-0 self-start sm:self-auto">
+                                        <div className="hidden lg:inline-flex rounded-none bg-gray-100 p-1 border border-gray-200 shrink-0 self-start sm:self-auto">
                                             <button
                                                 type="button"
                                                 onClick={() => handleViewModeChange('table')}
-                                                className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'table' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                                className={`p-2 rounded-none transition-all flex items-center gap-1.5 text-xs ${viewMode === 'table' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
                                                 title="List View"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
@@ -1294,7 +1214,7 @@ export default function Reports({ auth, initial_report_data }) {
                                             <button
                                                 type="button"
                                                 onClick={() => handleViewModeChange('grid')}
-                                                className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'grid' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                                className={`p-2 rounded-none transition-all flex items-center gap-1.5 text-xs ${viewMode === 'grid' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
                                                 title="Cards View"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25h-2.25a2.25 2.25 0 01-2.25-2.25v-2.25z" /></svg>
@@ -1309,7 +1229,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                 <select
                                                     value={selectedCashier}
                                                     onChange={(e) => { setSelectedCashier(e.target.value); setCurrentPage(1); }}
-                                                    className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs flex-1 sm:flex-none sm:w-[160px] lg:w-[175px] shrink-0 cursor-pointer truncate"
+                                                    className="bg-gray-50/70 border border-gray-200 rounded-none py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs flex-1 sm:flex-none sm:w-[160px] lg:w-[175px] shrink-0 cursor-pointer truncate"
                                                 >
                                                     <option value="">All Cashiers & Staff</option>
                                                     {reportData.meta.cashiers.map(c => (
@@ -1323,7 +1243,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                 <select
                                                     value={selectedCategory}
                                                     onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
-                                                    className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs flex-1 sm:flex-none sm:w-[160px] lg:w-[175px] shrink-0 cursor-pointer truncate"
+                                                    className="bg-gray-50/70 border border-gray-200 rounded-none py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs flex-1 sm:flex-none sm:w-[160px] lg:w-[175px] shrink-0 cursor-pointer truncate"
                                                 >
                                                     <option value="">All Categories</option>
                                                     {reportData.meta.categories.map(cat => (
@@ -1337,7 +1257,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                 <select
                                                     value={selectedPaymentMethod}
                                                     onChange={(e) => { setSelectedPaymentMethod(e.target.value); setCurrentPage(1); }}
-                                                    className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs flex-1 sm:flex-none sm:w-[160px] lg:w-[175px] shrink-0 cursor-pointer truncate"
+                                                    className="bg-gray-50/70 border border-gray-200 rounded-none py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs flex-1 sm:flex-none sm:w-[160px] lg:w-[175px] shrink-0 cursor-pointer truncate"
                                                 >
                                                     <option value="">All Payment Methods</option>
                                                     <option value="cash">Cash Only</option>
@@ -1364,7 +1284,7 @@ export default function Reports({ auth, initial_report_data }) {
                                         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:flex lg:w-auto items-center gap-2 w-full lg:w-auto shrink-0 justify-end">
                                             
                                             {/* Custom Date Range: From */}
-                                            <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl px-2.5 sm:px-3 py-2 w-full lg:w-auto shrink-0 shadow-2xs">
+                                            <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-none px-2.5 sm:px-3 py-2 w-full lg:w-auto shrink-0 shadow-2xs">
                                                 <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider shrink-0">From</span>
                                                 <input
                                                     type="date"
@@ -1381,7 +1301,7 @@ export default function Reports({ auth, initial_report_data }) {
                                             </div>
 
                                             {/* Custom Date Range: To */}
-                                            <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl px-2.5 sm:px-3 py-2 w-full lg:w-auto shrink-0 shadow-2xs">
+                                            <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-none px-2.5 sm:px-3 py-2 w-full lg:w-auto shrink-0 shadow-2xs">
                                                 <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider shrink-0">To</span>
                                                 <input
                                                     type="date"
@@ -1402,7 +1322,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                 <select
                                                     value={activePreset}
                                                     onChange={(e) => handlePresetChange(e.target.value)}
-                                                    className="h-[38px] bg-white border border-gray-200 rounded-xl py-2 pl-3 pr-7 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
+                                                    className="h-[38px] bg-white border border-gray-200 rounded-none py-2 pl-3 pr-7 focus:border-[#1B3A69] focus:ring-2 focus:ring-[#1B3A69]/10 text-gray-700 text-xs font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
                                                 >
                                                     <option value="all">All Time</option>
                                                     <option value="today">Today</option>
@@ -1418,7 +1338,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowDataMenu(!showDataMenu)}
-                                                    className="h-[38px] w-full lg:w-auto justify-center px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm bg-[#EFF4F9] text-[#1B3A69] hover:bg-[#E2ECF6] border border-[#CBD7E6] shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                                                    className="h-[38px] w-full lg:w-auto justify-center px-3.5 py-2 rounded-none font-bold text-xs sm:text-sm bg-[#EFF4F9] text-[#1B3A69] hover:bg-[#E2ECF6] border border-[#CBD7E6] shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-[#1B3A69]">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -1430,7 +1350,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                 </button>
 
                                                 {showDataMenu && (
-                                                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-none shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                                                         <div className="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400">Reports & Export</div>
                                                         <button
                                                             onClick={exportExcel}
@@ -1474,7 +1394,7 @@ export default function Reports({ auth, initial_report_data }) {
                                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
                                                 
                                                 {/* Chart 1: Revenue & Order Velocity Trend (8 Cols) */}
-                                                <div className="lg:col-span-8 p-4 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3">
+                                                <div className="lg:col-span-8 p-4 rounded-none bg-white border border-gray-200/80 shadow-xs space-y-3">
                                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                                         <div>
                                                             <h4 className="font-bold text-sm sm:text-base text-gray-900">
@@ -1484,13 +1404,13 @@ export default function Reports({ auth, initial_report_data }) {
                                                         </div>
                                                         <div className="flex items-center gap-2 text-xs">
                                                             <span className="flex items-center gap-1 text-gray-600 font-semibold text-xs">
-                                                                <span className="w-2.5 h-2.5 rounded-xs bg-[#1B3A69]"></span> Gross
+                                                                <span className="w-2.5 h-2.5 rounded-none bg-[#1B3A69]"></span> Gross
                                                             </span>
                                                             <span className="flex items-center gap-1 text-emerald-600 font-semibold text-xs">
-                                                                <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500"></span> Cash
+                                                                <span className="w-2.5 h-2.5 rounded-none bg-emerald-500"></span> Cash
                                                             </span>
                                                             <span className="flex items-center gap-1 text-blue-600 font-semibold text-xs">
-                                                                <span className="w-2.5 h-2.5 rounded-xs bg-blue-500"></span> Digital
+                                                                <span className="w-2.5 h-2.5 rounded-none bg-blue-500"></span> Digital
                                                             </span>
                                                         </div>
                                                     </div>
@@ -1520,7 +1440,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                             if (active && payload && payload.length) {
                                                                                 const d = payload[0].payload;
                                                                                 return (
-                                                                                    <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
+                                                                                    <div className="bg-white p-3 rounded-none shadow-xl border border-gray-200 text-xs space-y-1 z-50">
                                                                                         <p className="font-bold text-gray-900">{label}</p>
                                                                                         <div className="space-y-0.5 pt-1 border-t border-gray-100 text-xs">
                                                                                             <p className="text-[#1B3A69] font-bold">Gross Sales: {formatCurrency(d.gross_sales)}</p>
@@ -1543,7 +1463,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                 </div>
 
                                                 {/* Chart 2: Payment Method Breakdown (4 Cols) */}
-                                                <div className="lg:col-span-4 p-4 rounded-2xl bg-white border border-gray-200/80 shadow-2xs space-y-3 flex flex-col justify-between">
+                                                <div className="lg:col-span-4 p-4 rounded-none bg-white border border-gray-200/80 shadow-2xs space-y-3 flex flex-col justify-between">
                                                     <div>
                                                         <h4 className="font-bold text-sm text-gray-900">
                                                             Payment Method Mix
@@ -1575,7 +1495,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                             if (active && payload && payload.length) {
                                                                                 const d = payload[0].payload;
                                                                                 return (
-                                                                                    <div className="bg-white p-2.5 rounded-xl shadow-xl border border-gray-100 text-xs z-50">
+                                                                                    <div className="bg-white p-2.5 rounded-none shadow-xl border border-gray-200 text-xs z-50">
                                                                                         <p className="font-bold text-gray-900">{formatPaymentName(d.method)}</p>
                                                                                         <p className="text-[#1B3A69] font-bold">{formatCurrency(d.total_amount)}</p>
                                                                                         <p className="text-gray-400 text-[10px]">{d.percentage}% of revenue ({d.count} orders)</p>
@@ -1595,9 +1515,9 @@ export default function Reports({ auth, initial_report_data }) {
                                                         {reportData.sales_report.payment_methods.map((pm, i) => {
                                                             const colors = ['bg-emerald-500', 'bg-blue-600', 'bg-cyan-500', 'bg-purple-500', 'bg-amber-500', 'bg-pink-500'];
                                                             return (
-                                                                <div key={i} className="flex items-center justify-between p-1 bg-gray-50/70 rounded-lg">
+                                                                <div key={i} className="flex items-center justify-between p-1 bg-gray-50/70 rounded-none">
                                                                     <span className="flex items-center gap-1 text-gray-600 font-medium">
-                                                                        <span className={`w-2 h-2 rounded-full ${colors[i % colors.length]}`}></span>
+                                                                        <span className={`w-2 h-2 rounded-none ${colors[i % colors.length]}`}></span>
                                                                         {formatPaymentName(pm.method)}
                                                                     </span>
                                                                     <span className="font-bold text-gray-900">{pm.percentage}%</span>
@@ -1617,7 +1537,7 @@ export default function Reports({ auth, initial_report_data }) {
                                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4">
                                             
                                             {/* Chart 1: Top Selling Products (7 Cols) */}
-                                            <div className="lg:col-span-7 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3">
+                                            <div className="lg:col-span-7 p-4 sm:p-5 rounded-none bg-white border border-gray-200/80 shadow-xs space-y-3">
                                                 <div className="flex items-center justify-between">
                                                     <div>
                                                         <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
@@ -1625,7 +1545,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                         </h4>
                                                         <p className="text-xs text-gray-500 font-medium mt-0.5">Most demanded item inventory</p>
                                                     </div>
-                                                    <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-bold text-xs rounded-full">Top Movers</span>
+                                                    <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-bold text-xs rounded-none">Top Movers</span>
                                                 </div>
 
                                                 <div className="h-56 sm:h-64 w-full">
@@ -1648,7 +1568,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         if (active && payload && payload.length) {
                                                                             const d = payload[0].payload;
                                                                             return (
-                                                                                <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
+                                                                                <div className="bg-white p-3 rounded-none shadow-xl border border-gray-200 text-xs space-y-1 z-50">
                                                                                     <p className="font-bold text-gray-900">{d.name}</p>
                                                                                     <p className="text-[#1B3A69] font-bold">{d.units_sold} Units Sold</p>
                                                                                     <p className="text-gray-700 font-semibold">Revenue: {formatCurrency(d.total_revenue)}</p>
@@ -1659,7 +1579,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         return null;
                                                                     }}
                                                                 />
-                                                                <Bar dataKey="units_sold" fill="#1B3A69" radius={[0, 6, 6, 0]} />
+                                                                <Bar dataKey="units_sold" fill="#1B3A69" radius={0} />
                                                             </BarChart>
                                                         </ResponsiveContainer>
                                                     )}
@@ -1667,7 +1587,7 @@ export default function Reports({ auth, initial_report_data }) {
                                             </div>
 
                                             {/* Chart 2: Category Revenue Performance (5 Cols) */}
-                                            <div className="lg:col-span-5 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+                                            <div className="lg:col-span-5 p-4 sm:p-5 rounded-none bg-white border border-gray-200/80 shadow-xs space-y-3 flex flex-col justify-between">
                                                 <div>
                                                     <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
                                                         Category Revenue Contribution
@@ -1691,7 +1611,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         if (active && payload && payload.length) {
                                                                             const d = payload[0].payload;
                                                                             return (
-                                                                                <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
+                                                                                <div className="bg-white p-3 rounded-none shadow-xl border border-gray-200 text-xs space-y-1 z-50">
                                                                                     <p className="font-bold text-gray-900">{d.name}</p>
                                                                                     <p className="text-purple-700 font-bold">Revenue: {formatCurrency(d.total_revenue)}</p>
                                                                                     <p className="text-emerald-700 font-semibold">Profit: {formatCurrency(d.total_profit)}</p>
@@ -1702,7 +1622,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         return null;
                                                                     }}
                                                                 />
-                                                                <Bar dataKey="total_revenue" fill="#8B5CF6" radius={[6, 6, 0, 0]} />
+                                                                <Bar dataKey="total_revenue" fill="#8B5CF6" radius={0} />
                                                             </BarChart>
                                                         </ResponsiveContainer>
                                                     )}
@@ -1718,7 +1638,7 @@ export default function Reports({ auth, initial_report_data }) {
                                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4">
                                             
                                             {/* Chart 1: Stock Health Composition (4 Cols) */}
-                                            <div className="lg:col-span-4 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+                                            <div className="lg:col-span-4 p-4 sm:p-5 rounded-none bg-white border border-gray-200/80 shadow-xs space-y-3 flex flex-col justify-between">
                                                 <div>
                                                     <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
                                                         Stock Health Breakdown
@@ -1750,7 +1670,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                     if (active && payload && payload.length) {
                                                                         const d = payload[0].payload;
                                                                         return (
-                                                                            <div className="bg-white p-2.5 rounded-xl shadow-xl border border-gray-100 text-xs">
+                                                                            <div className="bg-white p-2.5 rounded-none shadow-xl border border-gray-200 text-xs">
                                                                                 <p className="font-bold text-gray-900">{d.name}</p>
                                                                                 <p className="font-bold text-gray-700">{d.value} SKUs</p>
                                                                             </div>
@@ -1764,15 +1684,15 @@ export default function Reports({ auth, initial_report_data }) {
                                                 </div>
 
                                                 <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 text-center">
-                                                    <div className="p-2 rounded-xl bg-emerald-50 text-emerald-800">
+                                                    <div className="p-2 rounded-none bg-emerald-50 text-emerald-800">
                                                         <p className="text-xs text-emerald-600 font-semibold">Healthy</p>
                                                         <p className="text-sm font-bold">{reportData.summary.healthy_stock_count}</p>
                                                     </div>
-                                                    <div className="p-2 rounded-xl bg-amber-50 text-amber-800">
+                                                    <div className="p-2 rounded-none bg-amber-50 text-amber-800">
                                                         <p className="text-xs text-amber-600 font-semibold">Low Stock</p>
                                                         <p className="text-sm font-bold">{reportData.summary.low_stock_count}</p>
                                                     </div>
-                                                    <div className="p-2 rounded-xl bg-rose-50 text-rose-800">
+                                                    <div className="p-2 rounded-none bg-rose-50 text-rose-800">
                                                         <p className="text-xs text-rose-600 font-semibold">Depleted</p>
                                                         <p className="text-sm font-bold">{reportData.summary.out_of_stock_count}</p>
                                                     </div>
@@ -1780,7 +1700,7 @@ export default function Reports({ auth, initial_report_data }) {
                                             </div>
 
                                             {/* Summary 2: Valuation Aggregates (8 Cols) */}
-                                            <div className="lg:col-span-8 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+                                            <div className="lg:col-span-8 p-4 sm:p-5 rounded-none bg-white border border-gray-200/80 shadow-xs space-y-3 flex flex-col justify-between">
                                                 <div>
                                                     <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
                                                         Total Inventory Capitalization
@@ -1789,24 +1709,24 @@ export default function Reports({ auth, initial_report_data }) {
                                                 </div>
 
                                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                                    <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 space-y-1">
+                                                    <div className="p-4 rounded-none bg-gray-50 border border-gray-100 space-y-1">
                                                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Cost Invested</span>
                                                         <p className="text-lg sm:text-xl font-bold text-gray-900">{formatCurrency(reportData.inventory_report.total_cost_value)}</p>
                                                         <p className="text-xs text-gray-400">Total acquisition cost</p>
                                                     </div>
-                                                    <div className="p-4 rounded-xl bg-[#EFF4F9] border border-[#CBD7E6] space-y-1">
+                                                    <div className="p-4 rounded-none bg-[#EFF4F9] border border-[#CBD7E6] space-y-1">
                                                         <span className="text-xs font-bold text-[#1B3A69] uppercase tracking-wider">Retail Valuation</span>
                                                         <p className="text-lg sm:text-xl font-bold text-gray-900">{formatCurrency(reportData.inventory_report.total_retail_value)}</p>
                                                         <p className="text-xs text-gray-500">Gross market potential</p>
                                                     </div>
-                                                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100 space-y-1">
+                                                    <div className="p-4 rounded-none bg-emerald-50 border border-emerald-100 space-y-1">
                                                         <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Expected Profit</span>
                                                         <p className="text-lg sm:text-xl font-bold text-emerald-700">{formatCurrency(reportData.inventory_report.potential_profit)}</p>
                                                         <p className="text-xs text-emerald-600 font-semibold">{reportData.inventory_report.potential_margin}% Projected Margin</p>
                                                     </div>
                                                 </div>
 
-                                                <div className="p-3 bg-blue-50/40 rounded-xl border border-blue-100 flex items-center justify-between text-xs">
+                                                <div className="p-3 bg-blue-50/40 rounded-none border border-blue-100 flex items-center justify-between text-xs">
                                                     <span className="text-blue-900 font-medium">Catalog Health: <strong>{reportData.summary.total_skus}</strong> unique SKUs in active database</span>
                                                     <Link href="/inventory" className="font-bold text-[#1B3A69] hover:underline cursor-pointer">Manage Inventory →</Link>
                                                 </div>
@@ -1821,7 +1741,7 @@ export default function Reports({ auth, initial_report_data }) {
                                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4">
                                             
                                             {/* Chart 1: Expected vs Actual Counted Cash (7 Cols) */}
-                                            <div className="lg:col-span-7 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3">
+                                            <div className="lg:col-span-7 p-4 sm:p-5 rounded-none bg-white border border-gray-200/80 shadow-xs space-y-3">
                                                 <div className="flex items-center justify-between">
                                                     <div>
                                                         <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
@@ -1831,10 +1751,10 @@ export default function Reports({ auth, initial_report_data }) {
                                                     </div>
                                                     <div className="flex items-center gap-2 text-xs">
                                                         <span className="flex items-center gap-1 text-emerald-700 font-bold text-xs">
-                                                            <span className="w-2.5 h-2.5 rounded-xs bg-emerald-600"></span> Actual
+                                                            <span className="w-2.5 h-2.5 rounded-none bg-emerald-600"></span> Actual
                                                         </span>
                                                         <span className="flex items-center gap-1 text-gray-500 font-bold text-xs">
-                                                            <span className="w-2.5 h-2.5 rounded-xs bg-gray-400"></span> Expected
+                                                            <span className="w-2.5 h-2.5 rounded-none bg-gray-400"></span> Expected
                                                         </span>
                                                     </div>
                                                 </div>
@@ -1855,7 +1775,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         if (active && payload && payload.length) {
                                                                             const d = payload[0].payload;
                                                                             return (
-                                                                                <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
+                                                                                <div className="bg-white p-3 rounded-none shadow-xl border border-gray-200 text-xs space-y-1 z-50">
                                                                                     <p className="font-bold text-gray-900">{d.cashier_name} (Shift #{d.id})</p>
                                                                                     <p className="text-emerald-700 font-bold">Actual: {d.actual_cash !== null && d.actual_cash !== undefined ? Number(d.actual_cash).toFixed(2) : '—'}</p>
                                                                                     <p className="text-gray-500 font-semibold">Expected: {Number(d.expected_cash || 0).toFixed(2)}</p>
@@ -1868,8 +1788,8 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         return null;
                                                                     }}
                                                                 />
-                                                                <Bar dataKey="actual_cash" fill="#10B981" radius={[4, 4, 0, 0]} />
-                                                                <Bar dataKey="expected_cash" fill="#94A3B8" radius={[4, 4, 0, 0]} />
+                                                                <Bar dataKey="actual_cash" fill="#10B981" radius={0} />
+                                                                <Bar dataKey="expected_cash" fill="#94A3B8" radius={0} />
                                                             </BarChart>
                                                         </ResponsiveContainer>
                                                     )}
@@ -1877,7 +1797,7 @@ export default function Reports({ auth, initial_report_data }) {
                                             </div>
 
                                             {/* Chart 2: Cash Movement Breakdown (5 Cols) */}
-                                            <div className="lg:col-span-5 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+                                            <div className="lg:col-span-5 p-4 sm:p-5 rounded-none bg-white border border-gray-200/80 shadow-xs space-y-3 flex flex-col justify-between">
                                                 <div>
                                                     <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
                                                         Drawer Cash Velocity Flow
@@ -1886,34 +1806,34 @@ export default function Reports({ auth, initial_report_data }) {
                                                 </div>
 
                                                 <div className="space-y-2.5 py-2">
-                                                    <div className="p-3 bg-emerald-50/70 rounded-xl flex items-center justify-between">
+                                                    <div className="p-3 bg-emerald-50/70 rounded-none flex items-center justify-between">
                                                         <div>
                                                             <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">Total Shift Cash Sales</span>
                                                             <p className="text-base font-bold text-emerald-950">
                                                                 {((reportData.shift_report.cash_movements?.total_cash_sales || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                                             </p>
                                                         </div>
-                                                        <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold">Sales</span>
+                                                        <span className="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-none text-xs font-bold">Sales</span>
                                                     </div>
 
-                                                    <div className="p-3 bg-blue-50/70 rounded-xl flex items-center justify-between">
+                                                    <div className="p-3 bg-blue-50/70 rounded-none flex items-center justify-between">
                                                         <div>
                                                             <span className="text-xs font-bold uppercase tracking-wider text-blue-800">Drawer Cash-In (Adds)</span>
                                                             <p className="text-base font-bold text-blue-950">
                                                                 {((reportData.shift_report.cash_movements?.total_cash_in || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                                             </p>
                                                         </div>
-                                                        <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-bold">Topup</span>
+                                                        <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-none text-xs font-bold">Topup</span>
                                                     </div>
 
-                                                    <div className="p-3 bg-rose-50/70 rounded-xl flex items-center justify-between">
+                                                    <div className="p-3 bg-rose-50/70 rounded-none flex items-center justify-between">
                                                         <div>
                                                             <span className="text-xs font-bold uppercase tracking-wider text-rose-800">Drawer Cash-Out (Drops / Payouts)</span>
                                                             <p className="text-base font-bold text-rose-950">
                                                                 {((reportData.shift_report.cash_movements?.total_cash_out || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                                             </p>
                                                         </div>
-                                                        <span className="px-2.5 py-0.5 bg-rose-100 text-rose-800 rounded-full text-xs font-bold">Drops</span>
+                                                        <span className="px-2.5 py-0.5 bg-rose-100 text-rose-800 rounded-none text-xs font-bold">Drops</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1927,7 +1847,7 @@ export default function Reports({ auth, initial_report_data }) {
                                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4">
                                             
                                             {/* Chart 1: Sales Generation by Cashier (7 Cols) */}
-                                            <div className="lg:col-span-7 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3">
+                                            <div className="lg:col-span-7 p-4 sm:p-5 rounded-none bg-white border border-gray-200/80 shadow-xs space-y-3">
                                                 <div className="flex items-center justify-between">
                                                     <div>
                                                         <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
@@ -1935,7 +1855,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                         </h4>
                                                         <p className="text-xs text-gray-500 font-medium mt-0.5">Total sales closed by cashier</p>
                                                     </div>
-                                                    <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-full">Cashier Ranking</span>
+                                                    <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 font-bold text-xs rounded-none">Cashier Ranking</span>
                                                 </div>
 
                                                 <div className="h-56 sm:h-64 w-full">
@@ -1954,7 +1874,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         if (active && payload && payload.length) {
                                                                             const d = payload[0].payload;
                                                                             return (
-                                                                                <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
+                                                                                <div className="bg-white p-3 rounded-none shadow-xl border border-gray-200 text-xs space-y-1 z-50">
                                                                                     <p className="font-bold text-gray-900">{d.name} ({d.role})</p>
                                                                                     <p className="text-indigo-700 font-bold">Sales: {formatCurrency(d.total_sales)}</p>
                                                                                     <p className="text-gray-600 font-semibold">{d.transactions_count} transactions (AOV: {formatCurrency(d.average_basket)})</p>
@@ -1965,7 +1885,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         return null;
                                                                     }}
                                                                 />
-                                                                <Bar dataKey="total_sales" fill="#6366F1" radius={[6, 6, 0, 0]} />
+                                                                <Bar dataKey="total_sales" fill="#6366F1" radius={0} />
                                                             </BarChart>
                                                         </ResponsiveContainer>
                                                     )}
@@ -1973,7 +1893,7 @@ export default function Reports({ auth, initial_report_data }) {
                                             </div>
 
                                             {/* Chart 2: Discounts vs Voids Accountability (5 Cols) */}
-                                            <div className="lg:col-span-5 p-4 sm:p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs space-y-3 flex flex-col justify-between">
+                                            <div className="lg:col-span-5 p-4 sm:p-5 rounded-none bg-white border border-gray-200/80 shadow-xs space-y-3 flex flex-col justify-between">
                                                 <div>
                                                     <h4 className="font-bold text-sm sm:text-base text-gray-900 tracking-tight">
                                                         Discounts & Voids Accountability
@@ -1997,7 +1917,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         if (active && payload && payload.length) {
                                                                             const d = payload[0].payload;
                                                                             return (
-                                                                                <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1 z-50">
+                                                                                <div className="bg-white p-3 rounded-none shadow-xl border border-gray-200 text-xs space-y-1 z-50">
                                                                                     <p className="font-bold text-gray-900">{d.name}</p>
                                                                                     <p className="text-amber-700 font-bold">Discounts Granted: {formatCurrency(d.discounts_given)}</p>
                                                                                     <p className="text-rose-700 font-bold">Voided Receipts: {d.voids_count} ({formatCurrency(d.void_amount)})</p>
@@ -2007,8 +1927,8 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         return null;
                                                                     }}
                                                                 />
-                                                                <Bar dataKey="discounts_given" fill="#F59E0B" radius={[4, 4, 0, 0]} name="Discounts" />
-                                                                <Bar dataKey="voids_count" fill="#EF4444" radius={[4, 4, 0, 0]} name="Voids" />
+                                                                <Bar dataKey="discounts_given" fill="#F59E0B" radius={0} name="Discounts" />
+                                                                <Bar dataKey="voids_count" fill="#EF4444" radius={0} name="Voids" />
                                                             </BarChart>
                                                         </ResponsiveContainer>
                                                     )}
@@ -2028,8 +1948,8 @@ export default function Reports({ auth, initial_report_data }) {
                                     <p className="text-xs font-bold text-gray-500">Compiling multi-domain report data...</p>
                                 </div>
                             ) : paginatedData.length === 0 ? (
-                                <div className="m-3.5 sm:m-4 py-16 text-center space-y-2 border border-dashed border-gray-200 rounded-2xl bg-gray-50/30">
-                                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mx-auto mb-2">
+                                <div className="m-3.5 sm:m-4 py-16 text-center space-y-2 border border-dashed border-gray-200 rounded-none bg-gray-50/30">
+                                    <div className="w-10 h-10 bg-gray-100 rounded-none flex items-center justify-center text-gray-400 mx-auto mb-2">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
                                     </div>
                                     <p className="text-sm font-bold text-gray-900">No records found for this period</p>
@@ -2135,7 +2055,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                             <span className="text-indigo-700 font-bold">{formatCurrency(item.digital_sales)}</span>
                                                                         </td>
                                                                         <td className="p-3.5 sm:p-4 text-center">
-                                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${(item.void_count || item.voids_count || 0) > 0 ? 'bg-rose-50 text-rose-700' : 'bg-gray-50 text-gray-500'}`}>
+                                                                            <span className={`px-2.5 py-0.5 rounded-none text-xs font-bold ${(item.void_count || item.voids_count || 0) > 0 ? 'bg-rose-50 text-rose-700' : 'bg-gray-50 text-gray-500'}`}>
                                                                                 {item.void_count ?? item.voids_count ?? 0}
                                                                             </span>
                                                                         </td>
@@ -2150,7 +2070,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                             <div className="text-xs text-gray-400 font-mono">{item.sku || 'SKU-NONE'}</div>
                                                                         </td>
                                                                         <td className="p-3.5 sm:p-4">
-                                                                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700">
+                                                                            <span className="px-2.5 py-0.5 rounded-none text-xs font-bold bg-blue-50 text-blue-700">
                                                                                 {item.category_name}
                                                                             </span>
                                                                         </td>
@@ -2159,7 +2079,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-emerald-700">{formatCurrency(item.total_profit)}</td>
                                                                         <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-gray-700">{item.margin_percent}%</td>
                                                                         <td className="p-3.5 sm:p-4 text-center">
-                                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                                                            <span className={`px-2.5 py-0.5 rounded-none text-xs font-bold ${
                                                                                 item.units_sold > 50 ? 'bg-emerald-50 text-emerald-700' :
                                                                                 item.units_sold > 15 ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-600'
                                                                             }`}>
@@ -2177,7 +2097,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                             <div className="text-xs text-gray-400 font-mono">{item.sku || 'SKU-NONE'}</div>
                                                                         </td>
                                                                         <td className="p-3.5 sm:p-4">
-                                                                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700">
+                                                                            <span className="px-2.5 py-0.5 rounded-none text-xs font-bold bg-purple-50 text-purple-700">
                                                                                 {item.category_name}
                                                                             </span>
                                                                         </td>
@@ -2186,7 +2106,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-[#1B3A69]">{formatCurrency(item.total_retail_value)}</td>
                                                                         <td className="p-3.5 sm:p-4 text-right font-bold text-xs sm:text-sm text-emerald-700">{formatCurrency(item.potential_profit)}</td>
                                                                         <td className="p-3.5 sm:p-4 text-center">
-                                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                                                            <span className={`px-2.5 py-0.5 rounded-none text-xs font-bold ${
                                                                                 item.status === 'out_of_stock' ? 'bg-rose-50 text-rose-700' :
                                                                                 item.status === 'low_stock' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'
                                                                             }`}>
@@ -2217,11 +2137,11 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         </td>
                                                                         <td className="p-3.5 sm:p-4 text-center">
                                                                             {Number(item.difference || 0) > 0.01 ? (
-                                                                                <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                                                                                <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-none text-xs font-bold">
                                                                                     +{Number(item.difference).toFixed(2)} (Over)
                                                                                 </span>
                                                                             ) : Number(item.difference || 0) < -0.01 ? (
-                                                                                <span className="text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                                                                                <span className="text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-none text-xs font-bold">
                                                                                     -{Math.abs(Number(item.difference)).toFixed(2)} (Short)
                                                                                 </span>
                                                                             ) : (
@@ -2239,7 +2159,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                             <div className="text-xs text-gray-400">{item.email}</div>
                                                                         </td>
                                                                         <td className="p-3.5 sm:p-4">
-                                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                                                            <span className={`px-2.5 py-0.5 rounded-none text-xs font-bold ${
                                                                                 item.role === 'admin' ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'
                                                                             }`}>
                                                                                 {item.role === 'admin' ? 'Administrator' : 'Cashier'}
@@ -2252,7 +2172,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         <td className="p-3.5 sm:p-4 text-right text-amber-700 font-semibold text-xs sm:text-sm">{formatCurrency(item.discounts_given)}</td>
                                                                         <td className="p-3.5 sm:p-4 text-center font-bold text-xs sm:text-sm text-rose-700">{item.voids_count}</td>
                                                                         <td className="p-3.5 sm:p-4 text-center">
-                                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                                                            <span className={`px-2.5 py-0.5 rounded-none text-xs font-bold ${
                                                                                 item.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
                                                                             }`}>
                                                                                 {item.is_active ? 'Active' : 'Revoked'}
@@ -2272,7 +2192,7 @@ export default function Reports({ auth, initial_report_data }) {
                                     <div className={`${viewMode === 'table' ? 'lg:hidden' : 'block'} p-3.5 sm:p-4 bg-gray-50/40 border-t lg:border-t-0 border-gray-100`}>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                                             {paginatedData.map((item, idx) => (
-                                                <div key={idx} className="bg-white rounded-2xl border border-gray-200/80 shadow-2xs p-3.5 sm:p-4 flex flex-col justify-between gap-3 hover:shadow-md hover:border-[#1B3A69]/40 transition-all">
+                                                <div key={idx} className="bg-white rounded-none border border-gray-200/80 shadow-2xs p-3.5 sm:p-4 flex flex-col justify-between gap-3 hover:shadow-md hover:border-[#1B3A69]/40 transition-all">
                                                     
                                                     {/* ========================================================= */}
                                                     {/* TAB 1: SALES & DAILY REVENUE AUDIT CARD                   */}
@@ -2286,7 +2206,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         {item.date}
                                                                     </h4>
                                                                 </div>
-                                                                <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-[#EFF4F9] text-[#1B3A69] border border-[#CBD7E6] shrink-0 leading-normal inline-flex items-center justify-center">
+                                                                <span className="px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider bg-[#EFF4F9] text-[#1B3A69] border border-[#CBD7E6] shrink-0 leading-normal inline-flex items-center justify-center">
                                                                     {formatNumber(item.orders_count)} Orders
                                                                 </span>
                                                             </div>
@@ -2326,13 +2246,13 @@ export default function Reports({ auth, initial_report_data }) {
                                                                 </div>
                                                                 <div className="flex items-center gap-1.5 shrink-0">
                                                                     {(item.void_count || item.voids_count || 0) > 0 && (
-                                                                        <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shrink-0 leading-normal inline-flex items-center justify-center">
+                                                                        <span className="px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shrink-0 leading-normal inline-flex items-center justify-center">
                                                                             {item.void_count ?? item.voids_count} void
                                                                         </span>
                                                                     )}
                                                                     <Link
                                                                         href={`/transactions?startDate=${item.date}&endDate=${item.date}`}
-                                                                        className="px-2.5 py-1 bg-gray-100 hover:bg-[#1B3A69] hover:text-white rounded-lg text-[11px] font-bold text-gray-700 transition-all cursor-pointer inline-flex items-center gap-1"
+                                                                        className="px-2.5 py-1 bg-gray-100 hover:bg-[#1B3A69] hover:text-white rounded-none text-[11px] font-bold text-gray-700 transition-all cursor-pointer inline-flex items-center gap-1"
                                                                     >
                                                                         Audit →
                                                                     </Link>
@@ -2348,7 +2268,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                         <>
                                                             <div className="flex items-start justify-between gap-2">
                                                                 <div className="min-w-0">
-                                                                    <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 shrink-0 leading-normal inline-flex items-center justify-center">
+                                                                    <span className="px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 shrink-0 leading-normal inline-flex items-center justify-center">
                                                                         {item.category_name}
                                                                     </span>
                                                                     <h4 className="font-bold text-sm sm:text-base text-gray-900 leading-tight tracking-tight mt-1 truncate" title={item.name}>
@@ -2356,7 +2276,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                     </h4>
                                                                     <p className="text-[11px] text-gray-400 font-mono mt-0.5">{item.sku || 'SKU-NONE'}</p>
                                                                 </div>
-                                                                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider shrink-0 leading-normal inline-flex items-center justify-center ${
+                                                                <span className={`px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider shrink-0 leading-normal inline-flex items-center justify-center ${
                                                                     item.units_sold > 50 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
                                                                     item.units_sold > 15 ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-gray-100 text-gray-600 border border-gray-200'
                                                                 }`}>
@@ -2400,7 +2320,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                         <>
                                                             <div className="flex items-start justify-between gap-2">
                                                                 <div className="min-w-0">
-                                                                    <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 shrink-0 leading-normal inline-flex items-center justify-center">
+                                                                    <span className="px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 shrink-0 leading-normal inline-flex items-center justify-center">
                                                                         {item.category_name}
                                                                     </span>
                                                                     <h4 className="font-bold text-sm sm:text-base text-gray-900 leading-tight tracking-tight mt-1 truncate" title={item.name}>
@@ -2408,7 +2328,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                     </h4>
                                                                     <p className="text-[11px] text-gray-400 font-mono mt-0.5">{item.sku || 'SKU-NONE'}</p>
                                                                 </div>
-                                                                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider shrink-0 leading-normal inline-flex items-center justify-center ${
+                                                                <span className={`px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider shrink-0 leading-normal inline-flex items-center justify-center ${
                                                                     item.status === 'out_of_stock' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
                                                                     item.status === 'low_stock' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                                                 }`}>
@@ -2464,15 +2384,15 @@ export default function Reports({ auth, initial_report_data }) {
                                                                 </div>
                                                                 <div className="shrink-0 text-right">
                                                                     {Number(item.difference || 0) > 0.01 ? (
-                                                                        <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 leading-normal inline-flex items-center justify-center">
+                                                                        <span className="px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 leading-normal inline-flex items-center justify-center">
                                                                             +{Number(item.difference).toFixed(2)} (Over)
                                                                         </span>
                                                                     ) : Number(item.difference || 0) < -0.01 ? (
-                                                                        <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 leading-normal inline-flex items-center justify-center">
+                                                                        <span className="px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 leading-normal inline-flex items-center justify-center">
                                                                             -{Math.abs(Number(item.difference)).toFixed(2)} (Short)
                                                                         </span>
                                                                     ) : (
-                                                                        <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-gray-100 text-gray-500 border border-gray-200 leading-normal inline-flex items-center justify-center">
+                                                                        <span className="px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider bg-gray-100 text-gray-500 border border-gray-200 leading-normal inline-flex items-center justify-center">
                                                                             Exact 0.00
                                                                         </span>
                                                                     )}
@@ -2519,7 +2439,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                         <h4 className="font-bold text-sm sm:text-base text-gray-900 leading-tight tracking-tight truncate">
                                                                             {item.name}
                                                                         </h4>
-                                                                        <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider shrink-0 leading-normal inline-flex items-center justify-center ${
+                                                                        <span className={`px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider shrink-0 leading-normal inline-flex items-center justify-center ${
                                                                             item.role === 'admin' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-blue-50 text-blue-700 border border-blue-200'
                                                                         }`}>
                                                                             {item.role === 'admin' ? 'Admin' : 'Cashier'}
@@ -2527,7 +2447,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                                     </div>
                                                                     <p className="text-xs text-gray-400 truncate mt-0.5">{item.email}</p>
                                                                 </div>
-                                                                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider shrink-0 leading-normal inline-flex items-center justify-center ${
+                                                                <span className={`px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider shrink-0 leading-normal inline-flex items-center justify-center ${
                                                                     item.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
                                                                 }`}>
                                                                     {item.is_active ? 'Active' : 'Revoked'}
@@ -2611,7 +2531,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                     setCurrentPage(p => Math.max(p - 1, 1));
                                                     scrollToWorkspace();
                                                 }}
-                                                className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap flex items-center shadow-2xs cursor-pointer"
+                                                className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap flex items-center shadow-2xs cursor-pointer"
                                             >
                                                 &laquo; Prev
                                             </button>
@@ -2626,7 +2546,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                             setCurrentPage(num);
                                                             scrollToWorkspace();
                                                         }}
-                                                        className={`shrink-0 px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all flex items-center justify-center shadow-2xs font-mono cursor-pointer
+                                                        className={`shrink-0 px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all flex items-center justify-center shadow-2xs font-mono cursor-pointer
                                                             ${currentPage === num ? 'bg-[#1B3A69] text-white border-[#1B3A69] shadow-sm font-extrabold' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                                                     >
                                                         {num}
@@ -2640,7 +2560,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                     setCurrentPage(p => Math.min(p + 1, totalPages));
                                                     scrollToWorkspace();
                                                 }}
-                                                className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap flex items-center shadow-2xs cursor-pointer"
+                                                className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap flex items-center shadow-2xs cursor-pointer"
                                             >
                                                 Next &raquo;
                                             </button>
@@ -2667,7 +2587,7 @@ export default function Reports({ auth, initial_report_data }) {
                                             </div>
                                             <button
                                                 onClick={() => setShowDrawer(false)}
-                                                className="p-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                                className="p-1 rounded-none text-gray-400 hover:text-gray-700 hover:bg-gray-100 cursor-pointer"
                                             >
                                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -2676,7 +2596,7 @@ export default function Reports({ auth, initial_report_data }) {
                                         </div>
 
                                         <div className="space-y-3 text-xs sm:text-sm">
-                                            <div className="p-3.5 bg-gray-50 rounded-xl space-y-2 border border-gray-100">
+                                            <div className="p-3.5 bg-gray-50 rounded-none space-y-2 border border-gray-100">
                                                 <div className="flex justify-between">
                                                     <span className="text-gray-500 font-medium">Record ID / Date:</span>
                                                     <span className="font-bold text-gray-900">{drawerItem.date || drawerItem.name || `#${drawerItem.id}`}</span>
@@ -2701,7 +2621,7 @@ export default function Reports({ auth, initial_report_data }) {
                                                 )}
                                             </div>
 
-                                            <div className="p-3.5 bg-blue-50/50 rounded-xl border border-blue-100 space-y-1">
+                                            <div className="p-3.5 bg-blue-50/50 rounded-none border border-blue-100 space-y-1">
                                                 <span className="text-xs font-bold uppercase tracking-wider text-blue-700">Audit Compliance Note</span>
                                                 <p className="text-xs text-blue-900 leading-relaxed">
                                                     All transactions, shifts, and inventory adjustments logged under this entry are synchronized with store audit records and system timestamps.
@@ -2713,7 +2633,7 @@ export default function Reports({ auth, initial_report_data }) {
                                     <div className="pt-4 border-t border-gray-100 flex gap-2">
                                         <button
                                             onClick={() => setShowDrawer(false)}
-                                            className="w-full py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xs sm:text-sm shadow-xs active:scale-95 transition-all cursor-pointer"
+                                            className="w-full py-2.5 rounded-none bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xs sm:text-sm shadow-xs active:scale-95 transition-all cursor-pointer"
                                         >
                                             Close Audit View
                                         </button>

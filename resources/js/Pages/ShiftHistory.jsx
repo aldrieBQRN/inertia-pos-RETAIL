@@ -1125,7 +1125,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
 
                         {/* KPI 1: Total Shift Sales */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider truncate">
@@ -1135,20 +1135,20 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                         {formatCurrency(kpiMetrics.totalCashSales)}
                                     </h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-xl ring-1 ring-[#CBD7E6] shrink-0">
+                                <div className="p-2 sm:p-2.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-none ring-1 ring-[#CBD7E6] shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                             </div>
                             <div className="mt-2.5 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-[10px] sm:text-xs text-gray-500 font-semibold gap-1">
-                                <span className="truncate">Total Sessions</span>
+                                <span className="truncate">{auth.user?.is_admin ? 'Total Sessions' : 'My Sessions'}</span>
                                 <span className="font-bold text-gray-700 truncate shrink-0">{kpiMetrics.totalShifts} shifts</span>
                             </div>
                         </div>
 
                         {/* KPI 2: Actual Cash Collected */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-emerald-700 uppercase tracking-wider truncate">
@@ -1158,7 +1158,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                         {formatCurrency(kpiMetrics.totalActualCash)}
                                     </h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-emerald-100/70 text-emerald-700 rounded-xl ring-1 ring-emerald-200 shrink-0">
+                                <div className="p-2 sm:p-2.5 bg-emerald-100/70 text-emerald-700 rounded-none ring-1 ring-emerald-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6H2.25m0 0v8.25m0-8.25h19.5m0 0v8.25m0-8.25a.75.75 0 00-.75-.75h-.75V4.5m1.5 1.5v8.25a.75.75 0 01-.75.75h-.75M3.75 6h16.5m0 0v8.25m0 0a.75.75 0 01-.75.75H3.75a.75.75 0 01-.75-.75V6m0 0v8.25" />
                                     </svg>
@@ -1171,7 +1171,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                         </div>
 
                         {/* KPI 3: Net Cash Variance (Short / Over) */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className={`text-[10px] sm:text-[11px] font-black uppercase tracking-wider truncate ${kpiMetrics.totalVariance < -0.01 ? 'text-rose-700' : 'text-slate-700'}`}>
@@ -1181,7 +1181,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                         {kpiMetrics.totalVariance > 0.01 ? '+' : ''}{formatCurrency(kpiMetrics.totalVariance)}
                                     </h3>
                                 </div>
-                                <div className={`p-2 sm:p-2.5 rounded-xl ring-1 shrink-0 ${kpiMetrics.totalVariance < -0.01 ? 'bg-rose-100/70 text-rose-700 ring-rose-200' : 'bg-slate-100 text-slate-700 ring-slate-200'}`}>
+                                <div className={`p-2 sm:p-2.5 rounded-none ring-1 shrink-0 ${kpiMetrics.totalVariance < -0.01 ? 'bg-rose-100/70 text-rose-700 ring-rose-200' : 'bg-slate-100 text-slate-700 ring-slate-200'}`}>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                                     </svg>
@@ -1194,7 +1194,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                         </div>
 
                         {/* KPI 4: Operational Sessions & Balanced Count */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-blue-700 uppercase tracking-wider truncate">Balanced Shifts</p>
@@ -1202,7 +1202,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                         {kpiMetrics.balancedCount} <span className="text-xs font-semibold text-blue-600">sessions</span>
                                     </h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-blue-100/70 text-blue-700 rounded-xl ring-1 ring-blue-200 shrink-0">
+                                <div className="p-2 sm:p-2.5 bg-blue-100/70 text-blue-700 rounded-none ring-1 ring-blue-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -1228,30 +1228,14 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                 <button
                                     data-tab="all"
                                     onClick={() => handleStatusTabChange('all')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         statusTab === 'all'
                                             ? 'bg-white text-gray-900 font-black border-t-[#1B3B6A] border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {statusTab === 'all' && (
-                                        <>
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>All Shifts</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         statusTab === 'all'
                                             ? 'bg-[#1B3B6A] text-white shadow-2xs'
                                             : 'bg-gray-200/80 text-gray-700 group-hover:bg-gray-300'
@@ -1264,30 +1248,14 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                 <button
                                     data-tab="balanced"
                                     onClick={() => handleStatusTabChange('balanced')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         statusTab === 'balanced'
                                             ? 'bg-white text-emerald-950 font-black border-t-emerald-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {statusTab === 'balanced' && (
-                                        <>
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Balanced</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         statusTab === 'balanced'
                                             ? 'bg-emerald-600 text-white shadow-2xs'
                                             : 'bg-emerald-50 text-emerald-700 group-hover:bg-emerald-100'
@@ -1300,30 +1268,14 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                 <button
                                     data-tab="shortage"
                                     onClick={() => handleStatusTabChange('shortage')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         statusTab === 'shortage'
                                             ? 'bg-white text-rose-950 font-black border-t-rose-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {statusTab === 'shortage' && (
-                                        <>
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Shortages</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         statusTab === 'shortage'
                                             ? 'bg-rose-600 text-white shadow-2xs'
                                             : 'bg-rose-50 text-rose-700 group-hover:bg-rose-100'
@@ -1336,30 +1288,14 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                 <button
                                     data-tab="overage"
                                     onClick={() => handleStatusTabChange('overage')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         statusTab === 'overage'
                                             ? 'bg-white text-indigo-950 font-black border-t-indigo-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {statusTab === 'overage' && (
-                                        <>
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Overages</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         statusTab === 'overage'
                                             ? 'bg-indigo-600 text-white shadow-2xs'
                                             : 'bg-indigo-50 text-indigo-700 group-hover:bg-indigo-100'
@@ -1372,30 +1308,14 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                 <button
                                     data-tab="open"
                                     onClick={() => handleStatusTabChange('open')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         statusTab === 'open'
                                             ? 'bg-white text-blue-950 font-black border-t-blue-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {statusTab === 'open' && (
-                                        <>
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Active / Open</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         statusTab === 'open'
                                             ? 'bg-blue-600 text-white shadow-2xs'
                                             : 'bg-blue-50 text-blue-700 group-hover:bg-blue-100'
@@ -1407,7 +1327,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                         </div>
 
                         {/* MAIN CONTENT CARD: TOOLBAR + TABLE / CARDS + PAGINATION */}
-                        <div className="bg-white rounded-b-2xl sm:rounded-tr-2xl border border-gray-200/80 shadow-sm overflow-hidden flex flex-col relative z-10">
+                        <div className="bg-white rounded-none border border-gray-200/80 shadow-sm overflow-hidden flex flex-col relative z-10">
 
                             {/* 2-TIER RESPONSIVE OPERATIONAL TOOLBAR */}
                             <div className="p-3 sm:p-4 border-b border-gray-200/80 bg-white flex flex-col gap-3">
@@ -1420,7 +1340,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                         <input
                                             type="text"
                                             placeholder="Search by Cashier Name, Email, or Shift ID..."
-                                            className="pl-11 pr-10 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl w-full focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 focus:bg-white text-xs sm:text-sm font-medium transition-all shadow-2xs placeholder:text-gray-400"
+                                            className="pl-11 pr-10 py-2.5 bg-gray-50/70 border border-gray-200 rounded-none w-full focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 focus:bg-white text-xs sm:text-sm font-medium transition-all shadow-2xs placeholder:text-gray-400"
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                         />
@@ -1428,7 +1348,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                         </svg>
                                         {searchQuery && (
-                                            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 p-0.5">
+                                            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 p-0.5 cursor-pointer">
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                                                 </svg>
@@ -1440,11 +1360,11 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                     <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto shrink-0 justify-between sm:justify-end">
 
                                         {/* View Mode Toggle (Desktop only - List vs Cards) */}
-                                        <div className="hidden lg:inline-flex rounded-xl bg-gray-100 p-1 border border-gray-200 shrink-0">
+                                        <div className="hidden lg:inline-flex rounded-none bg-gray-100 p-1 border border-gray-200 shrink-0">
                                             <button
                                                 type="button"
                                                 onClick={() => handleViewModeChange('table')}
-                                                className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'table' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                                className={`p-2 rounded-none transition-all flex items-center gap-1.5 text-xs cursor-pointer ${viewMode === 'table' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
                                                 title="List View"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -1455,7 +1375,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                             <button
                                                 type="button"
                                                 onClick={() => handleViewModeChange('grid')}
-                                                className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'grid' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                                className={`p-2 rounded-none transition-all flex items-center gap-1.5 text-xs cursor-pointer ${viewMode === 'grid' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
                                                 title="Card View"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -1471,7 +1391,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                 <select
                                                     value={cashierFilter}
                                                     onChange={(e) => setCashierFilter(e.target.value)}
-                                                    className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
+                                                    className="bg-gray-50/70 border border-gray-200 rounded-none py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
                                                 >
                                                     <option value="">All Cashiers ({uniqueCashiers.length})</option>
                                                     {uniqueCashiers.map(c => (
@@ -1484,7 +1404,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                 <select
                                                     value={datePreset}
                                                     onChange={(e) => handleDatePreset(e.target.value)}
-                                                    className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
+                                                    className="bg-gray-50/70 border border-gray-200 rounded-none py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
                                                 >
                                                     <option value="all">All Time</option>
                                                     <option value="today">Today</option>
@@ -1511,7 +1431,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                             <div className="grid grid-cols-2 md:grid-cols-4 lg:flex lg:w-auto items-center gap-2 w-full lg:w-auto shrink-0 justify-end">
 
                                                 {/* Custom Date Range: From */}
-                                                <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl px-2.5 sm:px-3 py-2 w-full lg:w-auto shrink-0 shadow-2xs">
+                                                <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-none px-2.5 sm:px-3 py-2 w-full lg:w-auto shrink-0 shadow-2xs">
                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider shrink-0">From</span>
                                                     <input
                                                         type="date"
@@ -1522,7 +1442,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                 </div>
 
                                                 {/* Custom Date Range: To */}
-                                                <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl px-2.5 sm:px-3 py-2 w-full lg:w-auto shrink-0 shadow-2xs">
+                                                <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-none px-2.5 sm:px-3 py-2 w-full lg:w-auto shrink-0 shadow-2xs">
                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider shrink-0">To</span>
                                                     <input
                                                         type="date"
@@ -1537,7 +1457,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                     <select
                                                         value={datePreset}
                                                         onChange={(e) => handleDatePreset(e.target.value)}
-                                                        className="h-[38px] bg-white border border-gray-200 rounded-xl py-2 pl-3 pr-7 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
+                                                        className="h-[38px] bg-white border border-gray-200 rounded-none py-2 pl-3 pr-7 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
                                                     >
                                                         <option value="all">All Time</option>
                                                         <option value="today">Today</option>
@@ -1553,7 +1473,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                     <select
                                                         value={terminalFilter}
                                                         onChange={(e) => setTerminalFilter(e.target.value)}
-                                                        className="h-[38px] bg-white border border-gray-200 rounded-xl py-2 pl-3 pr-7 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
+                                                        className="h-[38px] bg-white border border-gray-200 rounded-none py-2 pl-3 pr-7 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
                                                     >
                                                         <option value="all">All Registers</option>
                                                         {terminals.map(t => (
@@ -1566,7 +1486,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowCashMovementModal(true)}
-                                                    className="h-[38px] w-full lg:w-auto justify-center px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm bg-[#1B3B6A] text-white hover:bg-[#142E54] shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                                                    className="h-[38px] w-full lg:w-auto justify-center px-3.5 py-2 rounded-none font-bold text-xs sm:text-sm bg-[#1B3B6A] text-white hover:bg-[#142E54] shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                                                     title="Record Owner Draw, Safe Drop, Cash In, or Expense"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-white">
@@ -1580,7 +1500,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowDataMenu(!showDataMenu)}
-                                                        className="h-[38px] w-full lg:w-auto justify-center px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm bg-[#EFF4F9] text-[#1B3B6A] hover:bg-[#E2ECF6] border border-[#CBD7E6] shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                                                        className="h-[38px] w-full lg:w-auto justify-center px-3.5 py-2 rounded-none font-bold text-xs sm:text-sm bg-[#EFF4F9] text-[#1B3B6A] hover:bg-[#E2ECF6] border border-[#CBD7E6] shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                                                     >
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-[#1B3B6A]">
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -1592,12 +1512,12 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                     </button>
 
                                                     {showDataMenu && (
-                                                        <div className="absolute right-0 top-full mt-2 w-full sm:w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                                        <div className="absolute right-0 top-full mt-2 w-full sm:w-56 bg-white rounded-none shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                                                             <div className="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400">Reports & Export</div>
                                                             <button
                                                                 onClick={exportExcel}
                                                                 disabled={isExporting}
-                                                                className="w-full px-4 py-2 text-left text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors disabled:opacity-50"
+                                                                className="w-full px-4 py-2 text-left text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors disabled:opacity-50 cursor-pointer"
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-emerald-600">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -1607,7 +1527,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                             <button
                                                                 onClick={exportPDF}
                                                                 disabled={isExporting}
-                                                                className="w-full px-4 py-2 text-left text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors disabled:opacity-50"
+                                                                className="w-full px-4 py-2 text-left text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors disabled:opacity-50 cursor-pointer"
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-rose-600">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
@@ -1646,23 +1566,23 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                 {loading ? (
                                                     Array.from({ length: 6 }).map((_, index) => (
                                                         <tr key={`skel-${index}`} className="animate-pulse">
-                                                            <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-28"></div></td>
-                                                            <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded w-36 mb-1"></div><div className="h-3 bg-gray-200 rounded w-24"></div></td>
-                                                            <td className="py-4 px-4 text-center"><div className="h-4 bg-gray-200 rounded w-14 mx-auto"></div></td>
-                                                            <td className="py-4 px-4 text-right"><div className="h-4 bg-gray-200 rounded w-16 ml-auto"></div></td>
-                                                            <td className="py-4 px-4 text-right"><div className="h-4 bg-gray-200 rounded w-16 ml-auto"></div></td>
-                                                            <td className="py-4 px-4 text-right"><div className="h-4 bg-gray-200 rounded w-14 ml-auto"></div></td>
-                                                            <td className="py-4 px-4 text-right"><div className="h-4 bg-gray-200 rounded w-18 ml-auto"></div></td>
-                                                            <td className="py-4 px-4 text-right"><div className="h-4 bg-gray-200 rounded w-18 ml-auto"></div></td>
-                                                            <td className="py-4 px-4 text-center"><div className="h-6 bg-gray-200 rounded-full w-16 mx-auto"></div></td>
-                                                            <td className="py-4 px-4 text-center"><div className="h-8 w-8 bg-gray-200 rounded-xl mx-auto"></div></td>
+                                                            <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded-none w-28"></div></td>
+                                                            <td className="py-4 px-4"><div className="h-4 bg-gray-200 rounded-none w-36 mb-1"></div><div className="h-3 bg-gray-200 rounded-none w-24"></div></td>
+                                                            <td className="py-4 px-4 text-center"><div className="h-4 bg-gray-200 rounded-none w-14 mx-auto"></div></td>
+                                                            <td className="py-4 px-4 text-right"><div className="h-4 bg-gray-200 rounded-none w-16 ml-auto"></div></td>
+                                                            <td className="py-4 px-4 text-right"><div className="h-4 bg-gray-200 rounded-none w-16 ml-auto"></div></td>
+                                                            <td className="py-4 px-4 text-right"><div className="h-4 bg-gray-200 rounded-none w-14 ml-auto"></div></td>
+                                                            <td className="py-4 px-4 text-right"><div className="h-4 bg-gray-200 rounded-none w-18 ml-auto"></div></td>
+                                                            <td className="py-4 px-4 text-right"><div className="h-4 bg-gray-200 rounded-none w-18 ml-auto"></div></td>
+                                                            <td className="py-4 px-4 text-center"><div className="h-6 bg-gray-200 rounded-none w-16 mx-auto"></div></td>
+                                                            <td className="py-4 px-4 text-center"><div className="h-8 w-8 bg-gray-200 rounded-none mx-auto"></div></td>
                                                         </tr>
                                                     ))
                                                 ) : paginatedShifts.length === 0 ? (
                                                     <tr>
                                                         <td colSpan={10} className="py-16 text-center text-gray-500">
                                                             <div className="flex flex-col items-center justify-center space-y-3">
-                                                                <div className="w-14 h-14 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center">
+                                                                <div className="w-14 h-14 bg-gray-100 text-gray-400 rounded-none flex items-center justify-center">
                                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                                     </svg>
@@ -1691,10 +1611,10 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                                             <img
                                                                                 src={getAvatarUrl(shift.user.avatar_path)}
                                                                                 alt={shift.user.name}
-                                                                                className="w-9 h-9 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                                className="w-9 h-9 rounded-none object-cover border border-gray-200 shadow-2xs shrink-0"
                                                                             />
                                                                         ) : (
-                                                                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 flex items-center justify-center font-black text-xs shrink-0 uppercase shadow-2xs">
+                                                                            <div className="w-9 h-9 rounded-none bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 flex items-center justify-center font-black text-xs shrink-0 uppercase shadow-2xs">
                                                                                 {(shift.user?.name || 'S').charAt(0)}
                                                                             </div>
                                                                         )}
@@ -1707,7 +1627,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                                                     Shift #{shift.id}
                                                                                 </span>
                                                                                 <span className="text-gray-300">·</span>
-                                                                                <span className="text-[10px] font-bold text-[#1B3B6A] bg-[#EFF4F9] border border-[#CBD7E6]/60 px-1.5 py-0.5 rounded-md">
+                                                                                <span className="text-[10px] font-bold text-[#1B3B6A] bg-[#EFF4F9] border border-[#CBD7E6]/60 px-1.5 py-0.5 rounded-none">
                                                                                     {shift.terminal?.name || 'Register 1'}
                                                                                 </span>
                                                                             </div>
@@ -1731,7 +1651,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
 
                                                                 {/* Duration */}
                                                                 <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-gray-100 text-gray-700">
+                                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-none text-[11px] font-bold bg-gray-100 text-gray-700">
                                                                         {calculateDuration(shift.start_time, shift.end_time)}
                                                                     </span>
                                                                 </td>
@@ -1764,19 +1684,19 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                                 {/* Variance Badge */}
                                                                 <td className="py-3.5 px-4 text-center whitespace-nowrap">
                                                                     {isOpen ? (
-                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200/80">
+                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-none text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200/80">
                                                                             Active
                                                                         </span>
                                                                     ) : Math.abs(diff) < 0.01 ? (
-                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-none text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                                                                             Balanced
                                                                         </span>
                                                                     ) : diff < -0.01 ? (
-                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/80">
+                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-none text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/80">
                                                                             {formatCurrency(diff)}
                                                                         </span>
                                                                     ) : (
-                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200/80">
+                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-none text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200/80">
                                                                             +{formatCurrency(diff)}
                                                                         </span>
                                                                     )}
@@ -1787,7 +1707,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => handleViewDetails(shift)}
-                                                                        className="p-2 rounded-xl text-[#1B3B6A] hover:bg-[#EFF4F9] hover:text-[#142E54] transition-all cursor-pointer inline-flex items-center justify-center"
+                                                                        className="p-2 rounded-none text-[#1B3B6A] hover:bg-[#EFF4F9] hover:text-[#142E54] transition-all cursor-pointer inline-flex items-center justify-center border border-transparent hover:border-[#CBD7E6]"
                                                                         title="View Z-Read & Drawer Details"
                                                                     >
                                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
@@ -1812,22 +1732,22 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                     {loading ? (
                                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                                             {Array.from({ length: 6 }).map((_, index) => (
-                                                <div key={`mob-skel-${index}`} className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-2xs animate-pulse space-y-3">
+                                                <div key={`mob-skel-${index}`} className="bg-white p-4 rounded-none border border-gray-200/80 shadow-2xs animate-pulse space-y-3">
                                                     <div className="flex justify-between items-start">
-                                                        <div className="h-4 bg-gray-200 rounded w-24"></div>
-                                                        <div className="h-5 bg-gray-200 rounded-full w-16"></div>
+                                                        <div className="h-4 bg-gray-200 rounded-none w-24"></div>
+                                                        <div className="h-5 bg-gray-200 rounded-none w-16"></div>
                                                     </div>
-                                                    <div className="h-3 bg-gray-200 rounded w-36"></div>
+                                                    <div className="h-3 bg-gray-200 rounded-none w-36"></div>
                                                     <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
-                                                        <div className="h-4 bg-gray-200 rounded w-16"></div>
-                                                        <div className="h-4 bg-gray-200 rounded w-16 ml-auto"></div>
+                                                        <div className="h-4 bg-gray-200 rounded-none w-16"></div>
+                                                        <div className="h-4 bg-gray-200 rounded-none w-16 ml-auto"></div>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : paginatedShifts.length === 0 ? (
-                                        <div className="bg-white rounded-2xl p-10 text-center border border-gray-200">
-                                            <div className="w-12 h-12 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                                        <div className="bg-white rounded-none p-10 text-center border border-gray-200">
+                                            <div className="w-12 h-12 bg-gray-100 text-gray-400 rounded-none flex items-center justify-center mx-auto mb-3">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
@@ -1849,7 +1769,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                     <div
                                                         key={shift.id}
                                                         onClick={() => handleViewDetails(shift)}
-                                                        className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-2xs hover:border-[#1B3B6A]/30 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
+                                                        className="bg-white p-4 rounded-none border border-gray-200/80 shadow-2xs hover:border-[#1B3B6A]/30 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
                                                     >
                                                         <div className="space-y-3">
                                                             {/* Card Header: Cashier & Variance Badge */}
@@ -1859,10 +1779,10 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                                         <img
                                                                             src={getAvatarUrl(shift.user.avatar_path)}
                                                                             alt={shift.user.name}
-                                                                            className="w-9 h-9 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                            className="w-9 h-9 rounded-none object-cover border border-gray-200 shadow-2xs shrink-0"
                                                                         />
                                                                     ) : (
-                                                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
+                                                                        <div className="w-9 h-9 rounded-none bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
                                                                             {(shift.user?.name || 'S').charAt(0).toUpperCase()}
                                                                         </div>
                                                                     )}
@@ -1882,26 +1802,26 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
 
                                                                 {/* Status / Variance Badge */}
                                                                 {isOpen ? (
-                                                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+                                                                    <span className="px-2.5 py-1 rounded-none text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
                                                                         Active
                                                                     </span>
                                                                 ) : Math.abs(diff) < 0.01 ? (
-                                                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                                                    <span className="px-2.5 py-1 rounded-none text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
                                                                         Balanced
                                                                     </span>
                                                                 ) : diff < -0.01 ? (
-                                                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shrink-0">
+                                                                    <span className="px-2.5 py-1 rounded-none text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shrink-0">
                                                                         {formatCurrency(diff)}
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200 shrink-0">
+                                                                    <span className="px-2.5 py-1 rounded-none text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200 shrink-0">
                                                                         +{formatCurrency(diff)}
                                                                     </span>
                                                                 )}
                                                             </div>
 
                                                             {/* Shift Period */}
-                                                            <div className="bg-gray-50/80 rounded-xl p-2.5 text-xs flex justify-between items-center text-gray-600 border border-gray-100">
+                                                            <div className="bg-gray-50/80 rounded-none p-2.5 text-xs flex justify-between items-center text-gray-600 border border-gray-100">
                                                                 <span className="font-bold text-gray-500">{formatDate(shift.start_time)}</span>
                                                                 <span className="font-medium text-gray-700">
                                                                     {formatTime(shift.start_time)} → {isOpen ? 'OPEN' : formatTime(shift.end_time)}
@@ -1972,7 +1892,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                             <button
                                                 disabled={currentPage === 1}
                                                 onClick={() => { setCurrentPage(p => p - 1); scrollToWorkspace(); }}
-                                                className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
+                                                className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
                                             >
                                                 &laquo; Prev
                                             </button>
@@ -1983,7 +1903,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                     <button
                                                         key={num}
                                                         onClick={() => { setCurrentPage(num); scrollToWorkspace(); }}
-                                                        className={`shrink-0 px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all flex items-center justify-center active:scale-95 cursor-pointer ${
+                                                        className={`shrink-0 px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all flex items-center justify-center active:scale-95 cursor-pointer ${
                                                             currentPage === num
                                                                 ? 'bg-[#1B3B6A] text-white border-[#1B3B6A] shadow-xs font-extrabold'
                                                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
@@ -1996,7 +1916,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                             <button
                                                 disabled={currentPage === totalPages}
                                                 onClick={() => { setCurrentPage(p => p + 1); scrollToWorkspace(); }}
-                                                className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
+                                                className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
                                             >
                                                 Next &raquo;
                                             </button>
@@ -2016,11 +1936,11 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                 <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm sm:p-4 transition-opacity">
                     <div className="absolute inset-0" onClick={() => setShowDetails(false)}></div>
 
-                    <div className="relative bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] z-10 animate-in zoom-in-95 duration-200 border border-gray-100">
+                    <div className="relative bg-white w-full max-w-lg rounded-none shadow-2xl overflow-hidden flex flex-col max-h-[90vh] z-10 animate-in zoom-in-95 duration-200 border border-gray-100">
 
                         {/* Top Pull Bar (Mobile) */}
                         <div className="sm:hidden flex justify-center pt-2.5 pb-1 bg-[#1B3B6A] w-full cursor-pointer" onClick={() => setShowDetails(false)}>
-                            <div className="w-12 h-1.5 bg-white/30 rounded-full"></div>
+                            <div className="w-12 h-1.5 bg-white/30 rounded-none"></div>
                         </div>
 
                         {/* Modal Header */}
@@ -2030,10 +1950,10 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                     <img
                                         src={getAvatarUrl(selectedShiftData.staff_avatar || selectedShiftData.shift_record?.user?.avatar_path)}
                                         alt={selectedShiftData.staff_name}
-                                        className="w-10 h-10 rounded-full object-cover border border-white/30 shadow-sm shrink-0"
+                                        className="w-10 h-10 rounded-none object-cover border border-white/30 shadow-sm shrink-0"
                                     />
                                 ) : (
-                                    <div className="w-10 h-10 rounded-full bg-white/10 text-white border border-white/20 flex items-center justify-center font-black text-sm shrink-0">
+                                    <div className="w-10 h-10 rounded-none bg-white/10 text-white border border-white/20 flex items-center justify-center font-black text-sm shrink-0">
                                         {(selectedShiftData?.staff_name || 'S').charAt(0).toUpperCase()}
                                     </div>
                                 )}
@@ -2046,7 +1966,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                         {selectedShiftData?.terminal?.name && (
                                             <>
                                                 <span>·</span>
-                                                <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0">
+                                                <span className="bg-white/20 px-1.5 py-0.5 rounded-none text-[10px] font-bold shrink-0">
                                                     {selectedShiftData.terminal.name}
                                                 </span>
                                             </>
@@ -2056,7 +1976,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                             </div>
                             <button
                                 onClick={() => setShowDetails(false)}
-                                className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full cursor-pointer shrink-0 ml-2"
+                                className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-none cursor-pointer shrink-0 ml-2"
                             >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -2089,7 +2009,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                 >
                                     <span>Movements & Notes</span>
                                     {selectedShiftData.cash_movements?.length > 0 && (
-                                        <span className="w-4 h-4 rounded-full bg-[#1B3B6A] text-white text-[10px] flex items-center justify-center font-bold">
+                                        <span className="w-4 h-4 rounded-none bg-[#1B3B6A] text-white text-[10px] flex items-center justify-center font-bold">
                                             {selectedShiftData.cash_movements.length}
                                         </span>
                                     )}
@@ -2101,13 +2021,13 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                         <div className="p-5 sm:p-6 overflow-y-auto custom-scrollbar space-y-4 bg-white">
                             {isLoadingDetails || !selectedShiftData ? (
                                 <div className="py-12 flex flex-col items-center justify-center space-y-3">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1B3B6A]"></div>
+                                    <div className="animate-spin rounded-none h-8 w-8 border-b-2 border-[#1B3B6A]"></div>
                                     <p className="text-xs font-bold text-gray-500">Loading shift audit data...</p>
                                 </div>
                             ) : modalTab === 'summary' ? (
                                 <div className="space-y-4">
                                     {/* Shift Timestamps Pill */}
-                                    <div className="bg-gray-50/80 p-4 rounded-2xl border border-gray-100 flex justify-between items-center text-xs">
+                                    <div className="bg-gray-50/80 p-4 rounded-none border border-gray-100 flex justify-between items-center text-xs">
                                         <div>
                                             <span className="text-gray-400 font-bold block text-[10px] uppercase tracking-wider">Opened / Closed</span>
                                             <span className="font-semibold text-gray-700">
@@ -2124,7 +2044,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
 
                                     {/* Opening Handover Audit Banner (if discrepancy exists) */}
                                     {Math.abs(Number(selectedShiftData.opening_discrepancy || 0)) > 0.01 && (
-                                        <div className={`p-3.5 rounded-2xl border text-xs space-y-1 ${
+                                        <div className={`p-3.5 rounded-none border text-xs space-y-1 ${
                                             Number(selectedShiftData.opening_discrepancy || 0) < 0 
                                                 ? 'bg-amber-50 border-amber-200 text-amber-900' 
                                                 : 'bg-indigo-50 border-indigo-200 text-indigo-900'
@@ -2144,7 +2064,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                     )}
 
                                     {/* Drawer Cash Math Box */}
-                                    <div className="bg-gray-50 p-5 rounded-2xl space-y-3 border border-gray-100 text-xs sm:text-sm shadow-inner">
+                                    <div className="bg-gray-50 p-5 rounded-none space-y-3 border border-gray-100 text-xs sm:text-sm shadow-inner">
                                         <div className="text-[10px] uppercase font-black text-gray-400 tracking-widest pb-2 border-b border-gray-200/80">
                                             Cash Drawer Reconciliation
                                         </div>
@@ -2194,7 +2114,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                     </div>
 
                                     {/* Discrepancy Status Hero Box */}
-                                    <div className={`p-5 rounded-2xl text-center border shadow-xs ${
+                                    <div className={`p-5 rounded-none text-center border shadow-xs ${
                                         Math.abs(Number(selectedShiftData.difference || 0)) < 0.01
                                             ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                                             : Number(selectedShiftData.difference || 0) > 0
@@ -2214,7 +2134,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                     </div>
 
                                     {/* Gross Sales Breakdown Across Channels */}
-                                    <div className="bg-gray-50 p-5 rounded-2xl space-y-3 border border-gray-100 text-xs sm:text-sm shadow-inner">
+                                    <div className="bg-gray-50 p-5 rounded-none space-y-3 border border-gray-100 text-xs sm:text-sm shadow-inner">
                                         <div className="flex justify-between items-center pb-2 border-b border-gray-200/80">
                                             <span className="text-[10px] uppercase font-black text-gray-400 tracking-widest">
                                                 Gross Sales by Channel
@@ -2280,18 +2200,18 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                 <div className="space-y-4">
                                     {/* Shift Notes Banner */}
                                     {(selectedShiftData.opening_notes || selectedShiftData.closing_notes) && (
-                                        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200/80 space-y-2.5 text-xs">
+                                        <div className="bg-gray-50 p-4 rounded-none border border-gray-200/80 space-y-2.5 text-xs">
                                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">
                                                 Shift Handover & Closing Comments
                                             </span>
                                             {selectedShiftData.opening_notes && (
-                                                <div className="bg-white p-3 rounded-xl border border-gray-100 space-y-1">
+                                                <div className="bg-white p-3 rounded-none border border-gray-100 space-y-1">
                                                     <span className="font-black text-[#1B3B6A] text-[10px] uppercase block">Opening Note:</span>
                                                     <p className="text-gray-700 italic">{selectedShiftData.opening_notes}</p>
                                                 </div>
                                             )}
                                             {selectedShiftData.closing_notes && (
-                                                <div className="bg-white p-3 rounded-xl border border-gray-100 space-y-1">
+                                                <div className="bg-white p-3 rounded-none border border-gray-100 space-y-1">
                                                     <span className="font-black text-rose-600 text-[10px] uppercase block">Closing Note:</span>
                                                     <p className="text-gray-700 italic">{selectedShiftData.closing_notes}</p>
                                                 </div>
@@ -2311,7 +2231,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                         </div>
 
                                         {(!selectedShiftData.cash_movements || selectedShiftData.cash_movements.length === 0) ? (
-                                            <div className="py-8 text-center bg-gray-50 rounded-2xl border border-gray-100 text-gray-400 text-xs font-semibold">
+                                            <div className="py-8 text-center bg-gray-50 rounded-none border border-gray-100 text-gray-400 text-xs font-semibold">
                                                 No intermediate or mid-shift cash movements recorded for this shift.
                                             </div>
                                         ) : (
@@ -2319,10 +2239,10 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                                 {selectedShiftData.cash_movements.map((movement) => {
                                                     const isOut = movement.type.includes('out') || movement.type === 'owner_draw' || movement.type === 'safe_drop' || movement.type === 'expense';
                                                     return (
-                                                        <div key={movement.id} className="p-3 bg-gray-50 rounded-2xl border border-gray-200/80 flex items-center justify-between text-xs">
+                                                        <div key={movement.id} className="p-3 bg-gray-50 rounded-none border border-gray-200/80 flex items-center justify-between text-xs">
                                                             <div className="space-y-0.5">
                                                                 <div className="flex items-center gap-2">
-                                                                    <span className={`px-2 py-0.5 rounded-md font-black text-[9px] uppercase tracking-wider ${
+                                                                    <span className={`px-2 py-0.5 rounded-none font-black text-[9px] uppercase tracking-wider ${
                                                                         movement.type === 'owner_draw'
                                                                             ? 'bg-amber-100 text-amber-800'
                                                                             : movement.type === 'safe_drop'
@@ -2357,7 +2277,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                             <button
                                 type="button"
                                 onClick={() => setShowDetails(false)}
-                                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-200 font-bold text-xs sm:text-sm text-gray-700 hover:bg-gray-100 transition-all cursor-pointer text-center order-2 sm:order-1"
+                                className="w-full sm:w-auto px-4 py-2.5 rounded-none border border-gray-200 font-bold text-xs sm:text-sm text-gray-700 hover:bg-gray-100 transition-all cursor-pointer text-center order-2 sm:order-1"
                             >
                                 Close
                             </button>
@@ -2366,7 +2286,7 @@ export default function ShiftHistory({ auth, initial_shifts, initial_terminals, 
                                 <button
                                     type="button"
                                     onClick={() => printZRead(selectedShiftData, settings)}
-                                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-[#1B3B6A] text-white hover:bg-[#142E54] shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer order-1 sm:order-2"
+                                    className="w-full sm:w-auto px-5 py-2.5 rounded-none font-bold text-xs sm:text-sm bg-[#1B3B6A] text-white hover:bg-[#142E54] shadow-sm transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer order-1 sm:order-2"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24-1.04-.37-2.12-.37-3.229 0-6.075 4.925-11 11-11s11 4.925 11 11c0 1.109-.13 2.189-.37 3.229M3.75 19.5h16.5m-15-4.5h13.5m-13.5 0a3.375 3.375 0 01-3.375-3.375V6.75A3.375 3.375 0 015.625 3.375h12.75a3.375 3.375 0 013.375 3.375v4.875a3.375 3.375 0 01-3.375 3.375" />

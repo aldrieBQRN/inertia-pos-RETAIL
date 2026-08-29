@@ -81,7 +81,7 @@ const Content = ({
                 leaveTo="opacity-0 scale-95"
             >
                 <div
-                    className={`absolute z-50 mt-2 rounded-md shadow-lg ${alignmentClasses} ${widthClasses}`}
+                    className={`absolute z-50 mt-2 rounded-none shadow-lg ${alignmentClasses} ${widthClasses}`}
                     onClick={(e) => {
                         // Do not close dropdown if clicking inside interactive select/input/button elements
                         if (e.target.closest('select, input, textarea, .no-close-dropdown')) {
@@ -92,7 +92,7 @@ const Content = ({
                 >
                     <div
                         className={
-                            `rounded-md ring-1 ring-black ring-opacity-5 ` +
+                            `rounded-none ring-1 ring-black ring-opacity-5 ` +
                             contentClasses
                         }
                     >

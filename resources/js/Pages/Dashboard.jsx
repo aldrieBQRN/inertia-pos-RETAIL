@@ -217,13 +217,13 @@ export default function Dashboard({ auth, initial_stats }) {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                         
                         {/* KPI 1: Today's Revenue */}
-                        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+                        <div className="bg-white p-3 sm:p-5 rounded-none border border-gray-200/80 shadow-xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 min-w-0">
                                     <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider truncate">Today's Revenue</p>
                                     <h3 className="text-sm sm:text-2xl font-bold text-gray-900 tracking-tight truncate font-mono">{formatCurrency(stats.kpi?.today_sales)}</h3>
                                 </div>
-                                <div className="p-1.5 sm:p-2.5 bg-[#EFF4F9] text-[#1B3A69] rounded-xl ring-1 ring-[#CBD7E6] shrink-0">
+                                <div className="p-1.5 sm:p-2.5 bg-[#EFF4F9] text-[#1B3A69] rounded-none ring-1 ring-[#CBD7E6] shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -242,18 +242,18 @@ export default function Dashboard({ auth, initial_stats }) {
                         </div>
 
                         {/* KPI 2: Today's Net Profit */}
-                        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+                        <div className="bg-white p-3 sm:p-5 rounded-none border border-gray-200/80 shadow-xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 min-w-0 flex-1">
-                                    <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
                                         <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider truncate">Profit</p>
-                                        <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/60 shrink-0 font-mono leading-normal inline-flex items-center justify-center">
+                                        <span className="px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/60 shrink-0 font-mono leading-normal inline-flex items-center justify-center">
                                             {stats.kpi?.profit_margin || 0}%
                                         </span>
                                     </div>
                                     <h3 className="text-sm sm:text-2xl font-bold text-emerald-700 tracking-tight truncate font-mono">{formatCurrency(stats.kpi?.today_profit)}</h3>
                                 </div>
-                                <div className="p-1.5 sm:p-2.5 bg-emerald-100/70 text-emerald-700 rounded-xl ring-1 ring-emerald-200 shrink-0">
+                                <div className="p-1.5 sm:p-2.5 bg-emerald-100/70 text-emerald-700 rounded-none ring-1 ring-emerald-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
                                     </svg>
@@ -272,13 +272,13 @@ export default function Dashboard({ auth, initial_stats }) {
                         </div>
 
                         {/* KPI 3: Today's Orders Count */}
-                        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+                        <div className="bg-white p-3 sm:p-5 rounded-none border border-gray-200/80 shadow-xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 min-w-0">
                                     <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider truncate">Orders</p>
                                     <h3 className="text-sm sm:text-2xl font-bold text-gray-900 tracking-tight truncate font-mono">{formatNumber(stats.kpi?.today_orders)}</h3>
                                 </div>
-                                <div className="p-1.5 sm:p-2.5 bg-indigo-50 text-indigo-600 rounded-xl ring-1 ring-indigo-200 shrink-0">
+                                <div className="p-1.5 sm:p-2.5 bg-indigo-50 text-indigo-600 rounded-none ring-1 ring-indigo-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                                     </svg>
@@ -297,13 +297,13 @@ export default function Dashboard({ auth, initial_stats }) {
                         </div>
 
                         {/* KPI 4: Average Order Value (AOV) */}
-                        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+                        <div className="bg-white p-3 sm:p-5 rounded-none border border-gray-200/80 shadow-xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 min-w-0">
                                     <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider truncate">Avg Ticket (AOV)</p>
                                     <h3 className="text-sm sm:text-2xl font-bold text-gray-900 tracking-tight truncate font-mono">{formatCurrency(stats.kpi?.average_order_value)}</h3>
                                 </div>
-                                <div className="p-1.5 sm:p-2.5 bg-amber-50 text-amber-600 rounded-xl ring-1 ring-amber-200 shrink-0">
+                                <div className="p-1.5 sm:p-2.5 bg-amber-50 text-amber-600 rounded-none ring-1 ring-amber-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                                     </svg>
@@ -328,7 +328,7 @@ export default function Dashboard({ auth, initial_stats }) {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
                         
                         {/* Sales Performance Chart (8 Cols) */}
-                        <div className="lg:col-span-8 bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs flex flex-col justify-between space-y-4">
+                        <div className="lg:col-span-8 bg-white p-4 sm:p-5 rounded-none border border-gray-200/80 shadow-xs flex flex-col justify-between space-y-4">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
                                 <div>
                                     <h3 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight">
@@ -338,11 +338,11 @@ export default function Dashboard({ auth, initial_stats }) {
                                 </div>
 
                                 {/* Period Switcher */}
-                                <div className="flex w-full sm:w-auto bg-gray-100 p-0.5 rounded-xl border border-gray-200 overflow-x-auto no-scrollbar shrink-0">
+                                <div className="flex w-full sm:w-auto bg-gray-100 p-0.5 rounded-none border border-gray-200 overflow-x-auto no-scrollbar shrink-0">
                                     <button
                                         type="button"
                                         onClick={() => setPeriod('today_hourly')}
-                                        className={`flex-1 sm:flex-none text-center px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                                        className={`flex-1 sm:flex-none text-center px-2.5 sm:px-3 py-1.5 rounded-none text-[11px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                                             period === 'today_hourly' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-700'
                                         }`}
                                     >
@@ -351,7 +351,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                     <button
                                         type="button"
                                         onClick={() => setPeriod('last_7_days')}
-                                        className={`flex-1 sm:flex-none text-center px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                                        className={`flex-1 sm:flex-none text-center px-2.5 sm:px-3 py-1.5 rounded-none text-[11px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                                             period === 'last_7_days' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-700'
                                         }`}
                                     >
@@ -360,7 +360,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                     <button
                                         type="button"
                                         onClick={() => setPeriod('this_month')}
-                                        className={`flex-1 sm:flex-none text-center px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                                        className={`flex-1 sm:flex-none text-center px-2.5 sm:px-3 py-1.5 rounded-none text-[11px] sm:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                                             period === 'this_month' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-700'
                                         }`}
                                     >
@@ -394,17 +394,17 @@ export default function Dashboard({ auth, initial_stats }) {
                                                     if (active && payload && payload.length) {
                                                         const pData = payload[0].payload;
                                                         return (
-                                                            <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-100 text-xs space-y-1.5 z-50">
+                                                            <div className="bg-white p-3 rounded-none shadow-xl border border-gray-200 text-xs space-y-1.5 z-50">
                                                                 <p className="font-bold text-gray-900 border-b border-gray-100 pb-1">{label}</p>
                                                                 <div className="flex items-center justify-between gap-4 text-gray-700">
                                                                     <span className="flex items-center gap-1.5">
-                                                                        <span className="w-2 h-2 rounded-full bg-[#1B3A69]"></span> Revenue:
+                                                                        <span className="w-2 h-2 rounded-none bg-[#1B3A69]"></span> Revenue:
                                                                     </span>
                                                                     <span className="font-bold text-gray-900 font-mono">{formatCurrency(pData.sales)}</span>
                                                                 </div>
                                                                 <div className="flex items-center justify-between gap-4 text-gray-700">
                                                                     <span className="flex items-center gap-1.5">
-                                                                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Profit:
+                                                                        <span className="w-2 h-2 rounded-none bg-emerald-500"></span> Profit:
                                                                     </span>
                                                                     <span className="font-bold text-emerald-600 font-mono">{formatCurrency(pData.profit)}</span>
                                                                 </div>
@@ -429,10 +429,10 @@ export default function Dashboard({ auth, initial_stats }) {
                             <div className="pt-2 border-t border-gray-100 flex flex-col sm:flex-row gap-2 sm:gap-0 sm:items-center sm:justify-between text-[11px] sm:text-xs text-gray-500">
                                 <div className="flex items-center gap-4">
                                     <span className="flex items-center gap-1.5 font-semibold">
-                                        <span className="w-2.5 h-2.5 rounded-full bg-[#1B3A69]"></span> Gross Revenue
+                                        <span className="w-2.5 h-2.5 rounded-none bg-[#1B3A69]"></span> Gross Revenue
                                     </span>
                                     <span className="flex items-center gap-1.5 font-semibold">
-                                        <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span> Net Profit
+                                        <span className="w-2.5 h-2.5 rounded-none bg-[#10B981]"></span> Net Profit
                                     </span>
                                 </div>
                                 <span className="text-[11px] sm:text-xs text-gray-400 font-medium">Real-time sync</span>
@@ -440,7 +440,7 @@ export default function Dashboard({ auth, initial_stats }) {
                         </div>
 
                         {/* Current Shift / Cash Drawer Status (4 Cols) */}
-                        <div className="lg:col-span-4 bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs flex flex-col justify-between space-y-4">
+                        <div className="lg:col-span-4 bg-white p-4 sm:p-5 rounded-none border border-gray-200/80 shadow-xs flex flex-col justify-between space-y-4">
                             <div>
                                 <h3 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight">
                                     Live Cash & Shift Status
@@ -452,9 +452,9 @@ export default function Dashboard({ auth, initial_stats }) {
                                 <div className="space-y-3.5 flex-1 flex flex-col justify-between">
                                     
                                     {/* Cashier & Register Header */}
-                                    <div className="flex items-center justify-between bg-gray-50/80 p-3 rounded-xl border border-gray-100 gap-2">
+                                    <div className="flex items-center justify-between bg-gray-50/80 p-3 rounded-none border border-gray-100 gap-2">
                                         <div className="flex items-center gap-2.5 min-w-0">
-                                            <div className="w-8 h-8 rounded-full bg-[#EFF4F9] text-[#1B3A69] font-bold text-xs flex items-center justify-center border border-[#CBD7E6] shrink-0">
+                                            <div className="w-8 h-8 rounded-none bg-[#EFF4F9] text-[#1B3A69] font-bold text-xs flex items-center justify-center border border-[#CBD7E6] shrink-0">
                                                 {stats.active_shift.cashier_name.charAt(0)}
                                             </div>
                                             <div className="min-w-0">
@@ -462,7 +462,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                                 <p className="text-[11px] sm:text-xs text-gray-400 font-medium truncate">{stats.active_shift.terminal_name}</p>
                                             </div>
                                         </div>
-                                        <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/70 shrink-0 leading-normal inline-flex items-center justify-center">
+                                        <span className="px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200/70 shrink-0 leading-normal inline-flex items-center justify-center">
                                             On Duty
                                         </span>
                                     </div>
@@ -488,14 +488,14 @@ export default function Dashboard({ auth, initial_stats }) {
                                     </div>
 
                                     {/* Highlight: Expected Drawer Cash */}
-                                    <div className="p-3 sm:p-3.5 rounded-xl bg-[#EFF4F9] border border-[#CBD7E6]">
+                                    <div className="p-3 sm:p-3.5 rounded-none bg-[#EFF4F9] border border-[#CBD7E6]">
                                         <p className="text-[#1B3A69] text-[10px] sm:text-xs font-bold uppercase tracking-wider">Expected In Drawer</p>
                                         <p className="text-base sm:text-xl font-bold text-gray-900 tracking-tight mt-0.5 font-mono">{formatCurrency(stats.active_shift.expected_cash)}</p>
                                     </div>
                                 </div>
                             ) : (
                                 <div className="py-8 flex flex-col items-center justify-center text-center space-y-3 flex-1">
-                                    <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200/80">
+                                    <div className="w-12 h-12 rounded-none bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200/80">
                                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                         </svg>
@@ -506,7 +506,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                     </div>
                                     <Link
                                         href="/pos"
-                                        className="px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[#1B3A69] hover:bg-[#142E54] text-white transition-all shadow-xs active:scale-95 cursor-pointer"
+                                        className="px-4 py-2 sm:py-2.5 rounded-none text-xs sm:text-sm font-bold bg-[#1B3A69] hover:bg-[#142E54] text-white transition-all shadow-xs active:scale-95 cursor-pointer"
                                     >
                                         Start Shift in POS
                                     </Link>
@@ -527,7 +527,7 @@ export default function Dashboard({ auth, initial_stats }) {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
                         
                         {/* Payment Breakdown (5 Cols) */}
-                        <div className="lg:col-span-5 bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs space-y-4 flex flex-col justify-between">
+                        <div className="lg:col-span-5 bg-white p-4 sm:p-5 rounded-none border border-gray-200/80 shadow-xs space-y-4 flex flex-col justify-between">
                             <div>
                                 <h3 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight">
                                     Today's Payment Channels
@@ -560,7 +560,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                                 </Pie>
                                                 <Tooltip
                                                     formatter={(val, name, props) => [`${formatCurrency(val)} (${props.payload.percentage}%)`, formatPaymentName(name)]}
-                                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '11px' }}
+                                                    contentStyle={{ borderRadius: '0px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '11px' }}
                                                 />
                                             </PieChart>
                                         </ResponsiveContainer>
@@ -569,9 +569,9 @@ export default function Dashboard({ auth, initial_stats }) {
                                     {/* Channels List (7 Cols) */}
                                     <div className="sm:col-span-7 space-y-2">
                                         {stats.payment_methods.map((pm, idx) => (
-                                            <div key={idx} className="flex items-center justify-between p-2 sm:p-2.5 rounded-xl bg-gray-50 border border-gray-100 text-xs sm:text-sm gap-2">
+                                            <div key={idx} className="flex items-center justify-between p-2 sm:p-2.5 rounded-none bg-gray-50 border border-gray-100 text-xs sm:text-sm gap-2">
                                                 <div className="flex items-center gap-2 min-w-0">
-                                                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PAYMENT_COLORS[pm.method] || PAYMENT_COLORS.other }}></span>
+                                                    <span className="w-2.5 h-2.5 rounded-none shrink-0" style={{ backgroundColor: PAYMENT_COLORS[pm.method] || PAYMENT_COLORS.other }}></span>
                                                     <span className="font-bold text-gray-800 truncate">{formatPaymentName(pm.method)}</span>
                                                     <span className="text-[11px] text-gray-400 font-mono shrink-0">({pm.count})</span>
                                                 </div>
@@ -592,7 +592,7 @@ export default function Dashboard({ auth, initial_stats }) {
                         </div>
 
                         {/* Inventory Attention Alerts (7 Cols) */}
-                        <div className="lg:col-span-7 bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs space-y-4 flex flex-col justify-between">
+                        <div className="lg:col-span-7 bg-white p-4 sm:p-5 rounded-none border border-gray-200/80 shadow-xs space-y-4 flex flex-col justify-between">
                             <div className="flex items-center justify-between gap-2">
                                 <div>
                                     <h3 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight">
@@ -601,7 +601,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                     <p className="text-xs text-gray-500 font-medium mt-0.5">Products requiring restocking or attention</p>
                                 </div>
                                 {totalInventoryAlertsCount > 0 && (
-                                    <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/80 shrink-0 leading-normal inline-flex items-center justify-center">
+                                    <span className="px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/80 shrink-0 leading-normal inline-flex items-center justify-center">
                                         {totalInventoryAlertsCount} Alerts
                                     </span>
                                 )}
@@ -610,7 +610,7 @@ export default function Dashboard({ auth, initial_stats }) {
                             {/* Alert Items List (Capped to 5 items) */}
                             <div className="space-y-1.5 flex-1">
                                 {displayInventoryAlerts.length === 0 ? (
-                                    <div className="py-8 flex flex-col items-center justify-center text-center space-y-2 bg-emerald-50/50 rounded-xl border border-emerald-100">
+                                    <div className="py-8 flex flex-col items-center justify-center text-center space-y-2 bg-emerald-50/50 rounded-none border border-emerald-100">
                                         <svg className="w-8 h-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
@@ -636,11 +636,11 @@ export default function Dashboard({ auth, initial_stats }) {
                                                     </div>
                                                     <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                                                         {isOOS ? (
-                                                            <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shrink-0 whitespace-nowrap leading-normal inline-flex items-center justify-center">
+                                                            <span className="px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shrink-0 whitespace-nowrap leading-normal inline-flex items-center justify-center">
                                                                 Out of Stock
                                                             </span>
                                                         ) : (
-                                                            <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 shrink-0 whitespace-nowrap leading-normal inline-flex items-center justify-center">
+                                                            <span className="px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 shrink-0 whitespace-nowrap leading-normal inline-flex items-center justify-center">
                                                                 {item.stock_quantity} left
                                                             </span>
                                                         )}
@@ -665,7 +665,7 @@ export default function Dashboard({ auth, initial_stats }) {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
                         
                         {/* 1. Top-Selling Products Today (4 Cols) */}
-                        <div className="lg:col-span-4 bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs flex flex-col justify-between space-y-4">
+                        <div className="lg:col-span-4 bg-white p-4 sm:p-5 rounded-none border border-gray-200/80 shadow-xs flex flex-col justify-between space-y-4">
                             <div className="h-10 flex flex-col justify-center">
                                 <h3 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight leading-tight">
                                     Top Moving Products Today
@@ -678,10 +678,10 @@ export default function Dashboard({ auth, initial_stats }) {
                                     <div className="py-8"><NoData message="No items sold yet today." /></div>
                                 ) : (
                                     stats.top_products.slice(0, 5).map((p, idx) => (
-                                        <div key={idx} className="h-[54px] p-2.5 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-between text-xs sm:text-sm gap-2">
+                                        <div key={idx} className="h-[54px] p-2.5 rounded-none bg-gray-50 border border-gray-100 flex items-center justify-between text-xs sm:text-sm gap-2">
                                             <div className="min-w-0 space-y-0.5 flex-1">
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="w-5 h-5 rounded-md bg-white border border-gray-200 text-gray-700 font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs font-mono">
+                                                    <span className="w-5 h-5 rounded-none bg-white border border-gray-200 text-gray-700 font-bold text-[10px] flex items-center justify-center shrink-0 shadow-2xs font-mono">
                                                         #{idx + 1}
                                                     </span>
                                                     <span className="font-bold text-gray-900 truncate">{p.name}</span>
@@ -692,7 +692,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                                 <p className="font-bold text-xs sm:text-sm text-gray-900 font-mono">
                                                     {formatCurrency(p.total_revenue)}
                                                 </p>
-                                                <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border bg-emerald-50 text-emerald-700 border-emerald-200/70 shrink-0 font-mono leading-normal inline-flex items-center justify-center">
+                                                <span className="px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider border bg-emerald-50 text-emerald-700 border-emerald-200/70 shrink-0 font-mono leading-normal inline-flex items-center justify-center">
                                                     {p.units_sold} Sold
                                                 </span>
                                             </div>
@@ -708,7 +708,7 @@ export default function Dashboard({ auth, initial_stats }) {
                         </div>
 
                         {/* 2. Today's Recent Transactions (4 Cols) */}
-                        <div className="lg:col-span-4 bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs flex flex-col justify-between space-y-4">
+                        <div className="lg:col-span-4 bg-white p-4 sm:p-5 rounded-none border border-gray-200/80 shadow-xs flex flex-col justify-between space-y-4">
                             <div className="h-10 flex flex-col justify-center">
                                 <h3 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight leading-tight">
                                     Recent Transactions
@@ -721,14 +721,14 @@ export default function Dashboard({ auth, initial_stats }) {
                                     <div className="py-8"><NoData message="No transactions recorded today." /></div>
                                 ) : (
                                     stats.recent_transactions.slice(0, 5).map((sale) => (
-                                        <div key={sale.id} className="h-[54px] p-2.5 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-between text-xs sm:text-sm gap-2">
+                                        <div key={sale.id} className="h-[54px] p-2.5 rounded-none bg-gray-50 border border-gray-100 flex items-center justify-between text-xs sm:text-sm gap-2">
                                             <div className="min-w-0 space-y-0.5 flex-1">
                                                 <div className="flex items-center gap-1.5">
                                                     <span className={`font-mono font-bold text-xs truncate ${sale.status === 'void' ? 'line-through text-gray-400' : 'text-gray-900'}`}>
                                                         {sale.invoice_number}
                                                     </span>
                                                     {sale.status === 'void' && (
-                                                        <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shrink-0 leading-normal inline-flex items-center justify-center">Void</span>
+                                                        <span className="px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shrink-0 leading-normal inline-flex items-center justify-center">Void</span>
                                                     )}
                                                 </div>
                                                 <p className="text-[11px] text-gray-400 truncate">
@@ -739,7 +739,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                                 <p className={`font-bold text-xs sm:text-sm font-mono ${sale.status === 'void' ? 'line-through text-gray-400' : 'text-emerald-600'}`}>
                                                     {formatCurrency(sale.total_amount)}
                                                 </p>
-                                                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider border shrink-0 leading-normal inline-flex items-center justify-center ${getPaymentBadgeStyle(sale.payment_method)}`}>
+                                                <span className={`px-1.5 py-0.5 rounded-none text-[9px] font-bold uppercase tracking-wider border shrink-0 leading-normal inline-flex items-center justify-center ${getPaymentBadgeStyle(sale.payment_method)}`}>
                                                     {formatPaymentName(sale.payment_method)}
                                                 </span>
                                             </div>
@@ -755,7 +755,7 @@ export default function Dashboard({ auth, initial_stats }) {
                         </div>
 
                         {/* 3. Recent Activity & Audit Trail (4 Cols) */}
-                        <div className="lg:col-span-4 bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs flex flex-col justify-between space-y-4">
+                        <div className="lg:col-span-4 bg-white p-4 sm:p-5 rounded-none border border-gray-200/80 shadow-xs flex flex-col justify-between space-y-4">
                             <div className="h-10 flex flex-col justify-center">
                                 <h3 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight leading-tight">
                                     System Activity Trail
@@ -768,7 +768,7 @@ export default function Dashboard({ auth, initial_stats }) {
                                     <div className="py-8"><NoData message="No recent system activities." /></div>
                                 ) : (
                                     stats.recent_activities.slice(0, 5).map((act) => (
-                                        <div key={act.id} className="h-[54px] p-2.5 rounded-xl bg-gray-50 border border-gray-100 flex flex-col justify-center text-xs sm:text-sm space-y-0.5">
+                                        <div key={act.id} className="h-[54px] p-2.5 rounded-none bg-gray-50 border border-gray-100 flex flex-col justify-center text-xs sm:text-sm space-y-0.5">
                                             <div className="flex items-center justify-between gap-2">
                                                 <span className="font-bold text-gray-800 text-xs truncate">{act.user_name}</span>
                                                 <span className="text-[10px] text-gray-400 shrink-0 font-medium">{act.time_ago}</span>
@@ -814,12 +814,12 @@ function DashboardSkeleton() {
             <div className="w-full max-w-full px-4 sm:px-6 lg:px-8 space-y-6">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                     {Array.from({ length: 4 }).map((_, idx) => (
-                        <div key={idx} className="bg-white p-5 rounded-2xl border border-gray-200/70 shadow-2xs animate-pulse h-28" />
+                        <div key={idx} className="bg-white p-5 rounded-none border border-gray-200/70 shadow-2xs animate-pulse h-28" />
                     ))}
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
-                    <div className="lg:col-span-8 bg-white p-5 rounded-2xl border border-gray-200/80 shadow-2xs animate-pulse h-80" />
-                    <div className="lg:col-span-4 bg-white p-5 rounded-2xl border border-gray-200/80 shadow-2xs animate-pulse h-80" />
+                    <div className="lg:col-span-8 bg-white p-5 rounded-none border border-gray-200/80 shadow-2xs animate-pulse h-80" />
+                    <div className="lg:col-span-4 bg-white p-5 rounded-none border border-gray-200/80 shadow-2xs animate-pulse h-80" />
                 </div>
             </div>
         </div>

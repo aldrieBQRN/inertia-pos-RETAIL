@@ -44,7 +44,7 @@ export default function DeleteUserForm({ className = '' }) {
 
             <button
                 onClick={confirmUserDeletion}
-                className="bg-red-600 text-white px-8 py-3.5 rounded-2xl font-black hover:bg-red-700 uppercase tracking-widest text-[10px] transition-all active:scale-95 shadow-md shadow-red-200"
+                className="bg-red-600 text-white px-8 py-3.5 rounded-none font-black hover:bg-red-700 uppercase tracking-widest text-[10px] transition-all active:scale-95 shadow-md shadow-red-200"
             >
                 Delete Account
             </button>
@@ -68,7 +68,7 @@ export default function DeleteUserForm({ className = '' }) {
                             ref={passwordInput}
                             value={data.password}
                             onChange={(e) => setData('password', e.target.value)}
-                            className="w-full border-gray-200 bg-gray-50 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:bg-white transition-all py-3.5 px-5 text-sm font-bold text-gray-900 shadow-sm"
+                            className="w-full border-gray-200 bg-gray-50 rounded-none focus:ring-2 focus:ring-red-500 focus:border-red-500 focus:bg-white transition-all py-3.5 px-5 text-sm font-bold text-gray-900 shadow-sm"
                             placeholder="Enter your password to confirm..."
                         />
                         {errors.password && <p className="text-red-500 text-[10px] font-black mt-2 ml-1 uppercase tracking-tight">{errors.password}</p>}
@@ -78,7 +78,7 @@ export default function DeleteUserForm({ className = '' }) {
                         <button
                             type="button"
                             onClick={closeModal}
-                            className="py-3.5 px-6 text-gray-500 font-black bg-gray-100 hover:bg-gray-200 rounded-2xl uppercase tracking-widest text-[10px] transition-all"
+                            className="py-3.5 px-6 text-gray-500 font-black bg-gray-100 hover:bg-gray-200 rounded-none uppercase tracking-widest text-[10px] transition-all"
                         >
                             Cancel
                         </button>
@@ -86,7 +86,7 @@ export default function DeleteUserForm({ className = '' }) {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="py-3.5 px-6 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl shadow-lg shadow-red-200 uppercase tracking-widest text-[10px] transition-all active:scale-[0.98] disabled:opacity-50"
+                            className="py-3.5 px-6 bg-red-600 hover:bg-red-700 text-white font-black rounded-none shadow-lg shadow-red-200 uppercase tracking-widest text-[10px] transition-all active:scale-[0.98] disabled:opacity-50"
                         >
                             Delete Account
                         </button>

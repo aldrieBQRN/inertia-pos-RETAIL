@@ -33,8 +33,8 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                 confirmButtonColor: '#1B3B6A',
                 confirmButtonText: 'OK',
                 customClass: {
-                    popup: 'rounded-lg',
-                    confirmButton: 'rounded-lg px-8 py-2.5 font-bold text-sm'
+                    popup: 'rounded-none',
+                    confirmButton: 'rounded-none px-8 py-2.5 font-bold text-sm'
                 }
             });
         }
@@ -46,7 +46,7 @@ export default function Login({ status, canResetPassword, settings = {} }) {
     };
 
     // Shared Styling Constants
-    const inputClasses = "appearance-none block w-full px-5 py-3.5 border border-gray-200 rounded-3xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] sm:text-sm font-bold text-gray-900 bg-gray-50/50 transition-all";
+    const inputClasses = "appearance-none block w-full px-4 py-3.5 border border-gray-200 rounded-none shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] sm:text-sm font-bold text-gray-900 bg-gray-50/50 transition-all";
     const labelClasses = "block text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1 mb-1.5";
     const errorClasses = "mt-1.5 ml-1 text-[10px] font-bold text-red-500 uppercase tracking-wide";
 
@@ -79,7 +79,7 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                 {/* Center: System Value Proposition */}
                 <div className="relative z-10 my-4 sm:my-6 lg:my-8 space-y-3 sm:space-y-4 lg:space-y-8 animate-in fade-in slide-in-from-left-6 duration-700">
                     <div className="space-y-2 sm:space-y-3">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-blue-200 text-xs font-semibold backdrop-blur-sm">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-none bg-white/10 border border-white/15 text-blue-200 text-xs font-semibold backdrop-blur-sm">
                             Smart Retail POS Solution
                         </div>
                         <h2 className="text-lg sm:text-2xl lg:text-3xl xl:text-4xl font-extrabold tracking-tight leading-tight text-white">
@@ -92,8 +92,8 @@ export default function Login({ status, canResetPassword, settings = {} }) {
 
                     {/* Feature Badges (Tablet & Desktop) */}
                     <div className="hidden sm:flex flex-col space-y-3 pt-2">
-                        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                            <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-blue-200 shrink-0">
+                        <div className="flex items-center gap-3 p-3.5 rounded-none bg-white/5 border border-white/10 backdrop-blur-sm">
+                            <div className="w-10 h-10 rounded-none bg-white/10 flex items-center justify-center text-blue-200 shrink-0">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                             </div>
                             <div>
@@ -102,8 +102,8 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm">
-                            <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-blue-200 shrink-0">
+                        <div className="flex items-center gap-3 p-3.5 rounded-none bg-white/5 border border-white/10 backdrop-blur-sm">
+                            <div className="w-10 h-10 rounded-none bg-white/10 flex items-center justify-center text-blue-200 shrink-0">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
                             </div>
                             <div>
@@ -135,7 +135,7 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                     </div>
 
                     {/* Demo Quick Login */}
-                    <div className="bg-gray-50/80 border border-gray-200 rounded-xl p-3.5 space-y-2.5">
+                    <div className="bg-gray-50/80 border border-gray-200 rounded-none p-3.5 space-y-2.5">
                         <div className="flex items-center justify-between">
                             <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
                                 Demo Accounts
@@ -146,9 +146,9 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                             <button
                                 type="button"
                                 onClick={() => setData(prev => ({ ...prev, email: 'admin@email.com', password: 'password' }))}
-                                className="flex items-center gap-2 p-2 rounded-lg border border-gray-200 bg-white hover:border-[#1B3B6A] hover:bg-blue-50/40 transition-all text-left group shadow-xs active:scale-[0.98]"
+                                className="flex items-center gap-2 p-2 rounded-none border border-gray-200 bg-white hover:border-[#1B3B6A] hover:bg-blue-50/40 transition-all text-left group shadow-xs active:scale-[0.98] cursor-pointer"
                             >
-                                <div className="w-7 h-7 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center shrink-0 group-hover:bg-[#1B3B6A] group-hover:text-white transition-colors">
+                                <div className="w-7 h-7 rounded-none bg-gray-100 text-gray-600 flex items-center justify-center shrink-0 group-hover:bg-[#1B3B6A] group-hover:text-white transition-colors">
                                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
@@ -162,9 +162,9 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                             <button
                                 type="button"
                                 onClick={() => setData(prev => ({ ...prev, email: 'cashier@email.com', password: 'password' }))}
-                                className="flex items-center gap-2 p-2 rounded-lg border border-gray-200 bg-white hover:border-[#1B3B6A] hover:bg-blue-50/40 transition-all text-left group shadow-xs active:scale-[0.98]"
+                                className="flex items-center gap-2 p-2 rounded-none border border-gray-200 bg-white hover:border-[#1B3B6A] hover:bg-blue-50/40 transition-all text-left group shadow-xs active:scale-[0.98] cursor-pointer"
                             >
-                                <div className="w-7 h-7 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center shrink-0 group-hover:bg-[#1B3B6A] group-hover:text-white transition-colors">
+                                <div className="w-7 h-7 rounded-none bg-gray-100 text-gray-600 flex items-center justify-center shrink-0 group-hover:bg-[#1B3B6A] group-hover:text-white transition-colors">
                                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                     </svg>
@@ -178,7 +178,7 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                     </div>
 
                     {status && (
-                        <div className="font-bold text-sm text-emerald-700 text-center bg-emerald-50 p-3.5 rounded-lg border border-emerald-200">
+                        <div className="font-bold text-sm text-emerald-700 text-center bg-emerald-50 p-3.5 rounded-none border border-emerald-200">
                             {status}
                         </div>
                     )}
@@ -217,7 +217,7 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-[38px] text-gray-400 hover:text-gray-600 transition-colors"
+                                className="absolute right-4 top-[38px] text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                             >
                                 {showPassword ? (
                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m0 0a10.05 10.05 0 015.188-1.583 8.32 8.32 0 013.89.981L19.5 19.5" /></svg>
@@ -237,7 +237,7 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                                         name="remember"
                                         checked={data.remember}
                                         onChange={(e) => setData('remember', e.target.checked)}
-                                        className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-md checked:bg-[#1B3B6A] checked:border-[#1B3B6A] transition-all cursor-pointer focus:ring-2 focus:ring-[#1B3B6A] focus:ring-offset-2"
+                                        className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-none checked:bg-[#1B3B6A] checked:border-[#1B3B6A] transition-all cursor-pointer focus:ring-2 focus:ring-[#1B3B6A] focus:ring-offset-2"
                                     />
                                     <svg className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -263,7 +263,7 @@ export default function Login({ status, canResetPassword, settings = {} }) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className={`w-full py-4 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-black text-[12px] uppercase tracking-widest rounded-xl shadow-lg shadow-[#1B3B6A]/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2
+                                className={`w-full py-4 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-black text-[12px] uppercase tracking-widest rounded-none shadow-lg shadow-[#1B3B6A]/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2 cursor-pointer
                                     ${processing ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 {processing ? (

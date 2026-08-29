@@ -1147,7 +1147,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                         
                         {/* KPI 1: Gross Sales (Admin) vs My Shift Sales (Cashier) */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider truncate">
@@ -1155,9 +1155,9 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                     </p>
                                     <h3 className="text-base sm:text-2xl font-black text-gray-900 tracking-tight truncate">{formatCurrency(kpiMetrics.totalValidRevenue)}</h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-xl ring-1 ring-[#CBD7E6] shrink-0">
+                                <div className="p-2 sm:p-2.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-none ring-1 ring-[#CBD7E6] shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 0c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                             </div>
@@ -1168,7 +1168,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                         </div>
 
                         {/* KPI 2: Cash in Drawer */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-emerald-700 uppercase tracking-wider truncate">
@@ -1176,7 +1176,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                     </p>
                                     <h3 className="text-base sm:text-2xl font-black text-emerald-900 tracking-tight truncate">{formatCurrency(kpiMetrics.cashRevenue)}</h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-emerald-100/70 text-emerald-700 rounded-xl ring-1 ring-emerald-200 shrink-0">
+                                <div className="p-2 sm:p-2.5 bg-emerald-100/70 text-emerald-700 rounded-none ring-1 ring-emerald-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6H2.25m0 0v8.25m0-8.25h19.5m0 0v8.25m0-8.25a.75.75 0 0 0-.75-.75h-.75V4.5m1.5 1.5v8.25a.75.75 0 0 1-.75.75h-.75M3.75 6h16.5m0 0v8.25m0 0a.75.75 0 0 1-.75.75H3.75a.75.75 0 0 1-.75-.75V6m0 0v8.25" />
                                     </svg>
@@ -1189,7 +1189,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                         </div>
 
                         {/* KPI 3: Digital & E-Wallets */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-indigo-700 uppercase tracking-wider truncate">
@@ -1197,7 +1197,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                     </p>
                                     <h3 className="text-base sm:text-2xl font-black text-indigo-900 tracking-tight truncate">{formatCurrency(kpiMetrics.digitalRevenue)}</h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-indigo-100/70 text-indigo-700 rounded-xl ring-1 ring-indigo-200 shrink-0">
+                                <div className="p-2 sm:p-2.5 bg-indigo-100/70 text-indigo-700 rounded-none ring-1 ring-indigo-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
                                     </svg>
@@ -1211,13 +1211,13 @@ export default function Transactions({ auth, initial_transactions, initial_setti
 
                         {/* KPI 4: Voided Losses (Admin) vs Units Sold & Avg Ticket (Cashier) */}
                         {isAdmin ? (
-                            <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                                 <div className="flex justify-between items-start gap-2">
                                     <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                         <p className="text-[10px] sm:text-[11px] font-black text-rose-700 uppercase tracking-wider truncate">Voided Losses</p>
                                         <h3 className="text-base sm:text-2xl font-black text-rose-900 tracking-tight truncate">{formatCurrency(kpiMetrics.totalVoidedRevenue)}</h3>
                                     </div>
-                                    <div className="p-2 sm:p-2.5 bg-rose-100/70 text-rose-700 rounded-xl ring-1 ring-rose-200 shrink-0">
+                                    <div className="p-2 sm:p-2.5 bg-rose-100/70 text-rose-700 rounded-none ring-1 ring-rose-200 shrink-0">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
                                         </svg>
@@ -1229,13 +1229,13 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                                 <div className="flex justify-between items-start gap-2">
                                     <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                         <p className="text-[10px] sm:text-[11px] font-black text-blue-700 uppercase tracking-wider truncate">Units Sold</p>
                                         <h3 className="text-base sm:text-2xl font-black text-blue-900 tracking-tight truncate">{kpiMetrics.totalItemsSold.toLocaleString()} <span className="text-xs font-semibold text-gray-400">pcs</span></h3>
                                     </div>
-                                    <div className="p-2 sm:p-2.5 bg-blue-50 text-blue-600 rounded-xl ring-1 ring-blue-100 shrink-0">
+                                    <div className="p-2 sm:p-2.5 bg-blue-50 text-blue-600 rounded-none ring-1 ring-blue-100 shrink-0">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                                         </svg>
@@ -1262,30 +1262,14 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                 <button
                                     data-tab="all"
                                     onClick={() => handleStatusTabChange('all')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         statusTab === 'all'
                                             ? 'bg-white text-[#1B3B6A] font-black border-t-[#1B3B6A] border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {statusTab === 'all' && (
-                                        <>
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>All Transactions</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         statusTab === 'all'
                                             ? 'bg-[#1B3B6A] text-white shadow-2xs'
                                             : 'bg-gray-200/80 text-gray-600 group-hover:bg-gray-300 group-hover:text-gray-800'
@@ -1298,30 +1282,14 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                 <button
                                     data-tab="cash"
                                     onClick={() => handleStatusTabChange('cash')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         statusTab === 'cash'
                                             ? 'bg-white text-emerald-800 font-black border-t-emerald-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {statusTab === 'cash' && (
-                                        <>
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Cash Checkouts</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         statusTab === 'cash'
                                             ? 'bg-emerald-600 text-white shadow-2xs'
                                             : 'bg-emerald-50 text-emerald-700 group-hover:bg-emerald-100'
@@ -1334,30 +1302,14 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                 <button
                                     data-tab="digital"
                                     onClick={() => handleStatusTabChange('digital')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         statusTab === 'digital'
                                             ? 'bg-white text-indigo-800 font-black border-t-indigo-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {statusTab === 'digital' && (
-                                        <>
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Digital & Cards</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         statusTab === 'digital'
                                             ? 'bg-indigo-600 text-white shadow-2xs'
                                             : 'bg-indigo-50 text-indigo-700 group-hover:bg-indigo-100'
@@ -1370,30 +1322,14 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                 <button
                                     data-tab="discount"
                                     onClick={() => handleStatusTabChange('discount')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         statusTab === 'discount'
                                             ? 'bg-white text-sky-900 font-black border-t-sky-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {statusTab === 'discount' && (
-                                        <>
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Discounted</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         statusTab === 'discount'
                                             ? 'bg-sky-600 text-white shadow-2xs'
                                             : 'bg-sky-50 text-sky-700 group-hover:bg-sky-100'
@@ -1406,30 +1342,14 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                 <button
                                     data-tab="void"
                                     onClick={() => handleStatusTabChange('void')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         statusTab === 'void'
                                             ? 'bg-white text-rose-900 font-black border-t-rose-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {statusTab === 'void' && (
-                                        <>
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Voided / Cancelled</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         statusTab === 'void'
                                             ? 'bg-rose-600 text-white shadow-2xs'
                                             : 'bg-rose-50 text-rose-700 group-hover:bg-rose-100'
@@ -1441,7 +1361,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                         </div>
 
                         {/* MAIN CONTENT CARD: TOOLBAR + TABLE / CARDS + PAGINATION */}
-                        <div className="bg-white rounded-b-2xl sm:rounded-tr-2xl border border-gray-200/80 shadow-sm overflow-hidden flex flex-col relative z-10">
+                        <div className="bg-white rounded-none border border-gray-200/80 shadow-sm overflow-hidden flex flex-col relative z-10">
                             
                             {/* SEARCH, FILTER & OPERATIONAL TOOLBAR */}
                             <div className="p-3.5 sm:p-4 bg-white border-b border-gray-100 space-y-3 relative z-10">
@@ -1455,7 +1375,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                             <input
                                                 type="text"
                                                 placeholder="Search by Invoice, Cashier, Ref #, or Product inside order..."
-                                                className="pl-11 pr-10 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl w-full focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 focus:bg-white text-xs sm:text-sm font-medium transition-all shadow-2xs placeholder:text-gray-400"
+                                                className="pl-11 pr-10 py-2.5 bg-gray-50/70 border border-gray-200 rounded-none w-full focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 focus:bg-white text-xs sm:text-sm font-medium transition-all shadow-2xs placeholder:text-gray-400"
                                                 value={searchFilter}
                                                 onChange={(e) => setSearchFilter(e.target.value)}
                                             />
@@ -1463,7 +1383,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                             </svg>
                                             {searchFilter && (
-                                                <button onClick={() => setSearchFilter('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 p-0.5">
+                                                <button onClick={() => setSearchFilter('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 p-0.5 cursor-pointer">
                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                                                     </svg>
@@ -1472,11 +1392,11 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                         </div>
 
                                         {/* View Mode Toggle (Desktop only - List vs Cards) */}
-                                        <div className="hidden lg:inline-flex rounded-xl bg-gray-100 p-1 border border-gray-200 shrink-0 self-start sm:self-auto">
+                                        <div className="hidden lg:inline-flex rounded-none bg-gray-100 p-1 border border-gray-200 shrink-0 self-start sm:self-auto">
                                             <button
                                                 type="button"
                                                 onClick={() => handleViewModeChange('table')}
-                                                className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'table' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                                className={`p-2 rounded-none transition-all flex items-center gap-1.5 text-xs cursor-pointer ${viewMode === 'table' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
                                                 title="List View"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -1487,7 +1407,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                             <button
                                                 type="button"
                                                 onClick={() => handleViewModeChange('grid')}
-                                                className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'grid' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                                className={`p-2 rounded-none transition-all flex items-center gap-1.5 text-xs cursor-pointer ${viewMode === 'grid' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
                                                 title="Card View"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
@@ -1505,7 +1425,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                     <select
                                                         value={cashierFilter}
                                                         onChange={(e) => setCashierFilter(e.target.value)}
-                                                        className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
+                                                        className="bg-gray-50/70 border border-gray-200 rounded-none py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
                                                     >
                                                         <option value="">All Cashiers ({uniqueCashiers.length})</option>
                                                         {uniqueCashiers.map(c => (
@@ -1518,7 +1438,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                     <select
                                                         value={datePreset}
                                                         onChange={(e) => handleDatePreset(e.target.value)}
-                                                        className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
+                                                        className="bg-gray-50/70 border border-gray-200 rounded-none py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
                                                     >
                                                         <option value="all">All Time</option>
                                                         <option value="today">Today</option>
@@ -1534,7 +1454,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                 <select
                                                     value={paymentFilter}
                                                     onChange={(e) => setPaymentFilter(e.target.value)}
-                                                    className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
+                                                    className="bg-gray-50/70 border border-gray-200 rounded-none py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
                                                 >
                                                     <option value="">All Payments</option>
                                                     <option value="cash">Cash</option>
@@ -1562,7 +1482,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                             <div className="grid grid-cols-2 md:grid-cols-4 lg:flex lg:w-auto items-center gap-2 w-full lg:w-auto shrink-0 justify-end">
                                                 
                                                 {/* Custom Date Range: From */}
-                                                <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl px-2.5 sm:px-3 py-2 w-full lg:w-auto shrink-0 shadow-2xs">
+                                                <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-none px-2.5 sm:px-3 py-2 w-full lg:w-auto shrink-0 shadow-2xs">
                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider shrink-0">From</span>
                                                     <input
                                                         type="date"
@@ -1573,7 +1493,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                 </div>
 
                                                 {/* Custom Date Range: To */}
-                                                <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl px-2.5 sm:px-3 py-2 w-full lg:w-auto shrink-0 shadow-2xs">
+                                                <div className="h-[38px] flex items-center gap-1.5 bg-white border border-gray-200 rounded-none px-2.5 sm:px-3 py-2 w-full lg:w-auto shrink-0 shadow-2xs">
                                                     <span className="text-gray-400 text-[10px] font-black uppercase tracking-wider shrink-0">To</span>
                                                     <input
                                                         type="date"
@@ -1588,7 +1508,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                     <select
                                                         value={datePreset}
                                                         onChange={(e) => handleDatePreset(e.target.value)}
-                                                        className="h-[38px] bg-white border border-gray-200 rounded-xl py-2 pl-3 pr-7 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
+                                                        className="h-[38px] bg-white border border-gray-200 rounded-none py-2 pl-3 pr-7 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs font-semibold transition-all shadow-2xs w-full cursor-pointer truncate"
                                                     >
                                                         <option value="all">All Time</option>
                                                         <option value="today">Today</option>
@@ -1604,7 +1524,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowDataMenu(!showDataMenu)}
-                                                        className="h-[38px] w-full lg:w-auto justify-center px-3.5 py-2 rounded-xl font-bold text-xs sm:text-sm bg-[#EFF4F9] text-[#1B3B6A] hover:bg-[#E2ECF6] border border-[#CBD7E6] shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                                                        className="h-[38px] w-full lg:w-auto justify-center px-3.5 py-2 rounded-none font-bold text-xs sm:text-sm bg-[#EFF4F9] text-[#1B3B6A] hover:bg-[#E2ECF6] border border-[#CBD7E6] shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                                                     >
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-[#1B3B6A]">
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -1616,12 +1536,12 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                     </button>
 
                                                     {showDataMenu && (
-                                                        <div className="absolute right-0 top-full mt-2 w-full sm:w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                                        <div className="absolute right-0 top-full mt-2 w-full sm:w-56 bg-white rounded-none shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                                                             <div className="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400">Reports & Export</div>
                                                             <button
                                                                 onClick={exportExcel}
                                                                 disabled={isExporting}
-                                                                className="w-full px-4 py-2 text-left text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors disabled:opacity-50"
+                                                                className="w-full px-4 py-2 text-left text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors disabled:opacity-50 cursor-pointer"
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-emerald-600">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -1631,7 +1551,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                             <button
                                                                 onClick={exportPDF}
                                                                 disabled={isExporting}
-                                                                className="w-full px-4 py-2 text-left text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors disabled:opacity-50"
+                                                                className="w-full px-4 py-2 text-left text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors disabled:opacity-50 cursor-pointer"
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-rose-600">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
@@ -1667,20 +1587,20 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                 {loading ? (
                                                     Array.from({ length: 5 }).map((_, index) => (
                                                         <tr key={`skel-${index}`} className="animate-pulse">
-                                                            <td className="p-4 whitespace-nowrap"><div className="h-5 bg-gray-200 rounded-md w-28 mb-1.5"></div><div className="h-4 bg-gray-200 rounded-md w-14"></div></td>
-                                                            <td className="p-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded-md w-32"></div></td>
-                                                            <td className="p-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded-md w-24"></div></td>
-                                                            <td className="p-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded-md w-44"></div></td>
-                                                            <td className="p-4 whitespace-nowrap"><div className="h-5 bg-gray-200 rounded-md w-20"></div></td>
-                                                            <td className="p-4 text-right whitespace-nowrap"><div className="h-6 bg-gray-200 rounded-md w-24 ml-auto"></div></td>
-                                                            <td className="p-4 whitespace-nowrap"><div className="w-16 h-8 bg-gray-200 rounded-lg mx-auto"></div></td>
+                                                            <td className="p-4 whitespace-nowrap"><div className="h-5 bg-gray-200 rounded-none w-28 mb-1.5"></div><div className="h-4 bg-gray-200 rounded-none w-14"></div></td>
+                                                            <td className="p-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded-none w-32"></div></td>
+                                                            <td className="p-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded-none w-24"></div></td>
+                                                            <td className="p-4 whitespace-nowrap"><div className="h-4 bg-gray-200 rounded-none w-44"></div></td>
+                                                            <td className="p-4 whitespace-nowrap"><div className="h-5 bg-gray-200 rounded-none w-20"></div></td>
+                                                            <td className="p-4 text-right whitespace-nowrap"><div className="h-6 bg-gray-200 rounded-none w-24 ml-auto"></div></td>
+                                                            <td className="p-4 whitespace-nowrap"><div className="w-16 h-8 bg-gray-200 rounded-none mx-auto"></div></td>
                                                         </tr>
                                                     ))
                                                 ) : paginatedTransactions.length === 0 ? (
                                                     <tr>
                                                         <td colSpan="7" className="py-12 px-4 text-center whitespace-nowrap">
                                                             <div className="max-w-xs mx-auto flex flex-col items-center">
-                                                                <div className="p-3 bg-gray-100 rounded-2xl mb-3">
+                                                                <div className="p-3 bg-gray-100 rounded-none mb-3">
                                                                     <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                                                                     </svg>
@@ -1706,7 +1626,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                                         {sale.invoice_number}
                                                                     </div>
                                                                     <div className="flex items-center gap-1 mt-1">
-                                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest ${
+                                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-none text-[9px] font-black uppercase tracking-widest ${
                                                                             sale.status === 'void'
                                                                                 ? 'bg-rose-50 text-rose-700 border border-rose-200/70 shadow-2xs'
                                                                                 : 'bg-emerald-50 text-emerald-700 border border-emerald-200/70 shadow-2xs'
@@ -1714,7 +1634,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                                             {sale.status === 'void' ? 'VOID' : 'PAID'}
                                                                         </span>
                                                                         {sale.is_senior && (
-                                                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-sky-50 text-sky-700 border border-sky-200/70 shadow-2xs">
+                                                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-none text-[9px] font-black uppercase tracking-widest bg-sky-50 text-sky-700 border border-sky-200/70 shadow-2xs">
                                                                                 Discounted
                                                                             </span>
                                                                         )}
@@ -1734,10 +1654,10 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                                             <img
                                                                                 src={getAvatarUrl(sale.cashier.avatar_path)}
                                                                                 alt={sale.cashier.name}
-                                                                                className="w-9 h-9 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                                className="w-9 h-9 rounded-none object-cover border border-gray-200 shadow-2xs shrink-0"
                                                                             />
                                                                         ) : (
-                                                                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 flex items-center justify-center font-black text-xs shrink-0 uppercase shadow-2xs">
+                                                                            <div className="w-9 h-9 rounded-none bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 flex items-center justify-center font-black text-xs shrink-0 uppercase shadow-2xs">
                                                                                 {(sale.cashier?.name || 'S').charAt(0)}
                                                                             </div>
                                                                         )}
@@ -1764,7 +1684,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                                 {/* Payment Method & Reference */}
                                                                 <td className="py-3.5 px-4 whitespace-nowrap">
                                                                     <div className="flex flex-col items-start gap-0.5">
-                                                                        <span className={`inline-block px-2.5 py-0.5 rounded-lg text-[10px] font-black tracking-wider uppercase border shadow-2xs ${getPaymentBadgeStyle(sale.payment_method)}`}>
+                                                                        <span className={`inline-block px-2.5 py-0.5 rounded-none text-[10px] font-black tracking-wider uppercase border shadow-2xs ${getPaymentBadgeStyle(sale.payment_method)}`}>
                                                                             {formatPaymentName(sale.payment_method)}
                                                                         </span>
                                                                         {(sale.payment_reference || sale.reference_number) && (
@@ -1786,7 +1706,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                                         {/* View Details */}
                                                                         <button
                                                                             onClick={() => handleViewDetails(sale)}
-                                                                            className="p-1.5 text-[#1B3B6A] hover:bg-[#EFF4F9] border border-transparent hover:border-[#CBD7E6] rounded-lg transition-colors active:scale-95 cursor-pointer"
+                                                                            className="p-1.5 text-[#1B3B6A] hover:bg-[#EFF4F9] border border-transparent hover:border-[#CBD7E6] rounded-none transition-colors active:scale-95 cursor-pointer"
                                                                             title="View Digital Receipt"
                                                                         >
                                                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1800,7 +1720,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                                                 {/* Reprint Receipt */}
                                                                                 <button
                                                                                     onClick={() => handleReprint(sale)}
-                                                                                    className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors active:scale-95 cursor-pointer"
+                                                                                    className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-none transition-colors active:scale-95 cursor-pointer"
                                                                                     title="Reprint Thermal Receipt"
                                                                                 >
                                                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1812,10 +1732,10 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                                                 {isAdmin && (
                                                                                     <button
                                                                                         onClick={() => handleVoid(sale)}
-                                                                                        className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors active:scale-95 cursor-pointer"
+                                                                                        className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-none transition-colors active:scale-95 cursor-pointer"
                                                                                         title="Void Order & Restock Items"
                                                                                     >
-                                                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                                                                                        <svg className="w-4 h-4 fill-none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                                                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                                                                         </svg>
                                                                                     </button>
@@ -1839,21 +1759,21 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
                                     {loading ? (
                                         Array.from({ length: 4 }).map((_, index) => (
-                                            <div key={`mob-skel-${index}`} className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-2xs space-y-3 animate-pulse">
+                                            <div key={`mob-skel-${index}`} className="bg-white p-4 rounded-none border border-gray-200/80 shadow-2xs space-y-3 animate-pulse">
                                                 <div className="flex justify-between items-start">
                                                     <div className="space-y-1 w-1/2">
-                                                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                                                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                                                        <div className="h-4 bg-gray-200 rounded-none w-3/4"></div>
+                                                        <div className="h-3 bg-gray-200 rounded-none w-1/2"></div>
                                                     </div>
-                                                    <div className="h-5 bg-gray-200 rounded w-1/3"></div>
+                                                    <div className="h-5 bg-gray-200 rounded-none w-1/3"></div>
                                                 </div>
-                                                <div className="h-10 bg-gray-200 rounded-xl w-full"></div>
+                                                <div className="h-10 bg-gray-200 rounded-none w-full"></div>
                                             </div>
                                         ))
                                     ) : paginatedTransactions.length === 0 ? (
-                                        <div className="col-span-full bg-white py-10 px-4 rounded-2xl border border-gray-200/80 text-center text-gray-500 font-bold">
+                                        <div className="col-span-full bg-white py-10 px-4 rounded-none border border-gray-200/80 text-center text-gray-500 font-bold">
                                             <div className="max-w-xs mx-auto flex flex-col items-center">
-                                                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mb-2">
+                                                <div className="w-10 h-10 bg-gray-100 rounded-none flex items-center justify-center text-gray-400 mb-2">
                                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                                                     </svg>
@@ -1870,7 +1790,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                             return (
                                                 <div
                                                     key={sale.id}
-                                                    className={`bg-white p-4 rounded-2xl border border-gray-200/80 shadow-2xs flex flex-col justify-between gap-3 transition-all hover:shadow-md ${sale.status === 'void' ? 'opacity-85 bg-red-50/20' : ''}`}
+                                                    className={`bg-white p-4 rounded-none border border-gray-200/80 shadow-2xs flex flex-col justify-between gap-3 transition-all hover:shadow-md ${sale.status === 'void' ? 'opacity-85 bg-red-50/20' : ''}`}
                                                 >
                                                     {/* Top Row: Invoice #, Status & Amount */}
                                                     <div className="flex justify-between items-start gap-2">
@@ -1883,7 +1803,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                             </div>
                                                         </div>
                                                         <div className="flex flex-col items-end shrink-0">
-                                                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest mb-1 ${
+                                                            <span className={`px-2 py-0.5 rounded-none text-[9px] font-black uppercase tracking-widest mb-1 ${
                                                                 sale.status === 'void'
                                                                     ? 'bg-rose-50 text-rose-700 border border-rose-200/70'
                                                                     : 'bg-emerald-50 text-emerald-700 border border-emerald-200/70'
@@ -1897,7 +1817,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                     </div>
 
                                                     {/* Item Preview Line */}
-                                                    <div className="text-xs font-semibold text-gray-600 bg-gray-50/80 p-2.5 rounded-xl border border-gray-100">
+                                                    <div className="text-xs font-semibold text-gray-600 bg-gray-50/80 p-2.5 rounded-none border border-gray-100">
                                                         <span className="font-bold text-gray-800">{totalItemsCount} item(s):</span> {firstItemsPreview}{sale.items?.length > 2 ? '...' : ''}
                                                     </div>
 
@@ -1908,10 +1828,10 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                                 <img
                                                                     src={getAvatarUrl(sale.cashier.avatar_path)}
                                                                     alt={sale.cashier.name}
-                                                                    className="w-7 h-7 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                    className="w-7 h-7 rounded-none object-cover border border-gray-200 shadow-2xs shrink-0"
                                                                 />
                                                             ) : (
-                                                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center font-black text-[10px] shrink-0 uppercase shadow-2xs">
+                                                                <div className="w-7 h-7 rounded-none bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center font-black text-[10px] shrink-0 uppercase shadow-2xs">
                                                                     {(sale.cashier?.name || 'S').charAt(0)}
                                                                 </div>
                                                             )}
@@ -1925,11 +1845,11 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center gap-1 shrink-0">
-                                                            <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black tracking-wider uppercase border shadow-2xs ${getPaymentBadgeStyle(sale.payment_method)}`}>
+                                                            <span className={`px-2 py-0.5 rounded-none text-[9px] font-black tracking-wider uppercase border shadow-2xs ${getPaymentBadgeStyle(sale.payment_method)}`}>
                                                                 {formatPaymentName(sale.payment_method)}
                                                             </span>
                                                             {sale.is_senior && (
-                                                                <span className="px-1.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200/70">
+                                                                <span className="px-1.5 py-0.5 rounded-none text-[9px] font-black uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200/70">
                                                                     Discount
                                                                 </span>
                                                             )}
@@ -1940,7 +1860,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                     <div className={`grid gap-1.5 pt-1 border-t border-gray-100 ${sale.status === 'void' ? 'grid-cols-1' : (isAdmin ? 'grid-cols-3' : 'grid-cols-2')}`}>
                                                         <button
                                                             onClick={() => handleViewDetails(sale)}
-                                                            className="py-2 px-2.5 text-xs font-bold text-[#1B3B6A] bg-[#EFF4F9] hover:bg-[#E2ECF6] rounded-xl border border-[#CBD7E6] shadow-2xs active:scale-95 transition-all text-center"
+                                                            className="py-2 px-2.5 text-xs font-bold text-[#1B3B6A] bg-[#EFF4F9] hover:bg-[#E2ECF6] rounded-none border border-[#CBD7E6] shadow-2xs active:scale-95 transition-all text-center cursor-pointer"
                                                         >
                                                             Details
                                                         </button>
@@ -1949,7 +1869,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                             <>
                                                                 <button
                                                                     onClick={() => handleReprint(sale)}
-                                                                    className="py-2 px-2.5 text-xs font-bold text-gray-700 bg-white hover:bg-gray-50 rounded-xl border border-gray-200 shadow-2xs active:scale-95 transition-all text-center"
+                                                                    className="py-2 px-2.5 text-xs font-bold text-gray-700 bg-white hover:bg-gray-50 rounded-none border border-gray-200 shadow-2xs active:scale-95 transition-all text-center cursor-pointer"
                                                                 >
                                                                     Reprint
                                                                 </button>
@@ -1957,7 +1877,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                                 {isAdmin && (
                                                                     <button
                                                                         onClick={() => handleVoid(sale)}
-                                                                        className="py-2 px-2.5 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl border border-rose-200 shadow-2xs active:scale-95 transition-all text-center"
+                                                                        className="py-2 px-2.5 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-none border border-rose-200 shadow-2xs active:scale-95 transition-all text-center cursor-pointer"
                                                                     >
                                                                         Void
                                                                     </button>
@@ -2003,7 +1923,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                             <button
                                                 disabled={currentPage === 1}
                                                 onClick={() => { setCurrentPage(p => p - 1); scrollToWorkspace(); }}
-                                                className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
+                                                className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
                                             >
                                                 &laquo; Prev
                                             </button>
@@ -2014,7 +1934,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                     <button
                                                         key={num}
                                                         onClick={() => { setCurrentPage(num); scrollToWorkspace(); }}
-                                                        className={`shrink-0 px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all flex items-center justify-center active:scale-95 cursor-pointer ${
+                                                        className={`shrink-0 px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all flex items-center justify-center active:scale-95 cursor-pointer ${
                                                             currentPage === num
                                                                 ? 'bg-[#1B3B6A] text-white border-[#1B3B6A] shadow-xs font-extrabold'
                                                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
@@ -2027,7 +1947,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                             <button
                                                 disabled={currentPage === totalPages}
                                                 onClick={() => { setCurrentPage(p => p + 1); scrollToWorkspace(); }}
-                                                className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
+                                                className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
                                             >
                                                 Next &raquo;
                                             </button>
@@ -2047,11 +1967,11 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                 <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm sm:p-4 transition-opacity">
                     <div className="absolute inset-0" onClick={() => setShowDetails(false)}></div>
 
-                    <div className="relative bg-white w-full max-w-md rounded-t-2xl md:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] md:max-h-[90vh] animate-slide-up sm:animate-fade-in-up border border-gray-200/80">
+                    <div className="relative bg-white w-full max-w-md rounded-none shadow-2xl overflow-hidden flex flex-col max-h-[88vh] md:max-h-[90vh] animate-slide-up sm:animate-fade-in-up border border-gray-200/80">
 
                         {/* Top Pull Bar (Mobile) */}
-                        <div className="md:hidden flex justify-center pt-2.5 pb-1 bg-[#1B3B6A] w-full" onClick={() => setShowDetails(false)}>
-                            <div className="w-12 h-1.5 bg-white/30 rounded-full"></div>
+                        <div className="md:hidden flex justify-center pt-2.5 pb-1 bg-[#1B3B6A] w-full cursor-pointer" onClick={() => setShowDetails(false)}>
+                            <div className="w-12 h-1.5 bg-white/30 rounded-none"></div>
                         </div>
 
                         {/* Modal Header */}
@@ -2062,7 +1982,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                             </div>
                             <button
                                 onClick={() => setShowDetails(false)}
-                                className="bg-white/10 hover:bg-white/20 p-2 rounded-full text-white transition-colors active:scale-95 shrink-0 ml-2"
+                                className="bg-white/10 hover:bg-white/20 p-2 rounded-none text-white transition-colors active:scale-95 shrink-0 ml-2 cursor-pointer"
                                 title="Close"
                             >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -2082,7 +2002,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                             </div>
 
                             {/* Meta Info Bar */}
-                            <div className="text-xs text-gray-600 space-y-1 bg-white p-3 rounded-xl border border-gray-200/80">
+                            <div className="text-xs text-gray-600 space-y-1 bg-white p-3 rounded-none border border-gray-200/80">
                                 <div className="flex justify-between">
                                     <span className="text-gray-400 font-bold uppercase text-[10px]">Date / Time:</span>
                                     <span className="font-semibold text-gray-800">{new Date(selectedSale.created_at).toLocaleString()}</span>
@@ -2100,7 +2020,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-400 font-bold uppercase text-[10px]">Status:</span>
-                                    <span className={`font-black text-[10px] uppercase px-1.5 py-0.2 rounded ${
+                                    <span className={`font-black text-[10px] uppercase px-1.5 py-0.2 rounded-none ${
                                         selectedSale.status === 'void' ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'
                                     }`}>
                                         {selectedSale.status === 'void' ? 'VOIDED / CANCELLED' : 'COMPLETED (PAID)'}
@@ -2109,7 +2029,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                             </div>
 
                             {/* Itemized Line Items Table */}
-                            <div className="bg-white rounded-xl border border-gray-200/80 overflow-hidden shadow-2xs">
+                            <div className="bg-white rounded-none border border-gray-200/80 overflow-hidden shadow-2xs">
                                 <table className="w-full text-xs">
                                     <thead className="bg-gray-50 text-gray-400 uppercase text-[10px] font-black tracking-wider border-b border-gray-100">
                                         <tr>
@@ -2148,7 +2068,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                             {/* Payment Method & Ref */}
                             <div className="flex justify-between items-center text-xs font-bold">
                                 <span className="text-gray-500 uppercase tracking-wider">Payment Method</span>
-                                <span className={`px-2.5 py-0.5 rounded-lg uppercase tracking-wider text-[10px] font-black border ${getPaymentBadgeStyle(selectedSale.payment_method)}`}>
+                                <span className={`px-2.5 py-0.5 rounded-none uppercase tracking-wider text-[10px] font-black border ${getPaymentBadgeStyle(selectedSale.payment_method)}`}>
                                     {formatPaymentName(selectedSale.payment_method)}
                                 </span>
                             </div>
@@ -2205,7 +2125,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                             <div className="flex items-center gap-2 pt-2">
                                 <button
                                     onClick={() => handleReprint(selectedSale)}
-                                    className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                                    className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-none font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer"
                                 >
                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -2216,7 +2136,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                 {selectedSale.status !== 'void' && isAdmin && (
                                     <button
                                         onClick={() => handleVoid(selectedSale)}
-                                        className="py-2.5 px-4 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                                        className="py-2.5 px-4 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-none font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer"
                                     >
                                         <svg className="w-4 h-4 fill-none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -2227,7 +2147,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
 
                                 <button
                                     onClick={() => setShowDetails(false)}
-                                    className="py-2.5 px-4 bg-[#1B3B6A] hover:bg-[#142E54] text-white rounded-xl font-bold text-xs sm:text-sm transition-all active:scale-95 shadow-md shadow-[#1B3B6A]/15"
+                                    className="py-2.5 px-4 bg-[#1B3B6A] hover:bg-[#142E54] text-white rounded-none font-bold text-xs sm:text-sm transition-all active:scale-95 shadow-md shadow-[#1B3B6A]/15 cursor-pointer"
                                 >
                                     Close
                                 </button>

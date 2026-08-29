@@ -57,7 +57,7 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
                 html: `
                     <div class="text-center font-sans pt-1">
                         <p class="text-sm text-gray-600 mb-4">This administrative action is locked in the public demonstration version.</p>
-                        <a href="https://www.facebook.com/aldrie.baquiran" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold text-xs rounded-xl shadow-md transition-all duration-150 no-underline cursor-pointer">
+                        <a href="https://www.facebook.com/aldrie.baquiran" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold text-xs rounded-none shadow-md transition-all duration-150 no-underline cursor-pointer">
                             <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                             Contact Provider on Facebook
                         </a>
@@ -147,7 +147,7 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
 
     const getInitials = (name) => name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '??';
 
-    const inputClasses = "w-full border border-gray-200 bg-gray-50/50 rounded-xl focus:ring-2 focus:ring-[#1B3B6A]/20 focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-bold text-gray-900 shadow-2xs placeholder:text-gray-400";
+    const inputClasses = "w-full border border-gray-200 bg-gray-50/50 rounded-none focus:ring-2 focus:ring-[#1B3B6A]/20 focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-bold text-gray-900 shadow-2xs placeholder:text-gray-400";
     const labelClasses = "block text-[11px] font-black text-gray-600 uppercase tracking-wider mb-1.5 ml-0.5";
     const errorClasses = "text-rose-500 text-[10px] font-black mt-1.5 ml-1 uppercase tracking-wide";
 
@@ -155,12 +155,12 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className={`bg-white rounded-3xl shadow-2xl w-full ${isAdmin ? 'max-w-3xl' : 'max-w-md'} overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]`}>
+            <div className={`bg-white rounded-none shadow-2xl w-full ${isAdmin ? 'max-w-3xl' : 'max-w-md'} overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]`}>
 
                 {/* Standard App Modal Navy Header */}
                 <div className="px-6 py-4 bg-[#1B3B6A] text-white flex justify-between items-center shrink-0 shadow-md">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 text-white">
+                        <div className="w-10 h-10 rounded-none bg-white/10 flex items-center justify-center shrink-0 text-white">
                             {isAdmin ? (
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -184,7 +184,7 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
                     <button
                         type="button"
                         onClick={onClose}
-                        className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                        className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 w-8 h-8 rounded-none flex items-center justify-center transition-colors cursor-pointer"
                     >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -199,11 +199,11 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
                     {isLoading ? (
                         <div className="space-y-6 animate-pulse">
                             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 pb-5 border-b border-gray-100">
-                                <div className="w-20 h-20 rounded-full bg-gray-200 shrink-0"></div>
+                                <div className="w-20 h-20 rounded-none bg-gray-200 shrink-0"></div>
                                 <div className="w-full text-center sm:text-left space-y-2">
-                                    <div className="h-4 bg-gray-200 rounded w-28 mx-auto sm:mx-0"></div>
-                                    <div className="h-3 bg-gray-200 rounded w-40 mx-auto sm:mx-0 mb-3"></div>
-                                    <div className="h-9 bg-gray-200 rounded-lg w-32 mx-auto sm:mx-0"></div>
+                                    <div className="h-4 bg-gray-200 rounded-none w-28 mx-auto sm:mx-0"></div>
+                                    <div className="h-3 bg-gray-200 rounded-none w-40 mx-auto sm:mx-0 mb-3"></div>
+                                    <div className="h-9 bg-gray-200 rounded-none w-32 mx-auto sm:mx-0"></div>
                                 </div>
                             </div>
                         </div>
@@ -215,7 +215,7 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
                             <div className={`flex flex-col sm:flex-row items-center sm:items-start gap-5 ${isAdmin ? 'pb-6 border-b border-gray-100' : ''}`}>
                                 <div
                                     onClick={() => fileInput.current.click()}
-                                    className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full ring-4 ring-[#EFF4F9] flex items-center justify-center overflow-hidden cursor-pointer group hover:ring-[#1B3B6A]/30 transition-all shadow-sm shrink-0"
+                                    className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-none ring-4 ring-[#EFF4F9] flex items-center justify-center overflow-hidden cursor-pointer group hover:ring-[#1B3B6A]/30 transition-all shadow-sm shrink-0"
                                 >
                                     {avatarPreview ? (
                                         <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
@@ -237,7 +237,7 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
                                     <button
                                         type="button"
                                         onClick={() => fileInput.current.click()}
-                                        className="text-xs font-bold text-[#1B3B6A] bg-white border border-[#CBD7E6] hover:bg-[#EFF4F9] px-3.5 py-1.5 rounded-xl transition-all shadow-2xs cursor-pointer active:scale-95"
+                                        className="text-xs font-bold text-[#1B3B6A] bg-white border border-[#CBD7E6] hover:bg-[#EFF4F9] px-3.5 py-1.5 rounded-none transition-all shadow-2xs cursor-pointer active:scale-95"
                                     >
                                         Choose New Photo
                                     </button>
@@ -248,7 +248,7 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
 
                             {/* Cashier Policy Notice */}
                             {!isAdmin && (
-                                <div className="p-3.5 rounded-2xl border border-amber-200/80 bg-amber-50/60 text-left space-y-1">
+                                <div className="p-3.5 rounded-none border border-amber-200/80 bg-amber-50/60 text-left space-y-1">
                                     <div className="flex items-center gap-1.5 text-amber-900 font-bold text-xs">
                                         <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
@@ -334,7 +334,7 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-100 active:scale-95 transition-all cursor-pointer"
+                        className="px-4 py-2.5 rounded-none border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-100 active:scale-95 transition-all cursor-pointer"
                     >
                         Cancel
                     </button>
@@ -342,7 +342,7 @@ export default function UpdateProfileInformationForm({ isOpen, onClose, user, mu
                         type="submit"
                         form="profile-form"
                         disabled={processing || isLoading || isSendingOtp}
-                        className="px-5 py-2.5 rounded-xl bg-[#1B3B6A] hover:bg-[#142E54] text-white text-xs font-bold shadow-sm active:scale-95 transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                        className="px-5 py-2.5 rounded-none bg-[#1B3B6A] hover:bg-[#142E54] text-white text-xs font-bold shadow-sm active:scale-95 transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
                     >
                         {processing || isSendingOtp ? (
                             <>

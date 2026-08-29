@@ -725,7 +725,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
             await Swal.fire({
                 icon: 'error',
                 title: 'Order Items Sold Out',
-                html: `All items in this saved order are currently out of stock:<br><br><div class="text-left bg-red-50 p-3 rounded-lg border border-red-200 text-xs text-red-700 font-semibold space-y-1">${soldOutItems.map(name => `• ${name} (Sold Out)`).join('<br>')}</div><br>The order cannot be restored to the cart.`,
+                html: `All items in this saved order are currently out of stock:<br><br><div class="text-left bg-red-50 p-3 rounded-none border border-red-200 text-xs text-red-700 font-semibold space-y-1">${soldOutItems.map(name => `• ${name} (Sold Out)`).join('<br>')}</div><br>The order cannot be restored to the cart.`,
                 confirmButtonColor: '#EF4444',
                 confirmButtonText: 'Understood'
             });
@@ -751,10 +751,10 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
         if (soldOutItems.length > 0 || adjustedItems.length > 0) {
             let alertHtml = '';
             if (soldOutItems.length > 0) {
-                alertHtml += `<div class="text-left bg-red-50 p-2.5 rounded-lg border border-red-200 text-xs text-red-700 font-medium space-y-1 mb-2"><strong>Sold out items removed from cart:</strong><br>${soldOutItems.map(n => `• ${n}`).join('<br>')}</div>`;
+                alertHtml += `<div class="text-left bg-red-50 p-2.5 rounded-none border border-red-200 text-xs text-red-700 font-medium space-y-1 mb-2"><strong>Sold out items removed from cart:</strong><br>${soldOutItems.map(n => `• ${n}`).join('<br>')}</div>`;
             }
             if (adjustedItems.length > 0) {
-                alertHtml += `<div class="text-left bg-amber-50 p-2.5 rounded-lg border border-amber-200 text-xs text-amber-800 font-medium space-y-1"><strong>Quantities adjusted to available stock:</strong><br>${adjustedItems.map(n => `• ${n}`).join('<br>')}</div>`;
+                alertHtml += `<div class="text-left bg-amber-50 p-2.5 rounded-none border border-amber-200 text-xs text-amber-800 font-medium space-y-1"><strong>Quantities adjusted to available stock:</strong><br>${adjustedItems.map(n => `• ${n}`).join('<br>')}</div>`;
             }
 
             Swal.fire({
@@ -884,14 +884,14 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                         setCategoryNavIndex(-1);
                                     }}
                                     disabled={isAnyModalOpen}
-                                    className={`px-2.5 sm:px-3.5 h-[38px] rounded-xl border transition-all flex items-center gap-1.5 text-xs sm:text-sm font-bold shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed outline-none focus:outline-none ${selectedCategory === 'all' ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' : 'bg-[#EFF4F9] text-[#1B3B6A] border-[#CBD7E6] font-extrabold'}`}
+                                    className={`px-2.5 sm:px-3.5 h-[38px] rounded-none border transition-all flex items-center gap-1.5 text-xs sm:text-sm font-bold shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed outline-none focus:outline-none ${selectedCategory === 'all' ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' : 'bg-[#EFF4F9] text-[#1B3B6A] border-[#CBD7E6] font-extrabold'}`}
                                     title={showFKeys ? "Category Filter (F1)" : "Category Filter"}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" /></svg>
                                     {showFKeys ? (
                                         <span className="flex items-center gap-1">
                                             <span className="hidden sm:inline">Category</span>
-                                            <span className="text-[10px] font-black font-mono px-1 py-0.2 rounded bg-gray-100 text-gray-600">F1</span>
+                                            <span className="text-[10px] font-black font-mono px-1 py-0.2 rounded-none bg-gray-100 text-gray-600">F1</span>
                                         </span>
                                     ) : (
                                         <span className="hidden sm:inline">Category</span>
@@ -900,7 +900,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                 {showCategoryDropdown && (
                                     <>
                                         <div className="fixed inset-0 z-40" onClick={() => { setShowCategoryDropdown(false); setCategoryNavIndex(-1); }}></div>
-                                        <div className="absolute top-full left-0 mt-1.5 w-64 bg-white rounded-2xl shadow-xl border border-gray-200/90 z-50 py-1.5 animate-fade-in-up max-h-[60vh] overflow-y-auto custom-scrollbar">
+                                        <div className="absolute top-full left-0 mt-1.5 w-64 bg-white rounded-none shadow-xl border border-gray-200/90 z-50 py-1.5 animate-fade-in-up max-h-[60vh] overflow-y-auto custom-scrollbar">
                                             <button
                                                 onClick={() => {setSelectedCategory('all'); setShowCategoryDropdown(false); setCategoryNavIndex(-1); window.dispatchEvent(new CustomEvent('reset-cart-nav'));}}
                                                 className={`w-full text-left px-4 py-2 text-xs font-bold transition-colors flex items-center justify-between outline-none focus:outline-none ${
@@ -950,7 +950,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                     ref={searchInputRef}
                                     type="text"
                                     placeholder="Search product or scan barcode..."
-                                    className="w-full pl-9 pr-12 h-[38px] rounded-xl bg-white border border-slate-300 hover:border-slate-400 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/15 transition-all outline-none text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-normal shadow-2xs disabled:bg-gray-50 disabled:cursor-not-allowed"
+                                    className="w-full pl-9 pr-12 h-[38px] rounded-none bg-white border border-slate-300 hover:border-slate-400 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/15 transition-all outline-none text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 placeholder:font-normal shadow-2xs disabled:bg-gray-50 disabled:cursor-not-allowed"
                                     value={searchQuery}
                                     onChange={(e) => { setSearchQuery(e.target.value); window.dispatchEvent(new CustomEvent('reset-cart-nav')); }}
                                     onKeyDown={handleSearchKeyDown}
@@ -963,7 +963,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                         <button
                                             type="button"
                                             onClick={() => { setSearchQuery(''); searchInputRef.current?.focus(); }}
-                                            className="p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
+                                            className="p-1 text-slate-400 hover:text-slate-600 rounded-none hover:bg-slate-100 transition-colors cursor-pointer"
                                             title="Clear search"
                                         >
                                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -971,7 +971,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                             </svg>
                                         </button>
                                     ) : showFKeys ? (
-                                        <kbd className="hidden sm:inline-flex items-center text-[10px] font-black font-mono px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 border border-slate-200 select-none shadow-2xs">
+                                        <kbd className="hidden sm:inline-flex items-center text-[10px] font-black font-mono px-1.5 py-0.5 rounded-none bg-slate-100 text-slate-500 border border-slate-200 select-none shadow-2xs">
                                             F2
                                         </kbd>
                                     ) : null}
@@ -990,14 +990,14 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                         disabled={isAnyModalOpen}
                                         className="sr-only"
                                     />
-                                    <div className={`rounded-full transition-colors ${isWholesaleActive ? 'bg-[#1B3B6A]' : 'bg-gray-300'} w-[32px] h-[18px] sm:w-[36px] sm:h-[20px]`}></div>
-                                    <div className={`absolute left-[2px] top-[2px] bg-white w-[14px] h-[14px] sm:w-[16px] sm:h-[16px] rounded-full transition-transform shadow-2xs ${isWholesaleActive ? 'transform translate-x-[14px] sm:translate-x-[16px]' : ''}`}></div>
+                                    <div className={`rounded-none transition-colors ${isWholesaleActive ? 'bg-[#1B3B6A]' : 'bg-gray-300'} w-[32px] h-[18px] sm:w-[36px] sm:h-[20px]`}></div>
+                                    <div className={`absolute left-[2px] top-[2px] bg-white w-[14px] h-[14px] sm:w-[16px] sm:h-[16px] rounded-none transition-transform shadow-2xs ${isWholesaleActive ? 'transform translate-x-[14px] sm:translate-x-[16px]' : ''}`}></div>
                                 </div>
                                 <span className="ml-1.5 sm:ml-2 text-xs font-bold text-gray-700 whitespace-nowrap">
                                     {showFKeys ? (
                                         <span className="flex items-center gap-1">
                                             <span className="hidden lg:inline">Wholesale</span>
-                                            <span className="text-[10px] font-black font-mono px-1 py-0.2 rounded bg-gray-100 text-gray-600">F3</span>
+                                            <span className="text-[10px] font-black font-mono px-1 py-0.2 rounded-none bg-gray-100 text-gray-600">F3</span>
                                         </span>
                                     ) : (
                                         <span>Wholesale</span>
@@ -1012,7 +1012,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                     type="button"
                                     onClick={() => setShowCashMovementModal(true)}
                                     disabled={isAnyModalOpen || !shiftData?.has_active_shift}
-                                    className={`flex items-center gap-1.5 px-2.5 xl:px-3.5 h-[38px] rounded-xl border border-gray-200 bg-white text-gray-700 font-bold text-xs sm:text-sm transition-all shadow-2xs shrink-0 whitespace-nowrap active:scale-95 ${
+                                    className={`flex items-center gap-1.5 px-2.5 xl:px-3.5 h-[38px] rounded-none border border-gray-200 bg-white text-gray-700 font-bold text-xs sm:text-sm transition-all shadow-2xs shrink-0 whitespace-nowrap active:scale-95 ${
                                         !shiftData?.has_active_shift
                                             ? 'opacity-40 cursor-not-allowed'
                                             : 'hover:bg-gray-50 hover:border-gray-300 cursor-pointer'
@@ -1022,7 +1022,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-gray-500 shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
                                     <span className="hidden lg:inline-flex items-center gap-1">
                                         <span>Cash<span className="hidden xl:inline"> In/Out</span></span>
-                                        {showFKeys && <span className="text-[10px] font-black font-mono px-1 py-0.2 rounded bg-gray-100 text-gray-600">F4</span>}
+                                        {showFKeys && <span className="text-[10px] font-black font-mono px-1 py-0.2 rounded-none bg-gray-100 text-gray-600">F4</span>}
                                     </span>
                                 </button>
 
@@ -1032,13 +1032,13 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                         type="button"
                                         onClick={() => setShowCloseShiftModal(true)}
                                         disabled={isAnyModalOpen}
-                                        className="flex items-center gap-1.5 px-2.5 xl:px-3.5 h-[38px] rounded-xl border border-[#CBD7E6] bg-[#EFF4F9] hover:bg-[#E2ECF6] text-[#1B3B6A] font-bold text-xs sm:text-sm transition-all shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 whitespace-nowrap"
+                                        className="flex items-center gap-1.5 px-2.5 xl:px-3.5 h-[38px] rounded-none border border-[#CBD7E6] bg-[#EFF4F9] hover:bg-[#E2ECF6] text-[#1B3B6A] font-bold text-xs sm:text-sm transition-all shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 whitespace-nowrap"
                                         title={showFKeys ? "Close Shift & Z-Read (F5)" : "Close Shift"}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-[#1B3B6A] shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
                                         <span className="hidden lg:inline-flex items-center gap-1">
                                             <span>Close<span className="hidden xl:inline"> Shift</span></span>
-                                            {showFKeys && <span className="text-[10px] font-black font-mono px-1 py-0.2 rounded bg-[#CBD7E6]/60 text-[#1B3B6A]">F5</span>}
+                                            {showFKeys && <span className="text-[10px] font-black font-mono px-1 py-0.2 rounded-none bg-[#CBD7E6]/60 text-[#1B3B6A]">F5</span>}
                                         </span>
                                     </button>
                                 ) : (
@@ -1046,23 +1046,23 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                         type="button"
                                         onClick={() => setShowOpenShiftModal(true)}
                                         disabled={isAnyModalOpen}
-                                        className="flex items-center gap-1.5 px-2.5 xl:px-3.5 h-[38px] rounded-xl border border-[#CBD7E6] bg-[#EFF4F9] hover:bg-[#E2ECF6] text-[#1B3B6A] font-bold text-xs sm:text-sm transition-all shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 whitespace-nowrap"
+                                        className="flex items-center gap-1.5 px-2.5 xl:px-3.5 h-[38px] rounded-none border border-[#CBD7E6] bg-[#EFF4F9] hover:bg-[#E2ECF6] text-[#1B3B6A] font-bold text-xs sm:text-sm transition-all shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 whitespace-nowrap"
                                         title={showFKeys ? "Open Shift (F5)" : "Open Shift"}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-[#1B3B6A] shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
                                         <span className="hidden lg:inline-flex items-center gap-1">
                                             <span>Open<span className="hidden xl:inline"> Shift</span></span>
-                                            {showFKeys && <span className="text-[10px] font-black font-mono px-1 py-0.2 rounded bg-[#CBD7E6]/60 text-[#1B3B6A]">F5</span>}
+                                            {showFKeys && <span className="text-[10px] font-black font-mono px-1 py-0.2 rounded-none bg-[#CBD7E6]/60 text-[#1B3B6A]">F5</span>}
                                         </span>
                                     </button>
                                 )}
 
                                 {/* List / Card View Toggle Group (F6) */}
-                                <div className="h-[38px] flex items-center rounded-xl border border-gray-200 overflow-hidden shadow-2xs bg-gray-100 p-1 shrink-0">
+                                <div className="h-[38px] flex items-center rounded-none border border-gray-200 overflow-hidden shadow-2xs bg-gray-100 p-1 shrink-0">
                                     <button
                                         onClick={() => { setProductView('list'); localStorage.setItem('pos_product_view', 'list'); }}
                                         disabled={isAnyModalOpen}
-                                        className={`h-full flex items-center gap-1.5 px-2.5 xl:px-3 rounded-lg text-xs sm:text-sm font-bold transition-all disabled:cursor-not-allowed cursor-pointer shrink-0 whitespace-nowrap ${
+                                        className={`h-full flex items-center gap-1.5 px-2.5 xl:px-3 rounded-none text-xs sm:text-sm font-bold transition-all disabled:cursor-not-allowed cursor-pointer shrink-0 whitespace-nowrap ${
                                             productView === 'list' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'
                                         }`}
                                         title={showFKeys ? "List View (F6)" : "List View"}
@@ -1071,7 +1071,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                         {showFKeys ? (
                                             <span className="hidden lg:inline-flex items-center gap-1">
                                                 <span className="hidden xl:inline">List</span>
-                                                <span className={`text-[10px] font-black font-mono px-1 py-0.2 rounded ${productView === 'list' ? 'bg-gray-100 text-gray-800' : 'bg-gray-200/80 text-gray-600'}`}>F6</span>
+                                                <span className={`text-[10px] font-black font-mono px-1 py-0.2 rounded-none ${productView === 'list' ? 'bg-gray-100 text-gray-800' : 'bg-gray-200/80 text-gray-600'}`}>F6</span>
                                             </span>
                                         ) : (
                                             <span className="hidden xl:inline">List</span>
@@ -1081,7 +1081,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                     <button
                                         onClick={() => { setProductView('card'); localStorage.setItem('pos_product_view', 'card'); }}
                                         disabled={isAnyModalOpen}
-                                        className={`h-full flex items-center gap-1.5 px-2.5 xl:px-3 rounded-lg text-xs sm:text-sm font-bold transition-all disabled:cursor-not-allowed cursor-pointer shrink-0 whitespace-nowrap ${
+                                        className={`h-full flex items-center gap-1.5 px-2.5 xl:px-3 rounded-none text-xs sm:text-sm font-bold transition-all disabled:cursor-not-allowed cursor-pointer shrink-0 whitespace-nowrap ${
                                             productView === 'card' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'
                                         }`}
                                         title="Card View"
@@ -1117,25 +1117,25 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                             <div className={productView === 'card' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3' : 'p-3 space-y-2'}>
                                 {Array.from({ length: productView === 'card' ? 8 : 6 }).map((_, i) => (
                                     productView === 'card' ? (
-                                        <div key={i} className="bg-white rounded-2xl border border-gray-200/80 p-3.5 animate-pulse shadow-2xs">
-                                            <div className="h-24 bg-gray-100 rounded-xl mb-2.5"></div>
-                                            <div className="h-3.5 bg-gray-200 rounded w-3/4 mb-2"></div>
-                                            <div className="h-2.5 bg-gray-100 rounded w-1/2"></div>
+                                        <div key={i} className="bg-white rounded-none border border-gray-200/80 p-3.5 animate-pulse shadow-2xs">
+                                            <div className="h-24 bg-gray-100 rounded-none mb-2.5"></div>
+                                            <div className="h-3.5 bg-gray-200 rounded-none w-3/4 mb-2"></div>
+                                            <div className="h-2.5 bg-gray-100 rounded-none w-1/2"></div>
                                         </div>
                                     ) : (
-                                        <div key={i} className="bg-white p-3.5 rounded-xl border border-gray-200/80 animate-pulse flex justify-between items-center shadow-2xs">
+                                        <div key={i} className="bg-white p-3.5 rounded-none border border-gray-200/80 animate-pulse flex justify-between items-center shadow-2xs">
                                             <div className="space-y-2 w-2/3">
-                                                <div className="h-3.5 bg-gray-200 rounded w-3/4"></div>
-                                                <div className="h-2.5 bg-gray-100 rounded w-1/2"></div>
+                                                <div className="h-3.5 bg-gray-200 rounded-none w-3/4"></div>
+                                                <div className="h-2.5 bg-gray-100 rounded-none w-1/2"></div>
                                             </div>
-                                            <div className="h-5 bg-gray-200 rounded w-16 text-right"></div>
+                                            <div className="h-5 bg-gray-200 rounded-none w-16 text-right"></div>
                                         </div>
                                     )
                                 ))}
                             </div>
                         ) : filteredProducts.length === 0 ? (
                             <div className="flex flex-col justify-center items-center h-full text-gray-300 py-12 space-y-2">
-                                <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-300">
+                                <div className="w-12 h-12 rounded-none bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-300">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" /></svg>
                                 </div>
                                 <p className="text-xs font-bold text-gray-500">
@@ -1160,7 +1160,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                             key={p.id}
                                             onClick={() => !isSoldOut && triggerQtyModal(p)}
                                             data-catalog-item-index={index}
-                                            className={`bg-white rounded-xl border transition-all p-2.5 flex flex-col justify-between group relative overflow-hidden shadow-2xs hover:shadow-md ${
+                                            className={`bg-white rounded-none border transition-all p-2.5 flex flex-col justify-between group relative overflow-hidden shadow-2xs hover:shadow-md ${
                                                 isSoldOut
                                                     ? 'opacity-50 cursor-not-allowed border-gray-200 bg-gray-50/50'
                                                     : isHighlighted
@@ -1169,7 +1169,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                             }`}
                                         >
                                             {/* Image / Placeholder */}
-                                            <div className="h-24 sm:h-26 bg-gray-50/80 rounded-lg flex items-center justify-center overflow-hidden relative border border-gray-100 mb-2 shrink-0">
+                                            <div className="h-24 sm:h-26 bg-gray-50/80 rounded-none flex items-center justify-center overflow-hidden relative border border-gray-100 mb-2 shrink-0">
                                                 {p.image_path ? (
                                                     <img src={p.image_path} alt={p.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                                                 ) : (
@@ -1180,13 +1180,13 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                                 {/* Top Badges (SKU & Stock) perfectly aligned */}
                                                 <div className="absolute top-1.5 inset-x-1.5 flex items-center justify-between gap-1 pointer-events-none">
                                                     {p.sku ? (
-                                                        <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold font-mono bg-white text-slate-700 border border-slate-200 shadow-2xs truncate max-w-[55%] leading-tight pointer-events-auto">
+                                                        <span className="px-1.5 py-0.5 rounded-none text-[9px] font-bold font-mono bg-white text-slate-700 border border-slate-200 shadow-2xs truncate max-w-[55%] leading-tight pointer-events-auto">
                                                             {p.sku}
                                                         </span>
                                                     ) : (
                                                         <span />
                                                     )}
-                                                    <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold font-mono shadow-2xs border shrink-0 leading-tight ${
+                                                    <span className={`px-1.5 py-0.5 rounded-none text-[9px] font-bold font-mono shadow-2xs border shrink-0 leading-tight ${
                                                         isSoldOut
                                                             ? 'bg-rose-50 text-rose-700 border-rose-200'
                                                             : isLowStock
@@ -1208,7 +1208,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                                     </div>
                                                     <div className="h-4 mt-1 flex items-center">
                                                         {p.category ? (
-                                                            <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200/50 truncate max-w-full">
+                                                            <span className="inline-flex items-center px-1.5 py-0.2 rounded-none text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200/50 truncate max-w-full">
                                                                 {p.category.name}
                                                             </span>
                                                         ) : (
@@ -1221,7 +1221,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                                         {(appliedPrice / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </span>
                                                     {!isSoldOut && (
-                                                        <div className="w-6 h-6 bg-[#EFF4F9] text-[#1B3B6A] rounded-lg flex items-center justify-center text-xs font-black group-hover:bg-[#1B3B6A] group-hover:text-white transition-all shadow-2xs">
+                                                        <div className="w-6 h-6 bg-[#EFF4F9] text-[#1B3B6A] rounded-none flex items-center justify-center text-xs font-black group-hover:bg-[#1B3B6A] group-hover:text-white transition-all shadow-2xs">
                                                             +
                                                         </div>
                                                     )}
@@ -1261,7 +1261,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                                         <span className="lg:hidden font-mono text-xs font-bold text-gray-400">{p.sku}</span>
                                                     )}
                                                     {p.category && (
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200/60">
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-none text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200/60">
                                                             {p.category.name}
                                                         </span>
                                                     )}
@@ -1296,7 +1296,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                 {!isMobileCartOpen && (
                     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 z-40 flex justify-between items-center shadow-2xl">
                         <div className="flex flex-col"><span className="text-[10px] text-gray-500 font-bold uppercase">{cart.length} Items</span><span className="text-lg font-black text-[#1B3B6A] font-mono">{(total/100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
-                        <button onClick={() => setIsMobileCartOpen(true)} className="bg-[#1B3B6A] text-white px-6 py-2.5 rounded-xl font-bold active:scale-95 transition-all shadow-md text-xs cursor-pointer">View Current Order</button>
+                        <button onClick={() => setIsMobileCartOpen(true)} className="bg-[#1B3B6A] text-white px-6 py-2.5 rounded-none font-bold active:scale-95 transition-all shadow-md text-xs cursor-pointer">View Current Order</button>
                     </div>
                 )}
             </div>
@@ -1304,11 +1304,11 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
             {/* HELD ORDERS MODAL */}
             {showHeldOrdersModal && (
                 <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[100] p-0 sm:p-4 backdrop-blur-sm transition-opacity">
-                    <div className="bg-white w-full max-w-md h-auto max-h-[85vh] sm:max-h-[90vh] rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-200/90 flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in">
+                    <div className="bg-white w-full max-w-md h-auto max-h-[85vh] sm:max-h-[90vh] rounded-none shadow-2xl border border-gray-200/90 flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in">
                         {/* Header */}
                         <div className="bg-white px-5 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
                             <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-xl bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center shrink-0">
+                                <div className="w-8 h-8 rounded-none bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 </div>
                                 <div>
@@ -1318,7 +1318,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                             </div>
                             <button
                                 onClick={() => { setShowHeldOrdersModal(false); setHeldOrdersNavIndex(-1); }}
-                                className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-xl transition-colors shadow-2xs cursor-pointer"
+                                className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-none transition-colors shadow-2xs cursor-pointer"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
@@ -1327,8 +1327,8 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                         <div className="flex-1 overflow-y-auto p-4 sm:p-5 custom-scrollbar bg-white flex flex-col gap-2.5">
                             {heldOrders.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-12 text-gray-400 space-y-2">
-                                    <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-300">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+                                    <div className="w-12 h-12 rounded-none bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-300">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
                                     </div>
                                     <p className="font-bold text-xs text-gray-500">No saved orders found</p>
                                 </div>
@@ -1343,7 +1343,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                                 key={order.id}
                                                 data-held-order-index={index}
                                                 onClick={() => setHeldOrdersNavIndex(index)}
-                                                className={`bg-white rounded-2xl border transition-all p-3.5 flex flex-col gap-2.5 cursor-pointer group shadow-2xs hover:bg-gray-50
+                                                className={`bg-white rounded-none border transition-all p-3.5 flex flex-col gap-2.5 cursor-pointer group shadow-2xs hover:bg-gray-50
                                                     ${isSelected ? 'border-[#1B3B6A]/70 bg-[#EFF4F9]/30 shadow-xs' : 'border-gray-200/80'}`}
                                             >
                                                 {/* Top Row: Note & Price */}
@@ -1370,14 +1370,14 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                                     <div className="flex items-center gap-1.5 shrink-0 select-none">
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleDiscardHeldOrder(order); }}
-                                                            className="p-2 text-gray-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-colors cursor-pointer"
+                                                            className="p-2 text-gray-400 hover:text-rose-600 rounded-none hover:bg-rose-50 transition-colors cursor-pointer"
                                                             title="Discard (Backspace)"
                                                         >
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
                                                         </button>
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleRecallOrder(order); }}
-                                                            className="px-3.5 py-1.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-2xs active:scale-95 flex items-center gap-1 cursor-pointer"
+                                                            className="px-3.5 py-1.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold rounded-none text-xs sm:text-sm transition-all shadow-2xs active:scale-95 flex items-center gap-1 cursor-pointer"
                                                             title="Recall (Enter)"
                                                         >
                                                             Recall
@@ -1395,7 +1395,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                             <button
                                 type="button"
                                 onClick={() => { setShowHeldOrdersModal(false); setHeldOrdersNavIndex(-1); }}
-                                className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl hover:bg-gray-50 transition-all active:scale-95 shadow-2xs cursor-pointer"
+                                className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold text-xs sm:text-sm uppercase tracking-wider rounded-none hover:bg-gray-50 transition-all active:scale-95 shadow-2xs cursor-pointer"
                             >
                                 Cancel<span className="hidden md:inline"> (Esc)</span>
                             </button>
@@ -1431,11 +1431,11 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                             }
                             e.stopPropagation();
                         }}
-                        className="bg-white w-full max-w-sm h-auto max-h-[85vh] sm:max-h-[90vh] rounded-t-2xl sm:rounded-2xl shadow-2xl border border-gray-200/90 flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in"
+                        className="bg-white w-full max-w-sm h-auto max-h-[85vh] sm:max-h-[90vh] rounded-none shadow-2xl border border-gray-200/90 flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in"
                     >
                         <div className="bg-white px-5 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
                             <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-xl bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center shrink-0">
+                                <div className="w-8 h-8 rounded-none bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                 </div>
                                 <div>
@@ -1446,7 +1446,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                             <button
                                 type="button"
                                 onClick={closeQtyModal}
-                                className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-xl transition-colors shadow-2xs cursor-pointer"
+                                className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-none transition-colors shadow-2xs cursor-pointer"
                                 title="Close (Esc)"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -1454,7 +1454,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                         </div>
                         <form onSubmit={handleConfirmQty} className="flex-1 overflow-y-auto p-5 custom-scrollbar flex flex-col">
                             {/* Product Info Summary */}
-                            <div className="text-center mb-4 p-3.5 rounded-2xl bg-[#EFF4F9] border border-[#CBD7E6] shrink-0">
+                            <div className="text-center mb-4 p-3.5 rounded-none bg-[#EFF4F9] border border-[#CBD7E6] shrink-0">
                                 <div className="text-[10px] text-gray-400 uppercase tracking-widest font-black mb-0.5">Item Selected</div>
                                 <div className="text-sm sm:text-base font-black text-gray-900 tracking-tight leading-snug break-words px-2">{qtyModalProduct.name}</div>
                                 <div className="text-xl font-black text-[#1B3B6A] tracking-tight mt-1 font-mono">
@@ -1463,7 +1463,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                             </div>
 
                             {/* Quantity Input Wrapper */}
-                            <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-2xs flex-1 flex flex-col justify-center">
+                            <div className="bg-white p-4 rounded-none border border-gray-200/80 shadow-2xs flex-1 flex flex-col justify-center">
                                 <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 text-left">Quantity Count</label>
                                 <input
                                     ref={qtyInputRef}
@@ -1473,7 +1473,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                                     max={qtyModalProduct.stock_quantity}
                                     value={qtyModalInput}
                                     onChange={(e) => setQtyModalInput(e.target.value)}
-                                    className="w-full px-4 py-2.5 text-center text-3xl font-black text-gray-900 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1B3B6A]/20 focus:border-[#1B3B6A] shadow-2xs font-mono transition-all outline-none"
+                                    className="w-full px-4 py-2.5 text-center text-3xl font-black text-gray-900 border border-gray-200 rounded-none focus:ring-2 focus:ring-[#1B3B6A]/20 focus:border-[#1B3B6A] shadow-2xs font-mono transition-all outline-none"
                                     placeholder="0"
                                     autoFocus
                                     onFocus={(e) => e.target.select()}
@@ -1496,14 +1496,14 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                             <div className="flex flex-col gap-2 mt-5 pb-1 shrink-0">
                                 <button
                                     type="submit"
-                                    className="w-full py-3.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+                                    className="w-full py-3.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-none shadow-md transition-all active:scale-95 cursor-pointer"
                                 >
                                     Add to Cart<span className="hidden md:inline"> (Enter)</span>
                                 </button>
                                 <button
                                     type="button"
                                     onClick={closeQtyModal}
-                                    className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl hover:bg-gray-50 transition-all active:scale-95 shadow-2xs cursor-pointer"
+                                    className="w-full py-2.5 bg-white text-gray-700 border border-gray-200 font-bold text-xs sm:text-sm uppercase tracking-wider rounded-none hover:bg-gray-50 transition-all active:scale-95 shadow-2xs cursor-pointer"
                                 >
                                     Cancel<span className="hidden md:inline"> (Esc)</span>
                                 </button>

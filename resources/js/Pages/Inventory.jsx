@@ -1108,7 +1108,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
             html: `
                 <div class="text-center font-sans pt-1">
                     <p class="text-sm text-gray-600 mb-4">This administrative action is locked in the public demonstration version.</p>
-                    <a href="https://www.facebook.com/aldrie.baquiran" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold text-xs rounded-xl shadow-md transition-all duration-150 no-underline cursor-pointer">
+                    <a href="https://www.facebook.com/aldrie.baquiran" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold text-xs rounded-none shadow-md transition-all duration-150 no-underline cursor-pointer">
                         <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                         Contact Provider on Facebook
                     </a>
@@ -1933,7 +1933,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                         denyButtonColor: '#d97706',    // amber
                         cancelButtonColor: '#6b7280',  // gray
                         customClass: {
-                            popup: 'rounded-2xl'
+                            popup: 'rounded-none'
                         }
                     });
 
@@ -2275,13 +2275,13 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                     <div className={`grid ${isAdmin ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3 lg:grid-cols-3'} gap-2.5 sm:gap-4`}>
                         {/* KPI 1: Inventory Valuation (Admin Only) */}
                         {isAdmin && (
-                            <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                            <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                                 <div className="flex justify-between items-start gap-2">
                                     <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                         <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider truncate">Retail Value</p>
                                         <h3 className="text-base sm:text-2xl font-black text-gray-900 tracking-tight truncate">{formatCurrency(stats.totalRetailValue)}</h3>
                                     </div>
-                                    <div className="p-2 sm:p-2.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-xl ring-1 ring-[#CBD7E6] shrink-0">
+                                    <div className="p-2 sm:p-2.5 bg-[#EFF4F9] text-[#1B3B6A] rounded-none ring-1 ring-[#CBD7E6] shrink-0">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
@@ -2295,13 +2295,13 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                         )}
 
                         {/* KPI 2: Stock Units Volume */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-gray-500 uppercase tracking-wider truncate">Total In Stock</p>
                                     <h3 className="text-base sm:text-2xl font-black text-gray-900 tracking-tight truncate">{stats.totalStockUnits.toLocaleString()} <span className="text-xs font-semibold text-gray-400">units</span></h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-blue-50 text-blue-600 rounded-xl ring-1 ring-blue-100 shrink-0">
+                                <div className="p-2 sm:p-2.5 bg-blue-50 text-blue-600 rounded-none ring-1 ring-blue-100 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                                     </svg>
@@ -2314,13 +2314,13 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                         </div>
 
                         {/* KPI 3: Low Stock Warning */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-amber-700 uppercase tracking-wider truncate">Low Stock</p>
                                     <h3 className="text-base sm:text-2xl font-black text-amber-900 tracking-tight truncate">{stats.lowStockCount} <span className="text-xs font-semibold text-amber-600">items</span></h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-amber-100/70 text-amber-700 rounded-xl ring-1 ring-amber-200 shrink-0">
+                                <div className="p-2 sm:p-2.5 bg-amber-100/70 text-amber-700 rounded-none ring-1 ring-amber-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                                     </svg>
@@ -2333,13 +2333,13 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                         </div>
 
                         {/* KPI 4: Out of Stock */}
-                        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div className="bg-white p-3.5 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs relative overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="space-y-0.5 sm:space-y-1 min-w-0">
                                     <p className="text-[10px] sm:text-[11px] font-black text-rose-700 uppercase tracking-wider truncate">Out of Stock</p>
                                     <h3 className="text-base sm:text-2xl font-black text-rose-900 tracking-tight truncate">{stats.outOfStockCount} <span className="text-xs font-semibold text-rose-600">items</span></h3>
                                 </div>
-                                <div className="p-2 sm:p-2.5 bg-rose-100/70 text-rose-700 rounded-xl ring-1 ring-rose-200 shrink-0">
+                                <div className="p-2 sm:p-2.5 bg-rose-100/70 text-rose-700 rounded-none ring-1 ring-rose-200 shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                                     </svg>
@@ -2361,32 +2361,14 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 <button
                                     data-tab="all"
                                     onClick={() => handleStockTabChange('all')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
                                         stockTab === 'all'
                                             ? 'bg-white text-[#1B3B6A] font-black border-t-[#1B3B6A] border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {stockTab === 'all' && (
-                                        <>
-                                            {/* Left Inverted Scoop Radius */}
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            {/* Right Inverted Scoop Radius */}
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>All Catalog</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         stockTab === 'all' 
                                             ? 'bg-[#1B3B6A] text-white shadow-2xs' 
                                             : 'bg-gray-200/80 text-gray-600 group-hover:bg-gray-300 group-hover:text-gray-800'
@@ -2399,32 +2381,14 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 <button
                                     data-tab="in_stock"
                                     onClick={() => handleStockTabChange('in_stock')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
                                         stockTab === 'in_stock'
                                             ? 'bg-white text-emerald-800 font-black border-t-emerald-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {stockTab === 'in_stock' && (
-                                        <>
-                                            {/* Left Inverted Scoop Radius */}
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            {/* Right Inverted Scoop Radius */}
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Healthy In Stock</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         stockTab === 'in_stock' 
                                             ? 'bg-emerald-600 text-white shadow-2xs' 
                                             : 'bg-emerald-50 text-emerald-700 group-hover:bg-emerald-100'
@@ -2437,32 +2401,14 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 <button
                                     data-tab="low_stock"
                                     onClick={() => handleStockTabChange('low_stock')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
                                         stockTab === 'low_stock'
                                             ? 'bg-white text-amber-900 font-black border-t-amber-500 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {stockTab === 'low_stock' && (
-                                        <>
-                                            {/* Left Inverted Scoop Radius */}
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            {/* Right Inverted Scoop Radius */}
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Low Stock Alerts</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         stockTab === 'low_stock' 
                                             ? 'bg-amber-500 text-white shadow-2xs' 
                                             : 'bg-amber-50 text-amber-700 group-hover:bg-amber-100'
@@ -2475,32 +2421,14 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 <button
                                     data-tab="out_of_stock"
                                     onClick={() => handleStockTabChange('out_of_stock')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
                                         stockTab === 'out_of_stock'
                                             ? 'bg-white text-rose-900 font-black border-t-rose-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {stockTab === 'out_of_stock' && (
-                                        <>
-                                            {/* Left Inverted Scoop Radius */}
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            {/* Right Inverted Scoop Radius */}
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Out of Stock</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         stockTab === 'out_of_stock' 
                                             ? 'bg-rose-600 text-white shadow-2xs' 
                                             : 'bg-rose-50 text-rose-700 group-hover:bg-rose-100'
@@ -2513,32 +2441,14 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 <button
                                     data-tab="archived"
                                     onClick={() => handleStockTabChange('archived')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-t-xl text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
                                         stockTab === 'archived'
                                             ? 'bg-white text-slate-900 font-black border-t-slate-700 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
-                                    {stockTab === 'archived' && (
-                                        <>
-                                            {/* Left Inverted Scoop Radius */}
-                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                            {/* Right Inverted Scoop Radius */}
-                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
-                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
-                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
-                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
-                                                </svg>
-                                            </div>
-                                        </>
-                                    )}
                                     <span>Archived Items</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black transition-all ${
+                                    <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         stockTab === 'archived' 
                                             ? 'bg-slate-700 text-white shadow-2xs' 
                                             : 'bg-slate-100 text-slate-700 group-hover:bg-slate-200'
@@ -2550,7 +2460,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                         </div>
 
                     {/* MAIN CONTENT CARD: TOOLBAR + TABLE / CARDS + PAGINATION */}
-                    <div className="bg-white rounded-b-2xl sm:rounded-tr-2xl border border-gray-200/80 shadow-sm overflow-hidden flex flex-col relative z-10">
+                    <div className="bg-white rounded-none border border-gray-200/80 shadow-sm overflow-hidden flex flex-col relative z-10">
                         
                         {/* 3. FULLY RESPONSIVE SEARCH, FILTER & OPERATIONAL TOOLBAR */}
                         <div className="p-3.5 sm:p-4 bg-white border-b border-gray-100 space-y-3 relative z-10">
@@ -2563,7 +2473,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                         <input
                                             type="text"
                                             placeholder="Search by SKU, product name, barcode..."
-                                            className="pl-11 pr-10 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl w-full focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 focus:bg-white text-sm font-medium transition-all shadow-2xs"
+                                            className="pl-11 pr-10 py-2.5 bg-gray-50/70 border border-gray-200 rounded-none w-full focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 focus:bg-white text-sm font-medium transition-all shadow-2xs"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                         />
@@ -2576,11 +2486,11 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                     </div>
 
                                     {/* View Mode Toggle (Desktop only) */}
-                                    <div className="hidden lg:inline-flex rounded-xl bg-gray-100 p-1 border border-gray-200 shrink-0 self-start sm:self-auto">
+                                    <div className="hidden lg:inline-flex rounded-none bg-gray-100 p-1 border border-gray-200 shrink-0 self-start sm:self-auto">
                                         <button
                                             type="button"
                                             onClick={() => handleViewModeChange('table')}
-                                            className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'table' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                            className={`p-2 rounded-none transition-all flex items-center gap-1.5 text-xs ${viewMode === 'table' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
                                             title="List View"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
@@ -2589,7 +2499,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                         <button
                                             type="button"
                                             onClick={() => handleViewModeChange('grid')}
-                                            className={`p-2 rounded-lg transition-all flex items-center gap-1.5 text-xs ${viewMode === 'grid' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
+                                            className={`p-2 rounded-none transition-all flex items-center gap-1.5 text-xs ${viewMode === 'grid' ? 'bg-white text-gray-900 shadow-xs font-black' : 'text-gray-500 hover:text-gray-900 font-medium'}`}
                                             title="Card View"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25h-2.25a2.25 2.25 0 01-2.25-2.25v-2.25z" /></svg>
@@ -2602,7 +2512,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                         <select
                                             value={filterCategory}
                                             onChange={(e) => setFilterCategory(e.target.value)}
-                                            className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[160px] lg:w-[175px] shrink-0"
+                                            className="bg-gray-50/70 border border-gray-200 rounded-none py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[160px] lg:w-[175px] shrink-0"
                                         >
                                             <option value="">All Categories ({categories.length})</option>
                                             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -2611,7 +2521,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                         <select
                                             value={sortBy}
                                             onChange={(e) => setSortBy(e.target.value)}
-                                            className="bg-gray-50/70 border border-gray-200 rounded-xl py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[160px] lg:w-[175px] shrink-0"
+                                            className="bg-gray-50/70 border border-gray-200 rounded-none py-2.5 pl-3 pr-7 sm:pl-3.5 sm:pr-8 focus:border-[#1B3B6A] focus:ring-2 focus:ring-[#1B3B6A]/10 text-gray-700 text-xs sm:text-sm font-semibold transition-all shadow-2xs w-full sm:w-[160px] lg:w-[175px] shrink-0"
                                         >
                                             <option value="newest">Sort: Default</option>
                                             <option value="created_desc">Sort: Newest Added</option>
@@ -2643,7 +2553,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                             {/* 1. Categories */}
                                             <button
                                                 onClick={() => setShowCategoryManager(true)}
-                                                className="w-full lg:w-auto justify-center px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0"
+                                                className="w-full lg:w-auto justify-center px-3.5 py-2.5 rounded-none font-bold text-xs sm:text-sm bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-gray-500"><path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.386l4.248-2.493c.827-.486 1.055-1.545.474-2.308l-8.62-11.23a2.25 2.25 0 00-1.781-.845z" /><path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" /></svg>
                                                 <span>Categories</span>
@@ -2652,7 +2562,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                             {/* 2. Activity Feed */}
                                             <button
                                                 onClick={openRecentActivity}
-                                                className="w-full lg:w-auto justify-center px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0"
+                                                className="w-full lg:w-auto justify-center px-3.5 py-2.5 rounded-none font-bold text-xs sm:text-sm bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0"
                                                 title="View Recent Store Stock Activity & History"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-[#1B3B6A]">
@@ -2666,7 +2576,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowDataMenu(!showDataMenu)}
-                                                    className="w-full lg:w-auto justify-center px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-[#EFF4F9] text-[#1B3B6A] hover:bg-[#E2ECF6] border border-[#CBD7E6] shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+                                                    className="w-full lg:w-auto justify-center px-3.5 py-2.5 rounded-none font-bold text-xs sm:text-sm bg-[#EFF4F9] text-[#1B3B6A] hover:bg-[#E2ECF6] border border-[#CBD7E6] shadow-2xs transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-[#1B3B6A]"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
                                                     <span>Data & Export</span>
@@ -2674,7 +2584,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                 </button>
 
                                                 {showDataMenu && (
-                                                    <div className="absolute left-0 lg:left-auto lg:right-0 top-full mt-2 w-full sm:w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                                    <div className="absolute left-0 lg:left-auto lg:right-0 top-full mt-2 w-full sm:w-56 bg-white rounded-none shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                                                         <div className="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400">Data Import</div>
                                                         <button
                                                             onClick={() => { setShowDataMenu(false); document.getElementById('excel-import-input').click(); }}
@@ -2720,7 +2630,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                             {/* 4. Add Product */}
                                             <button
                                                 onClick={openAddModal}
-                                                className="w-full lg:w-auto justify-center px-3.5 sm:px-4 py-2.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white rounded-xl font-bold shadow-md shadow-[#1B3B6A]/15 active:scale-95 transition-all text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0"
+                                                className="w-full lg:w-auto justify-center px-3.5 sm:px-4 py-2.5 bg-[#1B3B6A] hover:bg-[#142E54] text-white rounded-none font-bold shadow-md shadow-[#1B3B6A]/15 active:scale-95 transition-all text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                                 <span>Add Product</span>
@@ -2811,7 +2721,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                     type="checkbox"
                                                                     checked={isSelected}
                                                                     onChange={() => handleToggleSelect(p.id)}
-                                                                    className="w-4 h-4 text-[#1B3B6A] border-gray-300 rounded focus:ring-[#1B3B6A] cursor-pointer"
+                                                                    className="w-4 h-4 text-[#1B3B6A] border-gray-300 rounded-none focus:ring-[#1B3B6A] cursor-pointer"
                                                                 />
                                                             </td>
 
@@ -2825,7 +2735,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                             {/* Product Details */}
                                                             <td className="p-4 whitespace-nowrap">
                                                                 <div className="flex items-center gap-3 whitespace-nowrap">
-                                                                    <div className="w-11 h-11 bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
+                                                                    <div className="w-11 h-11 bg-gray-100 rounded-none border border-gray-200 flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
                                                                         {p.image_path ? (
                                                                             <img src={p.image_path} className="w-full h-full object-cover" loading="lazy" decoding="async" alt={p.name} />
                                                                         ) : (
@@ -2846,7 +2756,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                             {/* Category */}
                                                             <td className="p-4 whitespace-nowrap">
                                                                 {p.category ? (
-                                                                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700 whitespace-nowrap">
+                                                                    <span className="px-2.5 py-1 rounded-none text-xs font-bold bg-gray-100 text-gray-700 whitespace-nowrap">
                                                                         {p.category.name}
                                                                     </span>
                                                                 ) : (
@@ -2873,7 +2783,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
 
                                                             {/* Stock Status */}
                                                             <td className="p-4 whitespace-nowrap text-center">
-                                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase border shadow-2xs whitespace-nowrap ${
+                                                                <span className={`inline-flex items-center px-3 py-1 rounded-none text-xs font-black tracking-wider uppercase border shadow-2xs whitespace-nowrap ${
                                                                     isOut 
                                                                         ? 'bg-rose-50 text-rose-700 border-rose-200' 
                                                                         : isLow 
@@ -2891,7 +2801,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                     {isAdmin && (
                                                                         <button
                                                                             onClick={() => handleQuickAdd(p)}
-                                                                            className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95"
+                                                                            className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-none transition-colors inline-flex items-center justify-center active:scale-95"
                                                                             title="Restock Inventory"
                                                                         >
                                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
@@ -2902,7 +2812,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                     {isAdmin && (
                                                                         <button
                                                                             onClick={() => openStockHistory(p)}
-                                                                            className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95"
+                                                                            className="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-none transition-colors inline-flex items-center justify-center active:scale-95"
                                                                             title="View Stock Movement & Sales History"
                                                                         >
                                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -2912,7 +2822,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                     {/* Print Label */}
                                                                     <button
                                                                         onClick={() => setPrintState({ isOpen: true, product: p, quantity: 1, mode: 'thermal' })}
-                                                                        className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95"
+                                                                        className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-none transition-colors inline-flex items-center justify-center active:scale-95"
                                                                         title="Print Barcode Label"
                                                                     >
                                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
@@ -2921,7 +2831,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                     {/* Save PNG Barcode */}
                                                                     <button
                                                                         onClick={() => downloadLabelImage(p, settings?.store_name || 'POS STORE')}
-                                                                        className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95"
+                                                                        className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-none transition-colors inline-flex items-center justify-center active:scale-95"
                                                                         title="Save PNG Barcode"
                                                                     >
                                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
@@ -2932,7 +2842,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                             {/* Edit Product */}
                                                                             <button
                                                                                 onClick={() => openEditModal(p)}
-                                                                                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95"
+                                                                                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-none transition-colors inline-flex items-center justify-center active:scale-95"
                                                                                 title="Edit Product"
                                                                             >
                                                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
@@ -2941,7 +2851,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                             {/* Archive / Restore */}
                                                                             <button
                                                                                 onClick={() => handleToggleActive(p)}
-                                                                                className={`p-1.5 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95 ${p.is_active ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-50' : 'text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50'}`}
+                                                                                className={`p-1.5 rounded-none transition-colors inline-flex items-center justify-center active:scale-95 ${p.is_active ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-50' : 'text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50'}`}
                                                                                 title={p.is_active ? "Archive Product" : "Restore Product"}
                                                                             >
                                                                                 {p.is_active ? (
@@ -2954,7 +2864,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                             {/* Delete Product */}
                                                                             <button
                                                                                 onClick={() => handleDelete(p)}
-                                                                                className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors inline-flex items-center justify-center active:scale-95"
+                                                                                className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-none transition-colors inline-flex items-center justify-center active:scale-95"
                                                                                 title="Delete Product"
                                                                             >
                                                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
@@ -2978,24 +2888,24 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4">
                                 {loading ? (
                                     Array.from({ length: 4 }).map((_, index) => (
-                                        <div key={`mob-skel-${index}`} className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-2xs flex flex-col gap-3 animate-pulse">
+                                        <div key={`mob-skel-${index}`} className="bg-white p-4 rounded-none border border-gray-200/80 shadow-2xs flex flex-col gap-3 animate-pulse">
                                             <div className="flex gap-3.5">
-                                                <div className="w-20 h-20 bg-gray-200 rounded-xl shrink-0"></div>
+                                                <div className="w-20 h-20 bg-gray-200 rounded-none shrink-0"></div>
                                                 <div className="flex-1 flex flex-col justify-center gap-2">
-                                                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                                                    <div className="h-3 bg-gray-200 rounded w-1/3 mt-1"></div>
+                                                    <div className="h-4 bg-gray-200 rounded-none w-3/4"></div>
+                                                    <div className="h-3 bg-gray-200 rounded-none w-1/3 mt-1"></div>
                                                     <div className="flex justify-between items-end mt-1">
-                                                        <div className="h-5 bg-gray-200 rounded w-1/3"></div>
-                                                        <div className="h-4 bg-gray-200 rounded-full w-1/4"></div>
+                                                        <div className="h-5 bg-gray-200 rounded-none w-1/3"></div>
+                                                        <div className="h-4 bg-gray-200 rounded-none w-1/4"></div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     ))
                                 ) : paginatedProducts.length === 0 ? (
-                                    <div className="col-span-full bg-white py-8 px-4 rounded-2xl border border-gray-200/80 text-center text-gray-500 font-bold">
+                                    <div className="col-span-full bg-white py-8 px-4 rounded-none border border-gray-200/80 text-center text-gray-500 font-bold">
                                         <div className="max-w-xs mx-auto flex flex-col items-center">
-                                            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mb-2">
+                                            <div className="w-10 h-10 bg-gray-100 rounded-none flex items-center justify-center text-gray-400 mb-2">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
                                             </div>
                                             <p className="text-gray-900 font-black text-sm">No items found</p>
@@ -3012,12 +2922,12 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                         return (
                                             <div 
                                                 key={p.id} 
-                                                className={`bg-white rounded-2xl border shadow-2xs p-3.5 sm:p-4 flex flex-col justify-between gap-3 hover:shadow-md transition-all ${
+                                                className={`bg-white rounded-none border shadow-2xs p-3.5 sm:p-4 flex flex-col justify-between gap-3 hover:shadow-md transition-all ${
                                                     isSelected ? 'border-[#1B3B6A] ring-2 ring-[#1B3B6A]/20' : 'border-gray-200/80'
                                                 }`}
                                             >
                                                 <div className="flex gap-3 sm:gap-3.5">
-                                                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                                                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-none border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
                                                         {p.image_path ? (
                                                             <img src={p.image_path} className="w-full h-full object-cover" loading="lazy" alt={p.name} />
                                                         ) : (
@@ -3028,7 +2938,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                 type="checkbox"
                                                                 checked={isSelected}
                                                                 onChange={() => handleToggleSelect(p.id)}
-                                                                className="w-4 h-4 text-[#1B3B6A] border-gray-300 rounded shadow-xs cursor-pointer bg-white"
+                                                                className="w-4 h-4 text-[#1B3B6A] border-gray-300 rounded-none shadow-xs cursor-pointer bg-white"
                                                             />
                                                         </div>
                                                     </div>
@@ -3042,7 +2952,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                     <span className="text-[10px] font-medium text-gray-400 italic">General</span>
                                                                 )}
                                                                 {!p.is_active && (
-                                                                    <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-black tracking-wider uppercase bg-slate-100 text-slate-500 border border-slate-200">
+                                                                    <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-none text-[8px] font-black tracking-wider uppercase bg-slate-100 text-slate-500 border border-slate-200">
                                                                         Archived
                                                                     </span>
                                                                 )}
@@ -3061,7 +2971,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                     WS: {formatCurrency(p.wholesale_price || 0)}
                                                                 </span>
                                                             </div>
-                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${isOut ? 'bg-rose-100 text-rose-700' : isLow ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                                            <span className={`px-2 py-0.5 rounded-none text-[10px] font-black uppercase tracking-wider ${isOut ? 'bg-rose-100 text-rose-700' : isLow ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
                                                                 {qty} Left
                                                             </span>
                                                         </div>
@@ -3069,7 +2979,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                 </div>
 
                                                 {/* Barcode & Optional Cost */}
-                                                <div className="flex justify-between items-center bg-gray-50/80 px-3 py-1.5 rounded-xl border border-gray-100 text-xs">
+                                                <div className="flex justify-between items-center bg-gray-50/80 px-3 py-1.5 rounded-none border border-gray-100 text-xs">
                                                     <span className="font-mono text-xs font-bold text-gray-600 truncate">
                                                         Barcode: {p.sku || 'N/A'}
                                                     </span>
@@ -3086,7 +2996,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                             {/* Restock */}
                                                             <button 
                                                                 onClick={() => handleQuickAdd(p)} 
-                                                                className="py-1.5 px-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl border border-blue-200 flex items-center justify-center gap-1 active:scale-95 transition-all"
+                                                                className="py-1.5 px-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-none border border-blue-200 flex items-center justify-center gap-1 active:scale-95 transition-all"
                                                                 title="Restock Inventory"
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
@@ -3095,8 +3005,8 @@ export default function Inventory({ auth, initial_products, initial_categories, 
 
                                                             {/* Stock History Ledger */}
                                                             <button 
-                                                                onClick={() => openStockHistory(p)}
-                                                                className="py-1.5 px-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-xl border border-indigo-200 flex items-center justify-center gap-1 active:scale-95 transition-all"
+                                                                onClick={() => openStockHistory(p)} 
+                                                                className="py-1.5 px-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-none border border-indigo-200 flex items-center justify-center gap-1 active:scale-95 transition-all"
                                                                 title="Stock Movement Ledger"
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5 text-indigo-600"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -3106,7 +3016,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                             {/* Print Barcode */}
                                                             <button 
                                                                 onClick={() => setPrintState({ isOpen: true, product: p, quantity: 1, mode: 'thermal' })} 
-                                                                className="py-1.5 px-1.5 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center gap-1 active:scale-95 transition-all"
+                                                                className="py-1.5 px-1.5 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-none border border-gray-200 flex items-center justify-center gap-1 active:scale-95 transition-all"
                                                                 title="Print Barcode Label"
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
@@ -3119,7 +3029,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                             {/* Save PNG Barcode */}
                                                             <button 
                                                                 onClick={() => downloadLabelImage(p, settings?.store_name || 'POS STORE')} 
-                                                                className="flex-1 py-1.5 px-2 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center gap-1 active:scale-95 transition-all"
+                                                                className="flex-1 py-1.5 px-2 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-none border border-gray-200 flex items-center justify-center gap-1 active:scale-95 transition-all"
                                                                 title="Save Barcode as PNG Image"
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
@@ -3130,7 +3040,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                 {/* Edit Product */}
                                                                 <button 
                                                                     onClick={() => openEditModal(p)} 
-                                                                    className="p-1.5 text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center active:scale-95 transition-all"
+                                                                    className="p-1.5 text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-none border border-gray-200 flex items-center justify-center active:scale-95 transition-all"
                                                                     title="Edit Product Details"
                                                                 >
                                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
@@ -3139,7 +3049,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                 {/* Archive / Restore */}
                                                                 <button
                                                                     onClick={() => handleToggleActive(p)}
-                                                                    className={`p-1.5 rounded-xl border transition-all active:scale-95 ${
+                                                                    className={`p-1.5 rounded-none border transition-all active:scale-95 ${
                                                                         p.is_active 
                                                                             ? 'text-amber-700 bg-amber-50 border-amber-200 hover:bg-amber-100' 
                                                                             : 'text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100'
@@ -3156,7 +3066,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                 {/* Delete Product */}
                                                                 <button 
                                                                     onClick={() => handleDelete(p)} 
-                                                                    className="p-1.5 text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl border border-rose-200 flex items-center justify-center active:scale-95 transition-all"
+                                                                    className="p-1.5 text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-none border border-rose-200 flex items-center justify-center active:scale-95 transition-all"
                                                                     title="Delete Product"
                                                                 >
                                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
@@ -3171,7 +3081,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                             {/* Print Barcode */}
                                                             <button 
                                                                 onClick={() => setPrintState({ isOpen: true, product: p, quantity: 1, mode: 'thermal' })} 
-                                                                className="py-1.5 px-2 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                                                                className="py-1.5 px-2 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-none border border-gray-200 flex items-center justify-center gap-1.5 active:scale-95 transition-all"
                                                                 title="Print Barcode Label"
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
@@ -3181,7 +3091,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                             {/* Save PNG Barcode */}
                                                             <button 
                                                                 onClick={() => downloadLabelImage(p, settings?.store_name || 'POS STORE')} 
-                                                                className="py-1.5 px-2 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                                                                className="py-1.5 px-2 text-xs font-bold text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-none border border-gray-200 flex items-center justify-center gap-1.5 active:scale-95 transition-all"
                                                                 title="Save Barcode as PNG Image"
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
@@ -3196,8 +3106,6 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 )}
                             </div>
                         </div>
-                    </div>
-                </div>
 
                     {/* SMOOTH HORIZONTAL PAGINATION WITH SMART PAGE DISPLAY */}
                     {!loading && totalPages > 1 && (() => {
@@ -3229,7 +3137,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                         <button
                                             disabled={currentPage === 1}
                                             onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                            className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center"
+                                            className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center"
                                         >
                                             &laquo; Prev
                                         </button>
@@ -3241,7 +3149,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                 <button
                                                     key={num}
                                                     onClick={() => { setCurrentPage(num); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                                    className={`shrink-0 px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all flex items-center justify-center
+                                                    className={`shrink-0 px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all flex items-center justify-center
                                                         ${currentPage === num ? 'bg-[#1B3B6A] text-white border-[#1B3B6A] shadow-sm font-extrabold' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
                                                 >
                                                     {num}
@@ -3252,7 +3160,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                         <button
                                             disabled={currentPage === totalPages}
                                             onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                            className="px-3.5 py-2 min-h-9 rounded-lg text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center"
+                                            className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center"
                                         >
                                             Next &raquo;
                                         </button>
@@ -3264,9 +3172,9 @@ export default function Inventory({ auth, initial_products, initial_categories, 
 
                     {/* 6. FLOATING BULK SELECTION ACTION BAR */}
                     {selectedIds.length > 0 && (
-                        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#1B3B6A] text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-4 border border-[#142E54] animate-in slide-in-from-bottom-6 duration-200 max-w-lg w-[90%] sm:w-auto">
+                        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#1B3B6A] text-white px-5 py-3.5 rounded-none shadow-2xl flex items-center gap-4 border border-[#142E54] animate-in slide-in-from-bottom-6 duration-200 max-w-lg w-[90%] sm:w-auto">
                             <div className="flex items-center gap-2">
-                                <span className="bg-white/20 text-white font-black text-xs px-2.5 py-1 rounded-full">
+                                <span className="bg-white/20 text-white font-black text-xs px-2.5 py-1 rounded-none">
                                     {selectedIds.length}
                                 </span>
                                 <span className="text-xs sm:text-sm font-bold whitespace-nowrap">Selected Items</span>
@@ -3278,14 +3186,14 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 {isAdmin && (
                                     <button
                                         onClick={handleBulkArchive}
-                                        className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition-all active:scale-95 whitespace-nowrap"
+                                        className="px-3 py-1.5 rounded-none bg-white/10 hover:bg-white/20 text-xs font-bold transition-all active:scale-95 whitespace-nowrap"
                                     >
                                         Archive/Restore
                                     </button>
                                 )}
                                 <button
                                     onClick={() => setSelectedIds([])}
-                                    className="p-1.5 rounded-xl text-white/60 hover:text-white hover:bg-white/10 transition-all"
+                                    className="p-1.5 rounded-none text-white/60 hover:text-white hover:bg-white/10 transition-all"
                                     title="Deselect All"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -3295,18 +3203,20 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                     )}
                 </div>
             </div>
+        </div>
+    </div>
 
             {/* DUAL-MODE PRINT OPTIONS MODAL */}
             {printState.isOpen && typeof document !== 'undefined' && createPortal(
                 <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity">
                     <div className="absolute inset-0" onClick={() => setPrintState({ ...printState, isOpen: false })}></div>
-                    <div className="relative bg-white w-full max-w-sm rounded-lg shadow-2xl p-6 animate-slide-up sm:animate-fade-in-up flex flex-col">
+                    <div className="relative bg-white w-full max-w-sm rounded-none shadow-2xl p-6 animate-slide-up sm:animate-fade-in-up flex flex-col">
                         <div className="flex items-start justify-between border-b border-slate-100 pb-4 mb-4">
                             <div>
                                 <h2 className="text-xl font-black tracking-tight text-slate-900">Print Labels</h2>
                                 <p className="text-xs text-slate-500 mt-1 font-medium">{printState.product?.name}</p>
                             </div>
-                            <button onClick={() => setPrintState({ ...printState, isOpen: false })} className="p-2 bg-slate-50 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors">
+                            <button onClick={() => setPrintState({ ...printState, isOpen: false })} className="p-2 bg-slate-50 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-none transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
@@ -3320,7 +3230,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                     min="1" max="200"
                                     value={printState.quantity}
                                     onChange={(e) => setPrintState({ ...printState, quantity: parseInt(e.target.value) || 1 })}
-                                    className="w-full bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] py-2.5 text-lg font-bold text-center transition-colors text-slate-900"
+                                    className="w-full bg-slate-50 border border-slate-300 rounded-none focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] py-2.5 text-lg font-bold text-center transition-colors text-slate-900"
                                 />
                             </div>
 
@@ -3330,7 +3240,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
                                         onClick={() => setPrintState({ ...printState, mode: 'thermal' })}
-                                        className={`flex flex-col items-center justify-center gap-2 p-3 border-2 rounded-lg transition-all ${printState.mode === 'thermal' ? 'border-[#1B3B6A] bg-[#1B3B6A]/10 text-[#1B3B6A] font-extrabold' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50'}`}
+                                        className={`flex flex-col items-center justify-center gap-2 p-3 border-2 rounded-none transition-all ${printState.mode === 'thermal' ? 'border-[#1B3B6A] bg-[#1B3B6A]/10 text-[#1B3B6A] font-extrabold' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50'}`}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
                                         <div className="text-center">
@@ -3341,7 +3251,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
 
                                     <button
                                         onClick={() => setPrintState({ ...printState, mode: 'a4' })}
-                                        className={`flex flex-col items-center justify-center gap-2 p-3 border-2 rounded-lg transition-all ${printState.mode === 'a4' ? 'border-[#1B3B6A] bg-[#1B3B6A]/10 text-[#1B3B6A] font-extrabold' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50'}`}
+                                        className={`flex flex-col items-center justify-center gap-2 p-3 border-2 rounded-none transition-all ${printState.mode === 'a4' ? 'border-[#1B3B6A] bg-[#1B3B6A]/10 text-[#1B3B6A] font-extrabold' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50'}`}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
                                         <div className="text-center">
@@ -3354,7 +3264,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                         </div>
 
                         <div className="mt-6 pt-4 border-t border-slate-100 shrink-0">
-                            <button onClick={executePrint} className="w-full py-3.5 bg-[#1B3B6A] text-white rounded-lg hover:bg-[#142E54] font-black shadow-md active:scale-95 transition-all text-sm uppercase tracking-wider flex items-center justify-center gap-2">
+                            <button onClick={executePrint} className="w-full py-3.5 bg-[#1B3B6A] text-white rounded-none hover:bg-[#142E54] font-black shadow-md active:scale-95 transition-all text-sm uppercase tracking-wider flex items-center justify-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" /></svg>
                                 Print Now
                             </button>
@@ -3367,12 +3277,12 @@ export default function Inventory({ auth, initial_products, initial_categories, 
             {/* PRODUCT ADD/EDIT MODAL */}
             {showModal && typeof document !== 'undefined' && createPortal(
                 <div className={`fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[100] sm:p-6 backdrop-blur-sm animate-in fade-in duration-300 ${showScanner ? 'hidden' : ''}`}>
-                    <div className="bg-white w-full h-full sm:h-auto sm:max-w-lg sm:rounded-2xl sm:shadow-2xl overflow-hidden flex flex-col sm:max-h-[90vh] animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 border border-gray-200/80">
+                    <div className="bg-white w-full h-full sm:h-auto sm:max-w-lg sm:rounded-none sm:shadow-2xl overflow-hidden flex flex-col sm:max-h-[90vh] animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 border border-gray-200/80">
 
                         {/* Header (Sticky on Mobile) */}
                         <div className="bg-[#1B3B6A] border-b border-white/10 px-6 sm:px-8 py-5 sm:py-6 flex justify-between items-center shrink-0 sticky top-0 z-50 text-white shadow-md">
                             <div className="flex items-center gap-3 min-w-0">
-                                <div className="p-2 sm:p-2.5 bg-white/10 rounded-xl shrink-0 ring-1 ring-white/20">
+                                <div className="p-2 sm:p-2.5 bg-white/10 rounded-none shrink-0 ring-1 ring-white/20">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6 text-white">
                                         <path strokeLinecap="round" strokeLinejoin="round" d={editMode ? "M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" : "M12 4.5v15m7.5-7.5h-15"} />
                                     </svg>
@@ -3388,7 +3298,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                             </div>
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="bg-white/10 hover:bg-white/20 p-2 sm:p-2.5 rounded-full text-white transition-colors active:scale-95 shrink-0 ml-2 ring-1 ring-white/20"
+                                className="bg-white/10 hover:bg-white/20 p-2 sm:p-2.5 rounded-none text-white transition-colors active:scale-95 shrink-0 ml-2 ring-1 ring-white/20"
                                 title="Close Modal"
                             >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -3407,13 +3317,13 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                 value={formData.sku}
                                                 onChange={handleChange}
                                                 onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
-                                                className="flex-1 border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400 font-mono"
+                                                className="flex-1 border border-slate-300 bg-slate-50/50 rounded-none focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400 font-mono"
                                                 placeholder="Scan..."
                                             />
-                                        <button type="button" onClick={() => setShowScanner(true)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 px-4 py-3 rounded-lg transition-colors active:scale-95" title="Scan Barcode">
+                                        <button type="button" onClick={() => setShowScanner(true)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 px-4 py-3 rounded-none transition-colors active:scale-95" title="Scan Barcode">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" /></svg>
                                         </button>
-                                        <button type="button" onClick={generateSKU} disabled={isCheckingSku} className="bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 px-4 py-3 rounded-lg transition-colors active:scale-95 disabled:opacity-50" title="Generate SKU">
+                                        <button type="button" onClick={generateSKU} disabled={isCheckingSku} className="bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 px-4 py-3 rounded-none transition-colors active:scale-95 disabled:opacity-50" title="Generate SKU">
                                             {isCheckingSku ? (
                                                 <svg className="animate-spin h-5 w-5 text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                             ) : (
@@ -3425,52 +3335,52 @@ export default function Inventory({ auth, initial_products, initial_categories, 
 
                                 <div>
                                     <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Name</label>
-                                    <input name="name" required value={formData.name} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400" placeholder="e.g. Classic Cappuccino" />
+                                    <input name="name" required value={formData.name} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-none focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400" placeholder="e.g. Classic Cappuccino" />
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5">Category</label>
-                                        <select name="category_id" value={formData.category_id} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm" required>
+                                        <select name="category_id" value={formData.category_id} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-none focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm" required>
                                             <option value="">Select Category...</option>
                                             {categories.map(cat => ( <option key={cat.id} value={cat.id}>{cat.name}</option> ))}
                                         </select>
                                     </div>
                                     <div>
                                          <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5">Initial Stock</label>
-                                         <input type="number" name="stock_quantity" required value={formData.stock_quantity} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400" placeholder="0" />
+                                         <input type="number" name="stock_quantity" required value={formData.stock_quantity} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-none focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400" placeholder="0" />
                                     </div>
                                 </div>
 
                                 <div>
                                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5">Cost Price</label>
-                                     <input type="number" step="0.01" name="cost_price" required value={formData.cost_price} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400 font-mono" placeholder="0.00" />
+                                     <input type="number" step="0.01" name="cost_price" required value={formData.cost_price} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-none focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400 font-mono" placeholder="0.00" />
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 font-mono">
                                     <div>
                                         <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5 font-sans">Retail Price</label>
-                                        <input type="number" step="0.01" name="price" required value={formData.price} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400 font-mono" placeholder="0.00" />
+                                        <input type="number" step="0.01" name="price" required value={formData.price} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-none focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400 font-mono" placeholder="0.00" />
                                     </div>
                                     <div>
                                         <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5 font-sans">Wholesale Price</label>
-                                        <input type="number" step="0.01" name="wholesale_price" required value={formData.wholesale_price} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-lg focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400 font-mono" placeholder="0.00" />
+                                        <input type="number" step="0.01" name="wholesale_price" required value={formData.wholesale_price} onChange={handleChange} className="w-full border border-slate-300 bg-slate-50/50 rounded-none focus:ring-2 focus:ring-[#1B3B6A] focus:border-[#1B3B6A] focus:bg-white transition-all py-3 px-4 text-sm font-semibold text-slate-900 shadow-sm placeholder:text-slate-400 font-mono" placeholder="0.00" />
                                     </div>
                                 </div>
 
                                 <div>
                                     <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-0.5">Product Image (Optional)</label>
-                                    <input type="file" accept="image/*" onChange={handleFileChange} className="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 file:hover:bg-slate-200 file:transition-colors bg-slate-50 rounded-lg cursor-pointer border border-slate-300"/>
+                                    <input type="file" accept="image/*" onChange={handleFileChange} className="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-none file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 file:hover:bg-slate-200 file:transition-colors bg-slate-50 rounded-none cursor-pointer border border-slate-300"/>
                                 </div>
 
-                                <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-none border border-slate-200">
                                     <input
                                         type="checkbox"
                                         name="is_active"
                                         id="is_active_checkbox"
                                         checked={!!formData.is_active}
                                         onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                                        className="w-4 h-4 text-[#1B3B6A] border-slate-300 rounded focus:ring-[#1B3B6A]"
+                                        className="w-4 h-4 text-[#1B3B6A] border-slate-300 rounded-none focus:ring-[#1B3B6A]"
                                     />
                                     <label htmlFor="is_active_checkbox" className="select-none cursor-pointer">
                                         <span className="block text-sm font-bold text-slate-900">Active Status</span>
@@ -3485,7 +3395,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                             <button
                                 type="button"
                                 onClick={() => setShowModal(false)}
-                                className="order-2 sm:order-1 w-full sm:w-auto px-6 py-3.5 sm:py-3 text-gray-600 font-semibold bg-white border border-gray-300 hover:bg-gray-50 rounded-lg text-sm transition-all active:scale-[0.98]"
+                                className="order-2 sm:order-1 w-full sm:w-auto px-6 py-3.5 sm:py-3 text-gray-600 font-semibold bg-white border border-gray-300 hover:bg-gray-50 rounded-none text-sm transition-all active:scale-[0.98]"
                             >
                                 Cancel
                             </button>
@@ -3493,7 +3403,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 type="submit"
                                 form="product-form"
                                 disabled={isSaving}
-                                className="order-1 sm:order-2 w-full sm:w-auto px-8 py-3.5 sm:py-3 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-semibold rounded-lg shadow-md shadow-[#1B3B6A]/20 text-sm transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="order-1 sm:order-2 w-full sm:w-auto px-8 py-3.5 sm:py-3 bg-[#1B3B6A] hover:bg-[#142E54] text-white font-semibold rounded-none shadow-md shadow-[#1B3B6A]/20 text-sm transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {isSaving ? (
                                     <>
@@ -3525,13 +3435,13 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                     onClick={() => setHistoryModal(prev => ({ ...prev, isOpen: false }))}
                 >
                     <div 
-                        className="bg-white w-full h-full sm:h-auto sm:max-w-4xl lg:max-w-5xl sm:rounded-2xl sm:shadow-2xl overflow-hidden flex flex-col sm:max-h-[92vh] animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 border border-gray-200/80"
+                        className="bg-white w-full h-full sm:h-auto sm:max-w-4xl lg:max-w-5xl sm:rounded-none sm:shadow-2xl overflow-hidden flex flex-col sm:max-h-[92vh] animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 border border-gray-200/80"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header (Sticky on Mobile) */}
                         <div className="bg-[#1B3B6A] border-b border-white/10 px-4 sm:px-8 py-3.5 sm:py-5 flex justify-between items-center shrink-0 sticky top-0 z-50 text-white shadow-md">
                             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                                <div className="p-2 sm:p-2.5 bg-white/10 rounded-xl shrink-0 ring-1 ring-white/20">
+                                <div className="p-2 sm:p-2.5 bg-white/10 rounded-none shrink-0 ring-1 ring-white/20">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 text-white">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -3554,7 +3464,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 {/* Export Excel Button */}
                                 <button
                                     onClick={exportProductLedgerExcel}
-                                    className="p-1.5 sm:px-3 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all active:scale-95 flex items-center gap-1.5 text-xs font-bold ring-1 ring-white/20"
+                                    className="p-1.5 sm:px-3 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-none transition-all active:scale-95 flex items-center gap-1.5 text-xs font-bold ring-1 ring-white/20"
                                     title="Download item stock ledger as styled Excel spreadsheet (.xlsx)"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
@@ -3566,7 +3476,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 {/* Close Button */}
                                 <button
                                     onClick={() => setHistoryModal(prev => ({ ...prev, isOpen: false }))}
-                                    className="bg-white/10 hover:bg-white/20 p-1.5 sm:p-2 rounded-full text-white transition-colors active:scale-95 shrink-0 ring-1 ring-white/20"
+                                    className="bg-white/10 hover:bg-white/20 p-1.5 sm:p-2 rounded-none text-white transition-colors active:scale-95 shrink-0 ring-1 ring-white/20"
                                     title="Close Stock Movement Modal"
                                 >
                                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -3587,7 +3497,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                         placeholder="Filter ledger by cashier name, invoice number, or description..."
                                         value={historyModal.search || ''}
                                         onChange={(e) => setHistoryModal(prev => ({ ...prev, search: e.target.value }))}
-                                        className="w-full pl-10 pr-8 py-2 text-xs font-semibold bg-gray-50/70 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1B3B6A]/10 focus:border-[#1B3B6A] focus:bg-white transition-all placeholder:text-gray-400 text-gray-900 shadow-2xs"
+                                        className="w-full pl-10 pr-8 py-2 text-xs font-semibold bg-gray-50/70 border border-gray-200 rounded-none focus:ring-2 focus:ring-[#1B3B6A]/10 focus:border-[#1B3B6A] focus:bg-white transition-all placeholder:text-gray-400 text-gray-900 shadow-2xs"
                                     />
                                     {historyModal.search && (
                                         <button 
@@ -3628,14 +3538,14 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                         setHistoryModal(prev => ({ ...prev, filter: tab.key }));
                                                         e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                                                     }}
-                                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
+                                                    className={`px-3 py-1.5 rounded-none text-xs font-bold transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
                                                         historyModal.filter === tab.key
                                                             ? 'bg-[#1B3B6A] text-white shadow-2xs'
                                                             : 'bg-gray-100/80 hover:bg-gray-200 text-gray-600'
                                                     }`}
                                                 >
                                                     <span>{tab.label}</span>
-                                                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                                                    <span className={`px-1.5 py-0.5 rounded-none text-[10px] font-black ${
                                                         historyModal.filter === tab.key
                                                             ? 'bg-white/20 text-white'
                                                             : 'bg-gray-200 text-gray-700'
@@ -3680,7 +3590,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 if (filteredTimeline.length === 0) {
                                     return (
                                         <div className="py-20 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
-                                            <div className="p-4 rounded-full bg-gray-100 text-gray-400">
+                                            <div className="p-4 rounded-none bg-gray-100 text-gray-400">
                                                 <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
@@ -3694,7 +3604,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 return (
                                     <>
                                         {/* Desktop & Tablet Table */}
-                                        <div className="hidden sm:block overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-2xs">
+                                        <div className="hidden sm:block overflow-x-auto rounded-none border border-slate-200 bg-white shadow-2xs">
                                             <table className="w-full text-left border-collapse">
                                                 <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-wider text-slate-500 border-b border-slate-200">
                                                     <tr>
@@ -3725,19 +3635,19 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                 {/* Movement Type */}
                                                                 <td className="p-4 whitespace-nowrap">
                                                                     {row.type === 'sale' ? (
-                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200 uppercase tracking-wider">
+                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-none text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200 uppercase tracking-wider">
                                                                             POS Sale
                                                                         </span>
                                                                     ) : row.type === 'restock' ? (
-                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider">
+                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-none text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider">
                                                                             Restock
                                                                         </span>
                                                                     ) : row.type === 'creation' ? (
-                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">
+                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-none text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">
                                                                             Initial Catalog
                                                                         </span>
                                                                     ) : (
-                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
+                                                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-none text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
                                                                             Adjustment
                                                                         </span>
                                                                     )}
@@ -3746,15 +3656,15 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                 {/* Qty Change Delta */}
                                                                 <td className="p-4 text-center whitespace-nowrap font-mono font-black">
                                                                     {row.quantity_change < 0 ? (
-                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-black bg-rose-50 text-rose-700 border border-rose-200">
+                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-none text-xs font-black bg-rose-50 text-rose-700 border border-rose-200">
                                                                             {row.quantity_change} units
                                                                         </span>
                                                                     ) : row.quantity_change > 0 ? (
-                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-none text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
                                                                             +{row.quantity_change} units
                                                                         </span>
                                                                     ) : (
-                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                                                        <span className="inline-flex items-center px-2.5 py-1 rounded-none text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200">
                                                                             0 units
                                                                         </span>
                                                                     )}
@@ -3767,10 +3677,10 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                             <img
                                                                                 src={getAvatarUrl(row.user_avatar)}
                                                                                 alt={row.user_name}
-                                                                                className="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                                className="w-8 h-8 rounded-none object-cover border border-gray-200 shadow-2xs shrink-0"
                                                                             />
                                                                         ) : (
-                                                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 text-xs font-black flex items-center justify-center shrink-0 uppercase shadow-2xs">
+                                                                            <div className="w-8 h-8 rounded-none bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 text-xs font-black flex items-center justify-center shrink-0 uppercase shadow-2xs">
                                                                                 {row.user_name ? row.user_name.charAt(0) : 'S'}
                                                                             </div>
                                                                         )}
@@ -3785,7 +3695,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
 
                                                                 {/* Reference / Invoice */}
                                                                 <td className="p-4 whitespace-nowrap font-mono text-xs text-slate-600 font-bold">
-                                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] bg-slate-100 text-slate-700 border border-slate-200">
+                                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-none text-[10px] bg-slate-100 text-slate-700 border border-slate-200">
                                                                         {refNo}
                                                                     </span>
                                                                 </td>
@@ -3807,23 +3717,23 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                 const refNo = row.reference_no || (row.invoice_number && row.invoice_number !== 'N/A' ? row.invoice_number : (row.type === 'creation' ? (historyModal.product?.sku || `PRD-${historyModal.product?.id}`) : `LOG-${(row.id || '').replace(/\D/g, '')}`));
 
                                                 return (
-                                                    <div key={`mob-hist-${row.id}`} className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col gap-2.5">
+                                                    <div key={`mob-hist-${row.id}`} className="bg-white p-4 rounded-none border border-slate-200/90 shadow-2xs flex flex-col gap-2.5">
                                                         <div className="flex items-center justify-between gap-2">
                                                             <div>
                                                                 {row.type === 'sale' ? (
-                                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200 uppercase tracking-wider">
+                                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-none text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200 uppercase tracking-wider">
                                                                         POS Sale
                                                                     </span>
                                                                 ) : row.type === 'restock' ? (
-                                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider">
+                                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-none text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider">
                                                                         Restock
                                                                     </span>
                                                                 ) : row.type === 'creation' ? (
-                                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">
+                                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-none text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">
                                                                         Initial Catalog
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
+                                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-none text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
                                                                         Adjustment
                                                                     </span>
                                                                 )}
@@ -3840,10 +3750,10 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                     <img
                                                                         src={getAvatarUrl(row.user_avatar)}
                                                                         alt={row.user_name}
-                                                                        className="w-7 h-7 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                        className="w-7 h-7 rounded-none object-cover border border-gray-200 shadow-2xs shrink-0"
                                                                     />
                                                                 ) : (
-                                                                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 text-[10px] font-black flex items-center justify-center shrink-0 uppercase shadow-2xs">
+                                                                    <div className="w-7 h-7 rounded-none bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 text-[10px] font-black flex items-center justify-center shrink-0 uppercase shadow-2xs">
                                                                         {row.user_name ? row.user_name.charAt(0) : 'S'}
                                                                     </div>
                                                                 )}
@@ -3857,15 +3767,15 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                             </div>
                                                             <div>
                                                                 {row.quantity_change < 0 ? (
-                                                                    <span className="text-rose-600 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 font-black font-mono text-xs">
+                                                                    <span className="text-rose-600 bg-rose-50 px-2.5 py-1 rounded-none border border-rose-200 font-black font-mono text-xs">
                                                                         {row.quantity_change} units
                                                                     </span>
                                                                 ) : row.quantity_change > 0 ? (
-                                                                    <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 font-black font-mono text-xs">
+                                                                    <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-none border border-emerald-200 font-black font-mono text-xs">
                                                                         +{row.quantity_change} units
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="text-slate-500 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 font-bold font-mono text-xs">
+                                                                    <span className="text-slate-500 bg-slate-50 px-2.5 py-1 rounded-none border border-slate-200 font-bold font-mono text-xs">
                                                                         0
                                                                     </span>
                                                                 )}
@@ -3897,7 +3807,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 {isAdmin && historyModal.product && (
                                     <button
                                         onClick={() => handleQuickAdd(historyModal.product)}
-                                        className="flex-1 sm:flex-none px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs sm:text-sm transition-all active:scale-[0.98] shadow-sm flex items-center justify-center gap-1.5"
+                                        className="flex-1 sm:flex-none px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-none text-xs sm:text-sm transition-all active:scale-[0.98] shadow-sm flex items-center justify-center gap-1.5"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                         <span>Restock Item</span>
@@ -3905,7 +3815,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 )}
                                 <button
                                     onClick={() => setHistoryModal(prev => ({ ...prev, isOpen: false }))}
-                                    className="flex-1 sm:flex-none px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs sm:text-sm transition-all active:scale-[0.98]"
+                                    className="flex-1 sm:flex-none px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-none text-xs sm:text-sm transition-all active:scale-[0.98]"
                                 >
                                     Close Ledger
                                 </button>
@@ -3923,13 +3833,13 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                     onClick={() => setActivityDrawer(prev => ({ ...prev, isOpen: false }))}
                 >
                     <div 
-                        className="bg-white w-full h-full sm:h-auto sm:max-w-3xl lg:max-w-4xl sm:rounded-2xl sm:shadow-2xl overflow-hidden flex flex-col sm:max-h-[92vh] animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 border border-gray-200/80"
+                        className="bg-white w-full h-full sm:h-auto sm:max-w-3xl lg:max-w-4xl sm:rounded-none sm:shadow-2xl overflow-hidden flex flex-col sm:max-h-[92vh] animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 border border-gray-200/80"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header (Sticky on Mobile) */}
                         <div className="bg-[#1B3B6A] border-b border-white/10 px-4 sm:px-8 py-3.5 sm:py-5 flex justify-between items-center shrink-0 sticky top-0 z-50 text-white shadow-md">
                             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                                <div className="p-2 sm:p-2.5 bg-white/10 rounded-xl shrink-0 ring-1 ring-white/20">
+                                <div className="p-2 sm:p-2.5 bg-white/10 rounded-none shrink-0 ring-1 ring-white/20">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 text-white">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -3950,7 +3860,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 {/* Export Excel Button */}
                                 <button
                                     onClick={exportActivityExcel}
-                                    className="p-1.5 sm:px-3 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all active:scale-95 flex items-center gap-1.5 text-xs font-bold ring-1 ring-white/20"
+                                    className="p-1.5 sm:px-3 sm:py-2 bg-white/10 hover:bg-white/20 text-white rounded-none transition-all active:scale-95 flex items-center gap-1.5 text-xs font-bold ring-1 ring-white/20"
                                     title="Download audit logs as styled Excel spreadsheet (.xlsx)"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
@@ -3962,7 +3872,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 {/* Close Button */}
                                 <button
                                     onClick={() => setActivityDrawer(prev => ({ ...prev, isOpen: false }))}
-                                    className="bg-white/10 hover:bg-white/20 p-1.5 sm:p-2 rounded-full text-white transition-colors active:scale-95 shrink-0 ring-1 ring-white/20"
+                                    className="bg-white/10 hover:bg-white/20 p-1.5 sm:p-2 rounded-none text-white transition-colors active:scale-95 shrink-0 ring-1 ring-white/20"
                                     title="Close Activity Feed Modal"
                                 >
                                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -3983,7 +3893,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                         placeholder="Filter audit log by staff name, product SKU, keyword, or invoice..."
                                         value={activityDrawer.search}
                                         onChange={(e) => setActivityDrawer(prev => ({ ...prev, search: e.target.value }))}
-                                        className="w-full pl-10 pr-8 py-2 text-xs font-semibold bg-gray-50/70 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1B3B6A]/10 focus:border-[#1B3B6A] focus:bg-white transition-all placeholder:text-gray-400 text-gray-900 shadow-2xs"
+                                        className="w-full pl-10 pr-8 py-2 text-xs font-semibold bg-gray-50/70 border border-gray-200 rounded-none focus:ring-2 focus:ring-[#1B3B6A]/10 focus:border-[#1B3B6A] focus:bg-white transition-all placeholder:text-gray-400 text-gray-900 shadow-2xs"
                                     />
                                     {activityDrawer.search && (
                                         <button 
@@ -4034,14 +3944,14 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                         setActivityDrawer(prev => ({ ...prev, filter: f.key }));
                                                         e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                                                     }}
-                                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
+                                                    className={`px-3 py-1.5 rounded-none text-xs font-bold transition-all whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
                                                         activityDrawer.filter === f.key
                                                             ? 'bg-[#1B3B6A] text-white shadow-2xs'
                                                             : 'bg-gray-100/80 hover:bg-gray-200 text-gray-600'
                                                     }`}
                                                 >
                                                     <span>{f.label}</span>
-                                                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                                                    <span className={`px-1.5 py-0.5 rounded-none text-[10px] font-black ${
                                                         activityDrawer.filter === f.key
                                                             ? 'bg-white/20 text-white'
                                                             : 'bg-gray-200 text-gray-700'
@@ -4093,7 +4003,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 if (filtered.length === 0) {
                                     return (
                                         <div className="py-20 text-center text-gray-400 flex flex-col items-center justify-center gap-2">
-                                            <div className="p-4 rounded-full bg-gray-100 text-gray-400">
+                                            <div className="p-4 rounded-none bg-gray-100 text-gray-400">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                                                 </svg>
@@ -4134,7 +4044,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                     <div key={groupTitle} className="space-y-3">
                                         {/* Date Section Header */}
                                         <div className="flex items-center gap-3">
-                                            <span className="px-3 py-1 rounded-full text-[11px] font-black bg-white text-[#1B3B6A] border border-gray-200 shadow-2xs tracking-wider uppercase">
+                                            <span className="px-3 py-1 rounded-none text-[11px] font-black bg-white text-[#1B3B6A] border border-gray-200 shadow-2xs tracking-wider uppercase">
                                                 {groupTitle}
                                             </span>
                                             <div className="flex-1 h-px bg-gray-200/80"></div>
@@ -4156,7 +4066,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                 return (
                                                     <div 
                                                         key={log.id} 
-                                                        className="relative bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs hover:shadow-md transition-all space-y-2.5 group"
+                                                        className="relative bg-white p-4 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs hover:shadow-md transition-all space-y-2.5 group"
                                                     >
                                                         {/* Timeline Dot Node */}
                                                         <div className={`absolute -left-[23px] sm:-left-[31px] top-5 w-3.5 h-3.5 rounded-full border-2 border-white ring-2 ${
@@ -4171,37 +4081,37 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                             <div className="flex items-center gap-2 flex-wrap">
                                                                 {/* Event Badge */}
                                                                 {isSale ? (
-                                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200 tracking-wider uppercase">
+                                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200 tracking-wider uppercase">
                                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
                                                                         POS Sale
                                                                     </span>
                                                                 ) : isRestock ? (
-                                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 tracking-wider uppercase">
+                                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 tracking-wider uppercase">
                                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" /></svg>
                                                                         Restock
                                                                     </span>
                                                                 ) : isCreate ? (
-                                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200 tracking-wider uppercase">
+                                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200 tracking-wider uppercase">
                                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                                                         New Product
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200 tracking-wider uppercase">
+                                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200 tracking-wider uppercase">
                                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
                                                                         Adjustment
                                                                     </span>
                                                                 )}
 
                                                                 {/* Staff / Actor Avatar Chip */}
-                                                                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-700 text-[11px] font-bold">
+                                                                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-none bg-gray-100 text-gray-700 text-[11px] font-bold">
                                                                     {log.user_avatar ? (
                                                                         <img
                                                                             src={getAvatarUrl(log.user_avatar)}
                                                                             alt={log.user_name}
-                                                                            className="w-5 h-5 rounded-full object-cover border border-gray-200 shadow-2xs shrink-0"
+                                                                            className="w-5 h-5 rounded-none object-cover border border-gray-200 shadow-2xs shrink-0"
                                                                         />
                                                                     ) : (
-                                                                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 flex items-center justify-center font-black text-[9px] shrink-0 uppercase shadow-2xs">
+                                                                        <div className="w-5 h-5 rounded-none bg-gradient-to-br from-slate-100 to-[#EFF4F9] text-[#1B3B6A] border border-gray-200 flex items-center justify-center font-black text-[9px] shrink-0 uppercase shadow-2xs">
                                                                             {log.user_name ? log.user_name.charAt(0) : 'S'}
                                                                         </div>
                                                                     )}
@@ -4231,7 +4141,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                                                     }
                                                                     if (!ref) return null;
                                                                     return (
-                                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs">
+                                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-none text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs">
                                                                             <span className="text-slate-400 font-medium">Ref:</span> {ref}
                                                                         </span>
                                                                     );
@@ -4268,7 +4178,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                             </div>
                             <button
                                 onClick={() => setActivityDrawer(prev => ({ ...prev, isOpen: false }))}
-                                className="w-full sm:w-auto px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs sm:text-sm transition-all active:scale-[0.98]"
+                                className="w-full sm:w-auto px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-none text-xs sm:text-sm transition-all active:scale-[0.98]"
                             >
                                 Close Audit Feed
                             </button>

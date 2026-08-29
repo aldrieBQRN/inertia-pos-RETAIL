@@ -17,9 +17,9 @@ export default function BillingLayout({ children, storeName }) {
             <nav className="bg-white border-b border-gray-200 py-4 px-6 sm:px-12 flex justify-between items-center shadow-sm">
                 <div className="flex items-center gap-4">
                     {logoUrl ? (
-                        <img src={logoUrl} alt="System Logo" className="h-12 w-12 object-cover rounded-lg" />
+                        <img src={logoUrl} alt="System Logo" className="h-12 w-12 object-cover rounded-none" />
                     ) : (
-                        <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-md">
+                        <div className="w-12 h-12 bg-blue-600 rounded-none flex items-center justify-center text-white shadow-md">
                             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 0 00-3-3H6a3 0 00-3 3v8a3 0 003 3z" />
                             </svg>

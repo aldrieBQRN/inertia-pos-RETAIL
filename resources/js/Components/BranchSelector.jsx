@@ -52,7 +52,7 @@ export default function BranchSelector({ className = '' }) {
     if (accessibleStores.length <= 1) {
         return (
             <div
-                className={`no-close-dropdown flex items-center justify-between text-[11px] font-semibold text-gray-700 bg-white border border-gray-200/80 px-2.5 py-1.5 rounded-lg shadow-2xs ${className}`}
+                className={`no-close-dropdown flex items-center justify-between text-[11px] font-semibold text-gray-700 bg-white border border-gray-200/80 px-2.5 py-1.5 rounded-none shadow-2xs ${className}`}
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-center gap-1.5 truncate max-w-[200px]">
@@ -88,7 +88,7 @@ export default function BranchSelector({ className = '' }) {
                 onClick={() => setIsOpen((prev) => !prev)}
                 disabled={isSwitching}
                 title="Click to switch active store branch"
-                className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-white border border-gray-200/90 hover:border-blue-400 hover:bg-gray-50/60 shadow-2xs transition-all cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-blue-400 ${
+                className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-none bg-white border border-gray-200/90 hover:border-blue-400 hover:bg-gray-50/60 shadow-2xs transition-all cursor-pointer select-none focus:outline-none focus:ring-1 focus:ring-blue-400 ${
                     isSwitching ? 'opacity-70 cursor-wait' : ''
                 }`}
             >
@@ -137,7 +137,7 @@ export default function BranchSelector({ className = '' }) {
 
             {/* Minimal Popover List */}
             {isOpen && (
-                <div className="absolute left-0 right-0 top-full mt-1.5 z-[60] bg-white rounded-xl border border-gray-100 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 p-1 divide-y divide-gray-50">
+                <div className="absolute left-0 right-0 top-full mt-1.5 z-[60] bg-white rounded-none border border-gray-100 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 p-1 divide-y divide-gray-50">
                     <div className="px-2 py-1 flex items-center justify-between text-[9px] font-black text-gray-400 uppercase tracking-wider">
                         <span>Branches</span>
                         <span>{accessibleStores.length} total</span>
@@ -153,7 +153,7 @@ export default function BranchSelector({ className = '' }) {
                                     type="button"
                                     onClick={() => handleSelectBranch(branch.id)}
                                     disabled={isSwitching}
-                                    className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-left text-[11px] transition-all cursor-pointer ${
+                                    className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-none text-left text-[11px] transition-all cursor-pointer ${
                                         isSelected
                                             ? 'bg-blue-50 text-blue-900 font-bold'
                                             : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium'
@@ -161,7 +161,7 @@ export default function BranchSelector({ className = '' }) {
                                 >
                                     <div className="flex items-center gap-2 truncate min-w-0">
                                         <span
-                                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                            className={`w-1.5 h-1.5 rounded-none shrink-0 ${
                                                 isSelected ? 'bg-blue-600' : 'bg-gray-300'
                                             }`}
                                         />
