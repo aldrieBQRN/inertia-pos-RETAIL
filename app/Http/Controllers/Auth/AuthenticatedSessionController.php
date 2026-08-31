@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\SystemSetting;
 use App\Services\ActivityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,9 +24,16 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): Response
     {
+        // Fetch system settings (logo, app name, etc.) for the login page branding
+        $settings = [];
+        if (Schema::hasTable('system_settings')) {
+            $settings = SystemSetting::pluck('value', 'key')->toArray();
+        }
+
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
+            'settings' => $settings,
         ]);
     }
 
