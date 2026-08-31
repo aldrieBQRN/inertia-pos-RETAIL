@@ -28,6 +28,11 @@ class Sale extends Model
         'terminal_id',
         'total_amount',
         'discount_amount',
+        'discount_type',
+        'discount_rate',
+        'customer_name',
+        'customer_id_number',
+        'discount_reason',
         'payment_method',
         'payment_reference',
         'is_senior',
@@ -46,6 +51,7 @@ class Sale extends Model
      */
     protected $casts = [
         'is_senior' => 'boolean',
+        'discount_rate' => 'float',
         'transaction_date' => 'datetime',
     ];
 

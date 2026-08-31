@@ -53,6 +53,11 @@ const ACTION_LABELS = {
     item_voided: 'Item Voided',
     shift_opened: 'Shift Started',
     shift_closed: 'Shift Ended',
+    'shift.open': 'Shift Started',
+    'shift.close': 'Shift Closed',
+    shift_open: 'Shift Started',
+    shift_close: 'Shift Closed',
+    'cash_movement.create': 'Cash Movement',
     cash_in: 'Cash In / Float',
     cash_out: 'Cash Out / Payout',
     status_toggle: 'Status Changed',
@@ -64,7 +69,23 @@ const ACTION_LABELS = {
 const formatActionName = (action) => {
     if (!action) return 'Activity';
     if (ACTION_LABELS[action]) return ACTION_LABELS[action];
-    return action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return action
+        .replace(/\./g, ' ')
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, l => l.toUpperCase())
+        .trim();
+};
+
+// Human-friendly Description Formatter (translates raw slugs like loyalty_10, damaged_15)
+const formatLogDescription = (desc) => {
+    if (!desc) return 'No description logged';
+    return desc
+        .replace(/loyalty_10/g, 'Loyalty Reward (10%)')
+        .replace(/damaged_15/g, 'Damaged / Clearance (15%)')
+        .replace(/national_athlete/g, 'National Athlete (20%)')
+        .replace(/solo_parent/g, 'Solo Parent (10%)')
+        .replace(/custom_percentage/g, 'Custom Discount')
+        .replace(/custom_fixed/g, 'Custom Fixed Amount');
 };
 
 // Helper to humanize field names for Store Admins
@@ -91,9 +112,13 @@ const FIELD_LABELS = {
     total_amount: 'Total Amount',
     subtotal: 'Subtotal',
     discount_amount: 'Discount Amount',
+    discount_type: 'Discount Applied',
+    discount_label: 'Discount Applied',
+    invoice_number: 'Invoice Number',
+    items_count: 'Total Items Sold',
     cash_given: 'Cash Tendered',
     change: 'Change Given',
-    payment_method: 'Payment Method',
+    payment_method: 'Payment Channel',
     starting_cash: 'Starting Cash Float',
     actual_cash: 'Actual Cash Count',
     expected_cash: 'Expected Drawer Balance',
@@ -106,12 +131,34 @@ const FIELD_LABELS = {
     account_number: 'Account Number'
 };
 
-// Internal technical fields to exclude from Store Admin view
+// Internal technical & CRM fields to exclude from Store Admin view
 const IGNORED_FIELDS = new Set([
     'id', 'store_id', 'user_id', 'created_at', 'updated_at', 'deleted_at',
     'remember_token', 'password', 'password_confirmation', 'email_verified_at',
-    'two_factor_secret', 'two_factor_recovery_codes', 'api_token', 'ip_address', 'user_agent'
+    'two_factor_secret', 'two_factor_recovery_codes', 'api_token', 'ip_address', 'user_agent',
+    'customer_name', 'customer_id_number', 'discount_label'
 ]);
+
+// Discount slug lookup for clean human presentation
+const DISCOUNT_LABELS = {
+    senior: 'Senior Citizen (20%)',
+    pwd: 'PWD (20%)',
+    national_athlete: 'National Athlete (20%)',
+    solo_parent: 'Solo Parent (10%)',
+    loyalty_10: 'Loyalty Reward (10%)',
+    damaged_15: 'Damaged / Clearance (15%)',
+    custom_percentage: 'Custom Discount (%)',
+    custom_fixed: 'Custom Fixed Discount'
+};
+
+// Payment channel lookup
+const PAYMENT_LABELS = {
+    cash: 'Cash',
+    gcash: 'GCash',
+    maya: 'Maya',
+    card: 'Credit / Debit Card',
+    bank_transfer: 'Bank Transfer'
+};
 
 // Helper to format values cleanly without developer clutter
 const formatAdminValue = (key, value) => {
@@ -133,6 +180,26 @@ const formatAdminValue = (key, value) => {
     const currencyKeys = ['price', 'cost_price', 'wholesale_price', 'total_amount', 'subtotal', 'discount_amount', 'cash_given', 'change', 'starting_cash', 'actual_cash', 'expected_cash', 'difference', 'expenses'];
     if (currencyKeys.includes(key) && !isNaN(Number(value))) {
         return <span className="font-bold text-gray-900 font-sans">₱{Number(value).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>;
+    }
+
+    // Discount Type Formatting
+    if (key === 'discount_type' || key === 'discount_label') {
+        const label = DISCOUNT_LABELS[value] || (typeof value === 'string' ? value.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : String(value));
+        return (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-none font-black text-xs bg-sky-50 text-sky-800 border border-sky-200">
+                {label}
+            </span>
+        );
+    }
+
+    // Payment Method Formatting
+    if (key === 'payment_method') {
+        const label = PAYMENT_LABELS[value] || (typeof value === 'string' ? value.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : String(value));
+        return (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-none font-black text-xs bg-gray-100 text-gray-800 border border-gray-200">
+                {label}
+            </span>
+        );
     }
 
     // Image / Logo paths
@@ -1192,7 +1259,7 @@ export default function ActivityLogs() {
                                                                 {/* Description */}
                                                                 <td className="p-4 whitespace-nowrap">
                                                                     <div className="text-xs font-semibold text-gray-800 truncate max-w-[320px]" title={log.description}>
-                                                                        {log.description || 'No description logged'}
+                                                                        {formatLogDescription(log.description)}
                                                                     </div>
                                                                 </td>
 
@@ -1292,7 +1359,7 @@ export default function ActivityLogs() {
 
                                                     {/* Description Box */}
                                                     <p className="text-xs text-gray-800 font-medium leading-relaxed bg-gray-50/70 p-3 rounded-none border border-gray-100 line-clamp-3">
-                                                        {log.description || 'No description logged'}
+                                                        {formatLogDescription(log.description)}
                                                     </p>
 
                                                     {/* Card Footer */}
@@ -1342,30 +1409,30 @@ export default function ActivityLogs() {
                         };
 
                         return (
-                            <div className="py-4 flex flex-col sm:flex-row justify-between items-center gap-4 pb-10 sm:pb-4 w-full overflow-visible">
-                                <span className="text-xs text-gray-500 font-bold uppercase tracking-wider shrink-0">
+                            <div className="py-3 flex flex-col sm:flex-row justify-between items-center gap-3 pb-8 sm:pb-3 w-full overflow-visible">
+                                <span className="text-[11px] text-gray-500 font-bold uppercase tracking-wider shrink-0">
                                     Page <span className="text-gray-900 font-black">{currentPage}</span> of {totalPages}
                                 </span>
 
-                                <div className="w-full sm:w-auto overflow-x-auto hide-scrollbar pb-2 sm:pb-0">
-                                    <div className="flex gap-1.5 flex-nowrap w-max mx-auto sm:mx-0 px-1">
+                                <div className="w-full sm:w-auto overflow-x-auto hide-scrollbar pb-1 sm:pb-0">
+                                    <div className="flex gap-1 flex-nowrap w-max mx-auto sm:mx-0 px-1">
                                         <button
                                             disabled={currentPage === 1}
                                             onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                            className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center shadow-2xs cursor-pointer"
+                                            className="px-2.5 py-1 min-h-[30px] rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
                                         >
                                             &laquo; Prev
                                         </button>
 
                                         {getPageNumbers().map((num, idx) => (
                                             num === '...' ? (
-                                                <span key={`ellipsis-${idx}`} className="px-2 py-2 min-h-9 text-gray-400 font-bold flex items-center">...</span>
+                                                <span key={`ellipsis-${idx}`} className="px-1.5 py-1 min-h-[30px] text-gray-400 font-bold flex items-center text-xs">...</span>
                                             ) : (
                                                 <button
                                                     key={num}
                                                     onClick={() => { setCurrentPage(num); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                                    className={`shrink-0 px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all flex items-center justify-center cursor-pointer
-                                                        ${currentPage === num ? 'bg-[#1B3B6A] text-white border-[#1B3B6A] shadow-sm font-extrabold' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                                                    className={`shrink-0 px-2.5 py-1 min-h-[30px] rounded-none text-xs font-bold border transition-all flex items-center justify-center active:scale-95 cursor-pointer
+                                                        ${currentPage === num ? 'bg-[#1B3B6A] text-white border-[#1B3B6A] shadow-xs font-extrabold' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 shadow-2xs'}`}
                                                 >
                                                     {num}
                                                 </button>
@@ -1375,7 +1442,7 @@ export default function ActivityLogs() {
                                         <button
                                             disabled={currentPage === totalPages}
                                             onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                            className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center shadow-2xs cursor-pointer"
+                                            className="px-2.5 py-1 min-h-[30px] rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
                                         >
                                             Next &raquo;
                                         </button>
@@ -1480,7 +1547,7 @@ export default function ActivityLogs() {
                             <div className="bg-white p-4 sm:p-5 rounded-none border border-gray-200/80 shadow-2xs space-y-1.5">
                                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">Activity Summary</span>
                                 <p className="text-sm font-semibold text-gray-900 leading-relaxed">
-                                    {selectedLogForModal.description || 'No description recorded.'}
+                                    {formatLogDescription(selectedLogForModal.description)}
                                 </p>
                             </div>
 

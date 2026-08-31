@@ -3,6 +3,7 @@ import axios from 'axios';
 import useCartStore from '@/Stores/useCartStore';
 import usePrinterStore from '@/Stores/usePrinterStore';
 import PaymentModal from './PaymentModal';
+import DiscountModal from './DiscountModal';
 import Swal from 'sweetalert2';
 
 /**
@@ -17,6 +18,8 @@ export default function CartSidebar({
     onCloseShift,
     showPaymentModal,
     setShowPaymentModal,
+    showDiscountModal: externalShowDiscountModal,
+    setShowDiscountModal: externalSetShowDiscountModal,
     onClose,
     onPrintReceipt,
     onRecallClick,
@@ -35,12 +38,17 @@ export default function CartSidebar({
     const clearCart = useCartStore((state) => state.clearCart);
     const toggleSenior = useCartStore((state) => state.toggleSenior);
     const isSenior = useCartStore((state) => state.isSenior);
+    const storeDiscount = useCartStore((state) => state.discount);
     const getComputations = useCartStore((state) => state.getComputations);
 
     // --- PRINTER STORE ---
     const openCashDrawer = usePrinterStore((state) => state.openCashDrawer);
 
     const [isProcessing, setIsProcessing] = useState(false);
+    const [localShowDiscountModal, setLocalShowDiscountModal] = useState(false);
+    const showDiscountModal = externalShowDiscountModal !== undefined ? externalShowDiscountModal : localShowDiscountModal;
+    const setShowDiscountModal = externalSetShowDiscountModal !== undefined ? externalSetShowDiscountModal : setLocalShowDiscountModal;
+
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [lastTransactionId, setLastTransactionId] = useState(null);
     const [hoveredItemId, setHoveredItemId] = useState(null);
@@ -241,7 +249,7 @@ export default function CartSidebar({
                     handleClearCart();
                 }
             } else if (e.key === 'F10') {
-                toggleSenior();
+                setShowDiscountModal(true);
             } else if (e.key === 'F11') {
                 if (cart.length > 0) {
                     handleSaveOrder();
@@ -255,7 +263,7 @@ export default function CartSidebar({
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [focusedIndex, hoveredItemId, cart, showPaymentModal, showSuccessModal, onEditItemQty, disabled, enableShortcuts]);
+    }, [focusedIndex, hoveredItemId, cart, showPaymentModal, showSuccessModal, showDiscountModal, onEditItemQty, disabled, enableShortcuts]);
 
     // Format currency for display
     const formatPrice = (cents) => `${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -403,6 +411,8 @@ export default function CartSidebar({
             const cashGiven = paymentDetails.cashGiven ? parseFloat(paymentDetails.cashGiven) : 0;
             const change = paymentDetails.method === 'cash' ? (cashGiven - totalInUnits) : 0;
 
+            const computations = getComputations ? getComputations() : {};
+
             const response = await axios.post('/api/checkout', {
                 cart: cart.map(item => {
                     const isCustom = item.is_custom === true || (typeof item.id === 'string' && item.id.startsWith('custom-'));
@@ -416,6 +426,12 @@ export default function CartSidebar({
                 payment_method: paymentDetails.method,
                 reference: paymentDetails.reference,
                 is_senior: isSenior,
+                discount_type: computations.discountType || null,
+                discount_rate: computations.discountRate || null,
+                discount_amount: computations.discount || 0,
+                customer_name: computations.customerName || null,
+                customer_id_number: computations.customerIdNumber || null,
+                discount_reason: computations.discountReason || null,
                 cash_given: cashGiven,
                 change: change,
                 terminal_id: localStorage.getItem('pos_terminal_id') || null
@@ -521,25 +537,29 @@ export default function CartSidebar({
 
                         {/* Discount Button (F10) */}
                         <button
-                            onClick={toggleSenior}
+                            onClick={() => setShowDiscountModal(true)}
                             disabled={disabled}
                             className={`px-2.5 xl:px-3.5 h-[38px] rounded-none transition-all border flex items-center gap-1.5 text-xs sm:text-sm font-bold shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                isSenior 
+                                (isSenior || storeDiscount?.type)
                                     ? 'bg-amber-100 hover:bg-amber-200/80 text-amber-900 border-amber-300 font-extrabold shadow-2xs' 
                                     : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200'
                             }`}
                             title={showFKeys ? "Discount (F10)" : "Discount"}
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-4 h-4 shrink-0 ${isSenior ? 'text-amber-800' : 'text-amber-600'}`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-4 h-4 shrink-0 ${(isSenior || storeDiscount?.type) ? 'text-amber-800' : 'text-amber-600'}`}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                             </svg>
                             {showFKeys ? (
                                 <span className="hidden lg:inline-flex items-center gap-1">
-                                    <span className="hidden xl:inline">Discount</span>
-                                    <span className={`text-[10px] font-black font-mono px-1 py-0.2 rounded-none ${isSenior ? 'bg-amber-200/90 text-amber-900' : 'bg-amber-100 text-amber-700'}`}>F10</span>
+                                    <span className="hidden xl:inline">
+                                        {storeDiscount?.type ? (storeDiscount.rate ? `${storeDiscount.rate}%` : 'Discount') : 'Discount'}
+                                    </span>
+                                    <span className={`text-[10px] font-black font-mono px-1 py-0.2 rounded-none ${(isSenior || storeDiscount?.type) ? 'bg-amber-200/90 text-amber-900' : 'bg-amber-100 text-amber-700'}`}>F10</span>
                                 </span>
                             ) : (
-                                <span className="hidden xl:inline">Discount</span>
+                                <span className="hidden xl:inline">
+                                    {storeDiscount?.type ? (storeDiscount.rate ? `${storeDiscount.rate}%` : 'Discount') : 'Discount'}
+                                </span>
                             )}
                         </button>
                     </div>
@@ -739,12 +759,18 @@ export default function CartSidebar({
                             <span>Gross Subtotal</span>
                             <span className="font-mono text-gray-900 font-bold">{formatPrice(subtotal)}</span>
                         </div>
-                        {isSenior && (
-                            <div className="flex justify-between text-xs sm:text-sm text-emerald-700 font-bold">
-                                <span>Less: Discount (20%)</span>
-                                <span className="font-mono">-{formatPrice(discount)}</span>
-                            </div>
-                        )}
+                        {discount > 0 && (() => {
+                            const computations = getComputations ? getComputations() : {};
+                            return (
+                                <div className="flex justify-between text-xs sm:text-sm text-emerald-700 font-bold">
+                                    <span className="truncate pr-2">
+                                        Less: {computations.discountLabel || 'Discount'}
+                                        {computations.customerName ? ` (${computations.customerName})` : ''}
+                                    </span>
+                                    <span className="font-mono shrink-0">-{formatPrice(discount)}</span>
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     <div className="pt-2.5 border-t border-gray-100 flex justify-between items-end">
@@ -789,6 +815,15 @@ export default function CartSidebar({
                     </div>
                 </div>
             </div>
+
+            {/* DISCOUNT MODAL */}
+            {showDiscountModal && (
+                <DiscountModal
+                    onClose={() => setShowDiscountModal(false)}
+                    showFKeys={showFKeys}
+                    enableShortcuts={enableShortcuts}
+                />
+            )}
 
             {/* PAYMENT MODAL */}
             {showPaymentModal && (

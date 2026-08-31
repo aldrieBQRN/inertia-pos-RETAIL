@@ -2361,12 +2361,28 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 <button
                                     data-tab="all"
                                     onClick={() => handleStockTabChange('all')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         stockTab === 'all'
                                             ? 'bg-white text-[#1B3B6A] font-black border-t-[#1B3B6A] border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
+                                    {stockTab === 'all' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
                                     <span>All Catalog</span>
                                     <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         stockTab === 'all' 
@@ -2381,12 +2397,28 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 <button
                                     data-tab="in_stock"
                                     onClick={() => handleStockTabChange('in_stock')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         stockTab === 'in_stock'
                                             ? 'bg-white text-emerald-800 font-black border-t-emerald-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
+                                    {stockTab === 'in_stock' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
                                     <span>Healthy In Stock</span>
                                     <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         stockTab === 'in_stock' 
@@ -2401,12 +2433,28 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 <button
                                     data-tab="low_stock"
                                     onClick={() => handleStockTabChange('low_stock')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         stockTab === 'low_stock'
                                             ? 'bg-white text-amber-900 font-black border-t-amber-500 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
+                                    {stockTab === 'low_stock' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
                                     <span>Low Stock Alerts</span>
                                     <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         stockTab === 'low_stock' 
@@ -2421,12 +2469,28 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 <button
                                     data-tab="out_of_stock"
                                     onClick={() => handleStockTabChange('out_of_stock')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         stockTab === 'out_of_stock'
                                             ? 'bg-white text-rose-900 font-black border-t-rose-600 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
+                                    {stockTab === 'out_of_stock' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
                                     <span>Out of Stock</span>
                                     <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         stockTab === 'out_of_stock' 
@@ -2441,12 +2505,28 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 <button
                                     data-tab="archived"
                                     onClick={() => handleStockTabChange('archived')}
-                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative ${
+                                    className={`group px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-none text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0 border-t-2 border-x relative cursor-pointer ${
                                         stockTab === 'archived'
                                             ? 'bg-white text-slate-900 font-black border-t-slate-700 border-x-gray-200/90 shadow-xs z-20'
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
+                                    {stockTab === 'archived' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
                                     <span>Archived Items</span>
                                     <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         stockTab === 'archived' 
@@ -3106,8 +3186,9 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                 )}
                             </div>
                         </div>
+                    </div>
 
-                    {/* SMOOTH HORIZONTAL PAGINATION WITH SMART PAGE DISPLAY */}
+                    {/* 5. SEPARATE PAGINATION (Outside main card, matching Transactions & Shift History) */}
                     {!loading && totalPages > 1 && (() => {
                         const getPageNumbers = () => {
                             const pages = [];
@@ -3127,30 +3208,33 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                         };
 
                         return (
-                            <div className="py-4 flex flex-col sm:flex-row justify-between items-center gap-4 pb-10 sm:pb-4 w-full overflow-visible">
-                                <span className="text-xs text-gray-500 font-bold uppercase tracking-wider shrink-0">
+                            <div className="py-3 flex flex-col sm:flex-row justify-between items-center gap-3 pb-8 sm:pb-3 w-full overflow-visible">
+                                <span className="text-[11px] text-gray-500 font-bold uppercase tracking-wider shrink-0">
                                     Page <span className="text-gray-900 font-black">{currentPage}</span> of {totalPages}
                                 </span>
 
-                                <div className="w-full sm:w-auto overflow-x-auto hide-scrollbar pb-2 sm:pb-0">
-                                    <div className="flex gap-1.5 flex-nowrap w-max mx-auto sm:mx-0 px-1">
+                                <div className="w-full sm:w-auto overflow-x-auto hide-scrollbar pb-1 sm:pb-0">
+                                    <div className="flex gap-1 flex-nowrap w-max mx-auto sm:mx-0 px-1">
                                         <button
                                             disabled={currentPage === 1}
                                             onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                            className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center"
+                                            className="px-2.5 py-1 min-h-[30px] rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
                                         >
                                             &laquo; Prev
                                         </button>
 
                                         {getPageNumbers().map((num, idx) => (
                                             num === '...' ? (
-                                                <span key={`ellipsis-${idx}`} className="px-2 py-2 min-h-9 text-gray-400 font-bold flex items-center">...</span>
+                                                <span key={`ellipsis-${idx}`} className="px-1.5 py-1 min-h-[30px] text-gray-400 font-bold flex items-center text-xs">...</span>
                                             ) : (
                                                 <button
                                                     key={num}
                                                     onClick={() => { setCurrentPage(num); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                                    className={`shrink-0 px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all flex items-center justify-center
-                                                        ${currentPage === num ? 'bg-[#1B3B6A] text-white border-[#1B3B6A] shadow-sm font-extrabold' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                                                    className={`shrink-0 px-2.5 py-1 min-h-[30px] rounded-none text-xs font-bold border transition-all flex items-center justify-center active:scale-95 cursor-pointer ${
+                                                        currentPage === num
+                                                            ? 'bg-[#1B3B6A] text-white border-[#1B3B6A] shadow-xs font-extrabold'
+                                                            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 shadow-2xs'
+                                                    }`}
                                                 >
                                                     {num}
                                                 </button>
@@ -3160,7 +3244,7 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                                         <button
                                             disabled={currentPage === totalPages}
                                             onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                            className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center"
+                                            className="px-2.5 py-1 min-h-[30px] rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
                                         >
                                             Next &raquo;
                                         </button>
@@ -3201,7 +3285,6 @@ export default function Inventory({ auth, initial_products, initial_categories, 
                             </div>
                         </div>
                     )}
-                </div>
             </div>
         </div>
     </div>

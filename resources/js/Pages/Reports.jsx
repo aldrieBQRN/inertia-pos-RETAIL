@@ -1081,6 +1081,22 @@ export default function Reports({ auth, initial_report_data }) {
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
+                                    {activeTab === 'sales' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
                                     <span>Sales & Revenue Audit</span>
                                     <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         activeTab === 'sales' ? 'bg-[#1B3A69] text-white shadow-2xs' : 'bg-gray-200 text-gray-700 group-hover:bg-gray-300'
@@ -1099,6 +1115,22 @@ export default function Reports({ auth, initial_report_data }) {
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
+                                    {activeTab === 'products' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
                                     <span>Products & Categories</span>
                                     <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         activeTab === 'products' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-blue-50 text-blue-700 group-hover:bg-blue-100'
@@ -1117,6 +1149,22 @@ export default function Reports({ auth, initial_report_data }) {
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
+                                    {activeTab === 'inventory' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
                                     <span>Inventory Valuation</span>
                                     <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         activeTab === 'inventory' ? 'bg-purple-600 text-white shadow-2xs' : 'bg-purple-50 text-purple-700 group-hover:bg-purple-100'
@@ -1135,6 +1183,22 @@ export default function Reports({ auth, initial_report_data }) {
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
+                                    {activeTab === 'shifts' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
                                     <span>Shift & Cash Reconciliation</span>
                                     <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         activeTab === 'shifts' ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-emerald-50 text-emerald-700 group-hover:bg-emerald-100'
@@ -1153,6 +1217,22 @@ export default function Reports({ auth, initial_report_data }) {
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
+                                    {activeTab === 'staff' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
                                     <span>Staff Accountability</span>
                                     <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         activeTab === 'staff' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-indigo-50 text-indigo-700 group-hover:bg-indigo-100'

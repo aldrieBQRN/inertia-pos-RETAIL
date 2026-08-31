@@ -198,6 +198,30 @@ export default function Transactions({ auth, initial_transactions, initial_setti
         return method.charAt(0).toUpperCase() + method.slice(1);
     };
 
+    const getDiscountBadgeText = (sale) => {
+        if (!sale || (!sale.discount_amount && !sale.is_senior)) return null;
+        if (sale.discount_type === 'senior') return 'Senior (20%)';
+        if (sale.discount_type === 'pwd') return 'PWD (20%)';
+        if (sale.discount_type === 'loyalty_5') return 'Loyalty (5%)';
+        if (sale.discount_type === 'loyalty_10') return 'VIP (10%)';
+        if (sale.discount_type === 'damaged_15') return 'Clearance (15%)';
+        if (sale.discount_type === 'custom_percentage') return `Custom (${sale.discount_rate || 0}%)`;
+        if (sale.discount_type === 'custom_fixed') return `Custom (-₱${((sale.discount_amount || 0) / 100).toFixed(2)})`;
+        if (sale.discount_rate) return `${sale.discount_rate}% Off`;
+        if (sale.is_senior) return 'Senior (20%)';
+        return 'Discounted';
+    };
+
+    const getDiscountBadgeStyle = (sale) => {
+        if (sale?.discount_type === 'senior' || sale?.is_senior) {
+            return 'bg-amber-50 text-amber-800 border-amber-200/80';
+        }
+        if (sale?.discount_type === 'pwd') {
+            return 'bg-purple-50 text-purple-800 border-purple-200/80';
+        }
+        return 'bg-sky-50 text-sky-800 border-sky-200/80';
+    };
+
     const handleReprint = async (sale) => {
         try {
             await printReceipt(sale, settings);
@@ -348,13 +372,14 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                 const invoice = (sale.invoice_number || '').toLowerCase();
                 const cashier = (sale.cashier?.name || '').toLowerCase();
                 const ref = (sale.payment_reference || sale.reference_number || '').toLowerCase();
+                const cust = (sale.customer_name || '').toLowerCase();
                 const hasMatchingProduct = (sale.items || []).some(item => {
                     const prodName = (item.display_name || item.custom_name || item.product?.name || '').toLowerCase();
                     const prodSku = (item.product?.sku || item.product?.barcode || '').toLowerCase();
                     return prodName.includes(searchLower) || prodSku.includes(searchLower);
                 });
 
-                const matches = invoice.includes(searchLower) || cashier.includes(searchLower) || ref.includes(searchLower) || hasMatchingProduct;
+                const matches = invoice.includes(searchLower) || cashier.includes(searchLower) || ref.includes(searchLower) || cust.includes(searchLower) || hasMatchingProduct;
                 if (!matches) return false;
             }
 
@@ -365,18 +390,27 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                 }
             }
 
-            // Date Range Search
-            if (startDate || endDate) {
-                const saleDateStr = sale.created_at ? sale.created_at.split('T')[0] : '';
-                if (startDate && saleDateStr < startDate) return false;
-                if (endDate && saleDateStr > endDate) return false;
-            }
-
-            // Payment Method Search
+            // Payment Method Filter
             if (paymentFilter) {
-                if ((sale.payment_method || '').toLowerCase() !== paymentFilter.toLowerCase()) {
+                const saleMethod = (sale.payment_method || 'cash').toLowerCase();
+                if (paymentFilter === 'digital') {
+                    if (saleMethod === 'cash') return false;
+                } else if (saleMethod !== paymentFilter.toLowerCase()) {
                     return false;
                 }
+            }
+
+            // Date Range Filter
+            if (startDate) {
+                const saleDate = new Date(sale.created_at || sale.transaction_date).setHours(0, 0, 0, 0);
+                const start = new Date(startDate).setHours(0, 0, 0, 0);
+                if (saleDate < start) return false;
+            }
+
+            if (endDate) {
+                const saleDate = new Date(sale.created_at || sale.transaction_date).setHours(23, 59, 59, 999);
+                const end = new Date(endDate).setHours(23, 59, 59, 999);
+                if (saleDate > end) return false;
             }
 
             return true;
@@ -402,7 +436,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                     digital++;
                 }
             }
-            if (sale.is_senior) {
+            if (sale.is_senior || (sale.discount_amount && Number(sale.discount_amount) > 0)) {
                 discount++;
             }
         });
@@ -470,7 +504,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
             } else if (statusTab === 'digital') {
                 if (sale.status === 'void' || (sale.payment_method || 'cash').toLowerCase() === 'cash') return false;
             } else if (statusTab === 'discount') {
-                if (!sale.is_senior) return false;
+                if (!sale.is_senior && (!sale.discount_amount || Number(sale.discount_amount) <= 0)) return false;
             } else if (statusTab === 'void') {
                 if (sale.status !== 'void') return false;
             }
@@ -625,6 +659,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                 }
 
                 const ref = sale.payment_reference || sale.reference_number || 'N/A';
+                const discountText = getDiscountBadgeText(sale) || 'No';
                 const row = sheet.addRow([
                     sale.invoice_number || 'N/A',
                     sale.created_at ? new Date(sale.created_at).toLocaleString() : 'N/A',
@@ -633,7 +668,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                     formatPaymentName(sale.payment_method),
                     ref,
                     sale.status === 'void' ? 'VOIDED' : 'PAID',
-                    sale.is_senior ? 'Discounted (20%)' : 'No',
+                    discountText,
                     totalPHP
                 ]);
 
@@ -934,10 +969,11 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                 const itemsSummary = `${totalItemsCount} item(s):\n${itemsDetails}`;
 
                 const refNum = sale.payment_reference || sale.reference_number;
+                const discountText = getDiscountBadgeText(sale);
 
                 let formattedMethod = formatPaymentName(sale.payment_method).toUpperCase();
                 const paymentMethodText = formattedMethod
-                    + (sale.is_senior ? ' (Discounted)' : '')
+                    + (discountText ? ` (${discountText})` : '')
                     + (refNum ? `\nRef: ${refNum}` : '');
 
                 const total = (sale.total_amount || 0) / 100;
@@ -1268,6 +1304,22 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
+                                    {statusTab === 'all' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
                                     <span>All Transactions</span>
                                     <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         statusTab === 'all'
@@ -1288,6 +1340,22 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
+                                    {statusTab === 'cash' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
                                     <span>Cash Checkouts</span>
                                     <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         statusTab === 'cash'
@@ -1308,6 +1376,22 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
+                                    {statusTab === 'digital' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
                                     <span>Digital & Cards</span>
                                     <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         statusTab === 'digital'
@@ -1328,6 +1412,22 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
+                                    {statusTab === 'discount' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
                                     <span>Discounted</span>
                                     <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         statusTab === 'discount'
@@ -1348,6 +1448,22 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                             : 'bg-gray-100/70 hover:bg-gray-100 text-gray-500 hover:text-gray-800 font-bold border-transparent'
                                     }`}
                                 >
+                                    {statusTab === 'void' && (
+                                        <>
+                                            <div className="absolute -bottom-px -left-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                            <div className="absolute -bottom-px -right-3 w-3 h-3 pointer-events-none z-30 overflow-hidden">
+                                                <svg className="w-3 h-3 text-white fill-current scale-x-[-1]" viewBox="0 0 12 12">
+                                                    <path d="M12 0 L12 12 L0 12 A12 12 0 0 0 12 0 Z" />
+                                                    <path d="M0 12 A12 12 0 0 0 12 0" fill="none" stroke="rgba(229, 231, 235, 0.9)" strokeWidth="1.2" />
+                                                </svg>
+                                            </div>
+                                        </>
+                                    )}
                                     <span>Voided / Cancelled</span>
                                     <span className={`px-2 py-0.5 rounded-none text-[10px] sm:text-[11px] font-black transition-all ${
                                         statusTab === 'void'
@@ -1683,12 +1799,17 @@ export default function Transactions({ auth, initial_transactions, initial_setti
 
                                                                 {/* Payment Method & Reference */}
                                                                 <td className="py-3.5 px-4 whitespace-nowrap">
-                                                                    <div className="flex flex-col items-start gap-0.5">
+                                                                    <div className="flex flex-col items-start gap-1">
                                                                         <span className={`inline-block px-2.5 py-0.5 rounded-none text-[10px] font-black tracking-wider uppercase border shadow-2xs ${getPaymentBadgeStyle(sale.payment_method)}`}>
                                                                             {formatPaymentName(sale.payment_method)}
                                                                         </span>
+                                                                        {getDiscountBadgeText(sale) && (
+                                                                            <span className={`inline-block px-2 py-0.2 rounded-none text-[9px] font-black tracking-wider uppercase border shadow-2xs ${getDiscountBadgeStyle(sale)}`}>
+                                                                                {getDiscountBadgeText(sale)}
+                                                                            </span>
+                                                                        )}
                                                                         {(sale.payment_reference || sale.reference_number) && (
-                                             <span className="text-[10px] font-mono text-gray-400">
+                                                                            <span className="text-[10px] font-mono text-gray-400">
                                                                                 Ref: {sale.payment_reference || sale.reference_number}
                                                                             </span>
                                                                         )}
@@ -1844,13 +1965,13 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                                                 )}
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-1 shrink-0">
+                                                        <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
                                                             <span className={`px-2 py-0.5 rounded-none text-[9px] font-black tracking-wider uppercase border shadow-2xs ${getPaymentBadgeStyle(sale.payment_method)}`}>
                                                                 {formatPaymentName(sale.payment_method)}
                                                             </span>
-                                                            {sale.is_senior && (
-                                                                <span className="px-1.5 py-0.5 rounded-none text-[9px] font-black uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200/70">
-                                                                    Discount
+                                                            {getDiscountBadgeText(sale) && (
+                                                                <span className={`px-1.5 py-0.5 rounded-none text-[9px] font-black uppercase tracking-wider border shadow-2xs ${getDiscountBadgeStyle(sale)}`}>
+                                                                    {getDiscountBadgeText(sale)}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -1913,31 +2034,31 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                             };
 
                             return (
-                                <div className="py-4 flex flex-col sm:flex-row justify-between items-center gap-4 pb-10 sm:pb-4 w-full overflow-visible">
-                                    <span className="text-xs text-gray-500 font-bold uppercase tracking-wider shrink-0">
+                                <div className="py-3 flex flex-col sm:flex-row justify-between items-center gap-3 pb-8 sm:pb-3 w-full overflow-visible">
+                                    <span className="text-[11px] text-gray-500 font-bold uppercase tracking-wider shrink-0">
                                         Page <span className="text-gray-900 font-black">{currentPage}</span> of {totalPages}
                                     </span>
 
-                                    <div className="w-full sm:w-auto overflow-x-auto hide-scrollbar pb-2 sm:pb-0">
-                                        <div className="flex gap-1.5 flex-nowrap w-max mx-auto sm:mx-0 px-1">
+                                    <div className="w-full sm:w-auto overflow-x-auto hide-scrollbar pb-1 sm:pb-0">
+                                        <div className="flex gap-1 flex-nowrap w-max mx-auto sm:mx-0 px-1">
                                             <button
                                                 disabled={currentPage === 1}
                                                 onClick={() => { setCurrentPage(p => p - 1); scrollToWorkspace(); }}
-                                                className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
+                                                className="px-2.5 py-1 min-h-[30px] rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
                                             >
                                                 &laquo; Prev
                                             </button>
                                             {getPageNumbers().map((num, idx) => (
                                                 num === '...' ? (
-                                                    <span key={`ellipsis-${idx}`} className="px-2 py-2 min-h-9 text-gray-400 font-bold flex items-center text-xs">...</span>
+                                                    <span key={`ellipsis-${idx}`} className="px-1.5 py-1 min-h-[30px] text-gray-400 font-bold flex items-center text-xs">...</span>
                                                 ) : (
                                                     <button
                                                         key={num}
                                                         onClick={() => { setCurrentPage(num); scrollToWorkspace(); }}
-                                                        className={`shrink-0 px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all flex items-center justify-center active:scale-95 cursor-pointer ${
+                                                        className={`shrink-0 px-2.5 py-1 min-h-[30px] rounded-none text-xs font-bold border transition-all flex items-center justify-center active:scale-95 cursor-pointer ${
                                                             currentPage === num
                                                                 ? 'bg-[#1B3B6A] text-white border-[#1B3B6A] shadow-xs font-extrabold'
-                                                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 shadow-2xs'
                                                         }`}
                                                     >
                                                         {num}
@@ -1947,7 +2068,7 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                             <button
                                                 disabled={currentPage === totalPages}
                                                 onClick={() => { setCurrentPage(p => p + 1); scrollToWorkspace(); }}
-                                                className="px-3.5 py-2 min-h-9 rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
+                                                className="px-2.5 py-1 min-h-[30px] rounded-none text-xs font-bold border transition-all bg-white text-gray-600 border-gray-200 hover:bg-gray-50 disabled:opacity-40 whitespace-nowrap flex items-center active:scale-95 shadow-2xs cursor-pointer"
                                             >
                                                 Next &raquo;
                                             </button>
@@ -2096,20 +2217,39 @@ export default function Transactions({ auth, initial_transactions, initial_setti
                                 </>
                             )}
 
-                            {/* Senior / PWD Discount */}
-                            {selectedSale.is_senior && (() => {
+                            {/* Dynamic Discount Breakdown */}
+                            {((selectedSale.discount_amount && Number(selectedSale.discount_amount) > 0) || selectedSale.is_senior) && (() => {
                                 const itemsSubtotal = (selectedSale.items || []).reduce((sum, item) => sum + ((item.quantity || 0) * (item.unit_price || 0)), 0);
+                                const discountLabel = getDiscountBadgeText(selectedSale) || 'Discount';
                                 return (
-                                    <>
-                                        <div className="flex justify-between items-center text-xs font-bold pt-1 border-t border-dashed border-gray-200">
-                                            <span className="text-gray-500 uppercase tracking-wider">Subtotal</span>
+                                    <div className="space-y-1 pt-1 border-t border-dashed border-gray-200">
+                                        <div className="flex justify-between items-center text-xs font-bold">
+                                            <span className="text-gray-500 uppercase tracking-wider">Gross Subtotal</span>
                                             <span className="text-gray-800">{formatCurrency(itemsSubtotal)}</span>
                                         </div>
                                         <div className="flex justify-between items-center text-xs font-bold text-emerald-600">
-                                            <span className="uppercase tracking-wider">Less: 20% Discount</span>
+                                            <span className="uppercase tracking-wider">Less: {discountLabel}</span>
                                             <span>-{formatCurrency(selectedSale.discount_amount || 0)}</span>
                                         </div>
-                                    </>
+                                        {selectedSale.customer_name && (
+                                            <div className="flex justify-between items-center text-[11px] font-bold text-gray-600 bg-gray-50 px-2 py-1 rounded-none border border-gray-100">
+                                                <span className="text-gray-400 uppercase text-[10px]">Customer:</span>
+                                                <span className="text-gray-900">{selectedSale.customer_name}</span>
+                                            </div>
+                                        )}
+                                        {selectedSale.customer_id_number && (
+                                            <div className="flex justify-between items-center text-[11px] font-mono font-bold text-gray-600 bg-gray-50 px-2 py-1 rounded-none border border-gray-100">
+                                                <span className="text-gray-400 uppercase text-[10px]">ID / Booklet #:</span>
+                                                <span className="text-gray-900">{selectedSale.customer_id_number}</span>
+                                            </div>
+                                        )}
+                                        {selectedSale.discount_reason && (
+                                            <div className="flex justify-between items-center text-[11px] font-bold text-gray-600 bg-gray-50 px-2 py-1 rounded-none border border-gray-100">
+                                                <span className="text-gray-400 uppercase text-[10px]">Reason:</span>
+                                                <span className="text-gray-900 truncate max-w-[200px]">{selectedSale.discount_reason}</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 );
                             })()}
 

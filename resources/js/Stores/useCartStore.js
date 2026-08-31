@@ -1,11 +1,22 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+const initialDiscount = {
+    type: null, // 'senior', 'pwd', 'loyalty_5', 'loyalty_10', 'damaged_15', 'custom_percentage', 'custom_fixed'
+    label: '',
+    rate: null,
+    amount: 0, // cents for fixed discounts
+    customerName: '',
+    customerIdNumber: '',
+    reason: '',
+};
+
 const useCartStore = create(
     persist(
         (set, get) => ({
             cart: [],
-            isSenior: false,
+            isSenior: false, // Legacy flag maintained for backward compatibility
+            discount: { ...initialDiscount },
 
             addToCart: (product, quantity = 1, priceOverride = null) => {
                 const { cart } = get();
@@ -54,26 +65,78 @@ const useCartStore = create(
                 }
             },
 
-            clearCart: () => set({ cart: [], isSenior: false }),
+            clearCart: () => set({ cart: [], isSenior: false, discount: { ...initialDiscount } }),
             setCart: (newCart) => set({ cart: newCart }),
-            toggleSenior: () => set((state) => ({ isSenior: !state.isSenior })),
 
-            // THIS IS THE FUNCTION CAUSING THE ERROR IF MISSING
-            getComputations: () => {
-                const { cart, isSenior } = get();
-                const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-                let discount = 0;
-                let total = subtotal;
+            // Apply a structured dynamic discount
+            applyDiscount: (discountConfig) => {
+                const isSeniorOrPwd = discountConfig?.type === 'senior' || discountConfig?.type === 'pwd';
+                set({
+                    discount: {
+                        type: discountConfig.type || null,
+                        label: discountConfig.label || '',
+                        rate: discountConfig.rate !== undefined ? Number(discountConfig.rate) : null,
+                        amount: discountConfig.amount !== undefined ? Math.round(Number(discountConfig.amount)) : 0,
+                        customerName: discountConfig.customerName || '',
+                        customerIdNumber: discountConfig.customerIdNumber || '',
+                        reason: discountConfig.reason || '',
+                    },
+                    isSenior: isSeniorOrPwd
+                });
+            },
 
-                if (isSenior) {
-                    discount = subtotal * 0.20;
-                    total = subtotal - discount;
+            // Remove currently applied discount
+            removeDiscount: () => set({
+                discount: { ...initialDiscount },
+                isSenior: false
+            }),
+
+            // Quick toggle for backward compatibility
+            toggleSenior: () => {
+                const { discount, isSenior } = get();
+                if (isSenior || discount.type === 'senior') {
+                    get().removeDiscount();
+                } else {
+                    get().applyDiscount({
+                        type: 'senior',
+                        label: 'Senior Citizen (20%)',
+                        rate: 20,
+                        amount: 0,
+                        customerName: '',
+                        customerIdNumber: '',
+                        reason: 'Senior Citizen Statutory Discount'
+                    });
                 }
+            },
+
+            // Dynamic computations accounting for percentage or fixed discounts
+            getComputations: () => {
+                const { cart, discount, isSenior } = get();
+                const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+                let discountAmount = 0;
+
+                if (discount && discount.type === 'custom_fixed') {
+                    discountAmount = Math.min(subtotal, Math.max(0, discount.amount || 0));
+                } else if (discount && discount.rate !== null && discount.rate > 0) {
+                    const clampedRate = Math.min(100, Math.max(0, discount.rate));
+                    discountAmount = Math.round(subtotal * (clampedRate / 100));
+                } else if (isSenior || (discount && discount.type === 'senior')) {
+                    discountAmount = Math.round(subtotal * 0.20);
+                }
+
+                discountAmount = Math.min(subtotal, Math.max(0, discountAmount));
+                const total = Math.max(0, subtotal - discountAmount);
 
                 return {
                     subtotal: subtotal,
-                    discount: Math.round(discount),
-                    total: Math.round(total)
+                    discount: discountAmount,
+                    total: total,
+                    discountLabel: discount.label || (isSenior ? 'Senior Discount (20%)' : null),
+                    discountType: discount.type || (isSenior ? 'senior' : null),
+                    discountRate: discount.rate || (isSenior ? 20 : null),
+                    customerName: discount.customerName || '',
+                    customerIdNumber: discount.customerIdNumber || '',
+                    discountReason: discount.reason || '',
                 };
             }
         }),

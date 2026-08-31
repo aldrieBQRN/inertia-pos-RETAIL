@@ -527,12 +527,38 @@ const usePrinterStore = create(
                     }
                 });
 
-                if (trx.is_senior) {
+                if ((trx.discount_amount && trx.discount_amount > 0) || trx.is_senior) {
+                    let discountLabel = "Less: Discount:";
+                    if (trx.discount_type === 'senior') {
+                        discountLabel = "Less: Senior (20%):";
+                    } else if (trx.discount_type === 'pwd') {
+                        discountLabel = "Less: PWD (20%):";
+                    } else if (trx.discount_type === 'loyalty_5') {
+                        discountLabel = "Less: Loyalty (5%):";
+                    } else if (trx.discount_type === 'loyalty_10') {
+                        discountLabel = "Less: VIP/Promo (10%):";
+                    } else if (trx.discount_type === 'damaged_15') {
+                        discountLabel = "Less: Clearance (15%):";
+                    } else if (trx.discount_rate) {
+                        discountLabel = `Less: Discount (${trx.discount_rate}%):`;
+                    } else if (trx.is_senior) {
+                        discountLabel = "Less: Senior (20%):";
+                    }
+
                     finalCommands.push(
                         ...encode(separator),
                         ...encode("Subtotal:".padEnd(lineCap - 12) + fmt(originalSubtotal).padStart(12) + "\n"),
-                        ...encode("Less: 20% Discount:".padEnd(lineCap - 12) + ("-" + fmt(trx.discount_amount || 0)).padStart(12) + "\n")
+                        ...encode(discountLabel.padEnd(lineCap - 12) + ("-" + fmt(trx.discount_amount || 0)).padStart(12) + "\n")
                     );
+
+                    if (trx.customer_name || trx.customer_id_number) {
+                        if (trx.customer_name) {
+                            finalCommands.push(...encode(`Cust: ${trx.customer_name}\n`));
+                        }
+                        if (trx.customer_id_number) {
+                            finalCommands.push(...encode(`ID #: ${trx.customer_id_number}\n`));
+                        }
+                    }
                 }
 
                 finalCommands.push(...encode(separator));

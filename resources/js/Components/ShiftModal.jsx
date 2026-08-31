@@ -5,7 +5,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import usePrinterStore from '@/Stores/usePrinterStore';
 
-export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted }) {
+export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted, showFKeys = true }) {
     const [amount, setAmount] = useState('');
     const [expenses, setExpenses] = useState('');
     const [closingNotes, setClosingNotes] = useState('');
@@ -234,25 +234,29 @@ export default function ShiftModal({ isOpen, settings, onClose, onShiftCompleted
             >
 
                 {/* Header */}
-                <div className="bg-white px-5 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
+                <div className="bg-[#1B3B6A] px-5 py-3.5 flex justify-between items-center text-white shrink-0 shadow-md">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-none bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                        <div className="w-8 h-8 rounded-none bg-white/10 flex items-center justify-center text-amber-300 shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
                         <div>
-                            <h2 className="text-base font-black text-gray-900 tracking-tight">{summary ? 'Z-Read Audit Summary' : 'Close Work Shift'}</h2>
-                            <p className="text-[11px] font-semibold text-gray-400">{summary ? `Shift #${summary.id} Closed` : 'Reconcile drawer cash before logout'}</p>
+                            <h2 className="text-base sm:text-lg font-black text-white tracking-tight flex items-center gap-2">
+                                {summary ? 'Z-Read Audit Summary' : 'Close Work Shift'}
+                            </h2>
+                            <p className="text-xs text-blue-200 font-medium">{summary ? `Shift #${summary.id} Closed & Reconciled` : 'Reconcile drawer cash before logout'}</p>
                         </div>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-none transition-colors shadow-2xs cursor-pointer"
+                        className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-none transition-colors cursor-pointer"
                         title="Close (Esc)"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </button>
                 </div>
 

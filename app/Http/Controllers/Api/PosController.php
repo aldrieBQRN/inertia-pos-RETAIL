@@ -34,6 +34,14 @@ class PosController extends Controller
             'payment_method' => 'required|string|in:cash,gcash,maya,card,credit_card,debit_card',
             'cash_given' => 'nullable|numeric',
             'change' => 'nullable|numeric',
+            // DYNAMIC DISCOUNT FIELDS
+            'discount_type' => 'nullable|string|max:50',
+            'discount_rate' => 'nullable|numeric|min:0|max:100',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'customer_name' => 'nullable|string|max:150',
+            'customer_id_number' => 'nullable|string|max:100',
+            'discount_reason' => 'nullable|string|max:255',
+            'is_senior' => 'nullable|boolean',
         ]);
 
         // Start transaction to ensure data integrity
@@ -68,6 +76,11 @@ class PosController extends Controller
             // Combine prefix and the new padded sequence (e.g., INV-001-20260329-0001)
             $invoiceNumber = $todayPrefix . str_pad($nextSequence, 4, '0', STR_PAD_LEFT);
 
+            $isSeniorOrPwd = (bool) (
+                $request->is_senior || 
+                in_array(strtolower($request->discount_type ?? ''), ['senior', 'senior_citizen', 'pwd'])
+            );
+
             $sale = Sale::create([
                 'invoice_number' => $invoiceNumber,
                 'cashier_id' => Auth::id(),
@@ -75,7 +88,7 @@ class PosController extends Controller
                 'total_amount' => 0,
                 'payment_method' => $request->payment_method,
                 'payment_reference' => $request->reference ?? null,
-                'is_senior' => $request->is_senior ?? false,
+                'is_senior' => $isSeniorOrPwd,
                 'cash_given' => $cashGiven,
                 'change' => $change,
                 'transaction_date' => now(),
@@ -163,26 +176,64 @@ class PosController extends Controller
                 SaleItem::insert($saleItemsToInsert);
             }
 
-            // 4. Apply Senior/PWD 20% discount logic (Philippine Standard)
+            // 4. Dynamic Discount Calculation (Percentage, Presets, Fixed Amounts, or Senior/PWD)
             $discountAmount = 0;
-            if ($request->is_senior) {
-                $discountAmount = $calculatedTotal * 0.20;
-                $calculatedTotal = $calculatedTotal - $discountAmount;
+            $discountType = $request->discount_type ?? ($request->is_senior ? 'senior' : null);
+            $discountRate = $request->has('discount_rate') && $request->discount_rate !== null 
+                ? (float) $request->discount_rate 
+                : ($request->is_senior ? 20.00 : null);
+
+            if ($discountType === 'custom_fixed' || ($request->has('discount_amount') && $request->discount_amount > 0 && $discountRate === null)) {
+                // Fixed amount discount in cents
+                $requestedDiscountCents = (int) round($request->discount_amount);
+                $discountAmount = min($calculatedTotal, max(0, $requestedDiscountCents));
+            } elseif ($discountRate !== null && $discountRate > 0) {
+                // Percentage based discount
+                $clampedRate = min(100, max(0, $discountRate));
+                $discountAmount = (int) round($calculatedTotal * ($clampedRate / 100));
+            } elseif ($request->is_senior) {
+                // Fallback for legacy requests
+                $discountAmount = (int) round($calculatedTotal * 0.20);
+                $discountRate = 20.00;
+                $discountType = 'senior';
             }
 
-            // Store the final calculated total and discount amount
+            // Safety bounds check
+            $discountAmount = min($calculatedTotal, max(0, $discountAmount));
+            $finalPayableTotal = max(0, $calculatedTotal - $discountAmount);
+
+            // Store the final calculated total and discount metadata
             $sale->update([
-                'total_amount' => $calculatedTotal,
-                'discount_amount' => $discountAmount
+                'total_amount' => $finalPayableTotal,
+                'discount_amount' => $discountAmount,
+                'discount_type' => $discountAmount > 0 ? $discountType : null,
+                'discount_rate' => $discountAmount > 0 ? $discountRate : null,
+                'customer_name' => $discountAmount > 0 ? $request->customer_name : null,
+                'customer_id_number' => $discountAmount > 0 ? $request->customer_id_number : null,
+                'discount_reason' => $discountAmount > 0 ? $request->discount_reason : null,
             ]);
 
             DB::commit();
 
             // Log sale transaction in background
             try {
-                \App\Services\ActivityService::logCreate('Sale', $sale->id, "Completed checkout sale {$invoiceNumber} for ₱" . number_format($calculatedTotal / 100, 2), [
+                $discountLabel = match ($discountType) {
+                    'senior' => 'Senior Citizen (20%)',
+                    'pwd' => 'PWD (20%)',
+                    'national_athlete' => 'National Athlete (20%)',
+                    'solo_parent' => 'Solo Parent (10%)',
+                    'loyalty_10' => 'Loyalty Reward (10%)',
+                    'damaged_15' => 'Damaged / Clearance (15%)',
+                    'custom_percentage' => 'Custom Discount (' . ($discountRate ?? 0) . '%)',
+                    'custom_fixed' => 'Custom Fixed Amount',
+                    default => $discountType ? ucwords(str_replace('_', ' ', $discountType)) : 'Custom Discount'
+                };
+
+                \App\Services\ActivityService::logCreate('Sale', $sale->id, "Completed checkout sale {$invoiceNumber} for ₱" . number_format($finalPayableTotal / 100, 2) . ($discountAmount > 0 ? " (Discount: ₱" . number_format($discountAmount / 100, 2) . " - {$discountLabel})" : ""), [
                     'invoice_number' => $invoiceNumber,
-                    'total_amount' => $calculatedTotal / 100,
+                    'total_amount' => $finalPayableTotal / 100,
+                    'discount_amount' => $discountAmount / 100,
+                    'discount_type' => $discountType,
                     'payment_method' => $request->payment_method,
                     'items_count' => count($request->cart)
                 ]);

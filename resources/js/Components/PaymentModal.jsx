@@ -258,24 +258,28 @@ export default function PaymentModal({ total, onClose, onConfirm, isProcessing, 
             >
 
                 {/* Modal Header */}
-                <div className="bg-white px-5 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-none bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                <div className="bg-[#1B3B6A] px-5 py-3.5 flex justify-between items-center text-white shrink-0 shadow-md">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-none bg-white/10 flex items-center justify-center text-amber-300 shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                             </svg>
                         </div>
                         <div>
-                            <h2 className="text-base font-black text-gray-900 tracking-tight">Checkout Payment</h2>
-                            <p className="text-[11px] font-semibold text-gray-400">Select payment channel & finalize</p>
+                            <h2 className="text-base sm:text-lg font-black text-white tracking-tight flex items-center gap-2">
+                                Checkout Payment
+                                {showFKeys && <span className="text-[10px] font-mono px-1.5 py-0.2 bg-white/20 text-white rounded-none font-extrabold">F12</span>}
+                            </h2>
+                            <p className="text-xs text-blue-200 font-medium">Select payment channel & finalize order</p>
                         </div>
                     </div>
                     <button
+                        type="button"
                         onClick={onClose}
-                        className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-none transition-colors shadow-2xs cursor-pointer"
+                        className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-none transition-colors cursor-pointer"
                         title="Close (Esc)"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
 

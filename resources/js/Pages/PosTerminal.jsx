@@ -42,6 +42,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
     const [showHeldOrdersModal, setShowHeldOrdersModal] = useState(false);
     const [heldOrders, setHeldOrders] = useState(() => initial_held_orders || props.initial_held_orders || []);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showDiscountModal, setShowDiscountModal] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
 
     // Shift Lifecycle & Cash Movement States
@@ -271,7 +272,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
             }
 
             // Suspend POS shortcuts if ANY modal is open
-            if (showPaymentModal || showOpenShiftModal || showCashMovementModal || showCloseShiftModal || showTerminalSelectModal) {
+            if (showPaymentModal || showDiscountModal || showOpenShiftModal || showCashMovementModal || showCloseShiftModal || showTerminalSelectModal) {
                 return;
             }
 
@@ -804,6 +805,7 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
 
     const isAnyModalOpen = Boolean(
         showPaymentModal || 
+        showDiscountModal ||
         showQtyModal || 
         showHeldOrdersModal || 
         showOpenShiftModal || 
@@ -829,6 +831,8 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                         onCloseShift={() => setShowCloseShiftModal(true)}
                         showPaymentModal={showPaymentModal}
                         setShowPaymentModal={setShowPaymentModal}
+                        showDiscountModal={showDiscountModal}
+                        setShowDiscountModal={setShowDiscountModal}
                         onPrintReceipt={handlePrintReceipt}
                         onRecallClick={fetchHeldOrders}
                         heldOrdersCount={heldOrders.length}
@@ -1306,21 +1310,26 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                 <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[100] p-0 sm:p-4 backdrop-blur-sm transition-opacity">
                     <div className="bg-white w-full max-w-md h-auto max-h-[85vh] sm:max-h-[90vh] rounded-none shadow-2xl border border-gray-200/90 flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in">
                         {/* Header */}
-                        <div className="bg-white px-5 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
-                            <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-none bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <div className="bg-[#1B3B6A] px-5 py-3.5 flex justify-between items-center text-white shrink-0 shadow-md">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-none bg-white/10 flex items-center justify-center text-amber-300 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 </div>
                                 <div>
-                                    <h2 className="text-base font-black text-gray-900 tracking-tight">Recall Saved Order</h2>
-                                    <p className="text-[11px] font-semibold text-gray-400">Select order to resume checkout</p>
+                                    <h2 className="text-base sm:text-lg font-black text-white tracking-tight flex items-center gap-2">
+                                        Recall Saved Orders
+                                        {showFKeys && <span className="text-[10px] font-mono px-1.5 py-0.2 bg-white/20 text-white rounded-none font-extrabold">F8</span>}
+                                    </h2>
+                                    <p className="text-xs text-blue-200 font-medium">Select a held transaction to resume checkout</p>
                                 </div>
                             </div>
                             <button
+                                type="button"
                                 onClick={() => { setShowHeldOrdersModal(false); setHeldOrdersNavIndex(-1); }}
-                                className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-none transition-colors shadow-2xs cursor-pointer"
+                                className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-none transition-colors cursor-pointer"
+                                title="Close (Esc)"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
                         {/* Scrollable list */}
@@ -1433,23 +1442,23 @@ export default function PosTerminal({ auth, store_settings, settings, initial_sh
                         }}
                         className="bg-white w-full max-w-sm h-auto max-h-[85vh] sm:max-h-[90vh] rounded-none shadow-2xl border border-gray-200/90 flex flex-col overflow-hidden animate-slide-up sm:animate-fade-in"
                     >
-                        <div className="bg-white px-5 py-4 border-b border-gray-100 flex justify-between items-center shrink-0">
-                            <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-none bg-[#EFF4F9] text-[#1B3B6A] border border-[#CBD7E6] flex items-center justify-center shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                        <div className="bg-[#1B3B6A] px-5 py-3.5 flex justify-between items-center text-white shrink-0 shadow-md">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-none bg-white/10 flex items-center justify-center text-amber-300 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                 </div>
                                 <div>
-                                    <h2 className="text-base font-black text-gray-900 tracking-tight">Enter Item Quantity</h2>
-                                    <p className="text-xs font-medium text-gray-400">Set units to add to cart</p>
+                                    <h2 className="text-base sm:text-lg font-black text-white tracking-tight">Enter Item Quantity</h2>
+                                    <p className="text-xs text-blue-200 font-medium">Set units to add to cart</p>
                                 </div>
                             </div>
                             <button
                                 type="button"
                                 onClick={closeQtyModal}
-                                className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-none transition-colors shadow-2xs cursor-pointer"
+                                className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-none transition-colors cursor-pointer"
                                 title="Close (Esc)"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
                         <form onSubmit={handleConfirmQty} className="flex-1 overflow-y-auto p-5 custom-scrollbar flex flex-col">
