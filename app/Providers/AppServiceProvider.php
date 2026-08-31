@@ -47,8 +47,8 @@ class AppServiceProvider extends ServiceProvider
             Log::warning('Production debug mode is enabled. Set APP_DEBUG=false before deploying.');
         }
 
-        // Force HTTPS scheme for assets, redirects, and forms when in production or behind secure proxies
-        if (app()->environment('production') || request()->header('x-forwarded-proto') === 'https') {
+        // Force HTTPS scheme only if APP_URL is configured with https or request is via secure proxy
+        if (str_starts_with(config('app.url') ?? '', 'https://') || request()->isSecure() || request()->header('x-forwarded-proto') === 'https') {
             URL::forceScheme('https');
         }
 
