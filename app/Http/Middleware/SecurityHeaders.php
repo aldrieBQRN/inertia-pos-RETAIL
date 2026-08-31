@@ -31,11 +31,9 @@ class SecurityHeaders
         $response->header('X-XSS-Protection', '1; mode=block');
 
         // Strict Transport Security (HSTS)
-        // Forces HTTPS for 1 year (31536000 seconds)
-        // includeSubDomains: applies to all subdomains
-        // Only sent over HTTPS
-        if (request()->secure()) {
-            $response->header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+        // Only enable if explicitly configured in .env with FORCE_HTTPS=true
+        if (config('app.force_https', false) && request()->secure()) {
+            $response->header('Strict-Transport-Security', 'max-age=31536000');
         }
 
         // Referrer Policy
